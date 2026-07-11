@@ -18,6 +18,7 @@ See [UNITY_6_UPGRADE_GUIDE.md](UNITY_6_UPGRADE_GUIDE.md) for detailed instructio
 ### 2. Open the Project
 
 In Unity Hub:
+
 - Click **Open**
 - Navigate to this folder
 - Select it and wait for import (~5 minutes on first load)
@@ -25,6 +26,7 @@ In Unity Hub:
 ### 3. Verify the Setup
 
 In the Unity editor:
+
 - Window → General → About Unity → Confirm "Unity 6" or "6.3 LTS"
 - Window → UI Toolkit → Confirm available
 - Console should show no errors
@@ -58,12 +60,12 @@ stimtycoon/
 
 ## Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [STIM_TYCOON_MASTER_README(2).md](STIM_TYCOON_MASTER_README(2).md) | Complete product definition and 10-phase roadmap |
-| [docs/MODIFIER_RULES.md](docs/MODIFIER_RULES.md) | Event outcome probability system design |
-| [docs/BUSINESS_TURNS.md](docs/BUSINESS_TURNS.md) | Business turn mechanics and economics |
-| [UNITY_6_UPGRADE_GUIDE.md](UNITY_6_UPGRADE_GUIDE.md) | Unity 6.3 LTS installation |
+| Document                                                             | Purpose                                          |
+| -------------------------------------------------------------------- | ------------------------------------------------ |
+| [STIM_TYCOON_MASTER_README(2).md](<STIM_TYCOON_MASTER_README(2).md>) | Complete product definition and 10-phase roadmap |
+| [docs/MODIFIER_RULES.md](docs/MODIFIER_RULES.md)                     | Event outcome probability system design          |
+| [docs/BUSINESS_TURNS.md](docs/BUSINESS_TURNS.md)                     | Business turn mechanics and economics            |
+| [UNITY_6_UPGRADE_GUIDE.md](UNITY_6_UPGRADE_GUIDE.md)                 | Unity 6.3 LTS installation                       |
 
 ---
 
@@ -83,17 +85,17 @@ stimtycoon/
 
 ## Tech Stack (Locked)
 
-| Component | Technology |
-|-----------|-----------|
-| Engine | Unity 6.3 LTS |
-| Language | C# |
-| UI Framework | UI Toolkit + UI Builder |
-| Events & Branching | Dialogue System for Unity |
-| Local Save | Easy Save 3 |
-| Authentication | Unity Authentication + Apple Game Center |
-| Analytics | Unity Analytics |
-| Ads | Unity LevelPlay |
-| Testing | Unity Test Framework |
+| Component          | Technology                               |
+| ------------------ | ---------------------------------------- |
+| Engine             | Unity 6.3 LTS                            |
+| Language           | C#                                       |
+| UI Framework       | UI Toolkit + UI Builder                  |
+| Events & Branching | Dialogue System for Unity                |
+| Local Save         | Easy Save 3                              |
+| Authentication     | Unity Authentication + Apple Game Center |
+| Analytics          | Unity Analytics                          |
+| Ads                | Unity LevelPlay                          |
+| Testing            | Unity Test Framework                     |
 
 ---
 
