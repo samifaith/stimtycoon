@@ -1,0 +1,8 @@
+{
+  "projectFileVersion": 3,
+  "baseLanguage": "en",
+  "sourceFilePatterns": [
+    "**/*.yarn"
+  ],
+  "excludeFilePatterns": []
+}

@@ -1,0 +1,12 @@
+title: career_salary_negotiation_001
+tags: career representative_event
+---
+Your annual review is wrapping up. Your manager asks whether there is anything else you want to discuss.
+
+-> Make the case for a raise. #choice:make_the_case
+    You explain the value you delivered this year and ask for your compensation to reflect it.
+    <<stop>>
+-> Let it pass for now. #choice:let_it_pass
+    You thank your manager for the review and decide to revisit compensation later.
+    <<stop>>
+===

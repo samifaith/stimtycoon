@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 
 namespace StimTycoon.Editor
@@ -34,7 +35,7 @@ namespace StimTycoon.Editor
             }
 
             var easySaveInstalled = IsTypeAvailable("ES3");
-            var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.iOS);
+            var defines = PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.iOS);
             var easySaveEnabled = HasDefine(defines, EasySaveDefine);
 
             if (easySaveInstalled && easySaveEnabled)

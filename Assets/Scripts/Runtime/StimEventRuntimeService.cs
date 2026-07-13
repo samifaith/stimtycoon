@@ -40,6 +40,11 @@ namespace StimTycoon.Runtime
             return riskLevel.ToString();
         }
 
+        public bool TryStartEvent(string eventId)
+        {
+            return CanRunEvent(eventId, out _);
+        }
+
         public bool TryResolveChoice(string eventId, string choiceId, out string resolutionSummary)
         {
             resolutionSummary = string.Empty;
@@ -157,6 +162,11 @@ namespace StimTycoon.Runtime
         public bool CanRunEvent(string eventId)
         {
             return eventRuntimeService.CanRunEvent(eventId, out _);
+        }
+
+        public bool TryStartEvent(string eventId)
+        {
+            return eventRuntimeService.TryStartEvent(eventId);
         }
 
         public string GetRiskLabel(string eventId, string choiceId)

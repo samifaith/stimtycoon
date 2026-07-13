@@ -6,6 +6,7 @@ namespace StimTycoon.Abstractions
     public interface IStimDialogueBridge
     {
         bool CanRunEvent(string eventId);
+        bool TryStartEvent(string eventId);
         string GetRiskLabel(string eventId, string choiceId);
         bool ResolveChoice(string eventId, string choiceId);
         void ApplyResolvedOutcome();

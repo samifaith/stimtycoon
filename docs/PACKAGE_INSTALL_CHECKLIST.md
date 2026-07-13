@@ -6,7 +6,7 @@ Install and verify packages in this order. Commit `Packages/`, `ProjectSettings/
 - [ ] Confirm the project compiles and Edit Mode tests pass before importing vendors.
 - [ ] Run **Tools → Stim Tycoon → Run Setup Check** and resolve every `FAIL` reported in the Console.
 - [x] Use the native atomic JSON repository for local saves. Easy Save 3 remains an optional adapter behind `STIM_EASY_SAVE_3`.
-- [ ] Import **Dialogue System for Unity** from My Assets; keep its SDK types behind `IStimDialogueBridge`.
+- [x] Install free **Yarn Spinner** from its official Git package; keep its SDK types behind `IStimDialogueBridge`.
 - [ ] Install **Authentication** and **Cloud Save** from **Window → Package Manager → Unity Registry**.
 - [ ] Install Apple's **GameKit** plugin for Game Center sign-in and link it through `IStimAccountService`.
 - [ ] Install **Unity LevelPlay / Ads Mediation** last and keep placement calls behind `IStimAdsService`.
