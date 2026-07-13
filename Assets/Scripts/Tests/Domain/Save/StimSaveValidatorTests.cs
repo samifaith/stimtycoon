@@ -77,6 +77,103 @@ namespace StimTycoon.Tests.Domain.Save
         }
 
         [Test]
+        public void ValidateSave_RejectsLooksOutsideCoreStatRange()
+        {
+            var save = CreateValidSave();
+            save.state.character.looks = 101;
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("looks")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsLuckOutsideCoreStatRange()
+        {
+            var save = CreateValidSave();
+            save.state.character.luck = -1;
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("luck")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsNegativeSkillExperience()
+        {
+            var save = CreateValidSave();
+            save.state.skills.Add(new StimSkillState { skillId = "negotiation", experience = -1 });
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("experience")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsDuplicateRelationshipIds()
+        {
+            var save = CreateValidSave();
+            save.state.relationships.Add(new StimRelationshipState { relationshipId = "parent", value = 50 });
+            save.state.relationships.Add(new StimRelationshipState { relationshipId = "parent", value = 60 });
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("duplicate id parent")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsExpiredPersistedStatus()
+        {
+            var save = CreateValidSave();
+            save.state.statuses.Add(new StimStatusState { statusId = "worried", remainingMonths = 0 });
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("remainingMonths")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsNegativeMonthlyLivingExpenses()
+        {
+            var save = CreateValidSave();
+            save.state.finances.monthlyLivingExpensesMinorUnits = -1;
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("monthlyLivingExpenses")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsTaxRateAboveOneHundredPercent()
+        {
+            var save = CreateValidSave();
+            save.state.finances.taxRateBasisPoints = 10001;
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("taxRateBasisPoints")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsNegativeQuietMonthCounter()
+        {
+            var save = CreateValidSave();
+            save.state.calendar.quietMonthsSinceEvent = -1;
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("quietMonthsSinceEvent")));
+        }
+
+        [Test]
         public void GetValidationSummary_CreatesHumanReadableSummary()
         {
             var result = new StimSaveValidationResult

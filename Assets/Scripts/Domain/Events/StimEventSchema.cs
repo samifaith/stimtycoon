@@ -96,6 +96,13 @@ namespace StimTycoon.Events
         Repeatable
     }
 
+    public enum EventTimingPolicy
+    {
+        AnyMonth = 0,
+        AnnualRollover = 1,
+        SpecificMonth = 2
+    }
+
     /// <summary>
     /// Single effect that mutates game state when applied.
     /// </summary>
@@ -184,6 +191,11 @@ namespace StimTycoon.Events
         public int cooldownYears;
         public RepeatPolicy repeatPolicy;
         public List<string> analyticsTags = new List<string>();
+
+        // Timing and frequency. AnyMonth is the default so ordinary events are not tied to birthdays.
+        public EventTimingPolicy timingPolicy = EventTimingPolicy.AnyMonth;
+        public int requiredMonth;
+        public float monthlyTriggerChance = 0.25f;
 
         // Optional fields
         public string exclusiveToTraits;                       // JSON: only runs if player has any of these traits

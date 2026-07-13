@@ -193,6 +193,209 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(repository.CommitCount, Is.EqualTo(0));
         }
 
+        [Test]
+        public void ResolveChoice_AppliesSkillRelationshipAndTimedStatusEffects()
+        {
+            var evt = RepresentativeStimEvents.CreateSalaryNegotiation();
+            var choice = evt.choices.Find(candidate => candidate.id == "make_the_case");
+            foreach (var outcome in choice.outcomes)
+            {
+                outcome.effects.Add(new Effect { type = EffectType.SkillXp, targetId = "negotiation", value = 15 });
+                outcome.effects.Add(new Effect { type = EffectType.RelationshipDelta, targetId = "manager", value = -7 });
+                outcome.effects.Add(new Effect { type = EffectType.StatusAdd, targetId = "focused", value = 2 });
+            }
+
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(evt);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            service.Start(CreateValidSave());
+
+            Assert.IsTrue(service.TryResolveChoice(evt.id, choice.id, out var summary), summary);
+            Assert.That(service.ActiveSave.state.skills.Find(skill => skill.skillId == "negotiation").experience, Is.EqualTo(15));
+            Assert.That(service.ActiveSave.state.relationships.Find(relationship => relationship.relationshipId == "manager").value, Is.EqualTo(43));
+            Assert.That(service.ActiveSave.state.statuses.Find(status => status.statusId == "focused").remainingMonths, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void AdvanceMonth_DecrementsAndExpiresTimedStatuses()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(),
+                new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.statuses.Add(new StimStatusState { statusId = "focused", remainingMonths = 2 });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var firstSummary), firstSummary);
+            Assert.That(service.ActiveSave.state.statuses[0].remainingMonths, Is.EqualTo(1));
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var secondSummary), secondSummary);
+            Assert.That(service.ActiveSave.state.statuses, Is.Empty);
+        }
+
+        [Test]
+        public void AdvanceMonth_CanTriggerOrdinaryEventBeforeAnnualRollover()
+        {
+            var evt = RepresentativeStimEvents.CreateHealthBurnout();
+            evt.monthlyTriggerChance = 1f;
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(evt);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            service.Start(CreateValidSave());
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
+
+            Assert.That(nextEvent?.id, Is.EqualTo(evt.id));
+            Assert.That(service.ActiveSave.state.character.age, Is.EqualTo(24));
+            Assert.That(service.ActiveSave.state.calendar.monthOfYear, Is.EqualTo(2));
+            Assert.That(service.ActiveSave.state.pendingEventId, Is.EqualTo(evt.id));
+        }
+
+        [Test]
+        public void AdvanceMonth_RespectsSpecificMonthTiming()
+        {
+            var evt = RepresentativeStimEvents.CreateHealthBurnout();
+            evt.timingPolicy = EventTimingPolicy.SpecificMonth;
+            evt.requiredMonth = 2;
+            evt.monthlyTriggerChance = 1f;
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(evt);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            service.Start(CreateValidSave());
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var firstEvent, out var firstSummary), firstSummary);
+            Assert.That(firstEvent, Is.Null);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var secondEvent, out var secondSummary), secondSummary);
+            Assert.That(secondEvent?.id, Is.EqualTo(evt.id));
+        }
+
+        [Test]
+        public void AdvanceMonth_AppliesTaxesExpensesAndPositiveNetStatFeedback()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(),
+                new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.finances.monthlyLivingExpensesMinorUnits = 300000;
+            save.state.finances.taxRateBasisPoints = 2000;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var summary), summary);
+
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(133334));
+            Assert.That(service.ActiveSave.state.finances.debtMinorUnits, Is.EqualTo(0));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(71));
+            Assert.That(summary, Contains.Substring("taxes"));
+            Assert.That(summary, Contains.Substring("expenses"));
+        }
+
+        [Test]
+        public void AdvanceMonth_ConvertsUncoveredNegativeCashFlowIntoDebt()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(),
+                new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.career.annualSalaryMinorUnits = 0;
+            save.state.finances.monthlyLivingExpensesMinorUnits = 200000;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var summary), summary);
+
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(0));
+            Assert.That(service.ActiveSave.state.finances.debtMinorUnits, Is.EqualTo(100000));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(68));
+            Assert.That(summary, Contains.Substring("net -"));
+        }
+
+        [Test]
+        public void AdvanceMonth_GuaranteesOrdinaryEventAfterSeveralQuietMonths()
+        {
+            var evt = RepresentativeStimEvents.CreateHealthBurnout();
+            evt.monthlyTriggerChance = 0.01f;
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(evt);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.calendar.quietMonthsSinceEvent = 4;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
+
+            Assert.That(nextEvent?.id, Is.EqualTo(evt.id));
+            Assert.That(service.ActiveSave.state.calendar.quietMonthsSinceEvent, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void AdvanceMonth_IncrementsQuietCounterWhenNoEventTriggers()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(),
+                new RecordingSaveRepository());
+            service.Start(CreateValidSave());
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
+
+            Assert.That(nextEvent, Is.Null);
+            Assert.That(service.ActiveSave.state.calendar.quietMonthsSinceEvent, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void MonthlyEventRoll_TracksAuthoredProbabilityAcrossSeededLives()
+        {
+            var evt = RepresentativeStimEvents.CreateHealthBurnout();
+            evt.monthlyTriggerChance = 0.25f;
+            var triggered = 0;
+
+            for (var seed = 0; seed < 1000; seed++)
+            {
+                var catalog = new InMemoryStimEventCatalog();
+                catalog.Upsert(evt);
+                var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+                var save = CreateValidSave();
+                save.rng.seed = seed;
+                service.Start(save);
+
+                Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
+                if (nextEvent != null)
+                {
+                    triggered++;
+                }
+            }
+
+            Assert.That(triggered, Is.InRange(220, 280));
+        }
+
+        [Test]
+        public void PlayFlow_ResolvesEventReloadsSaveAndContinuesNextMonth()
+        {
+            var evt = RepresentativeStimEvents.CreateHealthBurnout();
+            evt.monthlyTriggerChance = 1f;
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(evt);
+            var repository = new RecordingSaveRepository();
+            var firstSession = new StimGameSessionService(catalog, repository);
+            firstSession.Start(CreateValidSave());
+
+            Assert.IsTrue(firstSession.TryAdvanceMonth(out var nextEvent, out var advanceSummary), advanceSummary);
+            Assert.That(nextEvent?.id, Is.EqualTo(evt.id));
+            Assert.IsTrue(firstSession.TryResolveChoice(evt.id, "take_a_break", out var resolutionSummary), resolutionSummary);
+            var revisionAfterResolution = firstSession.ActiveSave.revision;
+            var cashAfterResolution = firstSession.ActiveSave.state.finances.cashMinorUnits;
+
+            var resumedSession = new StimGameSessionService(catalog, repository);
+            Assert.IsTrue(resumedSession.TryLoadLatest(out var loadSummary), loadSummary);
+            Assert.That(resumedSession.ActiveSave.revision, Is.EqualTo(revisionAfterResolution));
+            Assert.That(resumedSession.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashAfterResolution));
+            Assert.That(resumedSession.ActiveSave.state.eventHistory, Has.Count.EqualTo(1));
+
+            Assert.IsTrue(resumedSession.TryAdvanceMonth(out var followingEvent, out var followingSummary), followingSummary);
+            Assert.That(followingEvent, Is.Null);
+            Assert.That(resumedSession.ActiveSave.revision, Is.EqualTo(revisionAfterResolution + 1));
+            Assert.That(resumedSession.ActiveSave.state.calendar.monthOfYear, Is.EqualTo(3));
+        }
+
         private static StimSaveEnvelope CreateValidSave()
         {
             return new StimSaveEnvelope

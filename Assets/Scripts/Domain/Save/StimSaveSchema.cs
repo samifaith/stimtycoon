@@ -56,6 +56,9 @@ namespace StimTycoon.Saves
         public StimCalendarState calendar = new StimCalendarState();
         public StimFinancesState finances = new StimFinancesState();
         public StimCareerState career = new StimCareerState();
+        public List<StimSkillState> skills = new List<StimSkillState>();
+        public List<StimRelationshipState> relationships = new List<StimRelationshipState>();
+        public List<StimStatusState> statuses = new List<StimStatusState>();
         public string pendingEventId;
         public List<StimEventHistoryEntry> eventHistory = new List<StimEventHistoryEntry>();
         public List<StimScheduledEventRecord> scheduledEvents = new List<StimScheduledEventRecord>();
@@ -68,12 +71,15 @@ namespace StimTycoon.Saves
         public int health;
         public int happiness;
         public int smarts;
+        public int looks = 50;
+        public int luck = 50;
     }
 
     [Serializable]
     public class StimCalendarState
     {
         public int monthOfYear = 1;
+        public int quietMonthsSinceEvent;
     }
 
     [Serializable]
@@ -81,6 +87,8 @@ namespace StimTycoon.Saves
     {
         public long cashMinorUnits;
         public long debtMinorUnits;
+        public long monthlyLivingExpensesMinorUnits;
+        public int taxRateBasisPoints;
     }
 
     [Serializable]
@@ -90,6 +98,27 @@ namespace StimTycoon.Saves
         public string roleTitle;
         public long annualSalaryMinorUnits;
         public int careerProgress;
+    }
+
+    [Serializable]
+    public class StimSkillState
+    {
+        public string skillId;
+        public int experience;
+    }
+
+    [Serializable]
+    public class StimRelationshipState
+    {
+        public string relationshipId;
+        public int value = 50;
+    }
+
+    [Serializable]
+    public class StimStatusState
+    {
+        public string statusId;
+        public int remainingMonths;
     }
 
     [Serializable]
@@ -212,6 +241,9 @@ namespace StimTycoon.Saves
             ValidateCalendarState(result, save.state.calendar);
             ValidateFinancesState(result, save.state.finances);
             ValidateCareerState(result, save.state.career);
+            ValidateSkills(result, save.state.skills);
+            ValidateRelationships(result, save.state.relationships);
+            ValidateStatuses(result, save.state.statuses);
             ValidateEventHistory(result, save.state.eventHistory);
             ValidateScheduledEvents(result, save.state.scheduledEvents);
 
@@ -267,6 +299,8 @@ namespace StimTycoon.Saves
             ValidateStatRange(result, character.health, "state.character.health");
             ValidateStatRange(result, character.happiness, "state.character.happiness");
             ValidateStatRange(result, character.smarts, "state.character.smarts");
+            ValidateStatRange(result, character.looks, "state.character.looks");
+            ValidateStatRange(result, character.luck, "state.character.luck");
         }
 
         private static void ValidateFinancesState(StimSaveValidationResult result, StimFinancesState finances)
@@ -289,6 +323,19 @@ namespace StimTycoon.Saves
                 result.isValid = false;
                 result.errors.Add("state.finances.debtMinorUnits cannot be negative");
             }
+
+
+            if (finances.monthlyLivingExpensesMinorUnits < 0)
+            {
+                result.isValid = false;
+                result.errors.Add("state.finances.monthlyLivingExpensesMinorUnits cannot be negative");
+            }
+
+            if (finances.taxRateBasisPoints < 0 || finances.taxRateBasisPoints > 10000)
+            {
+                result.isValid = false;
+                result.errors.Add("state.finances.taxRateBasisPoints must be within [0, 10000]");
+            }
         }
 
         private static void ValidateCalendarState(StimSaveValidationResult result, StimCalendarState calendar)
@@ -304,6 +351,13 @@ namespace StimTycoon.Saves
             {
                 result.isValid = false;
                 result.errors.Add("state.calendar.monthOfYear must be within [1, 12]");
+            }
+
+
+            if (calendar.quietMonthsSinceEvent < 0)
+            {
+                result.isValid = false;
+                result.errors.Add("state.calendar.quietMonthsSinceEvent cannot be negative");
             }
         }
 
@@ -326,6 +380,82 @@ namespace StimTycoon.Saves
             {
                 result.isValid = false;
                 result.errors.Add("state.career.careerProgress must be within [0, 100]");
+            }
+        }
+
+        private static void ValidateSkills(StimSaveValidationResult result, List<StimSkillState> skills)
+        {
+            ValidateProgressRecords(
+                result,
+                skills,
+                "state.skills",
+                skill => skill?.skillId,
+                skill => skill == null || skill.experience >= 0,
+                "experience cannot be negative");
+        }
+
+        private static void ValidateRelationships(StimSaveValidationResult result, List<StimRelationshipState> relationships)
+        {
+            ValidateProgressRecords(
+                result,
+                relationships,
+                "state.relationships",
+                relationship => relationship?.relationshipId,
+                relationship => relationship == null || relationship.value >= 0 && relationship.value <= 100,
+                "value must be within [0, 100]");
+        }
+
+        private static void ValidateStatuses(StimSaveValidationResult result, List<StimStatusState> statuses)
+        {
+            ValidateProgressRecords(
+                result,
+                statuses,
+                "state.statuses",
+                status => status?.statusId,
+                status => status == null || status.remainingMonths > 0,
+                "remainingMonths must be greater than zero");
+        }
+
+        private static void ValidateProgressRecords<T>(
+            StimSaveValidationResult result,
+            List<T> records,
+            string fieldName,
+            Func<T, string> getId,
+            Func<T, bool> isValueValid,
+            string invalidValueMessage)
+            where T : class
+        {
+            if (records == null)
+            {
+                result.isValid = false;
+                result.errors.Add($"{fieldName} is null");
+                return;
+            }
+
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            for (var index = 0; index < records.Count; index++)
+            {
+                var record = records[index];
+                if (record == null)
+                {
+                    result.isValid = false;
+                    result.errors.Add($"{fieldName}[{index}] is null");
+                    continue;
+                }
+
+                var id = getId(record);
+                ValidateRequiredString(result, id, $"{fieldName}[{index}].id");
+                if (!string.IsNullOrEmpty(id) && !ids.Add(id))
+                {
+                    result.isValid = false;
+                    result.errors.Add($"{fieldName} contains duplicate id {id}");
+                }
+
+                if (!isValueValid(record))
+                {
+                    result.isValid = false;
+                    result.errors.Add($"{fieldName}[{index}] {invalidValueMessage}");
+                }
             }
         }
 

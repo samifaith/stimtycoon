@@ -8,7 +8,7 @@ using UnityEngine;
 namespace StimTycoon.Runtime
 {
     /// <summary>
-    /// Owns the active life and commits each resolved choice as one transaction.
+    /// Owns the active life, migrates loaded saves, and commits each action as one transaction.
     /// </summary>
     public sealed class StimGameSessionService
     {
@@ -53,14 +53,9 @@ namespace StimTycoon.Runtime
                 return false;
             }
 
-            var save = JsonUtility.FromJson<StimSaveEnvelope>(serializedSave);
-            if (save?.state != null && save.state.career == null)
+            if (!StimSaveMigrator.TryMigrate(serializedSave, out var save, out var migration, out summary))
             {
-                save.state.career = new StimCareerState();
-            }
-            if (save?.state != null && save.state.calendar == null)
-            {
-                save.state.calendar = new StimCalendarState();
+                return false;
             }
             var validation = StimSaveValidator.ValidateSave(save);
             summary = StimSaveValidator.GetValidationSummary(validation, save?.saveId ?? "unknown-save");
@@ -70,6 +65,10 @@ namespace StimTycoon.Runtime
             }
 
             ActiveSave = save;
+            if (migration.changed)
+            {
+                summary += $" Migrated {migration.changes.Count} additive v1 field(s).";
+            }
             return true;
         }
 
@@ -137,32 +136,37 @@ namespace StimTycoon.Runtime
             }
 
             var candidateSave = CloneSave(ActiveSave);
+            NormalizeProgressCollections(candidateSave.state);
             candidateSave.revision++;
             candidateSave.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
             var paidMonth = candidateSave.state.calendar.monthOfYear;
             var paycheck = CalculateMonthlyPaycheck(candidateSave.state.career.annualSalaryMinorUnits, paidMonth);
-            candidateSave.state.finances.cashMinorUnits += paycheck;
+            var taxes = CalculateTaxWithholding(paycheck, candidateSave.state.finances.taxRateBasisPoints);
+            var expenses = candidateSave.state.finances.monthlyLivingExpensesMinorUnits;
+            var netCashFlow = paycheck - taxes - expenses;
+            ApplyMonthlyCashFlow(candidateSave.state.finances, paycheck, taxes, expenses);
             candidateSave.state.career.careerProgress = ClampStat(
                 candidateSave.state.career.careerProgress + 1);
-            if (paycheck > 0)
-            {
-                candidateSave.state.character.happiness = ClampStat(
-                    candidateSave.state.character.happiness + 1);
-            }
+            candidateSave.state.character.happiness = ClampStat(
+                candidateSave.state.character.happiness + (netCashFlow >= 0 ? 1 : -2));
+            AdvanceStatuses(candidateSave.state.statuses);
 
             var completedYear = paidMonth == 12;
+            candidateSave.rng.step++;
             if (completedYear)
             {
                 candidateSave.state.calendar.monthOfYear = 1;
                 candidateSave.state.character.age++;
-                candidateSave.rng.step++;
-                nextEvent = SelectEligibleEvent(candidateSave);
-                candidateSave.state.pendingEventId = nextEvent?.id;
             }
             else
             {
                 candidateSave.state.calendar.monthOfYear++;
             }
+            nextEvent = SelectEligibleEvent(candidateSave, paidMonth, completedYear);
+            candidateSave.state.pendingEventId = nextEvent?.id;
+            candidateSave.state.calendar.quietMonthsSinceEvent = nextEvent == null
+                ? candidateSave.state.calendar.quietMonthsSinceEvent + 1
+                : 0;
 
             var serializedSave = JsonUtility.ToJson(candidateSave, true);
             if (!saveRepository.TryCommitAutosave(serializedSave, out summary))
@@ -172,11 +176,12 @@ namespace StimTycoon.Runtime
             }
 
             ActiveSave = candidateSave;
-            summary = !completedYear
-                ? $"Month {paidMonth}: received a {FormatMoney(paycheck)} paycheck."
-                : nextEvent == null
-                    ? $"Age {candidateSave.state.character.age}: received a {FormatMoney(paycheck)} paycheck and completed a quiet year."
-                    : $"Age {candidateSave.state.character.age}: received a {FormatMoney(paycheck)} paycheck and a new {nextEvent.category.ToString().ToLowerInvariant()} event is ready.";
+            var cashFlowSummary = $"gross {FormatMoney(paycheck)}, taxes {FormatMoney(taxes)}, expenses {FormatMoney(expenses)}, net {FormatSignedMoney(netCashFlow)}";
+            summary = nextEvent != null
+                ? $"Month {paidMonth}: {cashFlowSummary}; a new {nextEvent.category.ToString().ToLowerInvariant()} event is ready."
+                : completedYear
+                    ? $"Age {candidateSave.state.character.age}: {cashFlowSummary}; completed a quiet year."
+                    : $"Month {paidMonth}: {cashFlowSummary}.";
             return true;
         }
 
@@ -247,7 +252,79 @@ namespace StimTycoon.Runtime
                     save.state.career.careerProgress = ClampStat(
                         save.state.career.careerProgress + (int)Math.Round(effect.value));
                     break;
+                case EffectType.SkillXp:
+                    ApplySkillXp(save.state.skills, effect.targetId, effect.value);
+                    break;
+                case EffectType.RelationshipDelta:
+                    ApplyRelationshipDelta(save.state.relationships, effect.targetId, effect.value);
+                    break;
+                case EffectType.StatusAdd:
+                    AddOrRefreshStatus(save.state.statuses, effect.targetId, effect.value);
+                    break;
+                case EffectType.StatusRemove:
+                    save.state.statuses.RemoveAll(status => status.statusId == effect.targetId);
+                    break;
             }
+        }
+
+        private static void ApplySkillXp(List<StimSkillState> skills, string skillId, float value)
+        {
+            var skill = skills.Find(candidate => candidate.skillId == skillId);
+            if (skill == null)
+            {
+                skill = new StimSkillState { skillId = skillId };
+                skills.Add(skill);
+            }
+            skill.experience = Math.Max(0, skill.experience + (int)Math.Round(value));
+        }
+
+        private static void ApplyRelationshipDelta(
+            List<StimRelationshipState> relationships,
+            string relationshipId,
+            float value)
+        {
+            var relationship = relationships.Find(candidate => candidate.relationshipId == relationshipId);
+            if (relationship == null)
+            {
+                relationship = new StimRelationshipState { relationshipId = relationshipId };
+                relationships.Add(relationship);
+            }
+            relationship.value = ClampStat(relationship.value + (int)Math.Round(value));
+        }
+
+        private static void AddOrRefreshStatus(List<StimStatusState> statuses, string statusId, float value)
+        {
+            var duration = Math.Max(1, (int)Math.Round(value));
+            var status = statuses.Find(candidate => candidate.statusId == statusId);
+            if (status == null)
+            {
+                statuses.Add(new StimStatusState { statusId = statusId, remainingMonths = duration });
+                return;
+            }
+            status.remainingMonths = Math.Max(status.remainingMonths, duration);
+        }
+
+        private static void AdvanceStatuses(List<StimStatusState> statuses)
+        {
+            for (var index = statuses.Count - 1; index >= 0; index--)
+            {
+                statuses[index].remainingMonths--;
+                if (statuses[index].remainingMonths <= 0)
+                {
+                    statuses.RemoveAt(index);
+                }
+            }
+        }
+
+        private static void NormalizeProgressCollections(StimGameState state)
+        {
+            if (state == null)
+            {
+                return;
+            }
+            state.skills ??= new List<StimSkillState>();
+            state.relationships ??= new List<StimRelationshipState>();
+            state.statuses ??= new List<StimStatusState>();
         }
 
         private void ApplyStatDelta(StimSaveEnvelope save, string targetId, float value)
@@ -264,6 +341,12 @@ namespace StimTycoon.Runtime
                 case "smarts":
                     save.state.character.smarts = ClampStat(save.state.character.smarts + delta);
                     break;
+                case "looks":
+                    save.state.character.looks = ClampStat(save.state.character.looks + delta);
+                    break;
+                case "luck":
+                    save.state.character.luck = ClampStat(save.state.character.luck + delta);
+                    break;
             }
         }
 
@@ -272,12 +355,12 @@ namespace StimTycoon.Runtime
             return Math.Max(StimSaveSchema.MinCoreStatValue, Math.Min(StimSaveSchema.MaxCoreStatValue, value));
         }
 
-        private StimEvent SelectEligibleEvent(StimSaveEnvelope save)
+        private StimEvent SelectEligibleEvent(StimSaveEnvelope save, int processedMonth, bool completedYear)
         {
             var eligible = new List<StimEvent>();
             foreach (var evt in eventCatalog.GetAllEvents())
             {
-                if (IsEligible(evt, save))
+                if (IsEligible(evt, save) && IsTimingEligible(evt, processedMonth, completedYear))
                 {
                     eligible.Add(evt);
                 }
@@ -288,7 +371,26 @@ namespace StimTycoon.Runtime
                 return null;
             }
 
-            return eligible[StableIndex(save.rng.seed, save.rng.step, eligible.Count)];
+            var selected = eligible[StableIndex(save.rng.seed, save.rng.step, eligible.Count)];
+            var triggerChance = selected.timingPolicy == EventTimingPolicy.AnyMonth
+                ? Math.Min(1f, selected.monthlyTriggerChance + 0.25f * save.state.calendar.quietMonthsSinceEvent)
+                : selected.monthlyTriggerChance;
+            return StableUnit(save.rng.seed, save.rng.step + 7919) < triggerChance
+                ? selected
+                : null;
+        }
+
+        private static bool IsTimingEligible(StimEvent evt, int processedMonth, bool completedYear)
+        {
+            switch (evt.timingPolicy)
+            {
+                case EventTimingPolicy.AnnualRollover:
+                    return completedYear;
+                case EventTimingPolicy.SpecificMonth:
+                    return processedMonth == evt.requiredMonth;
+                default:
+                    return true;
+            }
         }
 
         private static bool IsEligible(StimEvent evt, StimSaveEnvelope save)
@@ -339,6 +441,11 @@ namespace StimTycoon.Runtime
             }
         }
 
+        private static float StableUnit(int seed, int step)
+        {
+            return StableIndex(seed, step, 1000000) / 1000000f;
+        }
+
         private static StimSaveEnvelope CloneSave(StimSaveEnvelope save)
         {
             return JsonUtility.FromJson<StimSaveEnvelope>(JsonUtility.ToJson(save));
@@ -351,9 +458,39 @@ namespace StimTycoon.Runtime
             return basePaycheck + (monthOfYear <= remainder ? 1 : 0);
         }
 
+        private static long CalculateTaxWithholding(long grossPayMinorUnits, int taxRateBasisPoints)
+        {
+            return (long)Math.Round(
+                grossPayMinorUnits * (taxRateBasisPoints / 10000m),
+                MidpointRounding.AwayFromZero);
+        }
+
+        private static void ApplyMonthlyCashFlow(
+            StimFinancesState finances,
+            long grossPay,
+            long taxes,
+            long expenses)
+        {
+            var availableCash = finances.cashMinorUnits + grossPay;
+            var outflow = taxes + expenses;
+            if (availableCash >= outflow)
+            {
+                finances.cashMinorUnits = availableCash - outflow;
+                return;
+            }
+
+            finances.debtMinorUnits += outflow - availableCash;
+            finances.cashMinorUnits = 0;
+        }
+
         private static string FormatMoney(long minorUnits)
         {
             return (minorUnits / 100m).ToString("C0");
+        }
+
+        private static string FormatSignedMoney(long minorUnits)
+        {
+            return $"{(minorUnits >= 0 ? "+" : "-")}{FormatMoney(Math.Abs(minorUnits))}";
         }
 
     }

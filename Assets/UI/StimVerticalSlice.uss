@@ -79,6 +79,10 @@
     margin-top: 18px;
 }
 
+.secondary-stat-grid {
+    margin-top: 8px;
+}
+
 .stat-card {
     flex-grow: 1;
     margin-right: 8px;

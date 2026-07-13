@@ -119,6 +119,20 @@ namespace StimTycoon.Events
                 result.isValid = false;
             }
 
+
+            if (evt.monthlyTriggerChance <= 0f || evt.monthlyTriggerChance > 1f)
+            {
+                result.errors.Add("monthlyTriggerChance must be within (0, 1]");
+                result.isValid = false;
+            }
+
+            if (evt.timingPolicy == EventTimingPolicy.SpecificMonth &&
+                (evt.requiredMonth < 1 || evt.requiredMonth > 12))
+            {
+                result.errors.Add("requiredMonth must be within [1, 12] for SpecificMonth events");
+                result.isValid = false;
+            }
+
             // Analytics tags (recommended but not required)
             if (evt.analyticsTags == null || evt.analyticsTags.Count == 0)
             {

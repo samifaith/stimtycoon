@@ -158,6 +158,31 @@ namespace StimTycoon.Tests.Domain.Events
         }
 
         [Test]
+        public void ValidateEvent_RejectsInvalidMonthlyTriggerChance()
+        {
+            var evt = CreateValidEvent();
+            evt.monthlyTriggerChance = 0f;
+
+            var result = StimEventValidator.ValidateEvent(evt);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("monthlyTriggerChance")));
+        }
+
+        [Test]
+        public void ValidateEvent_RejectsSpecificTimingWithoutValidMonth()
+        {
+            var evt = CreateValidEvent();
+            evt.timingPolicy = EventTimingPolicy.SpecificMonth;
+            evt.requiredMonth = 13;
+
+            var result = StimEventValidator.ValidateEvent(evt);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("requiredMonth")));
+        }
+
+        [Test]
         public void ValidateEvent_PassesRepresentativeHealthEvent()
         {
             var result = StimEventValidator.ValidateEvent(RepresentativeStimEvents.CreateHealthBurnout());

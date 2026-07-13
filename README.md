@@ -18,12 +18,13 @@ The repository now contains:
 - deterministic, save-backed weighted outcome resolution
 - a transactional game-session service that applies effects, history, follow-ups, and autosaves
 - a versioned save envelope with validation, SHA-256 integrity checks, atomic replacement, and backup recovery
+- an idempotent additive v1 save migrator with structured migration reports
 - Yarn Spinner dialogue authoring behind a Stim-owned bridge
 - all five representative events—childhood, school, career, health, and money—wired through the C# resolver
-- monthly salary payments, happiness feedback, and career progression, plus annual age rollover, event selection, cooldowns, and pending-event persistence
-- a mobile UI Toolkit vertical slice with choices, outcomes, cash, life feed, autosave feedback, and a collapsible player overview
+- monthly gross pay, tax withholding, living expenses, debt pressure, stat feedback, and career progression, plus annual age rollover, randomized event timing with anti-drought protection, cooldowns, and pending-event persistence
+- a mobile UI Toolkit vertical slice with choices, outcomes, cash, life feed, autosave feedback, and a collapsible six-stat player overview
 - replaceable interfaces for dialogue, saves, accounts, cloud saves, ads, and event catalogs
-- 38 passing EditMode tests covering events, runtime behavior, monthly progression, and saves
+- 65 passing EditMode tests covering events, runtime behavior, monthly progression, migrations, and saves
 
 Not yet implemented:
 
@@ -57,7 +58,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The current expected result is **42 passing tests**. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner. Unity 6.3 can emit editor-only Test Runner layout errors when its list is context-clicked; these are not game test failures.
+The current verified result is **65 passing tests**. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner. Unity 6.3 can emit editor-only Test Runner layout errors when its list is context-clicked; these are not game test failures.
 
 ## Packages
 
@@ -118,8 +119,10 @@ docs/                      # Architecture and gameplay specifications
 - [x] Monthly pay, annual rollover, and multi-event progression
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
-- [x] 38-test baseline
-- [ ] Save migration fixtures and cloud-conflict tests
+- [x] Six finalized core stats in the save model and player overview
+- [x] 65-test verified baseline
+- [x] Save migration fixtures
+- [ ] Cloud-conflict tests
 - [ ] iOS development build
 
 ## Documentation

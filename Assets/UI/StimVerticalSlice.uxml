@@ -37,6 +37,17 @@
                 </ui:VisualElement>
             </ui:VisualElement>
 
+            <ui:VisualElement class="stat-grid secondary-stat-grid">
+                <ui:VisualElement class="stat-card">
+                    <ui:Label text="LOOKS" class="eyebrow" />
+                    <ui:Label name="looks-value" text="65 / 100" class="stat-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="stat-card last-stat">
+                    <ui:Label text="LUCK" class="eyebrow" />
+                    <ui:Label name="luck-value" text="50 / 100" class="stat-value" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
             <ui:VisualElement class="career-progress-row">
                 <ui:Label text="CAREER PROGRESS" class="eyebrow" />
                 <ui:Label name="career-progress-value" text="0 / 100" class="career-progress-value" />
@@ -47,7 +58,7 @@
 
             <ui:VisualElement class="career-finance-row">
                 <ui:VisualElement>
-                    <ui:Label text="MONTHLY PAYCHECK" class="eyebrow" />
+                    <ui:Label text="EST. MONTHLY NET" class="eyebrow" />
                     <ui:Label name="monthly-paycheck-value" text="$4,167" class="secondary-money" />
                 </ui:VisualElement>
                 <ui:VisualElement class="salary-footnote">

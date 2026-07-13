@@ -28,6 +28,8 @@ namespace StimTycoon.Runtime
         private Label healthValue;
         private Label happinessValue;
         private Label smartsValue;
+        private Label looksValue;
+        private Label luckValue;
         private Label careerProgressValue;
         private Label monthlyPaycheckValue;
         private Label annualSalaryValue;
@@ -58,6 +60,8 @@ namespace StimTycoon.Runtime
             healthValue = root.Q<Label>("health-value");
             happinessValue = root.Q<Label>("happiness-value");
             smartsValue = root.Q<Label>("smarts-value");
+            looksValue = root.Q<Label>("looks-value");
+            luckValue = root.Q<Label>("luck-value");
             careerProgressValue = root.Q<Label>("career-progress-value");
             monthlyPaycheckValue = root.Q<Label>("monthly-paycheck-value");
             annualSalaryValue = root.Q<Label>("annual-salary-value");
@@ -85,7 +89,8 @@ namespace StimTycoon.Runtime
                 eventBody == null || resultText == null || resultEffects == null || feedEntry == null || choices == null ||
                 resultCard == null || advanceMonth == null || toggleOverview == null || playerOverview == null ||
                 overviewCareer == null || overviewCalendar == null || healthValue == null ||
-                happinessValue == null || smartsValue == null || careerProgressValue == null ||
+                happinessValue == null || smartsValue == null || looksValue == null || luckValue == null ||
+                careerProgressValue == null ||
                 careerProgressFill == null || monthlyPaycheckValue == null || annualSalaryValue == null)
             {
                 Debug.LogError("Vertical slice UXML is missing one or more required named elements.", this);
@@ -225,10 +230,17 @@ namespace StimTycoon.Runtime
             healthValue.text = $"{state.character.health} / 100";
             happinessValue.text = $"{state.character.happiness} / 100";
             smartsValue.text = $"{state.character.smarts} / 100";
+            looksValue.text = $"{state.character.looks} / 100";
+            luckValue.text = $"{state.character.luck} / 100";
             careerProgressValue.text = $"{career.careerProgress} / 100";
             careerProgressFill.style.width = Length.Percent(career.careerProgress);
-            monthlyPaycheckValue.text = FormatMoney(career.annualSalaryMinorUnits / 12);
-            annualSalaryValue.text = $"{FormatMoney(career.annualSalaryMinorUnits)} before expenses and taxes";
+            var grossMonthlyPay = career.annualSalaryMinorUnits / 12;
+            var estimatedTaxes = (long)Math.Round(
+                grossMonthlyPay * (state.finances.taxRateBasisPoints / 10000m),
+                MidpointRounding.AwayFromZero);
+            var estimatedNet = grossMonthlyPay - estimatedTaxes - state.finances.monthlyLivingExpensesMinorUnits;
+            monthlyPaycheckValue.text = FormatSignedMoney(estimatedNet);
+            annualSalaryValue.text = $"{FormatMoney(career.annualSalaryMinorUnits)} gross · {state.finances.taxRateBasisPoints / 100m:0.#}% tax";
         }
 
         private void ToggleOverview()
@@ -387,9 +399,16 @@ namespace StimTycoon.Runtime
                         age = 24,
                         health = 80,
                         happiness = 70,
-                        smarts = 65
+                        smarts = 65,
+                        looks = 65,
+                        luck = 50
                     },
-                    finances = new StimFinancesState { cashMinorUnits = 100000 },
+                    finances = new StimFinancesState
+                    {
+                        cashMinorUnits = 100000,
+                        monthlyLivingExpensesMinorUnits = 250000,
+                        taxRateBasisPoints = 2000
+                    },
                     calendar = new StimCalendarState { monthOfYear = 1 },
                     career = new StimCareerState
                     {

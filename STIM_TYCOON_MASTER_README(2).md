@@ -10,7 +10,7 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 ### Implementation snapshot — July 13, 2026
 
-The repository currently runs on Unity `6000.3.19f1` and includes the event/save domain foundation, deterministic outcome resolution, Yarn Spinner dialogue bridge, native atomic JSON autosaves, a 41-test verified baseline, and all five representative events across childhood, school, career, health, and money. The playable adult vertical slice includes monthly salary payments, annual age rollover, eligible adult events, and a player overview. The current suite contains 42 tests pending the next recorded Unity run. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
+The repository currently runs on Unity `6000.3.19f1` and includes the event/save domain foundation, deterministic outcome resolution, Yarn Spinner dialogue bridge, native atomic JSON autosaves, an additive idempotent v1 migration boundary, 65 passing EditMode tests, and all five representative events across childhood, school, career, health, and money. The playable adult vertical slice includes monthly gross pay, tax withholding, living expenses, debt pressure, annual age rollover, randomized monthly event timing with anti-drought protection, and a six-stat player overview. Skill XP, relationship values, and timed statuses persist and respond to event effects. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
 
 The current implementation choices supersede earlier package assumptions in this document:
 
@@ -212,7 +212,10 @@ Examples:
 ### Final time model
 
 - one Advance Month action processes monthly income, applies visible player-stat feedback, advances career progress, and moves the calendar forward
-- completing month 12 advances the character's age and resolves annual event selection
+- every month performs a deterministic randomized event roll after applying eligibility and cooldown rules
+- each quiet month increases the ordinary-event trigger chance; an eligible ordinary event is guaranteed by the fifth quiet monthly advance
+- completing month 12 advances the character's age and allows events marked for annual rollover
+- specifically timed events only enter the event pool during their authored month or annual trigger
 - certain event chains occur immediately
 - businesses progress through both annual aging and shorter in-year turns
 - annual business and investment summaries resolve at age progression
@@ -1609,6 +1612,9 @@ All authored events must conform to one versioned Stim event contract. Yarn Spin
 | `choices` | array | Yes | Two or more player choices |
 | `cooldownYears` | integer | Yes | Minimum years before the event can repeat |
 | `repeatPolicy` | enum | Yes | `never`, `once_per_life_stage`, or `repeatable` |
+| `timingPolicy` | enum | Yes | `any_month`, `annual_rollover`, or `specific_month` |
+| `requiredMonth` | integer | Conditional | Month 1–12 when `timingPolicy` is `specific_month` |
+| `monthlyTriggerChance` | number | Yes | Deterministic chance from greater than 0 through 1 after timing and eligibility checks |
 | `analyticsTags` | string array | Yes | Stable tags for balancing and reporting |
 
 ### Required choice fields
@@ -2801,17 +2807,20 @@ Completed foundation work:
 - [x] Add the age-gated representative school event.
 - [x] Add the age-gated representative childhood event and complete the five-event Phase 0 content set.
 - [x] Add a player overview for visible stats, career progress, monthly pay, and secondary salary detail.
-- [x] Establish a 38-test EditMode baseline.
+- [x] Add Looks and Luck to the save model, validation, effect application, compatibility loading, and player overview.
+- [x] Expand persistent event effects to skill XP, relationship values, and timed statuses.
+- [x] Allow ordinary events to trigger on randomized monthly rolls while preserving explicit annual and fixed-month timing.
+- [x] Add monthly tax withholding, living expenses, deficit debt, and positive or negative Happiness feedback.
+- [x] Add saved anti-drought event timing so ordinary events cannot appear annual-only because of a long random miss streak.
+- [x] Add additive v1 migration fixtures, a 1,000-seed monthly distribution test, and a save/reload vertical-slice play-flow test.
+- [x] Establish a 65-test verified EditMode baseline.
 
 Next:
 
-1. Add Looks and Luck, then expand effects to skill XP, relationships, and statuses.
-2. Add monthly recurring expenses and taxes so cash flow becomes a real tradeoff.
-3. Add save migration fixtures, weighted-distribution tests, and complete vertical-slice play tests.
-4. Create the interaction map and reusable component layer for the MVP screens.
-5. Produce and validate the first iOS development build.
-6. Add Authentication, Game Center, and Cloud Save only after the offline life loop is stable.
-7. Add LevelPlay after placements and consent behavior are ready for integration testing.
+1. Create the interaction map and reusable component layer for the MVP screens.
+2. Produce and validate the first iOS development build.
+3. Add Authentication, Game Center, and Cloud Save only after the offline life loop is stable.
+4. Add LevelPlay after placements and consent behavior are ready for integration testing.
 
 ---
 

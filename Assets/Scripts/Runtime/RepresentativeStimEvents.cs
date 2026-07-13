@@ -25,6 +25,8 @@ namespace StimTycoon.Runtime
                 requirementsJson = "{}",
                 cooldownYears = 2,
                 repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnnualRollover,
+                monthlyTriggerChance = 1f,
                 analyticsTags = new List<string> { "career", "negotiation" },
                 choices = new List<Choice>
                 {

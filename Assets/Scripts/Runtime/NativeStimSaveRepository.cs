@@ -212,23 +212,11 @@ namespace StimTycoon.Runtime
                 return false;
             }
 
-            try
-            {
-                save = JsonUtility.FromJson<StimSaveEnvelope>(serializedSave);
-                if (save != null)
-                {
-                    validationSummary = string.Empty;
-                    return true;
-                }
-
-                validationSummary = "Serialized save produced a null envelope.";
-                return false;
-            }
-            catch (Exception exception)
-            {
-                validationSummary = $"Serialized save is not valid JSON: {exception.Message}";
-                return false;
-            }
+            return StimSaveMigrator.TryMigrate(
+                serializedSave,
+                out save,
+                out _,
+                out validationSummary);
         }
 
         private static bool HasVerifiableHash(StimSaveEnvelope save)
