@@ -8,6 +8,10 @@
 /[Uu]ser[Ss]ettings/
 /[Mm]emoryCaptures/
 
+# Generated Unity/Yarn editor state
+/ProjectSettings/SceneTemplateSettings.json
+/ProjectSettings/Packages/dev.yarnspinner/*-generated.ysls.json
+
 # Unity asset meta cache
 *.pidb.meta
 *.pdb.meta

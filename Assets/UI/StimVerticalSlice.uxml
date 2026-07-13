@@ -1,0 +1,43 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="StimVerticalSlice.uss" />
+    <ui:VisualElement name="screen" class="screen">
+        <ui:VisualElement class="top-bar">
+            <ui:VisualElement>
+                <ui:Label text="AVERY MORGAN" class="eyebrow" />
+                <ui:Label name="life-summary" text="Age 24 · Analyst" class="life-summary" />
+            </ui:VisualElement>
+            <ui:VisualElement class="cash-block">
+                <ui:Label text="CASH" class="eyebrow" />
+                <ui:Label name="cash-value" text="$1,000" class="cash-value" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="content">
+            <ui:Label text="CAREER EVENT" class="eyebrow accent" />
+            <ui:Label text="The annual review" class="event-title" />
+            <ui:Label text="Your annual review is wrapping up. Your manager asks whether there is anything else you want to discuss." class="event-body" />
+
+            <ui:VisualElement name="choices" class="choices">
+                <ui:Button name="make-the-case" class="choice-button">
+                    <ui:Label text="Make the case for a raise" class="choice-title" />
+                    <ui:Label text="Moderate risk · High reward" class="choice-meta" />
+                </ui:Button>
+                <ui:Button name="let-it-pass" class="choice-button secondary">
+                    <ui:Label text="Let it pass for now" class="choice-title" />
+                    <ui:Label text="Safe · Low reward" class="choice-meta" />
+                </ui:Button>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="result-card" class="result-card hidden">
+                <ui:Label text="OUTCOME" class="eyebrow accent" />
+                <ui:Label name="result-text" class="result-text" />
+                <ui:Label name="save-status" text="Autosaved" class="save-status" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="feed-card">
+                <ui:Label text="LIFE FEED" class="eyebrow" />
+                <ui:Label name="feed-entry" text="Your next decision will appear here." class="feed-entry" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

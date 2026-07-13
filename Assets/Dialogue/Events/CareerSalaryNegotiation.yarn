@@ -5,8 +5,10 @@ Your annual review is wrapping up. Your manager asks whether there is anything e
 
 -> Make the case for a raise. #choice:make_the_case
     You explain the value you delivered this year and ask for your compensation to reflect it.
+    <<stim_resolve_choice "career_salary_negotiation_001" "make_the_case">>
     <<stop>>
 -> Let it pass for now. #choice:let_it_pass
     You thank your manager for the review and decide to revisit compensation later.
+    <<stim_resolve_choice "career_salary_negotiation_001" "let_it_pass">>
     <<stop>>
 ===

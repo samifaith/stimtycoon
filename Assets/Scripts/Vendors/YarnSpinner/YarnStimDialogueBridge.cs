@@ -17,10 +17,28 @@ namespace StimTycoon.YarnSpinner
         [SerializeField] private DialogueRunner dialogueRunner;
 
         private StimEventRuntimeService eventRuntimeService;
+        private StimGameSessionService gameSessionService;
+
+        public event Action<StimTycoon.Events.StimChoiceResolution> ChoiceResolved;
 
         public void Initialize(StimEventRuntimeService runtimeService)
         {
             eventRuntimeService = runtimeService ?? throw new ArgumentNullException(nameof(runtimeService));
+        }
+
+        public void Initialize(
+            StimEventRuntimeService runtimeService,
+            StimGameSessionService sessionService)
+        {
+            Initialize(runtimeService);
+            gameSessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
+
+            if (dialogueRunner == null)
+            {
+                throw new InvalidOperationException("A DialogueRunner reference is required.");
+            }
+
+            dialogueRunner.AddCommandHandler<string, string>("stim_resolve_choice", ResolveChoiceCommand);
         }
 
         public bool CanRunEvent(string eventId)
@@ -69,6 +87,23 @@ namespace StimTycoon.YarnSpinner
 
         public void ScheduleFollowUps()
         {
+        }
+
+        private void ResolveChoiceCommand(string eventId, string choiceId)
+        {
+            if (gameSessionService == null)
+            {
+                Debug.LogError("Stim game session has not been initialized.", this);
+                return;
+            }
+
+            if (!gameSessionService.TryResolveChoice(eventId, choiceId, out var summary))
+            {
+                Debug.LogError($"Could not resolve {eventId}/{choiceId}: {summary}", this);
+                return;
+            }
+
+            ChoiceResolved?.Invoke(gameSessionService.LastResolution);
         }
     }
 }
