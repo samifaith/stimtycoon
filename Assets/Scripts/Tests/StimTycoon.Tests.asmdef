@@ -1,0 +1,22 @@
+{
+  "name": "StimTycoon.Tests",
+  "rootNamespace": "StimTycoon.Tests",
+  "references": [
+    "StimTycoon.Domain",
+    "StimTycoon.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "StimTycoon.Runtime",
+  "rootNamespace": "StimTycoon",
+  "references": [
+    "StimTycoon.Domain"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

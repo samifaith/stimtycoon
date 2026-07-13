@@ -25,15 +25,15 @@
 ## Step 3: Open the Project
 
 1. In Unity Hub, go to **Projects**
-2. Click **Open** and navigate to `/Volumes/6179472402/Personal/Portfolio/Projects/stimtycoon`
-3. Unity will detect the project and open it with 6.3 LTS
+2. Click **Open** and navigate to this repository's folder
+3. Select the folder; Unity will detect the project and open it with 6.3 LTS
 4. Wait for the first import to complete (~3–5 min)
 
 ---
 
 ## Expected Changes After Opening
 
-- `ProjectSettings/ProjectVersion.txt` will update to `2024.3.x` (Unity 6 internal version)
+- `ProjectSettings/ProjectVersion.txt` will use a `6000.3.x` editor version
 - `Packages/manifest.json` will be updated with 6.3 LTS compatible packages
 - `Packages/packages-lock.json` will be regenerated
 - A **Library/** folder will be created (ignore; already in .gitignore)
