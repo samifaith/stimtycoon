@@ -5,7 +5,7 @@ Install and verify packages in this order. Commit `Packages/`, `ProjectSettings/
 - [ ] Open the project with Unity `6000.3.0f1` (Unity 6.3 LTS) and install iOS Build Support in Unity Hub.
 - [ ] Confirm the project compiles and Edit Mode tests pass before importing vendors.
 - [ ] Run **Tools → Stim Tycoon → Run Setup Check** and resolve every `FAIL` reported in the Console.
-- [ ] Import **Easy Save 3** from My Assets. Then add `STIM_EASY_SAVE_3` under **Project Settings → Player → Scripting Define Symbols** and verify `EasySave3StimSaveRepository` becomes the default local-save adapter.
+- [x] Use the native atomic JSON repository for local saves. Easy Save 3 remains an optional adapter behind `STIM_EASY_SAVE_3`.
 - [ ] Import **Dialogue System for Unity** from My Assets; keep its SDK types behind `IStimDialogueBridge`.
 - [ ] Install **Authentication** and **Cloud Save** from **Window → Package Manager → Unity Registry**.
 - [ ] Install Apple's **GameKit** plugin for Game Center sign-in and link it through `IStimAccountService`.

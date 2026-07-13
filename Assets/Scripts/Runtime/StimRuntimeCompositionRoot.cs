@@ -41,7 +41,7 @@ namespace StimTycoon.Runtime
 #if STIM_EASY_SAVE_3
             IStimSaveRepository saveRepository = new EasySave3StimSaveRepository();
 #else
-            IStimSaveRepository saveRepository = new NoOpSaveRepository();
+            IStimSaveRepository saveRepository = new NativeStimSaveRepository();
 #endif
 
             return new StimRuntimeCompositionRoot(
