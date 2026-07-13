@@ -10,7 +10,7 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 ### Implementation snapshot — July 13, 2026
 
-The repository currently runs on Unity `6000.3.19f1` and includes the event/save domain foundation, deterministic outcome resolution, Yarn Spinner dialogue bridge, native atomic JSON autosaves, 32 passing EditMode tests, and a playable mobile salary-negotiation vertical slice. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
+The repository currently runs on Unity `6000.3.19f1` and includes the event/save domain foundation, deterministic outcome resolution, Yarn Spinner dialogue bridge, native atomic JSON autosaves, a 41-test verified baseline, and all five representative events across childhood, school, career, health, and money. The playable adult vertical slice includes monthly salary payments, annual age rollover, eligible adult events, and a player overview. The current suite contains 42 tests pending the next recorded Unity run. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
 
 The current implementation choices supersede earlier package assumptions in this document:
 
@@ -174,7 +174,7 @@ Possible effects:
 
 ## 4.2 Time and Aging
 
-The primary progression action is **Age** or **Advance Year**.
+The primary progression action is **Advance Month**. Twelve monthly turns complete a year and advance the character's age.
 
 Pressing it moves the life forward and may trigger:
 
@@ -211,7 +211,8 @@ Examples:
 
 ### Final time model
 
-- one major Age action advances one year
+- one Advance Month action processes monthly income, applies visible player-stat feedback, advances career progress, and moves the calendar forward
+- completing month 12 advances the character's age and resolves annual event selection
 - certain event chains occur immediately
 - businesses progress through both annual aging and shorter in-year turns
 - annual business and investment summaries resolve at age progression
@@ -467,6 +468,8 @@ The event engine is the foundation of replayability.
 
 Every major event can lead to randomized positive, neutral, or negative outcomes.
 
+Every resolved outcome must change at least one numeric player, career, relationship, skill, business, or financial stat. The outcome UI must show each applied change with an explicit `+` or `−` indicator so consequences are immediately legible.
+
 ## 7.1 Resolution model
 
 ```text
@@ -575,7 +578,9 @@ The exact formula should remain configurable in data rather than hard-coded thro
 
 ## 7.4 Locked risk and reward mapping
 
-Players see an approximate risk label and an approximate reward label before committing to a choice. Exact percentages remain hidden during normal play. The labels must reflect the final probability after skills, stats, traits, history, relationships, money, location, and world conditions are applied.
+Risk and reward classifications are internal balancing metadata. Normal gameplay does not show Safe, Moderate, Risky, Extreme, reward bands, or exact percentages before a choice. Players infer the likely tradeoff from the event writing, their character's preparation, prior experience, and the surrounding situation.
+
+Developer tools and balancing reports may display the calculated labels. The hidden classification must still reflect the final probability after skills, stats, traits, history, relationships, money, location, and world conditions are applied.
 
 ### Success probability bands
 
@@ -620,9 +625,9 @@ Clamp(
 
 Default clamp: `5%` minimum and `95%` maximum unless the event is explicitly guaranteed or impossible.
 
-The UI label is calculated from the final chance, not the base chance. A choice may move from Risky to Moderate because the player prepared well.
+The internal label is calculated from the final chance, not the base chance. A choice may move from Risky to Moderate because the player prepared well, even though normal gameplay does not reveal that label.
 
-Relevant skills or traits may improve estimate precision in a later release, but MVP labels always use the four locked bands above.
+Relevant skills or traits may later unlock qualitative hints in the writing, but the four locked bands remain internal balancing categories.
 
 ## 7.5 Chained events
 
@@ -1094,7 +1099,7 @@ Features:
 Finance, economics, research, and networking skills can improve:
 
 - available analysis
-- risk labels
+- qualitative research and scam-warning information
 - scam detection
 - negotiation
 - access to opportunities
@@ -1637,6 +1642,7 @@ All authored events must conform to one versioned Stim event contract. Yarn Spin
 - `stat_delta`
 - `skill_xp`
 - `cash_delta`
+- `salary_delta`
 - `debt_delta`
 - `relationship_delta`
 - `reputation_delta`
@@ -1696,7 +1702,7 @@ All authored events must conform to one versioned Stim event contract. Yarn Spin
           "resultText": "outcome.career.salary_negotiation.approved",
           "weightWithinResult": 80,
           "effects": [
-            { "type": "cash_delta", "mode": "annual_salary_percent", "value": 10 },
+            { "type": "salary_delta", "target": "annual_salary", "value": 500000 },
             { "type": "skill_xp", "skill": "negotiation", "value": 15 },
             { "type": "career_progress_delta", "value": 4 }
           ],
@@ -1827,16 +1833,15 @@ These five events are required Phase 0 content deliverables. They establish voic
 
 ### Event 4: Health, Your Body Is Asking for a Pause
 
-**ID:** `health_persistent_fatigue_001`  
-**Age:** 16 to 80  
+**ID:** `health_body_asking_for_pause_001`
+**Age:** 18 to 80
 **Locations:** USA and Jamaica  
 **Setup:** You have been tired for weeks. Rest helps a little, but the feeling keeps coming back.
 
 | Choice | Risk | Reward | Base success | Representative branches |
 |---|---|---|---:|---|
-| Make a medical appointment | Safe | High | 82% | Positive: the issue is identified early and treatment improves Health. Neutral: tests are inconclusive and follow-up is scheduled. Negative: the visit creates an expense and no immediate answer. |
-| Reduce commitments and rest | Safe | Medium | 72% | Positive: Health and Happiness improve. Neutral: symptoms ease temporarily. Negative: an underlying condition remains and returns later. |
-| Push through it | Risky | Medium | 38% | Positive: you meet an urgent obligation with no immediate decline. Neutral: performance slips. Negative: Health drops sharply and a more serious event is scheduled. |
+| Take a few days to recover | Safe | Medium | 85% | Positive: Health and Happiness improve. Negative: the break helps briefly, but Health slips when the exhaustion returns. |
+| Push through the exhaustion | Risky | High | 40% | Positive: career progress rises, with a small Health cost. Negative: career progress, Health, and Happiness all fall. |
 
 **Voice note:** The event does not diagnose the player, shame them, or imply that rest fixes every condition.
 
@@ -1952,7 +1957,7 @@ Create a custom Stim Tycoon component layer:
 - `EventCard`
 - `OutcomeCard`
 - `ChoiceButton`
-- `RiskRewardBadge`
+- internal `RiskRewardBadge` for developer and balancing tools only
 - `StatMeter`
 - `SkillMeter`
 - `TraitBadge`
@@ -2258,7 +2263,7 @@ This allows the team to:
 - test complete lives
 - compare balance changes
 - run thousands of automated simulated lives
-- confirm that risk labels broadly match actual outcomes
+- confirm that internal risk bands broadly match actual outcomes
 - detect impossible or contradictory state combinations
 
 Required test groups:
@@ -2335,12 +2340,13 @@ Stim Tycoon launches with an ad-based monetization model. Monetization must not 
 
 - rewards must be clear before the player watches
 - rewarded ads remain optional
-- higher spending or ad viewing must not guarantee only positive outcomes
+- normal event choices, ad viewing, and general spending must not silently manipulate outcome odds
+- a later, clearly marked fourth premium choice may guarantee a defined positive stat boost; it must remain optional and disclose its exact benefit before purchase
 - avoid interrupting emotional, health, death, or major story moments
 - avoid an interstitial after every action
 - preserve PG-13+ content and advertising suitability
 
-A future ad-free purchase may be evaluated after launch, but the launch model is ad-based.
+A future ad-free purchase and limited premium fourth-choice mechanic may be evaluated after launch, but the launch model is ad-based.
 
 ---
 
@@ -2355,7 +2361,7 @@ The MVP must prove that a complete life is fun and replayable.
 - three starting backgrounds
 - mandatory childhood beginning with two adults
 - MVP locations: USA and Jamaica
-- annual aging
+- monthly progression with annual age rollover
 - shorter in-year business turns
 - chronological life feed
 - event choices
@@ -2452,7 +2458,7 @@ Exit criteria:
 - every MVP system has an owner and definition
 - all five representative events validate against schema version 1
 - each representative event runs through Yarn Spinner into the C# resolver
-- risk labels match the locked success bands after modifiers
+- internal risk bands match observed outcomes after modifiers
 - save version 1 passes round-trip, corruption recovery, migration, and cloud-conflict tests
 
 ## Phase 1: Simulation Skeleton
@@ -2467,7 +2473,7 @@ Build:
 - weighted outcome resolver
 - save and load
 - seeded randomness
-- approximate player-facing risk and reward labels
+- hidden risk/reward calculation with developer-facing validation
 
 Exit criteria:
 
@@ -2770,12 +2776,13 @@ These decisions are locked and override earlier assumptions:
 7. Businesses progress through both yearly aging and shorter turns
 8. Tap-to-earn is included in MVP
 9. Small job minigames and deeper long-term career interactions are future expansions
-10. Approximate risk levels are visible
+10. Risk and reward levels are hidden during normal play and inferred from context
 11. Higher risk should generally offer higher potential reward
 12. Traits are visible
 13. Retirement is triggered by age
 14. Monetization is ad-based
 15. Launch is account-enabled with Game Center and cloud-capable saves
+16. A clearly disclosed fourth premium choice that guarantees a defined positive stat boost may be evaluated after launch
 
 ---
 
@@ -2788,18 +2795,23 @@ Completed foundation work:
 - [x] Implement deterministic weighted outcome resolution and transactional local autosaves.
 - [x] Install and wrap Yarn Spinner.
 - [x] Build the first playable career-event slice through outcome, finance, life feed, and local save.
-- [x] Establish a 32-test EditMode baseline.
+- [x] Add monthly pay, annual age rollover, event selection, cooldowns, and pending-event persistence.
+- [x] Add the representative health event and strict risk/reward validation.
+- [x] Add the representative money event with Safe, Risky, and Extreme investment choices.
+- [x] Add the age-gated representative school event.
+- [x] Add the age-gated representative childhood event and complete the five-event Phase 0 content set.
+- [x] Add a player overview for visible stats, career progress, monthly pay, and secondary salary detail.
+- [x] Establish a 38-test EditMode baseline.
 
 Next:
 
-1. Add age/year progression and make the vertical slice advance through multiple events.
-2. Author the remaining childhood, school, health, and money representative events in Yarn plus validated Stim data.
-3. Expand effects to the finalized six core stats, skill XP, relationships, career progression, and statuses.
-4. Add save migration fixtures, weighted-distribution tests, and complete vertical-slice play tests.
-5. Create the interaction map and reusable component layer for the MVP screens.
-6. Produce and validate the first iOS development build.
-7. Add Authentication, Game Center, and Cloud Save only after the offline life loop is stable.
-8. Add LevelPlay after placements and consent behavior are ready for integration testing.
+1. Add Looks and Luck, then expand effects to skill XP, relationships, and statuses.
+2. Add monthly recurring expenses and taxes so cash flow becomes a real tradeoff.
+3. Add save migration fixtures, weighted-distribution tests, and complete vertical-slice play tests.
+4. Create the interaction map and reusable component layer for the MVP screens.
+5. Produce and validate the first iOS development build.
+6. Add Authentication, Game Center, and Cloud Save only after the offline life loop is stable.
+7. Add LevelPlay after placements and consent behavior are ready for integration testing.
 
 ---
 

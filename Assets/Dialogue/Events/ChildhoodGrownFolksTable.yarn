@@ -1,0 +1,18 @@
+title: childhood_grown_folks_table_001
+tags: childhood family money representative_event
+---
+Two adults in your household are discussing money at the table. You catch enough to know things are tight.
+
+-> Ask what is going on. #choice:ask_whats_going_on
+    You step closer and ask why everyone sounds worried.
+    <<stim_resolve_choice "childhood_grown_folks_table_001" "ask_whats_going_on">>
+    <<stop>>
+-> Offer your saved money. #choice:offer_saved_money
+    You bring over the money you have saved and offer it to the household.
+    <<stim_resolve_choice "childhood_grown_folks_table_001" "offer_saved_money">>
+    <<stop>>
+-> Stay quiet and listen. #choice:stay_quiet_and_listen
+    You remain nearby and try to understand without joining the conversation.
+    <<stim_resolve_choice "childhood_grown_folks_table_001" "stay_quiet_and_listen">>
+    <<stop>>
+===

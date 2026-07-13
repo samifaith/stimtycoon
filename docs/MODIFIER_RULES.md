@@ -334,7 +334,7 @@ This needs review. Either:
 - [ ] Create rule subclasses: SkillRule, StatRule, TraitRule, HistoryRule, ResourceRule, AgeRule, WorldRule
 - [ ] Create `ModifierEvaluator` with stacking and clamping logic
 - [ ] Create unit tests for each rule type
-- [ ] Create integration test: resolve all 5 representative events 100+ times; verify risk labels match
+- [ ] Create integration test: resolve all 5 representative events 100+ times; verify internal risk bands match
 - [ ] Wrap modifiers in ScriptableObjects or data files for remote configuration
 
 ---

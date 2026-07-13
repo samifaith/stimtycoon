@@ -1,6 +1,6 @@
 # Stim Tycoon
 
-**Status:** Phase 0 foundation with a playable career-event vertical slice
+**Status:** Phase 0 foundation with a playable monthly life-event vertical slice
 
 **Target:** iOS 13+
 
@@ -19,15 +19,15 @@ The repository now contains:
 - a transactional game-session service that applies effects, history, follow-ups, and autosaves
 - a versioned save envelope with validation, SHA-256 integrity checks, atomic replacement, and backup recovery
 - Yarn Spinner dialogue authoring behind a Stim-owned bridge
-- a salary-negotiation event wired from Yarn choices into the C# resolver
-- a mobile UI Toolkit vertical slice with choice, outcome, cash, life-feed, and autosave feedback
+- all five representative events—childhood, school, career, health, and money—wired through the C# resolver
+- monthly salary payments, happiness feedback, and career progression, plus annual age rollover, event selection, cooldowns, and pending-event persistence
+- a mobile UI Toolkit vertical slice with choices, outcomes, cash, life feed, autosave feedback, and a collapsible player overview
 - replaceable interfaces for dialogue, saves, accounts, cloud saves, ads, and event catalogs
-- 32 passing EditMode tests covering events, runtime behavior, and saves
+- 38 passing EditMode tests covering events, runtime behavior, monthly progression, and saves
 
 Not yet implemented:
 
-- age/year progression and complete-life simulation
-- the other four Phase 0 representative events
+- complete-life simulation from birth through death
 - Unity Authentication, Apple Game Center, and Cloud Save adapters
 - Unity LevelPlay ads
 - production navigation, accessibility, localization, art, and audio
@@ -39,7 +39,7 @@ Not yet implemented:
 2. Open this repository as an existing project and allow package import to finish.
 3. Confirm the Console has no compilation errors.
 4. Open `Assets/Scenes/StimVerticalSlice.unity`.
-5. Press Play and choose an outcome in the annual-review event.
+5. Press Play, resolve events, advance months, and use **View Player Overview** to inspect the current life state.
 
 If the scene ever needs to be rebuilt, use:
 
@@ -57,7 +57,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The current expected result is **32 passing tests**. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner. Unity 6.3 can emit editor-only Test Runner layout errors when its list is context-clicked; these are not game test failures.
+The current expected result is **42 passing tests**. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner. Unity 6.3 can emit editor-only Test Runner layout errors when its list is context-clicked; these are not game test failures.
 
 ## Packages
 
@@ -101,6 +101,7 @@ docs/                      # Architecture and gameplay specifications
 - C# domain code owns eligibility, probability, effects, scheduling, and save validation.
 - Yarn owns dialogue copy and choice flow; it does not mutate gameplay state directly.
 - Every resolved action is applied to a candidate save and committed atomically before becoming active state.
+- Every event outcome must include a non-zero numeric stat change, shown with an explicit `+` or `−` on the outcome card.
 - RNG seed and step live in the save so outcomes are reproducible.
 - Currency is stored in integer minor units.
 - Vendor integrations remain replaceable behind Stim-owned interfaces.
@@ -113,10 +114,11 @@ docs/                      # Architecture and gameplay specifications
 - [x] Save schema, validation, atomic write, and corruption recovery
 - [x] Runtime composition and event catalog
 - [x] Yarn Spinner bridge
-- [x] First representative career event
+- [x] All five representative events
+- [x] Monthly pay, annual rollover, and multi-event progression
 - [x] Playable mobile UI vertical slice
-- [x] 32-test baseline
-- [ ] Four remaining representative events
+- [x] Player overview for stats and secondary career details
+- [x] 38-test baseline
 - [ ] Save migration fixtures and cloud-conflict tests
 - [ ] iOS development build
 

@@ -5,10 +5,55 @@
             <ui:VisualElement>
                 <ui:Label text="AVERY MORGAN" class="eyebrow" />
                 <ui:Label name="life-summary" text="Age 24 · Analyst" class="life-summary" />
+                <ui:Button name="toggle-overview" text="VIEW PLAYER OVERVIEW" class="overview-toggle" />
             </ui:VisualElement>
             <ui:VisualElement class="cash-block">
                 <ui:Label text="CASH" class="eyebrow" />
                 <ui:Label name="cash-value" text="$1,000" class="cash-value" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="player-overview" class="player-overview hidden">
+            <ui:VisualElement class="overview-heading">
+                <ui:VisualElement>
+                    <ui:Label text="PLAYER OVERVIEW" class="eyebrow accent" />
+                    <ui:Label name="overview-career" text="Analyst · Stim Financial Group" class="overview-title" />
+                </ui:VisualElement>
+                <ui:Label name="overview-calendar" text="Age 24 · Month 1 of 12" class="overview-calendar" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="stat-grid">
+                <ui:VisualElement class="stat-card">
+                    <ui:Label text="HEALTH" class="eyebrow" />
+                    <ui:Label name="health-value" text="80 / 100" class="stat-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="stat-card">
+                    <ui:Label text="HAPPINESS" class="eyebrow" />
+                    <ui:Label name="happiness-value" text="70 / 100" class="stat-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="stat-card last-stat">
+                    <ui:Label text="SMARTS" class="eyebrow" />
+                    <ui:Label name="smarts-value" text="65 / 100" class="stat-value" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement class="career-progress-row">
+                <ui:Label text="CAREER PROGRESS" class="eyebrow" />
+                <ui:Label name="career-progress-value" text="0 / 100" class="career-progress-value" />
+            </ui:VisualElement>
+            <ui:VisualElement class="progress-track">
+                <ui:VisualElement name="career-progress-fill" class="progress-fill" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="career-finance-row">
+                <ui:VisualElement>
+                    <ui:Label text="MONTHLY PAYCHECK" class="eyebrow" />
+                    <ui:Label name="monthly-paycheck-value" text="$4,167" class="secondary-money" />
+                </ui:VisualElement>
+                <ui:VisualElement class="salary-footnote">
+                    <ui:Label text="ANNUAL SALARY" class="eyebrow" />
+                    <ui:Label name="annual-salary-value" text="$50,000 before expenses and taxes" class="salary-value" />
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
 
@@ -22,6 +67,7 @@
             <ui:VisualElement name="result-card" class="result-card hidden">
                 <ui:Label text="OUTCOME" class="eyebrow accent" />
                 <ui:Label name="result-text" class="result-text" />
+                <ui:Label name="result-effects" class="result-effects" />
                 <ui:Label name="save-status" text="Autosaved" class="save-status" />
             </ui:VisualElement>
 

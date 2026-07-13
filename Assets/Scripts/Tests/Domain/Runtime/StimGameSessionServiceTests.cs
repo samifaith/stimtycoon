@@ -93,6 +93,8 @@ namespace StimTycoon.Tests.Domain.Runtime
 
             Assert.IsTrue(service.TryAdvanceMonth(out _, out var paycheckSummary), paycheckSummary);
             Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(558334));
+            Assert.That(service.ActiveSave.state.career.careerProgress, Is.EqualTo(1));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(76));
         }
 
         [Test]
@@ -128,6 +130,8 @@ namespace StimTycoon.Tests.Domain.Runtime
 
             Assert.That(service.ActiveSave.state.character.age, Is.EqualTo(25));
             Assert.That(service.ActiveSave.state.calendar.monthOfYear, Is.EqualTo(1));
+            Assert.That(service.ActiveSave.state.career.careerProgress, Is.EqualTo(12));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(82));
             Assert.That(quietYearEvent, Is.Null);
 
             StimEvent nextEvent = null;
@@ -138,6 +142,8 @@ namespace StimTycoon.Tests.Domain.Runtime
             }
 
             Assert.That(service.ActiveSave.state.character.age, Is.EqualTo(26));
+            Assert.That(service.ActiveSave.state.career.careerProgress, Is.EqualTo(24));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(94));
             Assert.That(nextEvent?.id, Is.EqualTo(RepresentativeStimEvents.SalaryNegotiationId));
             Assert.That(service.ActiveSave.state.pendingEventId, Is.EqualTo(nextEvent.id));
             Assert.That(repository.CommitCount, Is.EqualTo(24));
@@ -161,6 +167,8 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(service.ActiveSave.state.character.age, Is.EqualTo(24));
             Assert.That(service.ActiveSave.state.calendar.monthOfYear, Is.EqualTo(1));
             Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(100000));
+            Assert.That(service.ActiveSave.state.career.careerProgress, Is.EqualTo(0));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(70));
             Assert.That(service.ActiveSave.revision, Is.EqualTo(1));
             Assert.That(service.ActiveSave.rng.step, Is.EqualTo(0));
         }

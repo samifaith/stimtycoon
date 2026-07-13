@@ -94,7 +94,10 @@ namespace StimTycoon.Tests.Domain.Runtime
                                 feedEntryKey = "outcome.feed",
                                 telemetryCode = "outcome_1",
                                 weightWithinResultGroup = 1f,
-                                effects = new System.Collections.Generic.List<Effect>()
+                                effects = new System.Collections.Generic.List<Effect>
+                                {
+                                    new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 1 }
+                                }
                             }
                         }
                     },
@@ -116,7 +119,10 @@ namespace StimTycoon.Tests.Domain.Runtime
                                 feedEntryKey = "outcome.alternative.feed",
                                 telemetryCode = "outcome_2",
                                 weightWithinResultGroup = 1f,
-                                effects = new System.Collections.Generic.List<Effect>()
+                                effects = new System.Collections.Generic.List<Effect>
+                                {
+                                    new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 1 }
+                                }
                             }
                         }
                     }

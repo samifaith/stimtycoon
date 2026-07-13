@@ -263,12 +263,14 @@ namespace StimTycoon.Events
             }
 
             // Effects
-            if (outcome.effects == null)
+            if (outcome.effects == null || outcome.effects.Count == 0)
             {
-                result.warnings.Add($"Choice {choiceIdx} Outcome {outcomeIdx} has no effects; consider adding at least one");
+                result.isValid = false;
+                result.errors.Add($"Choice {choiceIdx} Outcome {outcomeIdx} must change at least one stat");
             }
             else
             {
+                var hasStatChange = false;
                 for (int i = 0; i < outcome.effects.Count; i++)
                 {
                     var effectResult = ValidateEffect(outcome.effects[i], choiceIdx, outcomeIdx, i);
@@ -278,10 +280,45 @@ namespace StimTycoon.Events
                     }
                     result.errors.AddRange(effectResult.errors);
                     result.warnings.AddRange(effectResult.warnings);
+
+                    if (IsNumericStatEffect(outcome.effects[i]) && Math.Abs(outcome.effects[i].value) > float.Epsilon)
+                    {
+                        hasStatChange = true;
+                    }
+                }
+
+                if (!hasStatChange)
+                {
+                    result.isValid = false;
+                    result.errors.Add($"Choice {choiceIdx} Outcome {outcomeIdx} must include a non-zero numeric stat change");
                 }
             }
 
             return result;
+        }
+
+        private static bool IsNumericStatEffect(Effect effect)
+        {
+            if (effect == null)
+            {
+                return false;
+            }
+
+            switch (effect.type)
+            {
+                case EffectType.StatDelta:
+                case EffectType.SkillXp:
+                case EffectType.CashDelta:
+                case EffectType.DebtDelta:
+                case EffectType.RelationshipDelta:
+                case EffectType.ReputationDelta:
+                case EffectType.CareerProgressDelta:
+                case EffectType.BusinessMetricDelta:
+                case EffectType.SalaryDelta:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         /// <summary>

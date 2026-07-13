@@ -142,6 +142,13 @@ namespace StimTycoon.Runtime
             var paidMonth = candidateSave.state.calendar.monthOfYear;
             var paycheck = CalculateMonthlyPaycheck(candidateSave.state.career.annualSalaryMinorUnits, paidMonth);
             candidateSave.state.finances.cashMinorUnits += paycheck;
+            candidateSave.state.career.careerProgress = ClampStat(
+                candidateSave.state.career.careerProgress + 1);
+            if (paycheck > 0)
+            {
+                candidateSave.state.character.happiness = ClampStat(
+                    candidateSave.state.character.happiness + 1);
+            }
 
             var completedYear = paidMonth == 12;
             if (completedYear)

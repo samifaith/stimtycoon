@@ -10,7 +10,7 @@ namespace StimTycoon.YarnSpinner
     /// <summary>
     /// Connects authored Yarn nodes to Stim's validated event runtime.
     /// Yarn controls presentation and branching; Stim remains authoritative
-    /// for requirements, risk labels, outcomes, and state mutations.
+    /// for requirements, internal risk bands, outcomes, and state mutations.
     /// </summary>
     public sealed class YarnStimDialogueBridge : MonoBehaviour, IStimDialogueBridge
     {

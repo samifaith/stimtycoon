@@ -1,0 +1,18 @@
+title: school_group_project_politics_001
+tags: school teamwork representative_event
+---
+Your group project is due soon. One classmate has gone quiet, another is trying to take over, and the work still needs to get done.
+
+-> Reassign the work and set a deadline. #choice:reassign_the_work
+    You divide what remains, name an owner for each piece, and set one last deadline.
+    <<stim_resolve_choice "school_group_project_politics_001" "reassign_the_work">>
+    <<stop>>
+-> Do the missing work yourself. #choice:do_it_yourself
+    You open the unfinished sections and start filling the gaps alone.
+    <<stim_resolve_choice "school_group_project_politics_001" "do_it_yourself">>
+    <<stop>>
+-> Tell the teacher exactly what happened. #choice:tell_the_teacher
+    You explain who completed what and ask the teacher to step in.
+    <<stim_resolve_choice "school_group_project_politics_001" "tell_the_teacher">>
+    <<stop>>
+===

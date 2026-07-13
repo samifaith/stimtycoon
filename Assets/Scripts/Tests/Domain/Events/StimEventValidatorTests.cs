@@ -114,6 +114,18 @@ namespace StimTycoon.Tests.Domain.Events
         }
 
         [Test]
+        public void ValidateEvent_RejectsOutcomeWithoutStatChange()
+        {
+            var evt = CreateValidEvent();
+            evt.choices[0].outcomes[0].effects = new List<Effect>();
+
+            var result = StimEventValidator.ValidateEvent(evt);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("must change at least one stat")));
+        }
+
+        [Test]
         public void ValidateEvent_WarnsMissingLocations()
         {
             var evt = CreateValidEvent();
@@ -151,6 +163,30 @@ namespace StimTycoon.Tests.Domain.Events
             var result = StimEventValidator.ValidateEvent(RepresentativeStimEvents.CreateHealthBurnout());
 
             Assert.IsTrue(result.isValid, StimEventValidator.GetValidationSummary(result, RepresentativeStimEvents.HealthBurnoutId));
+        }
+
+        [Test]
+        public void ValidateEvent_PassesRepresentativeMoneyEvent()
+        {
+            var result = StimEventValidator.ValidateEvent(RepresentativeStimEvents.CreateMoneyFastReturn());
+
+            Assert.IsTrue(result.isValid, StimEventValidator.GetValidationSummary(result, RepresentativeStimEvents.MoneyFastReturnId));
+        }
+
+        [Test]
+        public void ValidateEvent_PassesRepresentativeSchoolEvent()
+        {
+            var result = StimEventValidator.ValidateEvent(RepresentativeStimEvents.CreateSchoolGroupProject());
+
+            Assert.IsTrue(result.isValid, StimEventValidator.GetValidationSummary(result, RepresentativeStimEvents.SchoolGroupProjectId));
+        }
+
+        [Test]
+        public void ValidateEvent_PassesRepresentativeChildhoodEvent()
+        {
+            var result = StimEventValidator.ValidateEvent(RepresentativeStimEvents.CreateChildhoodGrownFolksTable());
+
+            Assert.IsTrue(result.isValid, StimEventValidator.GetValidationSummary(result, RepresentativeStimEvents.ChildhoodGrownFolksTableId));
         }
 
         [Test]
@@ -254,7 +290,10 @@ namespace StimTycoon.Tests.Domain.Events
                                 feedEntryKey = "outcome.feed.neg",
                                 telemetryCode = "outcome_negative",
                                 weightWithinResultGroup = 0.4f,
-                                effects = new List<Effect>()
+                                effects = new List<Effect>
+                                {
+                                    new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -2 }
+                                }
                             }
                         }
                     },
@@ -276,7 +315,10 @@ namespace StimTycoon.Tests.Domain.Events
                                 feedEntryKey = "outcome.safe.feed",
                                 telemetryCode = "outcome_safe",
                                 weightWithinResultGroup = 1.0f,
-                                effects = new List<Effect>()
+                                effects = new List<Effect>
+                                {
+                                    new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 1 }
+                                }
                             }
                         }
                     }

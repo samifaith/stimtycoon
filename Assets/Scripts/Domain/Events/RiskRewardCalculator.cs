@@ -6,7 +6,8 @@ namespace StimTycoon.Events
     /// <summary>
     /// Risk/Reward Band Calculator
     /// 
-    /// Converts a final success probability (after modifiers) into a player-facing risk label.
+    /// Converts a final success probability into an internal balancing label.
+    /// Normal gameplay keeps this classification hidden.
     /// Also provides reward guidance based on outcome classification.
     /// 
     /// Locked bands (from STIM_TYCOON_MASTER_README, Section 7.4):

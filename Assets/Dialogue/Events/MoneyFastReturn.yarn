@@ -1,0 +1,22 @@
+title: money_fast_return_pitch_001
+tags: money investment representative_event
+---
+Someone you know presents an investment that is supposed to pay back quickly. The details are thin, but the confidence is loud.
+
+-> Ask for documents and verify the numbers. #choice:verify_the_numbers
+    You slow the conversation down and ask to see what supports the promise.
+    <<stim_resolve_choice "money_fast_return_pitch_001" "verify_the_numbers">>
+    <<stop>>
+-> Invest a small amount. #choice:invest_small
+    You put in enough to matter, but not enough to wreck the month.
+    <<stim_resolve_choice "money_fast_return_pitch_001" "invest_small">>
+    <<stop>>
+-> Go all in. #choice:go_all_in
+    You commit everything you can reach before the window closes.
+    <<stim_resolve_choice "money_fast_return_pitch_001" "go_all_in">>
+    <<stop>>
+-> Walk away. #choice:walk_away
+    You decide urgency is not evidence and keep your money.
+    <<stim_resolve_choice "money_fast_return_pitch_001" "walk_away">>
+    <<stop>>
+===
