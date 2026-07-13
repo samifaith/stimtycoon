@@ -1,92 +1,149 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <Style src="StimVerticalSlice.uss" />
-    <ui:VisualElement name="screen" class="screen">
-        <ui:VisualElement class="top-bar">
-            <ui:VisualElement>
-                <ui:Label text="AVERY MORGAN" class="eyebrow" />
-                <ui:Label name="life-summary" text="Age 24 · Analyst" class="life-summary" />
-                <ui:Button name="toggle-overview" text="VIEW PLAYER OVERVIEW" class="overview-toggle" />
+    <ui:Template name="AppHeader" src="project://database/Assets/StimTycoon/UI/Components/AppHeader/AppHeader.uxml" />
+    <ui:Template name="BottomNavigation" src="project://database/Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml" />
+    <Style src="project://database/Assets/StimTycoon/UI/Styles/StimTycoonTheme.uss" />
+    <Style src="StimVerticalSliceCozyCorporate.uss" />
+
+    <ui:VisualElement name="screen" class="screen st-life-screen">
+        <ui:Instance template="AppHeader" />
+
+        <ui:ScrollView name="life-scroll" mode="Vertical" class="st-life-scroll">
+            <ui:VisualElement class="st-life-content">
+                <ui:VisualElement class="st-polished-card st-worth-card">
+                    <ui:VisualElement class="st-worth-copy">
+                        <ui:Label text="TOTAL NET WORTH" class="st-section-kicker" />
+                        <ui:Label name="net-worth-value" text="$1.42M" class="st-worth-value" />
+                        <ui:Label name="net-worth-trend" text="↑ +12.4%  vs last year" class="st-worth-trend" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="st-worth-chart">
+                        <ui:VisualElement class="st-worth-bars">
+                            <ui:VisualElement class="st-worth-bar bar-1" />
+                            <ui:VisualElement class="st-worth-bar bar-2" />
+                            <ui:VisualElement class="st-worth-bar bar-3" />
+                            <ui:VisualElement class="st-worth-bar bar-4" />
+                            <ui:VisualElement class="st-worth-bar bar-5" />
+                            <ui:VisualElement class="st-worth-bar bar-6" />
+                            <ui:VisualElement class="st-worth-bar bar-7 current" />
+                        </ui:VisualElement>
+                        <ui:Label text="CURRENT" class="st-chart-badge" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement name="player-overview" class="st-polished-card st-stats-card">
+                    <ui:VisualElement class="st-section-heading">
+                        <ui:Label text="♥" class="st-section-heading-icon" />
+                        <ui:Label text="CORE STATS" class="st-section-heading-title" />
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="st-stat-row health">
+                        <ui:Label text="♥" class="st-stat-icon" />
+                        <ui:VisualElement class="st-stat-main"><ui:Label text="Health" class="st-stat-name" /><ui:VisualElement class="st-stat-track"><ui:VisualElement name="health-fill" class="st-stat-fill" /></ui:VisualElement></ui:VisualElement>
+                        <ui:Label name="health-value" text="78 / 100" class="st-stat-number" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="st-stat-row looks">
+                        <ui:Label text="☺" class="st-stat-icon" />
+                        <ui:VisualElement class="st-stat-main"><ui:Label text="Looks" class="st-stat-name" /><ui:VisualElement class="st-stat-track"><ui:VisualElement name="looks-fill" class="st-stat-fill" /></ui:VisualElement></ui:VisualElement>
+                        <ui:Label name="looks-value" text="64 / 100" class="st-stat-number" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="st-stat-row smarts">
+                        <ui:Label text="✦" class="st-stat-icon" />
+                        <ui:VisualElement class="st-stat-main"><ui:Label text="Smarts" class="st-stat-name" /><ui:VisualElement class="st-stat-track"><ui:VisualElement name="smarts-fill" class="st-stat-fill" /></ui:VisualElement></ui:VisualElement>
+                        <ui:Label name="smarts-value" text="72 / 100" class="st-stat-number" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="st-stat-row happiness">
+                        <ui:Label text="☀" class="st-stat-icon" />
+                        <ui:VisualElement class="st-stat-main"><ui:Label text="Happiness" class="st-stat-name" /><ui:VisualElement class="st-stat-track"><ui:VisualElement name="happiness-fill" class="st-stat-fill" /></ui:VisualElement></ui:VisualElement>
+                        <ui:Label name="happiness-value" text="66 / 100" class="st-stat-number" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="st-stat-row luck last">
+                        <ui:Label text="♣" class="st-stat-icon" />
+                        <ui:VisualElement class="st-stat-main"><ui:Label text="Luck" class="st-stat-name" /><ui:VisualElement class="st-stat-track"><ui:VisualElement name="luck-fill" class="st-stat-fill" /></ui:VisualElement></ui:VisualElement>
+                        <ui:Label name="luck-value" text="41 / 100" class="st-stat-number" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="st-polished-card st-focus-card">
+                    <ui:VisualElement class="st-section-heading">
+                        <ui:Label text="◎" class="st-section-heading-icon" />
+                        <ui:Label text="TODAY’S FOCUS" class="st-section-heading-title" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="st-focus-grid">
+                        <ui:Button name="focus-study" class="st-focus-tile study" tooltip="Study to improve Smarts">
+                            <ui:Label text="A+" class="st-focus-icon" /><ui:Label name="focus-study-title" text="Study" class="st-focus-title" /><ui:Label name="focus-study-effect" text="+ Smarts" class="st-focus-effect" /><ui:Label text="START" class="st-focus-cta" />
+                        </ui:Button>
+                        <ui:Button name="focus-workout" class="st-focus-tile workout" tooltip="Workout to improve Health">
+                            <ui:Label text="♥" class="st-focus-icon" /><ui:Label name="focus-workout-title" text="Workout" class="st-focus-title" /><ui:Label name="focus-workout-effect" text="+ Health" class="st-focus-effect" /><ui:Label text="START" class="st-focus-cta" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="st-polished-card st-feed-card">
+                    <ui:Label text="LIFE FEED" class="st-section-kicker" />
+                    <ui:ScrollView name="life-feed-scroll" mode="Vertical" class="st-feed-scroll">
+                        <ui:VisualElement name="life-feed-list" class="st-feed-list">
+                            <ui:Label text="Your next decision will appear here." class="st-feed-empty" />
+                        </ui:VisualElement>
+                    </ui:ScrollView>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="hidden">
+                    <ui:Button name="toggle-overview" text="Overview" />
+                    <ui:Label name="overview-career" text="Analyst" />
+                    <ui:Label name="overview-calendar" text="Month 1" />
+                    <ui:Label name="annual-salary-value" text="$50,000" />
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement class="cash-block">
-                <ui:Label text="CASH" class="eyebrow" />
-                <ui:Label name="cash-value" text="$1,000" class="cash-value" />
+        </ui:ScrollView>
+
+        <ui:VisualElement class="st-time-dock">
+            <ui:Button name="open-new-life" text="NEW LIFE" class="st-new-life-link" />
+            <ui:VisualElement class="st-time-copy">
+                <ui:Label text="NEXT MONTH" class="st-time-kicker" />
+                <ui:Label name="monthly-paycheck-value" text="Monthly life changes and pay" class="st-time-detail" />
+            </ui:VisualElement>
+            <ui:Button name="advance-month" text="ADVANCE MONTH  ›" class="st-advance-month" tooltip="Advance time by one month" />
+        </ui:VisualElement>
+
+        <ui:Instance template="BottomNavigation" />
+
+        <ui:VisualElement name="event-sheet" class="st-event-scrim hidden">
+            <ui:VisualElement class="st-event-sheet">
+                <ui:ScrollView class="st-event-scroll" mode="Vertical">
+                    <ui:VisualElement class="st-event-content">
+                        <ui:Label name="event-category" text="LIFE EVENT" class="st-event-kicker" />
+                        <ui:Label name="event-title" text="A new decision" class="st-event-title" />
+                        <ui:Label name="event-body" text="Something needs your attention." class="st-event-body" />
+                        <ui:VisualElement name="choices" class="st-event-choices" />
+                        <ui:VisualElement name="result-card" class="st-result-card hidden">
+                            <ui:Label text="OUTCOME" class="st-event-kicker" />
+                            <ui:Label name="result-text" class="st-result-text" />
+                            <ui:Label name="result-effects" class="st-result-effects" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:ScrollView>
+                <ui:Button name="event-continue" text="Continue" class="st-event-continue hidden" />
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="player-overview" class="player-overview hidden">
-            <ui:VisualElement class="overview-heading">
-                <ui:VisualElement>
-                    <ui:Label text="PLAYER OVERVIEW" class="eyebrow accent" />
-                    <ui:Label name="overview-career" text="Analyst · Stim Financial Group" class="overview-title" />
+        <ui:VisualElement name="new-life-setup" class="st-setup-scrim hidden">
+            <ui:VisualElement class="st-setup-sheet">
+                <ui:ScrollView class="st-setup-scroll" mode="Vertical">
+                    <ui:VisualElement class="st-setup-content">
+                        <ui:Label text="BEGIN A NEW STORY" class="st-event-kicker" />
+                        <ui:Label text="Start a new life" class="st-setup-title" />
+                        <ui:Label text="Meet a completely new person and discover the life waiting for them." class="st-setup-body" />
+                        <ui:VisualElement class="st-generated-identity">
+                            <ui:Label text="✦" class="st-generated-icon" />
+                            <ui:VisualElement class="st-generated-copy"><ui:Label text="Everything begins with chance" class="st-background-title" /><ui:Label text="Identity, country, background, appearance, stats, parents, and genetics are generated together." class="st-background-detail" /></ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:Label name="new-life-error" class="st-setup-error hidden" />
+                    </ui:VisualElement>
+                </ui:ScrollView>
+                <ui:VisualElement class="st-setup-actions">
+                    <ui:Button name="cancel-new-life" text="Cancel" class="st-setup-cancel" />
+                    <ui:Button name="continue-current-life" text="CONTINUE CURRENT LIFE  ›" class="st-setup-continue hidden" />
+                    <ui:Button name="create-new-life" text="START NEW GAME  ›" class="st-setup-create" />
                 </ui:VisualElement>
-                <ui:Label name="overview-calendar" text="Age 24 · Month 1 of 12" class="overview-calendar" />
-            </ui:VisualElement>
-
-            <ui:VisualElement class="stat-grid">
-                <ui:VisualElement class="stat-card">
-                    <ui:Label text="HEALTH" class="eyebrow" />
-                    <ui:Label name="health-value" text="80 / 100" class="stat-value" />
-                </ui:VisualElement>
-                <ui:VisualElement class="stat-card">
-                    <ui:Label text="HAPPINESS" class="eyebrow" />
-                    <ui:Label name="happiness-value" text="70 / 100" class="stat-value" />
-                </ui:VisualElement>
-                <ui:VisualElement class="stat-card last-stat">
-                    <ui:Label text="SMARTS" class="eyebrow" />
-                    <ui:Label name="smarts-value" text="65 / 100" class="stat-value" />
-                </ui:VisualElement>
-            </ui:VisualElement>
-
-            <ui:VisualElement class="stat-grid secondary-stat-grid">
-                <ui:VisualElement class="stat-card">
-                    <ui:Label text="LOOKS" class="eyebrow" />
-                    <ui:Label name="looks-value" text="65 / 100" class="stat-value" />
-                </ui:VisualElement>
-                <ui:VisualElement class="stat-card last-stat">
-                    <ui:Label text="LUCK" class="eyebrow" />
-                    <ui:Label name="luck-value" text="50 / 100" class="stat-value" />
-                </ui:VisualElement>
-            </ui:VisualElement>
-
-            <ui:VisualElement class="career-progress-row">
-                <ui:Label text="CAREER PROGRESS" class="eyebrow" />
-                <ui:Label name="career-progress-value" text="0 / 100" class="career-progress-value" />
-            </ui:VisualElement>
-            <ui:VisualElement class="progress-track">
-                <ui:VisualElement name="career-progress-fill" class="progress-fill" />
-            </ui:VisualElement>
-
-            <ui:VisualElement class="career-finance-row">
-                <ui:VisualElement>
-                    <ui:Label text="EST. MONTHLY NET" class="eyebrow" />
-                    <ui:Label name="monthly-paycheck-value" text="$4,167" class="secondary-money" />
-                </ui:VisualElement>
-                <ui:VisualElement class="salary-footnote">
-                    <ui:Label text="ANNUAL SALARY" class="eyebrow" />
-                    <ui:Label name="annual-salary-value" text="$50,000 before expenses and taxes" class="salary-value" />
-                </ui:VisualElement>
-            </ui:VisualElement>
-        </ui:VisualElement>
-
-        <ui:VisualElement class="content">
-            <ui:Label name="event-category" text="CAREER EVENT" class="eyebrow accent" />
-            <ui:Label name="event-title" text="The annual review" class="event-title" />
-            <ui:Label name="event-body" text="Your annual review is wrapping up. Your manager asks whether there is anything else you want to discuss." class="event-body" />
-
-            <ui:VisualElement name="choices" class="choices" />
-
-            <ui:VisualElement name="result-card" class="result-card hidden">
-                <ui:Label text="OUTCOME" class="eyebrow accent" />
-                <ui:Label name="result-text" class="result-text" />
-                <ui:Label name="result-effects" class="result-effects" />
-                <ui:Label name="save-status" text="Autosaved" class="save-status" />
-            </ui:VisualElement>
-
-            <ui:Button name="advance-month" text="Advance one month" class="advance-button hidden" />
-
-            <ui:VisualElement class="feed-card">
-                <ui:Label text="LIFE FEED" class="eyebrow" />
-                <ui:Label name="feed-entry" text="Your next decision will appear here." class="feed-entry" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

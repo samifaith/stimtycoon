@@ -26,6 +26,74 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void StartNewLife_CommitsBeforeReplacingActiveLife()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = StimNewLifeFactory.Create(
+                new StimNewLifeRequest
+                {
+                    firstName = "Noah",
+                    lastName = "Grant",
+                    country = "USA",
+                    backgroundId = StimNewLifeFactory.WorkingClassBackground
+                },
+                "0.1.0",
+                DateTimeOffset.Parse("2026-07-13T20:00:00Z"),
+                77);
+
+            Assert.IsTrue(service.TryStartNewLife(save, out var summary), summary);
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+            Assert.That(service.ActiveSave.lifeId, Is.EqualTo(save.lifeId));
+            Assert.That(service.ActiveSave.state.character.age, Is.Zero);
+        }
+
+        [TestCase(0, "infant", "not_started")]
+        [TestCase(3, "early_childhood", "not_started")]
+        [TestCase(6, "primary_school", "primary_school")]
+        [TestCase(12, "secondary_school", "middle_school")]
+        [TestCase(15, "secondary_school", "high_school")]
+        [TestCase(18, "adult", "completed_secondary")]
+        [TestCase(65, "retirement", "completed_secondary")]
+        public void LifeAndEducationStages_FollowAge(int age, string lifeStage, string educationStage)
+        {
+            Assert.That(StimGameSessionService.GetLifeStage(age), Is.EqualTo(lifeStage));
+            Assert.That(StimGameSessionService.GetEducationStage(age), Is.EqualTo(educationStage));
+        }
+
+        [Test]
+        public void BirthLife_AdvancesIntoEarlyChildhoodWithoutCareerProgress()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = StimNewLifeFactory.Create(
+                new StimNewLifeRequest
+                {
+                    firstName = "Kai",
+                    lastName = "Reid",
+                    country = "Jamaica",
+                    backgroundId = StimNewLifeFactory.MiddleIncomeBackground
+                },
+                "0.1.0",
+                DateTimeOffset.Parse("2026-07-13T20:00:00Z"),
+                88);
+            service.Start(save);
+
+            string summary = null;
+            for (var month = 0; month < 36; month++)
+            {
+                Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out summary), summary);
+                Assert.That(nextEvent, Is.Null);
+            }
+
+            Assert.That(service.ActiveSave.state.character.age, Is.EqualTo(3));
+            Assert.That(service.ActiveSave.state.character.lifeStage, Is.EqualTo("early_childhood"));
+            Assert.That(service.ActiveSave.state.education.stage, Is.EqualTo("not_started"));
+            Assert.That(service.ActiveSave.state.career.careerProgress, Is.Zero);
+            Assert.That(summary, Does.Contain("entered early childhood"));
+        }
+
+        [Test]
         public void ResolveChoice_AppliesStateHistoryRevisionAndAutosave()
         {
             var catalog = new InMemoryStimEventCatalog();
@@ -234,6 +302,101 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void PerformActivity_StudyAppliesStatsXpCooldownAndAutosave()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(),
+                repository,
+                utcNow: () => DateTimeOffset.Parse("2026-07-13T20:00:00Z"));
+            service.Start(CreateValidSave());
+
+            var performed = service.TryPerformActivity(StimActivityType.Study, out var summary);
+
+            Assert.IsTrue(performed, summary);
+            Assert.That(summary, Does.Contain("Smarts +2"));
+            Assert.That(summary, Does.Contain("Happiness −1"));
+            Assert.That(service.ActiveSave.state.character.smarts, Is.EqualTo(62));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(69));
+            Assert.That(service.ActiveSave.state.skills.Find(skill => skill.skillId == "learning").experience, Is.EqualTo(10));
+            Assert.That(service.ActiveSave.state.statuses.Find(status => status.statusId == "monthly_focus_used").remainingMonths, Is.EqualTo(1));
+            Assert.That(service.ActiveSave.revision, Is.EqualTo(2));
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void PerformActivity_WorkoutAppliesHealthHappinessAndFitnessXp()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(),
+                repository);
+            service.Start(CreateValidSave());
+
+            var performed = service.TryPerformActivity(StimActivityType.Workout, out var summary);
+
+            Assert.IsTrue(performed, summary);
+            Assert.That(summary, Does.Contain("Health +2"));
+            Assert.That(summary, Does.Contain("Happiness +1"));
+            Assert.That(service.ActiveSave.state.character.health, Is.EqualTo(82));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(71));
+            Assert.That(service.ActiveSave.state.skills.Find(skill => skill.skillId == "fitness").experience, Is.EqualTo(10));
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void PerformActivity_EnforcesLifeStageAndSupportsChildPlay()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 4;
+            service.Start(save);
+
+            Assert.IsFalse(service.TryPerformActivity(StimActivityType.Study, out var unavailable));
+            Assert.That(unavailable, Does.Contain("not available at age 4"));
+            Assert.IsTrue(service.TryPerformActivity(StimActivityType.Play, out var summary), summary);
+            Assert.That(summary, Does.Contain("Happiness +3"));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(73));
+            Assert.That(service.ActiveSave.state.character.health, Is.EqualTo(81));
+        }
+
+        [Test]
+        public void LuckWeightsRandomGainsUpAndRandomLossesDown()
+        {
+            var gain = RepresentativeStimEvents.CreateRandomGain();
+            var loss = RepresentativeStimEvents.CreateRandomLoss();
+
+            Assert.That(StimGameSessionService.GetLuckEventWeight(gain, 90),
+                Is.GreaterThan(StimGameSessionService.GetLuckEventWeight(gain, 10)));
+            Assert.That(StimGameSessionService.GetLuckEventWeight(loss, 90),
+                Is.LessThan(StimGameSessionService.GetLuckEventWeight(loss, 10)));
+        }
+
+        [Test]
+        public void PerformActivity_RejectsSecondFocusUntilMonthAdvances()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(),
+                repository);
+            service.Start(CreateValidSave());
+
+            Assert.IsTrue(service.TryPerformActivity(StimActivityType.Study, out var firstSummary), firstSummary);
+            var secondPerformed = service.TryPerformActivity(StimActivityType.Workout, out var secondSummary);
+
+            Assert.IsFalse(secondPerformed);
+            Assert.That(secondSummary, Does.Contain("already used"));
+            Assert.That(service.ActiveSave.state.character.health, Is.EqualTo(80));
+            Assert.That(service.ActiveSave.revision, Is.EqualTo(2));
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var advanceSummary), advanceSummary);
+            Assert.IsTrue(service.TryPerformActivity(StimActivityType.Workout, out var thirdSummary), thirdSummary);
+            Assert.That(service.ActiveSave.state.character.health, Is.EqualTo(82));
+        }
+
+        [Test]
         public void AdvanceMonth_CanTriggerOrdinaryEventBeforeAnnualRollover()
         {
             var evt = RepresentativeStimEvents.CreateHealthBurnout();
@@ -310,7 +473,7 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
-        public void AdvanceMonth_GuaranteesOrdinaryEventAfterSeveralQuietMonths()
+        public void AdvanceMonth_SelectsEligibleEventEvenWithLowAuthoredWeight()
         {
             var evt = RepresentativeStimEvents.CreateHealthBurnout();
             evt.monthlyTriggerChance = 0.01f;
@@ -342,7 +505,7 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
-        public void MonthlyEventRoll_TracksAuthoredProbabilityAcrossSeededLives()
+        public void MonthlyEventSelection_ReturnsAnEligibleEventAcrossSeededLives()
         {
             var evt = RepresentativeStimEvents.CreateHealthBurnout();
             evt.monthlyTriggerChance = 0.25f;
@@ -364,7 +527,7 @@ namespace StimTycoon.Tests.Domain.Runtime
                 }
             }
 
-            Assert.That(triggered, Is.InRange(220, 280));
+            Assert.That(triggered, Is.EqualTo(1000));
         }
 
         [Test]

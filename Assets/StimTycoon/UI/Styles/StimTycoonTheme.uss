@@ -1,0 +1,56 @@
+:root {
+    --st-cyan-500: rgb(18, 185, 238);
+    --st-cyan-600: rgb(0, 145, 225);
+    --st-purple-500: rgb(145, 65, 230);
+    --st-purple-600: rgb(111, 41, 201);
+    --st-pink-500: rgb(247, 48, 153);
+    --st-pink-600: rgb(214, 28, 126);
+    --st-yellow-400: rgb(255, 207, 46);
+    --st-yellow-500: rgb(247, 181, 12);
+    --st-success-500: rgb(35, 177, 74);
+    --st-warning-500: rgb(243, 158, 23);
+    --st-danger-500: rgb(224, 66, 66);
+    --st-info-500: rgb(0, 145, 225);
+    --st-bg-app: rgb(224, 246, 255);
+    --st-bg-header: rgb(18, 185, 238);
+    --st-surface-1: rgb(255, 255, 255);
+    --st-surface-2: rgb(248, 250, 253);
+    --st-surface-blue: rgb(235, 248, 255);
+    --st-surface-purple: rgb(248, 242, 255);
+    --st-surface-pink: rgb(255, 240, 248);
+    --st-surface-yellow: rgb(255, 249, 226);
+    --st-text-primary: rgb(18, 27, 45);
+    --st-text-secondary: rgb(96, 105, 122);
+    --st-text-muted: rgb(139, 147, 160);
+    --st-text-inverse: rgb(255, 255, 255);
+    --st-border-soft: rgb(221, 229, 239);
+    --st-border-blue: rgb(152, 218, 250);
+    --st-border-purple: rgb(207, 181, 247);
+    --st-border-pink: rgb(250, 177, 215);
+    --st-border-yellow: rgb(250, 211, 98);
+    --st-space-1: 4px;
+    --st-space-2: 8px;
+    --st-space-3: 12px;
+    --st-space-4: 16px;
+    --st-space-5: 20px;
+    --st-space-6: 24px;
+    --st-space-8: 32px;
+    --st-radius-sm: 8px;
+    --st-radius-md: 12px;
+    --st-radius-lg: 18px;
+    --st-radius-xl: 24px;
+    --st-radius-pill: 999px;
+}
+
+.st-display { font-size: 40px; -unity-font-style: bold; color: var(--st-text-primary); }
+.st-title-1 { font-size: 28px; -unity-font-style: bold; color: var(--st-text-primary); }
+.st-title-2 { font-size: 22px; -unity-font-style: bold; color: var(--st-text-primary); }
+.st-title-3 { font-size: 18px; -unity-font-style: bold; color: var(--st-text-primary); }
+.st-body { font-size: 16px; color: var(--st-text-primary); white-space: normal; }
+.st-body-secondary { font-size: 15px; color: var(--st-text-secondary); white-space: normal; }
+.st-caption { font-size: 13px; color: var(--st-text-muted); }
+.st-label { font-size: 14px; -unity-font-style: bold; color: var(--st-text-primary); letter-spacing: 0.4px; }
+.st-positive { color: var(--st-success-500); }
+.st-warning { color: var(--st-warning-500); }
+.st-danger { color: var(--st-danger-500); }
+

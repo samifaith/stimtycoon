@@ -230,12 +230,6 @@
     -unity-font-style: bold;
 }
 
-.save-status {
-    font-size: 11px;
-    color: rgb(70, 215, 173);
-    margin-top: 12px;
-}
-
 .advance-button {
     min-height: 56px;
     margin-top: 20px;

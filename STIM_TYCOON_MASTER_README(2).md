@@ -4,13 +4,32 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 > **Final product name:** Stim Tycoon  
 > **Platform target:** iOS first, with architecture that can support Android later  
-> **Status:** Product definition with Phase 0 implementation in progress
+> **Status:** Phase 1 simulation skeleton in progress; Phase 2 data foundations started
 > **Primary reference set:** Three gameplay recordings supplied by the product owner  
 > **Important:** The recordings are inspiration for interaction patterns, pacing, information hierarchy, and feature depth. Stim Tycoon must use original branding, writing, visuals, balancing, content, data, and interface components.
 
 ### Implementation snapshot — July 13, 2026
 
-The repository currently runs on Unity `6000.3.19f1` and includes the event/save domain foundation, deterministic outcome resolution, Yarn Spinner dialogue bridge, native atomic JSON autosaves, an additive idempotent v1 migration boundary, 65 passing EditMode tests, and all five representative events across childhood, school, career, health, and money. The playable adult vertical slice includes monthly gross pay, tax withholding, living expenses, debt pressure, annual age rollover, randomized monthly event timing with anti-drought protection, and a six-stat player overview. Skill XP, relationship values, and timed statuses persist and respond to event effects. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
+The repository currently runs on Unity `6000.3.19f1` and includes the event/save domain foundation, deterministic outcome resolution, Yarn Spinner dialogue bridge, native atomic JSON autosaves, an additive idempotent v1 migration boundary, and a user-verified 95-test EditMode baseline. A new game generates a complete person at birth, including identity, USA/Jamaica location, background, appearance seed, two genetic parents, inherited starting stats, finances, and a birth feed entry. Returning players may continue the active life. Monthly progression advances life and education stages, applies cash flow and signed stat changes, and selects one age-eligible event whenever the content pool contains one. Fixed-month and annual events take priority when due; otherwise selection is deterministic, randomized, Luck-weighted, and protected from immediate repetition when alternatives exist. Age-appropriate focus actions change from Play/Rest to Study/Play and then Study/Workout. Dedicated Luck, gain, and loss events retain uncertainty. The cozy-corporate Life dashboard keeps Advance Month persistent, shows Age in the header rather than as a redundant progress meter, hides the visual scrollbar while retaining touch scrolling, presents compact event/outcome overlays, and renders the newest Life Feed entry first. Skill XP, relationship values, statuses, life-feed records, and event history persist through autosave. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
+
+### Current phase assessment — July 13, 2026
+
+- **Phase 0 — Product Foundation:** offline foundation delivered. The five representative events, schemas, deterministic resolver, local-save recovery, migration boundary, and product decisions are implemented. Authentication, cloud-conflict validation, Game Center, and ads remain intentionally deferred behind offline-loop stability.
+- **Phase 1 — Simulation Skeleton:** current primary phase. Character generation, monthly aging, life stages, stats, event presentation, Life Feed, seeded randomness, and local save/load are playable. The phase exit criterion is not met because a life cannot yet progress from birth through health decline, death or retirement, and a final summary without developer intervention.
+- **Phase 2 — Skills, Education, and Relationships:** foundations started, not yet a playable phase. Education stages, activity XP, two generated parents, relationship records, relationship deltas, and persistence exist; skill levels and unlocks, school decisions, Social profiles, and relationship actions do not.
+- **Phase 3 and later:** not started as complete systems. Prototype salary and monthly cash flow exist, but they do not yet constitute career ladders or the full personal-finance phase.
+
+### Deferred Phase 0 online-validation gate
+
+The remaining cloud-conflict exit criterion is deliberately deferred; it does not block current offline Phase 1 and Phase 2 work. Resolve it at the following gate:
+
+1. First complete and repeatedly validate the offline life loop from randomized birth through death or retirement and the final-life summary.
+2. Freeze the first beta-ready save semantics for revision ancestry, RNG state, event history, money, inventory, and recovery backups.
+3. Then implement Unity Authentication, Game Center account linking, and Cloud Save behind the existing Stim-owned interfaces.
+4. Add same-ancestry, divergent-ancestry, offline-newer, cloud-newer, corrupt-snapshot, and user-restore conflict fixtures.
+5. Complete this work before account-enabled TestFlight distribution. It must be finished before Phase 9 beta exit, even though the original requirement was documented under Phase 0.
+
+Until that gate, Phase 0 should be described as **offline foundation delivered, online validation deferred**, rather than unconditionally complete.
 
 The current implementation choices supersede earlier package assumptions in this document:
 
@@ -131,20 +150,19 @@ The player should always have at least one meaningful action available, even whe
 
 ## 4.1 New Life Setup
 
-A new game creates a playable character and starting world state.
+Without an active save, the opening presents one player-facing choice: **Start New Game**. When an active save exists, the opening also offers **Continue Current Life**. Starting over generates a complete playable person and starting world state; there is no identity or background configuration step in the MVP.
 
-MVP setup fields:
+Each new life automatically generates:
 
 - first and last name
 - pronouns or gender identity
 - country: USA or Jamaica
-- city type
-- appearance or avatar options
+- appearance and avatar seed
 - socioeconomic background
-- family structure
-- starting personality traits
-- optional difficulty mode
-- optional random life button
+- two parents and parental genetic profiles
+- inherited Health, Looks, and Smarts with controlled variation
+- randomized Happiness and Luck
+- starting family, finances, life stage, and world state
 
 ### Starting background examples
 
@@ -212,10 +230,10 @@ Examples:
 ### Final time model
 
 - one Advance Month action processes monthly income, applies visible player-stat feedback, advances career progress, and moves the calendar forward
-- every month performs a deterministic randomized event roll after applying eligibility and cooldown rules
-- each quiet month increases the ordinary-event trigger chance; an eligible ordinary event is guaranteed by the fifth quiet monthly advance
+- every month selects one event when at least one authored event passes age, location, eligibility, and cooldown rules
+- fixed-month and annual events take priority when their timing requirement is due
+- otherwise the event is selected deterministically from the ordinary pool using authored frequency weight, Luck modifiers, and immediate-repeat protection
 - completing month 12 advances the character's age and allows events marked for annual rollover
-- specifically timed events only enter the event pool during their authored month or annual trigger
 - certain event chains occur immediately
 - businesses progress through both annual aging and shorter in-year turns
 - annual business and investment summaries resolve at age progression
@@ -267,15 +285,14 @@ A large, central **Age** button.
 
 ### Persistent navigation
 
-Recommended MVP navigation:
+Locked MVP navigation:
 
 1. Life
-2. Career
-3. Money
-4. Relationships
-5. Activities
+2. Money
+3. Social
+4. Business
 
-A later version may separate Business, Investing, Assets, and Profile when those systems become dense enough.
+Career and Activities are reached from the Life screen. Investing and property are reached from Money. This keeps the persistent mobile shell to four clear destinations while preserving access to every MVP system.
 
 ### Stat strip
 
@@ -320,7 +337,7 @@ Represents emotional wellbeing and life satisfaction. It affects burnout, relati
 
 ### Luck
 
-Represents favorable chance. It modifies rare opportunities, critical outcomes, windfalls, setbacks, and uncertain events without guaranteeing success.
+Represents favorable chance. It modifies rare opportunities, critical outcomes, windfalls, setbacks, and uncertain events without guaranteeing success. Higher Luck increases the selection weight of favorable random events and reduces the selection weight of unfavorable random events; it never removes either possibility.
 
 These six names are final for MVP. Other values such as stress, reputation, charisma, discipline, confidence, morality, and influence may exist as traits, status effects, skills, or derived values rather than permanent core bars.
 
@@ -1291,6 +1308,8 @@ Potential actions:
 - travel
 - shop
 
+The playable activity choices change with age. Infants and young children receive Play and Rest; school-age children receive Study and Play; teens and adults receive Study and Workout. The simulation service validates age eligibility even when an action is invoked outside the UI.
+
 Later categories may include:
 
 - crime
@@ -1561,15 +1580,18 @@ Requirements:
 
 The inspiration references show a highly functional, list-driven mobile structure. Stim Tycoon should preserve the clarity while developing a distinct visual identity.
 
-Recommended direction:
+Locked direction: **cozy corporate**. The interface should feel organized and ambitious without feeling cold, sterile, or like enterprise software.
 
-- contemporary editorial interface
-- bold but controlled color system
-- clean cards
+- contemporary editorial dashboard structure
+- warm paper and cream surfaces over energetic cyan
+- deep navy ink instead of pure black
+- magenta primary actions and yellow progress or secondary accents
+- thick, friendly outlines and generously rounded cards
 - expressive character avatars
 - compact icon library
 - readable charts
-- subtle celebratory animation
+- concise uppercase labels paired with comfortable body copy
+- subtle, warm celebratory animation
 - stronger premium feel as wealth increases
 
 The interface may visually evolve with the player's status, but navigation and readability should remain stable.
@@ -1614,7 +1636,7 @@ All authored events must conform to one versioned Stim event contract. Yarn Spin
 | `repeatPolicy` | enum | Yes | `never`, `once_per_life_stage`, or `repeatable` |
 | `timingPolicy` | enum | Yes | `any_month`, `annual_rollover`, or `specific_month` |
 | `requiredMonth` | integer | Conditional | Month 1–12 when `timingPolicy` is `specific_month` |
-| `monthlyTriggerChance` | number | Yes | Deterministic chance from greater than 0 through 1 after timing and eligibility checks |
+| `monthlyTriggerChance` | number | Yes | Relative selection-frequency weight from greater than 0 through 1 among eligible events; retained under its v1 schema name |
 | `analyticsTags` | string array | Yes | Stable tags for balancing and reporting |
 
 ### Required choice fields
@@ -2363,8 +2385,8 @@ The MVP must prove that a complete life is fun and replayable.
 ## 29.1 Included
 
 - final title and branding: Stim Tycoon
-- new character creation
-- three starting backgrounds
+- one-button randomized new-life creation
+- three randomized starting backgrounds
 - mandatory childhood beginning with two adults
 - MVP locations: USA and Jamaica
 - monthly progression with annual age rollover
@@ -2420,7 +2442,7 @@ The MVP must prove that a complete life is fun and replayable.
 
 A player should be able to:
 
-1. Create a character.
+1. Start a new game and meet a newly generated character.
 2. Grow from childhood to adulthood.
 3. Develop skills.
 4. Build relationships.
@@ -2436,7 +2458,7 @@ A player should be able to:
 
 ## 30. Development Roadmap
 
-## Phase 0: Product Foundation
+## Phase 0: Product Foundation — Offline Foundation Delivered
 
 Deliverables:
 
@@ -2467,7 +2489,7 @@ Exit criteria:
 - internal risk bands match observed outcomes after modifiers
 - save version 1 passes round-trip, corruption recovery, migration, and cloud-conflict tests
 
-## Phase 1: Simulation Skeleton
+## Phase 1: Simulation Skeleton — Current Primary Phase
 
 Build:
 
@@ -2485,7 +2507,7 @@ Exit criteria:
 
 - a test character can age from birth to death through placeholder events
 
-## Phase 2: Skills, Education, and Relationships
+## Phase 2: Skills, Education, and Relationships — Foundations Started
 
 Build:
 
@@ -2789,6 +2811,7 @@ These decisions are locked and override earlier assumptions:
 14. Monetization is ad-based
 15. Launch is account-enabled with Game Center and cloud-capable saves
 16. A clearly disclosed fourth premium choice that guarantees a defined positive stat boost may be evaluated after launch
+17. The opening flow offers **Start New Game**, plus **Continue Current Life** when an active save exists; new-life identity, location, background, appearance, parents, genetics, and starting stats are generated automatically
 
 ---
 
@@ -2809,18 +2832,39 @@ Completed foundation work:
 - [x] Add a player overview for visible stats, career progress, monthly pay, and secondary salary detail.
 - [x] Add Looks and Luck to the save model, validation, effect application, compatibility loading, and player overview.
 - [x] Expand persistent event effects to skill XP, relationship values, and timed statuses.
-- [x] Allow ordinary events to trigger on randomized monthly rolls while preserving explicit annual and fixed-month timing.
+- [x] Select an eligible event each month while preserving explicit annual and fixed-month timing priority.
 - [x] Add monthly tax withholding, living expenses, deficit debt, and positive or negative Happiness feedback.
-- [x] Add saved anti-drought event timing so ordinary events cannot appear annual-only because of a long random miss streak.
+- [x] Add age-appropriate focus activities plus Luck-weighted random gain and loss events.
+- [x] Render the persisted reverse-chronological Life Feed with the newest entry first, age/month context, and category styling.
+- [x] Replace manual new-life setup with a single Start New Game action that generates the complete person, parents, genetics, background, and starting stats.
+- [x] Add deterministic event weighting and immediate-repeat protection for monthly event pacing.
 - [x] Add additive v1 migration fixtures, a 1,000-seed monthly distribution test, and a save/reload vertical-slice play-flow test.
-- [x] Establish a 65-test verified EditMode baseline.
+- [x] Establish the Stim-owned cozy-corporate theme and first reusable mobile navigation/card treatment.
+- [x] Rebuild the playable Life view around the approved dashboard composition and event overlay.
+- [x] Hide the built-in visual scrollbar while retaining touch scrolling.
+- [x] Audit the implementation and create `docs/IMPLEMENTATION_AUDIT_2026-07-13.md` plus `docs/TASKS.md`.
+- [x] Add transactional Study and Workout actions with monthly cooldowns, autosave, skill XP, and signed feedback.
+- [x] Consolidate the playable Life shell onto reusable header and bottom-navigation templates.
+- [x] Add structural UI Toolkit tests for required bindings, navigation, and event-sheet defaults.
+- [x] Establish a user-verified 95-test EditMode baseline.
+- [x] Keep Advance Month persistent outside the Life ScrollView and clamp all visual progress fills.
 
-Next:
+Next milestone — playable childhood and family loop:
 
-1. Create the interaction map and reusable component layer for the MVP screens.
-2. Produce and validate the first iOS development build.
-3. Add Authentication, Game Center, and Cloud Save only after the offline life loop is stable.
-4. Add LevelPlay after placements and consent behavior are ready for integration testing.
+1. Implement the Social destination with a relationship list and parent profile detail using the two relationships already generated for every new life.
+2. Add transactional, age-appropriate parent interactions such as Talk, Play Together, Ask for Help, Spend Time, and Argue, with monthly limits, signed relationship/stat feedback, Life Feed entries, and autosave.
+3. Build the first real childhood/education loop around the existing school stages: enrollment milestones, school actions, skill levels, XP thresholds, and visible choice unlocks.
+4. Add controller interaction coverage for event presentation, Social interactions, activity feedback, and the persistent Advance Month action; validate 320, 390, 430, and 768 widths at normal and accessibility font scales.
+
+After that milestone:
+
+5. Replace the prototype assigned career with an adulthood transition into applications, interviews, employment, promotion, quitting, and retirement eligibility.
+6. Add health decline, death, retirement resolution, and the final-life summary, then run seeded lives from birth to ending to satisfy the Phase 1 exit criterion.
+7. Implement the Money destination with transaction history, cash flow, debt, and net worth before beginning the Business phase.
+8. Replace placeholder logo, avatar, icon, and font treatments with approved production assets and produce the first iOS development build.
+9. Add Authentication, Game Center, Cloud Save, and LevelPlay only at their documented stability gates.
+
+The operational backlog is maintained in `docs/TASKS.md`.
 
 ---
 

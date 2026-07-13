@@ -10,6 +10,13 @@ namespace StimTycoon.Runtime
         public const string MoneyFastReturnId = "money_fast_return_pitch_001";
         public const string SchoolGroupProjectId = "school_group_project_politics_001";
         public const string ChildhoodGrownFolksTableId = "childhood_grown_folks_table_001";
+        public const string RandomGainId = "world_random_gain_001";
+        public const string RandomLossId = "world_random_loss_001";
+        public const string RandomGainRefundId = "world_random_gain_refund_001";
+        public const string RandomLossRepairId = "world_random_loss_repair_001";
+        public const string LuckCrossroadsId = "world_luck_crossroads_001";
+        public const string ChildhoodDiscoveryId = "childhood_small_discovery_001";
+        public const string ChildhoodComfortId = "childhood_need_comfort_001";
 
         public static StimEvent CreateSalaryNegotiation()
         {
@@ -534,7 +541,7 @@ namespace StimTycoon.Runtime
                 ageRange = new AgeRange { minAge = 7, maxAge = 11 },
                 locations = new List<string> { "USA", "Jamaica" },
                 requirementsJson = "{}",
-                cooldownYears = 0,
+                cooldownYears = 2,
                 repeatPolicy = RepeatPolicy.OncePerLifeStage,
                 analyticsTags = new List<string> { "childhood", "family", "money" },
                 choices = new List<Choice>
@@ -659,6 +666,293 @@ namespace StimTycoon.Runtime
                                 }
                             }
                         }
+                    }
+                }
+            };
+        }
+
+        public static StimEvent CreateRandomGain()
+        {
+            return new StimEvent
+            {
+                id = RandomGainId,
+                category = EventCategory.World,
+                titleKey = "A little luck finds you",
+                bodyKey = "Something unexpectedly goes your way. It is not life-changing, but it changes the shape of this month.",
+                toneTags = new List<string> { "warm", "surprising" },
+                ageRange = new AgeRange { minAge = 13, maxAge = 100 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{}",
+                cooldownYears = 0,
+                repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnyMonth,
+                monthlyTriggerChance = 0.16f,
+                analyticsTags = new List<string> { "world", "random_gain", "luck" },
+                choices = new List<Choice>
+                {
+                    CreateRandomChoice("enjoy_the_gain", "Enjoy the good turn", 0.78f,
+                        "The surprise leaves you with a little more money and a lighter mood.", "Enjoyed an unexpected gain.", "random_gain_enjoyed",
+                        new Effect { type = EffectType.CashDelta, targetId = "cash", value = 5000 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 3 }),
+                    CreateRandomChoice("share_the_gain", "Share some of it", 0.72f,
+                        "Sharing the moment makes the gain feel bigger than the amount.", "Shared an unexpected gain.", "random_gain_shared",
+                        new Effect { type = EffectType.CashDelta, targetId = "cash", value = 2500 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 4 })
+                }
+            };
+        }
+
+        public static StimEvent CreateRandomLoss()
+        {
+            return new StimEvent
+            {
+                id = RandomLossId,
+                category = EventCategory.World,
+                titleKey = "An expense you did not plan for",
+                bodyKey = "A small but unavoidable cost lands at the wrong time. How you handle it matters more than the surprise itself.",
+                toneTags = new List<string> { "grounded", "tense" },
+                ageRange = new AgeRange { minAge = 13, maxAge = 100 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{}",
+                cooldownYears = 0,
+                repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnyMonth,
+                monthlyTriggerChance = 0.14f,
+                analyticsTags = new List<string> { "world", "random_loss", "luck" },
+                choices = new List<Choice>
+                {
+                    CreateRandomChoice("handle_it_now", "Handle it now", 0.7f,
+                        "You absorb the cost and keep the problem from growing.", "Covered an unexpected expense.", "random_loss_handled",
+                        new Effect { type = EffectType.CashDelta, targetId = "cash", value = -4000 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -2 }),
+                    CreateRandomChoice("ask_for_help", "Ask for help", 0.62f,
+                        "The cost still stings, but support keeps it manageable.", "Asked for help with an unexpected expense.", "random_loss_help",
+                        new Effect { type = EffectType.CashDelta, targetId = "cash", value = -2000 },
+                        new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 1 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -1 })
+                }
+            };
+        }
+
+        public static StimEvent CreateRandomGainRefund()
+        {
+            return new StimEvent
+            {
+                id = RandomGainRefundId,
+                category = EventCategory.Money,
+                titleKey = "Money comes back to you",
+                bodyKey = "A corrected charge, forgotten deposit, or small refund puts money back where you did not expect it.",
+                toneTags = new List<string> { "grounded", "pleasant" },
+                ageRange = new AgeRange { minAge = 13, maxAge = 100 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{}",
+                cooldownYears = 0,
+                repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnyMonth,
+                monthlyTriggerChance = 0.12f,
+                analyticsTags = new List<string> { "money", "random_gain", "luck" },
+                choices = new List<Choice>
+                {
+                    CreateRandomChoice("save_the_refund", "Put it aside", 0.86f,
+                        "You save the returned money and feel slightly more prepared.", "Saved an unexpected refund.", "random_refund_saved",
+                        new Effect { type = EffectType.CashDelta, targetId = "cash", value = 7500 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 2 }),
+                    CreateRandomChoice("use_the_refund", "Use it for something useful", 0.74f,
+                        "The refund covers something you had been putting off.", "Used an unexpected refund well.", "random_refund_used",
+                        new Effect { type = EffectType.CashDelta, targetId = "cash", value = 3500 },
+                        new Effect { type = EffectType.StatDelta, targetId = "health", value = 1 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 3 })
+                }
+            };
+        }
+
+        public static StimEvent CreateRandomLossRepair()
+        {
+            return new StimEvent
+            {
+                id = RandomLossRepairId,
+                category = EventCategory.Money,
+                titleKey = "Something important stops working",
+                bodyKey = "An everyday item fails without warning. Ignoring it is possible, but inconvenient.",
+                toneTags = new List<string> { "grounded", "annoying" },
+                ageRange = new AgeRange { minAge = 13, maxAge = 100 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{}",
+                cooldownYears = 0,
+                repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnyMonth,
+                monthlyTriggerChance = 0.12f,
+                analyticsTags = new List<string> { "money", "random_loss", "luck" },
+                choices = new List<Choice>
+                {
+                    CreateRandomChoice("repair_it", "Pay for the repair", 0.8f,
+                        "The repair hurts your cash, but the problem is finished.", "Paid for an unexpected repair.", "random_repair_paid",
+                        new Effect { type = EffectType.CashDelta, targetId = "cash", value = -6500 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -2 }),
+                    CreateRandomChoice("work_around_it", "Work around it for now", 0.68f,
+                        "You keep going without spending as much, but the inconvenience follows you.", "Worked around a broken item.", "random_repair_delayed",
+                        new Effect { type = EffectType.CashDelta, targetId = "cash", value = -1500 },
+                        new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 1 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -2 })
+                }
+            };
+        }
+
+        public static StimEvent CreateLuckCrossroads()
+        {
+            return new StimEvent
+            {
+                id = LuckCrossroadsId,
+                category = EventCategory.World,
+                titleKey = "A strange run of timing",
+                bodyKey = "Small coincidences keep lining up around you. You can follow the feeling or let the moment pass.",
+                toneTags = new List<string> { "curious", "playful" },
+                ageRange = new AgeRange { minAge = 7, maxAge = 100 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{}",
+                cooldownYears = 2,
+                repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnyMonth,
+                monthlyTriggerChance = 0.1f,
+                analyticsTags = new List<string> { "world", "luck_event" },
+                choices = new List<Choice>
+                {
+                    new Choice
+                    {
+                        id = "follow_the_hunch",
+                        labelKey = "Follow the hunch",
+                        riskPreview = RiskLevel.Moderate,
+                        rewardPreview = RewardLevel.Medium,
+                        baseSuccessChance = 0.6f,
+                        modifierRuleIds = new List<string> { "stat_luck_standard" },
+                        outcomes = new List<Outcome>
+                        {
+                            new Outcome
+                            {
+                                id = "timing_clicks",
+                                classification = OutcomeClassification.Positive,
+                                resultTextKey = "The timing works, and trusting your instincts feels easier afterward.",
+                                feedEntryKey = "Followed a hunch that worked out.", telemetryCode = "luck_hunch_worked", weightWithinResultGroup = 1f,
+                                effects = new List<Effect>
+                                {
+                                    new Effect { type = EffectType.StatDelta, targetId = "luck", value = 4 },
+                                    new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 2 }
+                                }
+                            },
+                            new Outcome
+                            {
+                                id = "timing_misses",
+                                classification = OutcomeClassification.Negative,
+                                resultTextKey = "The pattern was mostly noise, and your confidence in the moment fades.",
+                                feedEntryKey = "Followed a hunch that went nowhere.", telemetryCode = "luck_hunch_missed", weightWithinResultGroup = 1f,
+                                effects = new List<Effect>
+                                {
+                                    new Effect { type = EffectType.StatDelta, targetId = "luck", value = -2 },
+                                    new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -1 }
+                                }
+                            }
+                        }
+                    },
+                    CreateRandomChoice("let_it_pass", "Let the moment pass", 0.82f,
+                        "You stay grounded and notice the next opportunity more clearly.", "Let a lucky feeling pass.", "luck_moment_passed",
+                        new Effect { type = EffectType.StatDelta, targetId = "luck", value = 1 },
+                        new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 1 })
+                }
+            };
+        }
+
+        public static StimEvent CreateChildhoodDiscovery()
+        {
+            return new StimEvent
+            {
+                id = ChildhoodDiscoveryId,
+                category = EventCategory.Childhood,
+                titleKey = "Something new catches your attention",
+                bodyKey = "A color, sound, object, or tiny detail feels more interesting than everything else nearby.",
+                toneTags = new List<string> { "warm", "curious", "age_appropriate" },
+                ageRange = new AgeRange { minAge = 0, maxAge = 12 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{}",
+                cooldownYears = 0,
+                repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnyMonth,
+                monthlyTriggerChance = 0.18f,
+                analyticsTags = new List<string> { "childhood", "random_gain" },
+                choices = new List<Choice>
+                {
+                    CreateRandomChoice("explore_it", "Explore it", 0.82f,
+                        "You stay with the discovery and learn something small but real.", "Explored a small new discovery.", "childhood_discovery_explored",
+                        new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 2 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 2 }),
+                    CreateRandomChoice("watch_first", "Watch for a while", 0.88f,
+                        "Taking your time helps the unfamiliar thing feel safe.", "Watched something new with curiosity.", "childhood_discovery_watched",
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 2 },
+                        new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 1 })
+                }
+            };
+        }
+
+        public static StimEvent CreateChildhoodComfort()
+        {
+            return new StimEvent
+            {
+                id = ChildhoodComfortId,
+                category = EventCategory.Childhood,
+                titleKey = "Today feels harder than usual",
+                bodyKey = "You are tired, overwhelmed, or simply out of sorts. A trusted adult notices.",
+                toneTags = new List<string> { "gentle", "grounded", "age_appropriate" },
+                ageRange = new AgeRange { minAge = 0, maxAge = 12 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{}",
+                cooldownYears = 0,
+                repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnyMonth,
+                monthlyTriggerChance = 0.16f,
+                analyticsTags = new List<string> { "childhood", "random_loss" },
+                choices = new List<Choice>
+                {
+                    CreateRandomChoice("reach_for_comfort", "Stay close to someone you trust", 0.8f,
+                        "The difficult feeling eases, though the day still takes something out of you.", "Found comfort during a hard day.", "childhood_comfort_received",
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -1 },
+                        new Effect { type = EffectType.StatDelta, targetId = "health", value = 1 }),
+                    CreateRandomChoice("take_quiet_time", "Take some quiet time", 0.74f,
+                        "The quiet helps you settle and understand what you needed.", "Took quiet time during a hard day.", "childhood_comfort_quiet",
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -1 },
+                        new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 1 })
+                }
+            };
+        }
+
+        private static Choice CreateRandomChoice(
+            string id,
+            string label,
+            float successChance,
+            string result,
+            string feed,
+            string telemetry,
+            params Effect[] effects)
+        {
+            return new Choice
+            {
+                id = id,
+                labelKey = label,
+                riskPreview = successChance >= 0.7f ? RiskLevel.Safe : RiskLevel.Moderate,
+                rewardPreview = successChance >= 0.7f ? RewardLevel.Low : RewardLevel.Medium,
+                baseSuccessChance = successChance,
+                modifierRuleIds = new List<string> { "stat_luck_standard" },
+                outcomes = new List<Outcome>
+                {
+                    new Outcome
+                    {
+                        id = id + "_result",
+                        classification = effects.Length > 0 && effects[0].value < 0
+                            ? OutcomeClassification.Negative
+                            : OutcomeClassification.Positive,
+                        resultTextKey = result,
+                        feedEntryKey = feed,
+                        telemetryCode = telemetry,
+                        weightWithinResultGroup = 1f,
+                        effects = new List<Effect>(effects)
                     }
                 }
             };

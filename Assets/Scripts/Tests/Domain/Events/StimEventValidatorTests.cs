@@ -214,6 +214,37 @@ namespace StimTycoon.Tests.Domain.Events
             Assert.IsTrue(result.isValid, StimEventValidator.GetValidationSummary(result, RepresentativeStimEvents.ChildhoodGrownFolksTableId));
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ValidateEvent_PassesRandomGainAndLossEvents(bool gain)
+        {
+            var evt = gain
+                ? RepresentativeStimEvents.CreateRandomGain()
+                : RepresentativeStimEvents.CreateRandomLoss();
+            var result = StimEventValidator.ValidateEvent(evt);
+
+            Assert.IsTrue(result.isValid, StimEventValidator.GetValidationSummary(result, evt.id));
+        }
+
+        [Test]
+        public void ValidateEvent_PassesExpandedRandomAndLuckEvents()
+        {
+            var events = new[]
+            {
+                RepresentativeStimEvents.CreateRandomGainRefund(),
+                RepresentativeStimEvents.CreateRandomLossRepair(),
+                RepresentativeStimEvents.CreateLuckCrossroads(),
+                RepresentativeStimEvents.CreateChildhoodDiscovery(),
+                RepresentativeStimEvents.CreateChildhoodComfort()
+            };
+
+            foreach (var evt in events)
+            {
+                var result = StimEventValidator.ValidateEvent(evt);
+                Assert.IsTrue(result.isValid, StimEventValidator.GetValidationSummary(result, evt.id));
+            }
+        }
+
         [Test]
         public void ValidateEvent_WarnsRiskyChoiceWithoutModifiers()
         {

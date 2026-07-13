@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="app-header" class="st-life-header">
+        <ui:VisualElement class="st-profile-cluster">
+            <ui:VisualElement class="st-profile-avatar"><ui:Label name="avatar-glyph" text="☺" class="st-profile-avatar-glyph" /></ui:VisualElement>
+            <ui:VisualElement class="st-profile-meta">
+                <ui:Label name="life-summary" text="Age 19" class="st-age-pill" />
+                <ui:VisualElement class="st-xp-pill">
+                    <ui:VisualElement name="career-progress-fill" class="st-xp-fill" />
+                    <ui:Label name="career-progress-value" text="0 / 100 XP" class="st-xp-label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="brand-logo" class="st-wordmark" tooltip="Stim Tycoon">
+            <ui:Label text="STIM" class="st-wordmark-primary" />
+            <ui:Label text="TYCOON" class="st-wordmark-secondary" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="balance-pill" class="st-balance-pill">
+            <ui:Label text="$" class="st-balance-icon" />
+            <ui:Label name="cash-value" text="$2,540,812" class="st-balance-value" />
+            <ui:Button name="add-cash" text="+" class="st-balance-add" tooltip="Money options" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

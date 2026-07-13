@@ -105,6 +105,11 @@ namespace StimTycoon.Saves
                 save.state.career = new StimCareerState();
                 Record(report, "state.career created");
             }
+            if (save.state.education == null)
+            {
+                save.state.education = new StimEducationState();
+                Record(report, "state.education created");
+            }
             if (save.state.skills == null)
             {
                 save.state.skills = new List<StimSkillState>();
@@ -119,6 +124,11 @@ namespace StimTycoon.Saves
             {
                 save.state.statuses = new List<StimStatusState>();
                 Record(report, "state.statuses created");
+            }
+            if (save.state.lifeFeed == null)
+            {
+                save.state.lifeFeed = new List<StimLifeFeedEntry>();
+                Record(report, "state.lifeFeed created");
             }
             if (save.state.eventHistory == null)
             {

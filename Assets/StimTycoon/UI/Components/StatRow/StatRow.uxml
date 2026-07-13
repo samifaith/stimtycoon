@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="stat-row" class="st-stat-row">
+        <ui:VisualElement name="stat-icon" class="st-stat-row__icon" />
+        <ui:Label name="stat-label" text="Stat" class="st-stat-row__label" />
+        <ui:VisualElement class="ds-progress st-progress st-stat-row__progress">
+            <ui:VisualElement name="stat-fill" class="st-progress__fill st-progress__fill--cyan" />
+        </ui:VisualElement>
+        <ui:Label name="stat-value" text="50" class="st-stat-row__value" />
+    </ui:VisualElement>
+</ui:UXML>
+

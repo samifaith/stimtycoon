@@ -56,9 +56,11 @@ namespace StimTycoon.Saves
         public StimCalendarState calendar = new StimCalendarState();
         public StimFinancesState finances = new StimFinancesState();
         public StimCareerState career = new StimCareerState();
+        public StimEducationState education = new StimEducationState();
         public List<StimSkillState> skills = new List<StimSkillState>();
         public List<StimRelationshipState> relationships = new List<StimRelationshipState>();
         public List<StimStatusState> statuses = new List<StimStatusState>();
+        public List<StimLifeFeedEntry> lifeFeed = new List<StimLifeFeedEntry>();
         public string pendingEventId;
         public List<StimEventHistoryEntry> eventHistory = new List<StimEventHistoryEntry>();
         public List<StimScheduledEventRecord> scheduledEvents = new List<StimScheduledEventRecord>();
@@ -67,6 +69,14 @@ namespace StimTycoon.Saves
     [Serializable]
     public class StimCharacterState
     {
+        public string firstName;
+        public string lastName;
+        public string pronouns;
+        public string country;
+        public string backgroundId;
+        public string avatarId;
+        public int appearanceSeed;
+        public string lifeStage = "infant";
         public int age;
         public int health;
         public int happiness;
@@ -101,6 +111,12 @@ namespace StimTycoon.Saves
     }
 
     [Serializable]
+    public class StimEducationState
+    {
+        public string stage = "not_started";
+    }
+
+    [Serializable]
     public class StimSkillState
     {
         public string skillId;
@@ -111,6 +127,12 @@ namespace StimTycoon.Saves
     public class StimRelationshipState
     {
         public string relationshipId;
+        public string displayName;
+        public string relationshipType;
+        public bool isGeneticParent;
+        public int geneticHealth;
+        public int geneticLooks;
+        public int geneticSmarts;
         public int value = 50;
     }
 
@@ -119,6 +141,18 @@ namespace StimTycoon.Saves
     {
         public string statusId;
         public int remainingMonths;
+    }
+
+    [Serializable]
+    public class StimLifeFeedEntry
+    {
+        public string entryId;
+        public string category;
+        public string text;
+        public int age;
+        public int monthOfYear;
+        public int revision;
+        public string timestampUtc;
     }
 
     [Serializable]

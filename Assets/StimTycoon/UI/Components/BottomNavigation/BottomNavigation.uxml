@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="bottom-navigation" class="st-life-bottom-nav">
+        <ui:Button name="nav-life" text="⌂  Life" class="st-life-nav-item active" tooltip="Life" />
+        <ui:Button name="nav-money" text="$  Money" class="st-life-nav-item" tooltip="Money" />
+        <ui:Button name="nav-social" text="●●  Social" class="st-life-nav-item" tooltip="Social" />
+        <ui:Button name="nav-business" text="▥  Business" class="st-life-nav-item" tooltip="Business" />
+    </ui:VisualElement>
+</ui:UXML>
