@@ -150,6 +150,14 @@ namespace StimTycoon.Events
             {
                 result.warnings.Add($"Choice {index} uses Calculated risk; ensure modifiers are defined");
             }
+            else if (!RiskRewardCalculator.ValidateRiskRewardOffset(
+                         choice.riskPreview,
+                         choice.rewardPreview,
+                         out var riskRewardFeedback))
+            {
+                result.isValid = false;
+                result.errors.Add($"Choice {index}: {riskRewardFeedback}");
+            }
 
             // Base success chance
             if (choice.baseSuccessChance < 0f || choice.baseSuccessChance > 1f)
@@ -208,6 +216,13 @@ namespace StimTycoon.Events
                 if (totalPositive == 0 && totalNegative == 0 && totalNeutral > 0)
                 {
                     result.warnings.Add($"Choice {index} has only neutral outcomes; consider adding risk/reward variation");
+                }
+
+                if ((choice.riskPreview == RiskLevel.Risky || choice.riskPreview == RiskLevel.Extreme) &&
+                    (totalPositive == 0 || totalNegative == 0))
+                {
+                    result.isValid = false;
+                    result.errors.Add($"Choice {index} is {choice.riskPreview} and must include both positive and negative outcomes");
                 }
             }
 

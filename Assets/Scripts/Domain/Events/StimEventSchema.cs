@@ -82,7 +82,8 @@ namespace StimTycoon.Events
         AssetAdd,
         AssetRemove,
         ScheduleEvent,
-        UnlockContent
+        UnlockContent,
+        SalaryDelta
     }
 
     /// <summary>

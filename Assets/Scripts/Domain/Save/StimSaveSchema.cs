@@ -53,7 +53,10 @@ namespace StimTycoon.Saves
     public class StimGameState
     {
         public StimCharacterState character = new StimCharacterState();
+        public StimCalendarState calendar = new StimCalendarState();
         public StimFinancesState finances = new StimFinancesState();
+        public StimCareerState career = new StimCareerState();
+        public string pendingEventId;
         public List<StimEventHistoryEntry> eventHistory = new List<StimEventHistoryEntry>();
         public List<StimScheduledEventRecord> scheduledEvents = new List<StimScheduledEventRecord>();
     }
@@ -68,10 +71,25 @@ namespace StimTycoon.Saves
     }
 
     [Serializable]
+    public class StimCalendarState
+    {
+        public int monthOfYear = 1;
+    }
+
+    [Serializable]
     public class StimFinancesState
     {
         public long cashMinorUnits;
         public long debtMinorUnits;
+    }
+
+    [Serializable]
+    public class StimCareerState
+    {
+        public string employerId;
+        public string roleTitle;
+        public long annualSalaryMinorUnits;
+        public int careerProgress;
     }
 
     [Serializable]
@@ -191,7 +209,9 @@ namespace StimTycoon.Saves
             }
 
             ValidateCharacterState(result, save.state.character);
+            ValidateCalendarState(result, save.state.calendar);
             ValidateFinancesState(result, save.state.finances);
+            ValidateCareerState(result, save.state.career);
             ValidateEventHistory(result, save.state.eventHistory);
             ValidateScheduledEvents(result, save.state.scheduledEvents);
 
@@ -268,6 +288,44 @@ namespace StimTycoon.Saves
             {
                 result.isValid = false;
                 result.errors.Add("state.finances.debtMinorUnits cannot be negative");
+            }
+        }
+
+        private static void ValidateCalendarState(StimSaveValidationResult result, StimCalendarState calendar)
+        {
+            if (calendar == null)
+            {
+                result.isValid = false;
+                result.errors.Add("state.calendar is null");
+                return;
+            }
+
+            if (calendar.monthOfYear < 1 || calendar.monthOfYear > 12)
+            {
+                result.isValid = false;
+                result.errors.Add("state.calendar.monthOfYear must be within [1, 12]");
+            }
+        }
+
+        private static void ValidateCareerState(StimSaveValidationResult result, StimCareerState career)
+        {
+            if (career == null)
+            {
+                result.isValid = false;
+                result.errors.Add("state.career is null");
+                return;
+            }
+
+            if (career.annualSalaryMinorUnits < 0)
+            {
+                result.isValid = false;
+                result.errors.Add("state.career.annualSalaryMinorUnits cannot be negative");
+            }
+
+            if (career.careerProgress < 0 || career.careerProgress > 100)
+            {
+                result.isValid = false;
+                result.errors.Add("state.career.careerProgress must be within [0, 100]");
             }
         }
 

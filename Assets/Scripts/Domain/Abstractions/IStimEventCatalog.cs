@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using StimTycoon.Events;
 
 namespace StimTycoon.Abstractions
@@ -10,6 +11,8 @@ namespace StimTycoon.Abstractions
         int Count { get; }
 
         bool TryGetEvent(string eventId, out StimEvent evt);
+
+        IReadOnlyList<StimEvent> GetAllEvents();
 
         void Upsert(StimEvent evt);
     }

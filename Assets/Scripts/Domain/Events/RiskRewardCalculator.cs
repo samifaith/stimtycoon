@@ -87,30 +87,12 @@ namespace StimTycoon.Events
         {
             feedback = "";
 
-            // Map levels to numeric values for comparison
-            int riskValue = (int)risk;
-            int rewardValue = (int)reward;
-
-            // Guidelines (not hard rules, but recommendations)
-            if (risk == RiskLevel.Safe && reward == RewardLevel.High)
+            if (risk == RiskLevel.Calculated)
             {
-                feedback = "⚠ Safe choice with High reward might be too powerful";
-                return false;
+                feedback = "✓ Calculated risk reward is validated after modifiers";
+                return true;
             }
 
-            if (risk == RiskLevel.Extreme && reward == RewardLevel.Low)
-            {
-                feedback = "⚠ Extreme risk with Low reward might not be attractive";
-                return false;
-            }
-
-            if (risk == RiskLevel.Safe && reward == RewardLevel.Exceptional)
-            {
-                feedback = "⚠ Safe choice with Exceptional reward seems unbalanced";
-                return false;
-            }
-
-            // Acceptable combinations
             if ((risk == RiskLevel.Safe && reward == RewardLevel.Low) ||
                 (risk == RiskLevel.Safe && reward == RewardLevel.Medium) ||
                 (risk == RiskLevel.Moderate && reward == RewardLevel.Medium) ||
@@ -124,8 +106,8 @@ namespace StimTycoon.Events
                 return true;
             }
 
-            feedback = "✓ Risk and reward combination is acceptable";
-            return true;
+            feedback = $"Risk {risk} is not balanced by reward {reward}";
+            return false;
         }
 
         /// <summary>

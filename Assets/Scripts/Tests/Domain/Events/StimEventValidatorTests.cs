@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System.Collections.Generic;
 using StimTycoon.Events;
+using StimTycoon.Runtime;
 
 namespace StimTycoon.Tests.Domain.Events
 {
@@ -145,6 +146,14 @@ namespace StimTycoon.Tests.Domain.Events
         }
 
         [Test]
+        public void ValidateEvent_PassesRepresentativeHealthEvent()
+        {
+            var result = StimEventValidator.ValidateEvent(RepresentativeStimEvents.CreateHealthBurnout());
+
+            Assert.IsTrue(result.isValid, StimEventValidator.GetValidationSummary(result, RepresentativeStimEvents.HealthBurnoutId));
+        }
+
+        [Test]
         public void ValidateEvent_WarnsRiskyChoiceWithoutModifiers()
         {
             var evt = CreateValidEvent();
@@ -154,6 +163,19 @@ namespace StimTycoon.Tests.Domain.Events
             var result = StimEventValidator.ValidateEvent(evt);
 
             Assert.That(result.warnings.Count, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void ValidateEvent_RejectsRiskyChoiceWithLowReward()
+        {
+            var evt = CreateValidEvent();
+            evt.choices[0].riskPreview = RiskLevel.Risky;
+            evt.choices[0].rewardPreview = RewardLevel.Low;
+
+            var result = StimEventValidator.ValidateEvent(evt);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("not balanced")));
         }
 
         [Test]

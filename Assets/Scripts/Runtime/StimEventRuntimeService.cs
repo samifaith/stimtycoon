@@ -139,6 +139,13 @@ namespace StimTycoon.Runtime
             return events.TryGetValue(eventId, out evt);
         }
 
+        public IReadOnlyList<StimEvent> GetAllEvents()
+        {
+            var result = new List<StimEvent>(events.Values);
+            result.Sort((left, right) => string.CompareOrdinal(left.id, right.id));
+            return result;
+        }
+
         public void Upsert(StimEvent evt)
         {
             if (evt == null || string.IsNullOrWhiteSpace(evt.id))

@@ -1,0 +1,14 @@
+title: HealthBurnout
+tags: health burnout representative
+---
+You have been waking up exhausted, losing focus, and carrying work stress into every evening.
+
+-> Take a few days to recover. #choice:take_a_break
+    You clear your schedule and give yourself permission to stop.
+    <<stim_resolve_choice "health_body_asking_for_pause_001" "take_a_break">>
+    <<stop>>
+-> Push through the exhaustion. #choice:push_through
+    You decide the deadlines matter more than the warning signs.
+    <<stim_resolve_choice "health_body_asking_for_pause_001" "push_through">>
+    <<stop>>
+===

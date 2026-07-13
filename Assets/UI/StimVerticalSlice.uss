@@ -113,6 +113,20 @@
     margin-top: 12px;
 }
 
+.advance-button {
+    min-height: 56px;
+    margin-top: 20px;
+    background-color: rgb(70, 215, 173);
+    color: rgb(14, 18, 24);
+    border-radius: 10px;
+    font-size: 17px;
+    -unity-font-style: bold;
+}
+
+.advance-button:hover {
+    background-color: rgb(91, 232, 191);
+}
+
 .hidden {
     display: none;
 }

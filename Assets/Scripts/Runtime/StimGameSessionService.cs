@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using StimTycoon.Abstractions;
 using StimTycoon.Events;
 using StimTycoon.Saves;
@@ -53,6 +54,14 @@ namespace StimTycoon.Runtime
             }
 
             var save = JsonUtility.FromJson<StimSaveEnvelope>(serializedSave);
+            if (save?.state != null && save.state.career == null)
+            {
+                save.state.career = new StimCareerState();
+            }
+            if (save?.state != null && save.state.calendar == null)
+            {
+                save.state.calendar = new StimCalendarState();
+            }
             var validation = StimSaveValidator.ValidateSave(save);
             summary = StimSaveValidator.GetValidationSummary(validation, save?.saveId ?? "unknown-save");
             if (!validation.isValid)
@@ -97,7 +106,7 @@ namespace StimTycoon.Runtime
                 return false;
             }
 
-            var candidateSave = JsonUtility.FromJson<StimSaveEnvelope>(JsonUtility.ToJson(ActiveSave));
+            var candidateSave = CloneSave(ActiveSave);
             ApplyResolution(candidateSave, resolution);
             var serializedSave = JsonUtility.ToJson(candidateSave, true);
             if (!saveRepository.TryCommitAutosave(serializedSave, out summary))
@@ -111,11 +120,65 @@ namespace StimTycoon.Runtime
             return true;
         }
 
+        public bool TryAdvanceMonth(out StimEvent nextEvent, out string summary)
+        {
+            nextEvent = null;
+            LastResolution = null;
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
+            {
+                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before advancing another month.";
+                return false;
+            }
+
+            var candidateSave = CloneSave(ActiveSave);
+            candidateSave.revision++;
+            candidateSave.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
+            var paidMonth = candidateSave.state.calendar.monthOfYear;
+            var paycheck = CalculateMonthlyPaycheck(candidateSave.state.career.annualSalaryMinorUnits, paidMonth);
+            candidateSave.state.finances.cashMinorUnits += paycheck;
+
+            var completedYear = paidMonth == 12;
+            if (completedYear)
+            {
+                candidateSave.state.calendar.monthOfYear = 1;
+                candidateSave.state.character.age++;
+                candidateSave.rng.step++;
+                nextEvent = SelectEligibleEvent(candidateSave);
+                candidateSave.state.pendingEventId = nextEvent?.id;
+            }
+            else
+            {
+                candidateSave.state.calendar.monthOfYear++;
+            }
+
+            var serializedSave = JsonUtility.ToJson(candidateSave, true);
+            if (!saveRepository.TryCommitAutosave(serializedSave, out summary))
+            {
+                nextEvent = null;
+                return false;
+            }
+
+            ActiveSave = candidateSave;
+            summary = !completedYear
+                ? $"Month {paidMonth}: received a {FormatMoney(paycheck)} paycheck."
+                : nextEvent == null
+                    ? $"Age {candidateSave.state.character.age}: received a {FormatMoney(paycheck)} paycheck and completed a quiet year."
+                    : $"Age {candidateSave.state.character.age}: received a {FormatMoney(paycheck)} paycheck and a new {nextEvent.category.ToString().ToLowerInvariant()} event is ready.";
+            return true;
+        }
+
         private void ApplyResolution(StimSaveEnvelope save, StimChoiceResolution resolution)
         {
             save.revision++;
             save.rng.step++;
             save.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
+            save.state.pendingEventId = null;
 
             foreach (var effect in resolution.outcome.effects)
             {
@@ -160,6 +223,11 @@ namespace StimTycoon.Runtime
                         0,
                         save.state.finances.cashMinorUnits + (long)Math.Round(effect.value));
                     break;
+                case EffectType.SalaryDelta:
+                    save.state.career.annualSalaryMinorUnits = Math.Max(
+                        0,
+                        save.state.career.annualSalaryMinorUnits + (long)Math.Round(effect.value));
+                    break;
                 case EffectType.DebtDelta:
                     save.state.finances.debtMinorUnits = Math.Max(
                         0,
@@ -167,6 +235,10 @@ namespace StimTycoon.Runtime
                     break;
                 case EffectType.StatDelta:
                     ApplyStatDelta(save, effect.targetId, effect.value);
+                    break;
+                case EffectType.CareerProgressDelta:
+                    save.state.career.careerProgress = ClampStat(
+                        save.state.career.careerProgress + (int)Math.Round(effect.value));
                     break;
             }
         }
@@ -192,5 +264,90 @@ namespace StimTycoon.Runtime
         {
             return Math.Max(StimSaveSchema.MinCoreStatValue, Math.Min(StimSaveSchema.MaxCoreStatValue, value));
         }
+
+        private StimEvent SelectEligibleEvent(StimSaveEnvelope save)
+        {
+            var eligible = new List<StimEvent>();
+            foreach (var evt in eventCatalog.GetAllEvents())
+            {
+                if (IsEligible(evt, save))
+                {
+                    eligible.Add(evt);
+                }
+            }
+
+            if (eligible.Count == 0)
+            {
+                return null;
+            }
+
+            return eligible[StableIndex(save.rng.seed, save.rng.step, eligible.Count)];
+        }
+
+        private static bool IsEligible(StimEvent evt, StimSaveEnvelope save)
+        {
+            if (evt == null || !StimEventValidator.ValidateEvent(evt).isValid || evt.ageRange == null)
+            {
+                return false;
+            }
+
+            var age = save.state.character.age;
+            if (age < evt.ageRange.minAge || age > evt.ageRange.maxAge)
+            {
+                return false;
+            }
+
+            StimEventHistoryEntry latest = null;
+            foreach (var entry in save.state.eventHistory)
+            {
+                if (entry != null && string.Equals(entry.eventId, evt.id, StringComparison.Ordinal) &&
+                    (latest == null || entry.age > latest.age))
+                {
+                    latest = entry;
+                }
+            }
+
+            if (latest == null)
+            {
+                return true;
+            }
+
+            if (evt.repeatPolicy == RepeatPolicy.Never || evt.repeatPolicy == RepeatPolicy.OncePerLifeStage)
+            {
+                return false;
+            }
+
+            return age - latest.age >= evt.cooldownYears;
+        }
+
+        private static int StableIndex(int seed, int step, int count)
+        {
+            unchecked
+            {
+                var value = (uint)seed ^ (0x9E3779B9u * (uint)(step + 1));
+                value ^= value >> 16;
+                value *= 0x7FEB352Du;
+                value ^= value >> 15;
+                return (int)(value % (uint)count);
+            }
+        }
+
+        private static StimSaveEnvelope CloneSave(StimSaveEnvelope save)
+        {
+            return JsonUtility.FromJson<StimSaveEnvelope>(JsonUtility.ToJson(save));
+        }
+
+        private static long CalculateMonthlyPaycheck(long annualSalaryMinorUnits, int monthOfYear)
+        {
+            var basePaycheck = annualSalaryMinorUnits / 12;
+            var remainder = annualSalaryMinorUnits % 12;
+            return basePaycheck + (monthOfYear <= remainder ? 1 : 0);
+        }
+
+        private static string FormatMoney(long minorUnits)
+        {
+            return (minorUnits / 100m).ToString("C0");
+        }
+
     }
 }
