@@ -76,7 +76,7 @@ stimtycoon/
 ### Exit Criteria
 
 - [ ] Dialogue System prototype + C# bridge
-- [ ] Save schema & versioning tests
+- [x] Save schema & versioning tests
 - [ ] Risk/reward band calculator
 - [ ] Event schema validator (C#)
 - [ ] Five representative events in Dialogue System

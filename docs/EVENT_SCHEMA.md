@@ -31,13 +31,13 @@ StimEvent {
   titleKey: string (localization key for event title)
   bodyKey: string (localization key for event body/description)
   toneTags: string[] (editorial guidance: "grounded", "tense", "warm", "funny", "direct")
-  
+
   ageRange: AgeRange { minAge, maxAge }
   locations: string[] (must include "USA" and/or "Jamaica")
-  
+
   requirementsJson: string (JSON object defining eligibility conditions)
   exclusionsJson: string (JSON object defining when event cannot run)
-  
+
   choices: Choice[] (must have ≥2)
   cooldownYears: int (minimum years before event can repeat)
   repeatPolicy: RepeatPolicy (Never, OncePerLifeStage, Repeatable)
@@ -51,15 +51,15 @@ StimEvent {
 Choice {
   id: string (e.g., "negotiate")
   labelKey: string (localization key for button text)
-  
+
   riskPreview: RiskLevel (Safe, Moderate, Risky, Extreme, or Calculated)
   rewardPreview: RewardLevel (Low, Medium, High, Exceptional)
-  
+
   baseSuccessChance: float [0, 1] (before modifiers)
   modifierRuleIds: string[] (which modifiers apply, e.g., "skill_negotiation_2")
-  
+
   requirements: string (JSON; choice-specific eligibility)
-  
+
   outcomes: Outcome[] (must have ≥1)
 }
 ```
@@ -70,11 +70,11 @@ Choice {
 Outcome {
   id: string (e.g., "negotiation_success")
   classification: OutcomeClassification (Positive, Neutral, Negative)
-  
+
   resultTextKey: string (localization key for result copy)
   feedEntryKey: string (life-feed summary localization)
   telemetryCode: string (analytics identifier)
-  
+
   weightWithinResultGroup: float (relative probability)
   effects: Effect[] (state mutations)
   followUps: ScheduledEventRef[] (events triggered later)
@@ -127,72 +127,75 @@ Create a `StimEvent` object (in C# or as JSON):
 
 ```json
 {
-  "schemaVersion": 1,
-  "id": "career_salary_negotiation_001",
-  "category": "Career",
-  "titleKey": "event.career.salary_negotiation.title",
-  "bodyKey": "event.career.salary_negotiation.body",
-  "toneTags": ["grounded", "direct"],
-  "ageRange": {
-    "minAge": 18,
-    "maxAge": 75
-  },
-  "locations": ["USA", "Jamaica"],
-  "requirementsJson": "{\"minAge\": 18, \"hasJob\": true}",
-  "cooldownYears": 2,
-  "repeatPolicy": "Repeatable",
-  "analyticsTags": ["career", "negotiation"],
-  "choices": [
-    {
-      "id": "make_the_case",
-      "labelKey": "choice.make_the_case",
-      "riskPreview": "Moderate",
-      "rewardPreview": "High",
-      "baseSuccessChance": 0.55,
-      "modifierRuleIds": ["skill_negotiation_4", "trait_ambitious_boosts_career"],
-      "outcomes": [
-        {
-          "id": "success",
-          "classification": "Positive",
-          "resultTextKey": "outcome.salary_increase.success",
-          "feedEntryKey": "feed.got_raise",
-          "telemetryCode": "salary_raise_success",
-          "weightWithinResultGroup": 1.0,
-          "effects": [
-            {
-              "type": "CashDelta",
-              "targetId": "salary",
-              "value": 5000
-            },
-            {
-              "type": "SkillXp",
-              "targetId": "negotiation",
-              "value": 12
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "let_it_pass",
-      "labelKey": "choice.let_it_pass",
-      "riskPreview": "Safe",
-      "rewardPreview": "Low",
-      "baseSuccessChance": 0.95,
-      "modifierRuleIds": [],
-      "outcomes": [
-        {
-          "id": "stable",
-          "classification": "Neutral",
-          "resultTextKey": "outcome.let_it_pass.stable",
-          "feedEntryKey": "feed.no_raise",
-          "telemetryCode": "no_raise",
-          "weightWithinResultGroup": 1.0,
-          "effects": []
-        }
-      ]
-    }
-  ]
+	"schemaVersion": 1,
+	"id": "career_salary_negotiation_001",
+	"category": "Career",
+	"titleKey": "event.career.salary_negotiation.title",
+	"bodyKey": "event.career.salary_negotiation.body",
+	"toneTags": ["grounded", "direct"],
+	"ageRange": {
+		"minAge": 18,
+		"maxAge": 75
+	},
+	"locations": ["USA", "Jamaica"],
+	"requirementsJson": "{\"minAge\": 18, \"hasJob\": true}",
+	"cooldownYears": 2,
+	"repeatPolicy": "Repeatable",
+	"analyticsTags": ["career", "negotiation"],
+	"choices": [
+		{
+			"id": "make_the_case",
+			"labelKey": "choice.make_the_case",
+			"riskPreview": "Moderate",
+			"rewardPreview": "High",
+			"baseSuccessChance": 0.55,
+			"modifierRuleIds": [
+				"skill_negotiation_4",
+				"trait_ambitious_boosts_career"
+			],
+			"outcomes": [
+				{
+					"id": "success",
+					"classification": "Positive",
+					"resultTextKey": "outcome.salary_increase.success",
+					"feedEntryKey": "feed.got_raise",
+					"telemetryCode": "salary_raise_success",
+					"weightWithinResultGroup": 1.0,
+					"effects": [
+						{
+							"type": "CashDelta",
+							"targetId": "salary",
+							"value": 5000
+						},
+						{
+							"type": "SkillXp",
+							"targetId": "negotiation",
+							"value": 12
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "let_it_pass",
+			"labelKey": "choice.let_it_pass",
+			"riskPreview": "Safe",
+			"rewardPreview": "Low",
+			"baseSuccessChance": 0.95,
+			"modifierRuleIds": [],
+			"outcomes": [
+				{
+					"id": "stable",
+					"classification": "Neutral",
+					"resultTextKey": "outcome.let_it_pass.stable",
+					"feedEntryKey": "feed.no_raise",
+					"telemetryCode": "no_raise",
+					"weightWithinResultGroup": 1.0,
+					"effects": []
+				}
+			]
+		}
+	]
 }
 ```
 
@@ -225,6 +228,7 @@ Store validated events in ScriptableObjects or a centralized data file.
 See [docs/MODIFIER_RULES.md](../../docs/MODIFIER_RULES.md) for the complete list of modifiers that can be referenced in `modifierRuleIds`.
 
 Example:
+
 ```csharp
 modifierRuleIds: ["skill_negotiation_4", "stat_smarts_above_75", "trait_ambitious_boosts_career"]
 ```
@@ -279,20 +283,20 @@ Five events serve as examples of the schema and branching patterns:
 4. **Health: Your Body Is Asking for a Pause** – Ages 16–80, fatigue event
 5. **Money: The Fast Return** – Ages 18–90, investment pitch
 
-See [STIM_TYCOON_MASTER_README(2).md](../../STIM_TYCOON_MASTER_README(2).md), Section 25.2 for full specs.
+See [STIM_TYCOON_MASTER_README(2).md](<../../STIM_TYCOON_MASTER_README(2).md>), Section 25.2 for full specs.
 
 ---
 
 ## Common Mistakes
 
-| Mistake | Fix |
-|---------|-----|
-| Outcome weights don't sum to 1.0 | Weights don't need to sum to 1; they're relative probabilities |
-| Hard-coded text instead of localization key | All user-facing text must use `*Key` fields |
-| Single outcome for a choice | Provide at least one outcome; use probability weighting if it's mostly one result |
-| Using `Calculated` risk without modifiers | Either define modifiers or use a fixed RiskLevel |
-| Forgetting to set `cooldownYears` | Set to 0 for events that can repeat frequently; > 0 for events that need spacing |
-| Missing `telemetryCode` on outcomes | Always include; used for analytics and balancing |
+| Mistake                                     | Fix                                                                               |
+| ------------------------------------------- | --------------------------------------------------------------------------------- |
+| Outcome weights don't sum to 1.0            | Weights don't need to sum to 1; they're relative probabilities                    |
+| Hard-coded text instead of localization key | All user-facing text must use `*Key` fields                                       |
+| Single outcome for a choice                 | Provide at least one outcome; use probability weighting if it's mostly one result |
+| Using `Calculated` risk without modifiers   | Either define modifiers or use a fixed RiskLevel                                  |
+| Forgetting to set `cooldownYears`           | Set to 0 for events that can repeat frequently; > 0 for events that need spacing  |
+| Missing `telemetryCode` on outcomes         | Always include; used for analytics and balancing                                  |
 
 ---
 
@@ -301,6 +305,7 @@ See [STIM_TYCOON_MASTER_README(2).md](../../STIM_TYCOON_MASTER_README(2).md), Se
 In Phase 1, events will be authored visually in **Dialogue System for Unity** and exported/imported.
 
 Mapping:
+
 - Dialogue System **Conversation** → Stim Event
 - Dialogue System **Dialogue Entry** → Stim Choice
 - Dialogue System **Links** → Outcomes
