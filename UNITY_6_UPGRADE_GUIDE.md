@@ -1,91 +1,62 @@
 # Unity 6.3 LTS Setup Guide
 
-**Status:** Stim Tycoon is being upgraded from Unity 2022.3 LTS → **6.3 LTS**
+**Status:** Upgrade complete; the project is pinned to Unity `6000.3.19f1`.
 
----
+## Install the Editor
 
-## Step 1: Install Unity Hub (if not already installed)
+1. Open Unity Hub and select **Installs → Install Editor**.
+2. Install Unity `6000.3.19f1`.
+3. Include **iOS Build Support** for Stim Tycoon's target platform.
+4. Game Center support is a separate project dependency and can remain deferred.
 
-1. Download from: https://unity.com/download
-2. Install Unity Hub
-3. Launch it and sign in with your Unity account
+## Open the Project
 
----
+1. In Unity Hub, select **Projects → Add → Add project from disk**.
+2. Choose this repository root.
+3. Let the first package import and script compilation finish.
 
-## Step 2: Install Unity 6.3 LTS Editor
+The project may live on an external drive. Use APFS on macOS, keep the drive mounted at a stable path, and ensure the current user has read/write access.
 
-1. In Unity Hub, go to **Installs** → **Install Editor**
-2. Select **Unity 6 LTS** (the latest 6.3 patch, e.g., `6000.3.x`)
-3. Select **iOS Build Support** (required for Stim Tycoon)
-4. Select **Apple GameKit Plugins** (recommended for Game Center integration)
-5. Click **Install** and wait (~15–30 min depending on connection)
+## Verify the Project
 
----
+1. Confirm the title bar or **Unity → About Unity** reports `6000.3.19f1`.
+2. Run `Tools → Stim Tycoon → Run Setup Check`.
+3. Open `Window → General → Test Runner`, select **EditMode**, and run all 32 tests.
+4. Open `Assets/Scenes/StimVerticalSlice.unity` and press Play.
 
-## Step 3: Open the Project
+## Current Dependencies
 
-1. In Unity Hub, go to **Projects**
-2. Click **Open** and navigate to this repository's folder
-3. Select the folder; Unity will detect the project and open it with 6.3 LTS
-4. Wait for the first import to complete (~3–5 min)
+- UI Toolkit and UI Builder
+- Input System
+- Unity Test Framework
+- Yarn Spinner
+- native Stim atomic JSON saves
 
----
-
-## Expected Changes After Opening
-
-- `ProjectSettings/ProjectVersion.txt` will use a `6000.3.x` editor version
-- `Packages/manifest.json` will be updated with 6.3 LTS compatible packages
-- `Packages/packages-lock.json` will be regenerated
-- A **Library/** folder will be created (ignore; already in .gitignore)
-
----
-
-## Verify the Upgrade
-
-1. In the Unity editor, open **Window** → **General** → **About Unity**
-2. Confirm you see **Unity 6.3 LTS** or **Unity 6** (latest patch)
-3. Close the editor and commit:
-
-```bash
-git add ProjectSettings/ Packages/
-git commit -m "Upgrade to Unity 6.3 LTS"
-git push
-```
-
----
-
-## Next: Phase 0 Technical Foundation
-
-Once the project opens in Unity 6.3 LTS:
-
-1. **Dialogue System for Unity** – Import from Asset Store
-2. **Easy Save 3** – Import from Asset Store
-3. **Apple GameKit** – Already in Packages (verify it's enabled)
-4. **UI Toolkit** – Built-in; verify in Window → UI Toolkit
-
-Then proceed to Phase 0 deliverables:
-
-- Dialogue System prototype
-- Save schema validator
-- Event schema validator
-- Risk/reward calculator
-
----
+Authentication, Cloud Save, Apple GameKit, and LevelPlay remain deferred. Dialogue System for Unity and Easy Save 3 are not required.
 
 ## Troubleshooting
 
-**Project won't open?**
+### Project does not open
 
-- Check that you have iOS Build Support installed for 6.3 LTS
-- Try removing `Library/` folder and reopening
-- Check the Editor.log: `~/Library/Logs/Unity/Editor.log`
+- Confirm Unity `6000.3.19f1` is installed, not merely queued in Hub.
+- Confirm the external drive is mounted and writable.
+- In Hub, remove only the project-list entry and add the repository again; this does not delete project files.
+- Check `~/Library/Logs/Unity/Editor.log` for the first concrete error.
 
-**Compilation errors after opening?**
+### UI scene is empty
 
-- Use **Assets** → **Reimport All**
-- Check Console for any import failures
+- Exit Play Mode.
+- Run `Tools → Stim Tycoon → Create Vertical Slice Scene`.
+- Wait for compilation, clear the Console, and press Play again.
 
-**Need the old 2022.3 project back?**
+### Tests do not appear
 
-- It's still in git history: `git log --oneline`
-- Create a branch from that commit if needed
+- Run `Assets → Refresh`.
+- Close and reopen Test Runner.
+- Avoid context-clicking its test list if Unity emits an editor-only layout exception.
+
+### Compilation errors after a package change
+
+- Wait for package resolution to finish.
+- Inspect the first Console error rather than later cascading errors.
+- Revert or isolate the package upgrade if the clean baseline no longer compiles.

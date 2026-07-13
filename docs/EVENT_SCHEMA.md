@@ -300,18 +300,18 @@ See [STIM_TYCOON_MASTER_README(2).md](<../../STIM_TYCOON_MASTER_README(2).md>), 
 
 ---
 
-## Phase 1+: Integration with Dialogue System
+## Phase 1+: Yarn Spinner Integration
 
-In Phase 1, events will be authored visually in **Dialogue System for Unity** and exported/imported.
+Yarn Spinner owns player-facing dialogue and choice flow. The versioned Stim event remains the canonical source for eligibility, probability, outcomes, effects, and follow-ups.
 
 Mapping:
 
-- Dialogue System **Conversation** → Stim Event
-- Dialogue System **Dialogue Entry** → Stim Choice
-- Dialogue System **Links** → Outcomes
-- Dialogue System **Lua/Sequencer** → Effects
+- Yarn node → dialogue flow for a Stim event
+- Yarn option → player-facing choice
+- stable command arguments → Stim event ID and choice ID
+- `stim_resolve_choice` → validated C# session transaction
 
-The validator will run on import to catch issues early.
+C# validates the event and selected choice again before resolving or mutating state.
 
 ---
 

@@ -11,7 +11,7 @@
 
 Event outcome probabilities are calculated by applying named modifier rules to a base success chance. This document defines the modifier set for MVP and the evaluation strategy.
 
-Modifier rules are **configurable, data-driven, and evaluated in C#**—not hard-coded into events or Dialogue System.
+Modifier rules are **configurable, data-driven, and evaluated in C#**—not hard-coded into Yarn dialogue scripts.
 
 ---
 

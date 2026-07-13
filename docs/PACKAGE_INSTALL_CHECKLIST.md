@@ -1,15 +1,26 @@
 # Package Install Checklist
 
-Install and verify packages in this order. Commit `Packages/`, `ProjectSettings/`, and imported package assets after each green compile so vendor changes stay easy to isolate.
+Install vendors only when the related feature is ready. After each package change, let Unity compile, run the setup check and all EditMode tests, then commit the package manifest, lock file, project settings, imported assets, and `.meta` files together.
 
-- [ ] Open the project with Unity `6000.3.0f1` (Unity 6.3 LTS) and install iOS Build Support in Unity Hub.
-- [ ] Confirm the project compiles and Edit Mode tests pass before importing vendors.
-- [ ] Run **Tools → Stim Tycoon → Run Setup Check** and resolve every `FAIL` reported in the Console.
-- [x] Use the native atomic JSON repository for local saves. Easy Save 3 remains an optional adapter behind `STIM_EASY_SAVE_3`.
-- [x] Install free **Yarn Spinner** from its official Git package; keep its SDK types behind `IStimDialogueBridge`.
-- [ ] Install **Authentication** and **Cloud Save** from **Window → Package Manager → Unity Registry**.
-- [ ] Install Apple's **GameKit** plugin for Game Center sign-in and link it through `IStimAccountService`.
-- [ ] Install **Unity LevelPlay / Ads Mediation** last and keep placement calls behind `IStimAdsService`.
-- [ ] Re-run Edit Mode tests, make an iOS development build, and record the exact installed versions before upgrading any vendor package.
+## Baseline — complete
 
-Easy Save wiring currently stores the versioned save envelope as a single JSON value under `stim.autosave.latest.v1`. Invalid envelopes are rejected before disk writes. Do not enable `STIM_EASY_SAVE_3` until the package import has completed.
+- [x] Open with Unity `6000.3.19f1` and install iOS Build Support through Unity Hub.
+- [x] Confirm a clean compile and 32 passing EditMode tests.
+- [x] Run `Tools → Stim Tycoon → Run Setup Check` with no project-level failures.
+- [x] Use the native atomic JSON repository for required local saves.
+- [x] Install Yarn Spinner from its official Git repository and isolate it behind the Stim dialogue bridge.
+- [x] Run the salary-negotiation vertical slice in the mobile simulator.
+
+## Deferred vendors
+
+- [ ] Add Unity Authentication and Cloud Save together when account-linked backup work begins.
+- [ ] Add Apple GameKit when Game Center sign-in, achievements, or leaderboards enter the active slice.
+- [ ] Add Unity LevelPlay / Ads Mediation last, after placements and consent behavior are defined.
+- [ ] Create an iOS development build after each native SDK integration.
+
+## Guardrails
+
+- Keep vendor SDK types inside `Assets/Scripts/Vendors` or a dedicated adapter assembly.
+- Gameplay code depends on Stim-owned interfaces, never directly on vendor SDKs.
+- Do not enable `STIM_EASY_SAVE_3` unless Easy Save 3 is deliberately imported for adapter evaluation; it is not required by the current save system.
+- Record exact resolved versions in `Packages/packages-lock.json` and test upgrades separately.

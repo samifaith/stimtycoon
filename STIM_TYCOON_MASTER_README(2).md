@@ -4,9 +4,19 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 > **Final product name:** Stim Tycoon  
 > **Platform target:** iOS first, with architecture that can support Android later  
-> **Status:** Product definition and MVP planning  
+> **Status:** Product definition with Phase 0 implementation in progress
 > **Primary reference set:** Three gameplay recordings supplied by the product owner  
 > **Important:** The recordings are inspiration for interaction patterns, pacing, information hierarchy, and feature depth. Stim Tycoon must use original branding, writing, visuals, balancing, content, data, and interface components.
+
+### Implementation snapshot — July 13, 2026
+
+The repository currently runs on Unity `6000.3.19f1` and includes the event/save domain foundation, deterministic outcome resolution, Yarn Spinner dialogue bridge, native atomic JSON autosaves, 32 passing EditMode tests, and a playable mobile salary-negotiation vertical slice. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
+
+The current implementation choices supersede earlier package assumptions in this document:
+
+- **Yarn Spinner** is the branching dialogue authoring layer.
+- The Stim-owned **native atomic JSON repository** is the required local-save implementation.
+- Dialogue System for Unity and Easy Save 3 are optional future adapters, not required dependencies.
 
 ---
 
@@ -1575,7 +1585,7 @@ Most game content should be data-driven.
 
 ## 25.1 Locked event schema
 
-All authored events must conform to one versioned Stim event contract. Dialogue System is the authoring surface. The C# simulation engine remains the authority for eligibility, probability, state mutation, scheduling, and validation.
+All authored events must conform to one versioned Stim event contract. Yarn Spinner is the dialogue and choice-flow authoring surface. The C# simulation engine remains the authority for eligibility, probability, state mutation, scheduling, and validation.
 
 ### Required top-level fields
 
@@ -1726,34 +1736,34 @@ All authored events must conform to one versioned Stim event contract. Dialogue 
 }
 ```
 
-### Dialogue System implementation contract
+### Yarn Spinner implementation contract
 
-Each Stim event maps to one Dialogue System conversation. The conversation stores copy and choice flow. Stim-owned Lua functions or sequencer commands bridge to C#.
+Each Stim event may map to one or more Yarn nodes. Yarn stores player-facing copy and choice flow. Stable event and choice IDs are passed to Stim-owned C# commands; the canonical event definition remains in validated Stim data.
 
-Required Dialogue System fields:
+Required authoring conventions:
 
 ```text
-Conversation Fields
-- StimEventId
-- StimSchemaVersion
-- Category
-- MinAge
-- MaxAge
-- Locations
-- CooldownYears
-- RepeatPolicy
-- AnalyticsTags
+Yarn node
+- Stable title
+- Player-facing dialogue
+- Choice labels
+- Stable choice IDs in tags or command arguments
 
-Dialogue Entry Fields
-- StimChoiceId
-- RiskPreview
-- RewardPreview
-- BaseSuccessChance
-- ModifierRuleSetId
-- OutcomeSetId
+Stim event data
+- Event ID and schema version
+- Eligibility and repeat rules
+- Risk, reward, and success probability
+- Modifier and outcome sets
+- Effects, follow-ups, and analytics tags
 ```
 
-Recommended bridge calls:
+Current bridge command:
+
+```yarn
+<<stim_resolve_choice "career_salary_negotiation_001" "make_the_case">>
+```
+
+Target bridge capabilities:
 
 ```text
 Stim.CanRunEvent("career_salary_negotiation_001")
@@ -1764,7 +1774,7 @@ Stim.ScheduleFollowUps()
 Stim.CommitAutosave()
 ```
 
-Dialogue System conditions may hide obviously unavailable choices, but C# must validate every choice again before resolution. No gameplay state may be changed by raw Dialogue System Lua alone.
+Yarn conditions may hide obviously unavailable choices, but C# must validate every choice again before resolution. Yarn commands must never mutate canonical gameplay state without going through the session service.
 
 ## 25.2 Phase 0 representative events
 
@@ -1898,8 +1908,8 @@ Stim Tycoon will use a Unity-first mobile game stack.
 | Layout files | UXML |
 | Styling | USS |
 | Reusable game content | ScriptableObjects plus validated content files |
-| Branching event authoring | Dialogue System for Unity |
-| Local saves | Easy Save 3 |
+| Branching event authoring | Yarn Spinner |
+| Local saves | Stim native atomic JSON repository |
 | Player identity | Unity Authentication |
 | Apple platform identity | Apple Game Center through the Apple GameKit Unity plugin |
 | Cloud saves | Unity Cloud Save |
@@ -1923,7 +1933,7 @@ Stim Tycoon will use a Unity-first mobile game stack.
 - Install the newest stable `6000.3.x` patch available in Unity Hub when the repository is created.
 - Record the exact Editor version in `ProjectVersion.txt` and the root README.
 - Pin every Unity package and Asset Store dependency in source control.
-- Do not auto-upgrade Unity, Dialogue System, Easy Save, LevelPlay, or Apple plugins during a sprint.
+- Do not auto-upgrade Unity, Yarn Spinner, LevelPlay, or Apple plugins during a sprint.
 - Test dependency upgrades in a separate branch before merging.
 - Commit `Packages/manifest.json` and `Packages/packages-lock.json`.
 - Use iOS 13 or later as the initial minimum because current LevelPlay mediation supports iOS 13+ and Xcode 16+.
@@ -1960,7 +1970,7 @@ Purchased or third-party UI assets may accelerate polish, but core layout, navig
 
 ## 26.3 Branching event architecture
 
-Dialogue System for Unity is the authoring and content-management layer for:
+Yarn Spinner is the dialogue and choice-flow authoring layer for:
 
 - event dialogue
 - choices
@@ -1971,7 +1981,7 @@ Dialogue System for Unity is the authoring and content-management layer for:
 - location-specific content
 - skill and trait checks
 
-Dialogue System must not become the sole owner of simulation rules. It sends commands to the custom C# simulation engine, which calculates probabilities, validates state changes, applies effects, and returns the resolved result.
+Yarn Spinner must not become the sole owner of simulation rules. It sends commands to the custom C# simulation engine, which calculates probabilities, validates state changes, applies effects, commits the save, and returns the resolved result.
 
 ```text
 Dialogue and event definition
@@ -2018,7 +2028,7 @@ Simulation Domain
 - risk and reward
 
 Content Layer
-- Dialogue System databases
+- Yarn projects and scripts
 - ScriptableObjects
 - event definitions
 - careers
@@ -2028,7 +2038,7 @@ Content Layer
 - USA and Jamaica content
 
 Persistence and Services Layer
-- Easy Save local autosaves
+- native atomic JSON autosaves
 - versioned migrations
 - Unity Authentication
 - Unity Cloud Save
@@ -2063,8 +2073,10 @@ Persistence and Services Layer
 Use two coordinated save layers:
 
 ```text
-Easy Save 3
+Stim native save repository
 - immediate local autosave
+- temporary-file write and atomic promotion
+- checksum validation and backup recovery
 - offline recovery
 - local settings and cached state
 
@@ -2097,7 +2109,7 @@ MVP save requirements:
 
 ### 26.6.1 Locked save envelope
 
-Every save uses a small versioned envelope around the game state. Easy Save serializes the local copy. Cloud Save stores the same logical envelope plus synchronization metadata.
+Every save uses a small versioned envelope around the game state. The native repository serializes and atomically promotes the local JSON copy. Cloud Save will store the same logical envelope plus synchronization metadata.
 
 ```json
 {
@@ -2264,8 +2276,8 @@ Required test groups:
 
 Third-party assets accelerate development but must remain replaceable.
 
-- Wrap Dialogue System behind Stim-owned interfaces.
-- Wrap Easy Save behind an `ISaveRepository` interface.
+- Wrap Yarn Spinner behind Stim-owned interfaces.
+- Keep local persistence behind `IStimSaveRepository`; optional save vendors must implement that boundary.
 - Wrap LevelPlay behind an `IAdsService` interface.
 - Wrap Unity Authentication and Cloud Save behind account and cloud-save interfaces.
 - Store canonical game rules in Stim-owned C# classes and content schemas.
@@ -2422,7 +2434,7 @@ Deliverables:
 - skill list
 - MVP feature boundary
 - screen inventory
-- locked event schema and Dialogue System field mapping
+- locked event schema and Yarn command/ID mapping
 - five representative authored events covering childhood, school, career, health, and money
 - locked risk and reward probability bands
 - save envelope, invariants, migrations, conflict handling, and versioning strategy
@@ -2439,7 +2451,7 @@ Exit criteria:
 - no unresolved disagreement about the core loop
 - every MVP system has an owner and definition
 - all five representative events validate against schema version 1
-- each representative event runs through Dialogue System into the C# resolver
+- each representative event runs through Yarn Spinner into the C# resolver
 - risk labels match the locked success bands after modifiers
 - save version 1 passes round-trip, corruption recovery, migration, and cloud-conflict tests
 
@@ -2769,16 +2781,25 @@ These decisions are locked and override earlier assumptions:
 
 ## 35. Immediate Next Actions
 
-1. Treat this README as the master product definition.
-2. Finalize the initial skill catalog.
-3. Define the event and outcome schemas and C# domain models.
-4. Create the interaction map for all MVP screens.
-5. Build the pure C# simulation skeleton before final visual polish.
-6. Write the first 50 life events across childhood, school, career, relationships, health, and money.
-7. Create automated tests for weighted positive, neutral, and negative branches.
-8. Create the Unity 6.3 LTS project and pin the exact Editor and package versions.
-9. Import and wrap Dialogue System, Easy Save 3, Apple GameKit, Unity Authentication, Cloud Save, and LevelPlay.
-10. Build one complete vertical slice from age progression through an event, outcome, stat change, skill XP, finance change, life feed update, local save, and cloud synchronization.
+Completed foundation work:
+
+- [x] Create and pin the Unity 6.3 LTS project (`6000.3.19f1`).
+- [x] Define the event/save schemas, validators, risk calculator, and Stim-owned vendor boundaries.
+- [x] Implement deterministic weighted outcome resolution and transactional local autosaves.
+- [x] Install and wrap Yarn Spinner.
+- [x] Build the first playable career-event slice through outcome, finance, life feed, and local save.
+- [x] Establish a 32-test EditMode baseline.
+
+Next:
+
+1. Add age/year progression and make the vertical slice advance through multiple events.
+2. Author the remaining childhood, school, health, and money representative events in Yarn plus validated Stim data.
+3. Expand effects to the finalized six core stats, skill XP, relationships, career progression, and statuses.
+4. Add save migration fixtures, weighted-distribution tests, and complete vertical-slice play tests.
+5. Create the interaction map and reusable component layer for the MVP screens.
+6. Produce and validate the first iOS development build.
+7. Add Authentication, Game Center, and Cloud Save only after the offline life loop is stable.
+8. Add LevelPlay after placements and consent behavior are ready for integration testing.
 
 ---
 
