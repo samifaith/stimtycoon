@@ -13,18 +13,19 @@
 - [x] Yarn Spinner package and isolated bridge
 - [x] Salary-negotiation Yarn script and representative event data
 - [x] Playable UI Toolkit scene for the first vertical slice
-- [x] 32 passing EditMode tests
+- [x] 140 passing EditMode tests, including seeded birth-to-ending coverage
 
 ## Remaining Phase 0 work
 
-- [ ] Childhood representative event
-- [ ] School representative event
-- [ ] Health representative event
-- [ ] Money representative event
-- [ ] All five events validated and runnable through Yarn into the C# resolver
-- [ ] Save migration fixtures and tests
-- [ ] Weighted-distribution coverage
-- [ ] Complete vertical-slice play tests
+- [x] Childhood representative event
+- [x] School representative event
+- [x] Health representative event
+- [x] Money representative event
+- [x] All five events validated and runnable through Yarn into the C# resolver
+- [x] Save migration fixtures and tests
+- [x] Weighted-distribution coverage
+- [x] Save/reload vertical-slice flow coverage
+- [x] Complete seeded birth-to-ending play test
 - [ ] First iOS development build
 
 ## Deferred service integrations
@@ -48,7 +49,8 @@ Present now:
 
 Optional or deferred:
 
-- Easy Save 3 adapter evaluation
+- MessagePack benchmark only if physical-device JSON profiling fails the performance target
+- Easy Save 3 adapter evaluation only for convenience features, not as the current performance fix
 - Apple GameKit
 - Unity Authentication and Cloud Save
 - Unity LevelPlay / Ads Mediation

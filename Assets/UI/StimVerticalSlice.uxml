@@ -77,6 +77,40 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
 
+                <ui:VisualElement name="education-card" class="st-polished-card st-education-card hidden">
+                    <ui:VisualElement class="st-section-heading">
+                        <ui:Label text="A+" class="st-section-heading-icon" />
+                        <ui:Label text="EDUCATION" class="st-section-heading-title" />
+                    </ui:VisualElement>
+                    <ui:Label name="education-stage" text="Primary School" class="st-education-stage" />
+                    <ui:Label name="learning-level" text="Learning Level 1" class="st-education-level" />
+                    <ui:VisualElement class="st-education-track"><ui:VisualElement name="learning-fill" class="st-education-fill" /></ui:VisualElement>
+                    <ui:Label name="learning-progress" text="0 / 50 XP" class="st-education-progress" />
+                    <ui:VisualElement name="education-actions" class="st-education-actions" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="career-card" class="st-polished-card st-career-card hidden">
+                    <ui:VisualElement class="st-section-heading">
+                        <ui:Label text="▣" class="st-section-heading-icon" />
+                        <ui:Label text="CAREER" class="st-section-heading-title" />
+                    </ui:VisualElement>
+                    <ui:Label name="career-role" text="Unemployed" class="st-career-role" />
+                    <ui:Label name="career-salary" text="$0 annual salary" class="st-career-salary" />
+                    <ui:Label name="career-next-step" text="Apply to begin your career" class="st-career-next-step" />
+                    <ui:VisualElement class="st-career-track"><ui:VisualElement name="career-action-fill" class="st-career-fill" /></ui:VisualElement>
+                    <ui:Label name="career-action-progress" text="0 / 25 career progress" class="st-career-progress" />
+                    <ui:VisualElement name="career-actions" class="st-career-actions" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="achievements-card" class="st-polished-card st-achievements-card">
+                    <ui:VisualElement class="st-section-heading">
+                        <ui:Label text="★" class="st-section-heading-icon" />
+                        <ui:Label text="ACHIEVEMENTS" class="st-section-heading-title" />
+                    </ui:VisualElement>
+                    <ui:Label name="achievements-count" text="0 unlocked" class="st-achievements-count" />
+                    <ui:VisualElement name="achievements-list" class="st-achievements-list" />
+                </ui:VisualElement>
+
                 <ui:VisualElement class="st-polished-card st-feed-card">
                     <ui:Label text="LIFE FEED" class="st-section-kicker" />
                     <ui:ScrollView name="life-feed-scroll" mode="Vertical" class="st-feed-scroll">
@@ -95,7 +129,32 @@
             </ui:VisualElement>
         </ui:ScrollView>
 
-        <ui:VisualElement class="st-time-dock">
+        <ui:ScrollView name="social-view" mode="Vertical" class="st-social-view hidden">
+            <ui:VisualElement class="st-social-content">
+                <ui:VisualElement name="relationship-list-view">
+                    <ui:Label text="SOCIAL" class="st-section-kicker" />
+                    <ui:Label text="Your people" class="st-social-title" />
+                    <ui:Label text="Relationships grow through the time and choices you share." class="st-social-subtitle" />
+                    <ui:VisualElement name="relationship-list" class="st-relationship-list" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="relationship-detail-view" class="hidden">
+                    <ui:Button name="relationship-back" text="‹  ALL RELATIONSHIPS" class="st-social-back" />
+                    <ui:VisualElement class="st-polished-card st-relationship-profile">
+                        <ui:Label name="relationship-avatar" text="P" class="st-relationship-avatar" />
+                        <ui:Label name="relationship-name" text="Parent" class="st-social-title" />
+                        <ui:Label name="relationship-type" text="PARENT" class="st-section-kicker" />
+                        <ui:Label name="relationship-strength" text="Relationship 50 / 100" class="st-relationship-strength" />
+                        <ui:VisualElement class="st-relationship-track"><ui:VisualElement name="relationship-fill" class="st-relationship-fill" /></ui:VisualElement>
+                        <ui:Label name="relationship-genetics" text="Genetics" class="st-relationship-genetics" />
+                    </ui:VisualElement>
+                    <ui:Label text="SPEND TIME" class="st-section-kicker" />
+                    <ui:VisualElement name="relationship-actions" class="st-relationship-actions" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+
+        <ui:VisualElement name="time-dock" class="st-time-dock">
             <ui:Button name="open-new-life" text="NEW LIFE" class="st-new-life-link" />
             <ui:VisualElement class="st-time-copy">
                 <ui:Label text="NEXT MONTH" class="st-time-kicker" />
@@ -144,6 +203,16 @@
                     <ui:Button name="continue-current-life" text="CONTINUE CURRENT LIFE  ›" class="st-setup-continue hidden" />
                     <ui:Button name="create-new-life" text="START NEW GAME  ›" class="st-setup-create" />
                 </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="final-life-summary" class="st-ending-scrim hidden">
+            <ui:VisualElement class="st-ending-card">
+                <ui:Label text="A LIFE REMEMBERED" class="st-event-kicker" />
+                <ui:Label name="ending-name" text="Your story" class="st-ending-title" />
+                <ui:Label name="ending-status" text="Retired at age 65" class="st-ending-status" />
+                <ui:Label name="ending-summary" text="Final summary" class="st-ending-summary" />
+                <ui:Button name="ending-new-life" text="START A NEW LIFE  ›" class="st-ending-action" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

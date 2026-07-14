@@ -60,6 +60,43 @@ namespace StimTycoon.Runtime
         private Label focusStudyEffect;
         private Label focusWorkoutTitle;
         private Label focusWorkoutEffect;
+        private ScrollView lifeScroll;
+        private ScrollView socialView;
+        private VisualElement timeDock;
+        private Button navLife;
+        private Button navSocial;
+        private VisualElement relationshipListView;
+        private VisualElement relationshipList;
+        private VisualElement relationshipDetailView;
+        private Button relationshipBack;
+        private Label relationshipAvatar;
+        private Label relationshipName;
+        private Label relationshipType;
+        private Label relationshipStrength;
+        private VisualElement relationshipFill;
+        private Label relationshipGenetics;
+        private VisualElement relationshipActions;
+        private string selectedRelationshipId;
+        private VisualElement educationCard;
+        private Label educationStage;
+        private Label learningLevel;
+        private VisualElement learningFill;
+        private Label learningProgress;
+        private VisualElement educationActions;
+        private VisualElement careerCard;
+        private Label careerRole;
+        private Label careerSalary;
+        private Label careerNextStep;
+        private VisualElement careerActionFill;
+        private Label careerActionProgress;
+        private VisualElement careerActions;
+        private VisualElement finalLifeSummary;
+        private Label endingName;
+        private Label endingStatus;
+        private Label endingSummary;
+        private Button endingNewLife;
+        private Label achievementsCount;
+        private VisualElement achievementsList;
         private StimActivityType primaryFocusActivity;
         private StimActivityType secondaryFocusActivity;
         private StimEvent currentEvent;
@@ -112,6 +149,42 @@ namespace StimTycoon.Runtime
             focusStudyEffect = root.Q<Label>("focus-study-effect");
             focusWorkoutTitle = root.Q<Label>("focus-workout-title");
             focusWorkoutEffect = root.Q<Label>("focus-workout-effect");
+            lifeScroll = root.Q<ScrollView>("life-scroll");
+            socialView = root.Q<ScrollView>("social-view");
+            timeDock = root.Q<VisualElement>("time-dock");
+            navLife = root.Q<Button>("nav-life");
+            navSocial = root.Q<Button>("nav-social");
+            relationshipListView = root.Q<VisualElement>("relationship-list-view");
+            relationshipList = root.Q<VisualElement>("relationship-list");
+            relationshipDetailView = root.Q<VisualElement>("relationship-detail-view");
+            relationshipBack = root.Q<Button>("relationship-back");
+            relationshipAvatar = root.Q<Label>("relationship-avatar");
+            relationshipName = root.Q<Label>("relationship-name");
+            relationshipType = root.Q<Label>("relationship-type");
+            relationshipStrength = root.Q<Label>("relationship-strength");
+            relationshipFill = root.Q<VisualElement>("relationship-fill");
+            relationshipGenetics = root.Q<Label>("relationship-genetics");
+            relationshipActions = root.Q<VisualElement>("relationship-actions");
+            educationCard = root.Q<VisualElement>("education-card");
+            educationStage = root.Q<Label>("education-stage");
+            learningLevel = root.Q<Label>("learning-level");
+            learningFill = root.Q<VisualElement>("learning-fill");
+            learningProgress = root.Q<Label>("learning-progress");
+            educationActions = root.Q<VisualElement>("education-actions");
+            careerCard = root.Q<VisualElement>("career-card");
+            careerRole = root.Q<Label>("career-role");
+            careerSalary = root.Q<Label>("career-salary");
+            careerNextStep = root.Q<Label>("career-next-step");
+            careerActionFill = root.Q<VisualElement>("career-action-fill");
+            careerActionProgress = root.Q<Label>("career-action-progress");
+            careerActions = root.Q<VisualElement>("career-actions");
+            finalLifeSummary = root.Q<VisualElement>("final-life-summary");
+            endingName = root.Q<Label>("ending-name");
+            endingStatus = root.Q<Label>("ending-status");
+            endingSummary = root.Q<Label>("ending-summary");
+            endingNewLife = root.Q<Button>("ending-new-life");
+            achievementsCount = root.Q<Label>("achievements-count");
+            achievementsList = root.Q<VisualElement>("achievements-list");
 
             var catalog = new InMemoryStimEventCatalog();
             catalog.Upsert(RepresentativeStimEvents.CreateSalaryNegotiation());
@@ -144,7 +217,18 @@ namespace StimTycoon.Runtime
                 luckFill == null || newLifeSetup == null || newLifeError == null ||
                 cancelNewLife == null || continueCurrentLife == null || createNewLife == null || openNewLife == null ||
                 focusStudy == null || focusWorkout == null || focusStudyTitle == null || focusStudyEffect == null ||
-                focusWorkoutTitle == null || focusWorkoutEffect == null)
+                focusWorkoutTitle == null || focusWorkoutEffect == null || lifeScroll == null || socialView == null ||
+                timeDock == null || navLife == null || navSocial == null || relationshipListView == null ||
+                relationshipList == null || relationshipDetailView == null || relationshipBack == null ||
+                relationshipAvatar == null || relationshipName == null || relationshipType == null ||
+                relationshipStrength == null || relationshipFill == null || relationshipGenetics == null ||
+                relationshipActions == null || educationCard == null || educationStage == null ||
+                learningLevel == null || learningFill == null || learningProgress == null ||
+                educationActions == null || careerCard == null || careerRole == null || careerSalary == null ||
+                careerNextStep == null || careerActionFill == null || careerActionProgress == null ||
+                careerActions == null || finalLifeSummary == null || endingName == null || endingStatus == null ||
+                endingSummary == null || endingNewLife == null || achievementsCount == null ||
+                achievementsList == null)
             {
                 Debug.LogError("Vertical slice UXML is missing one or more required named elements.", this);
                 return;
@@ -155,6 +239,10 @@ namespace StimTycoon.Runtime
             eventContinue.clicked += CloseEventSheet;
             focusStudy.clicked += () => PerformActivity(primaryFocusActivity);
             focusWorkout.clicked += () => PerformActivity(secondaryFocusActivity);
+            navLife.clicked += ShowLifeDestination;
+            navSocial.clicked += ShowSocialDestination;
+            relationshipBack.clicked += ShowRelationshipList;
+            endingNewLife.clicked += OpenNewLifeFromEnding;
             ConfigureNewLifeControls();
 
             if (!loadedExistingLife)
@@ -163,19 +251,26 @@ namespace StimTycoon.Runtime
                 return;
             }
 
-            EnsurePrototypeCareer();
-
             if (!string.IsNullOrEmpty(gameSession.ActiveSave.state.pendingEventId))
             {
                 catalog.TryGetEvent(gameSession.ActiveSave.state.pendingEventId, out currentEvent);
             }
-            else if (gameSession.ActiveSave.state.character.age >= 18 && gameSession.ActiveSave.state.eventHistory.Count == 0)
+            else if (gameSession.ActiveSave.state.character.age >= 18 &&
+                     !string.IsNullOrEmpty(gameSession.ActiveSave.state.career.roleTitle) &&
+                     gameSession.ActiveSave.state.career.roleTitle != "Retired" &&
+                     gameSession.ActiveSave.state.eventHistory.Count == 0)
             {
                 catalog.TryGetEvent(RepresentativeStimEvents.SalaryNegotiationId, out currentEvent);
             }
 
             RefreshHeader();
             RefreshFeed();
+            RefreshSocial();
+            if (gameSession.ActiveSave.state.character.lifeStatus != "active")
+            {
+                ShowFinalLifeSummary();
+                return;
+            }
             if (currentEvent != null)
             {
                 PresentEvent(currentEvent);
@@ -252,6 +347,12 @@ namespace StimTycoon.Runtime
             resultCard.RemoveFromClassList("hidden");
             RefreshHeader();
             RefreshFeed();
+
+            if (gameSession.ActiveSave.state.character.lifeStatus != "active")
+            {
+                ShowFinalLifeSummary();
+                return;
+            }
 
             if (currentEvent == null)
             {
@@ -334,6 +435,222 @@ namespace StimTycoon.Runtime
             monthlyPaycheckValue.text = FormatSignedMoney(estimatedNet);
             annualSalaryValue.text = $"{FormatMoney(career.annualSalaryMinorUnits)} gross · {state.finances.taxRateBasisPoints / 100m:0.#}% tax";
             ConfigureAgeAppropriateActivities(state.character.age);
+            RefreshEducation();
+            RefreshCareer();
+            RefreshAchievements();
+        }
+
+        private void RefreshAchievements()
+        {
+            achievementsList.Clear();
+            var achievements = gameSession.ActiveSave.state.achievements;
+            achievementsCount.text = $"{achievements.Count} unlocked";
+            if (achievements.Count == 0)
+            {
+                var empty = new Label("Your milestones will appear here as this life unfolds.");
+                empty.AddToClassList("st-feed-empty");
+                achievementsList.Add(empty);
+                return;
+            }
+
+            for (var index = achievements.Count - 1; index >= 0; index--)
+            {
+                var achievement = achievements[index];
+                if (achievement == null) continue;
+                var row = new VisualElement();
+                row.AddToClassList("st-achievement-row");
+                var icon = new Label("★");
+                icon.AddToClassList("st-achievement-icon");
+                var copy = new VisualElement();
+                copy.AddToClassList("st-achievement-copy");
+                var name = new Label(StimGameSessionService.GetAchievementDisplayName(achievement.achievementId));
+                name.AddToClassList("st-achievement-name");
+                var description = new Label(
+                    $"{StimGameSessionService.GetAchievementDescription(achievement.achievementId)} · Age {achievement.unlockedAtAge}");
+                description.AddToClassList("st-achievement-description");
+                copy.Add(name);
+                copy.Add(description);
+                row.Add(icon);
+                row.Add(copy);
+                achievementsList.Add(row);
+            }
+        }
+
+        private void RefreshEducation()
+        {
+            var state = gameSession.ActiveSave.state;
+            var enrolled = state.character.age >= 6 && state.character.age < 18;
+            educationCard.EnableInClassList("hidden", !enrolled);
+            if (!enrolled) return;
+
+            var experience = StimGameSessionService.GetSkillExperience(state.skills, "learning");
+            var level = StimGameSessionService.GetSkillLevel(experience);
+            var levelStart = StimGameSessionService.GetExperienceForSkillLevel(level);
+            var nextLevelAt = StimGameSessionService.GetExperienceForSkillLevel(level + 1);
+            var levelSpan = Math.Max(1, nextLevelAt - levelStart);
+            var levelProgress = experience - levelStart;
+            educationStage.text = ToDisplayName(state.education.stage);
+            learningLevel.text = $"Learning Level {level}";
+            learningProgress.text = $"{levelProgress} / {levelSpan} XP to Level {level + 1}";
+            learningFill.style.width = Length.Percent(ClampFillPercent(levelProgress * 100f / levelSpan));
+
+            educationActions.Clear();
+            var actions = new[]
+            {
+                StimEducationActionType.Read,
+                StimEducationActionType.Homework,
+                StimEducationActionType.StudyGroup,
+                StimEducationActionType.AdvancedProject
+            };
+            var usedThisMonth = state.statuses.Exists(status => status.statusId == "monthly_education_action_used");
+            foreach (var action in actions)
+            {
+                var unlocked = StimGameSessionService.TryGetEducationActionRequirement(state, action, out var requirement);
+                var button = new Button
+                {
+                    name = $"education-action-{action.ToString().ToLowerInvariant()}",
+                    text = unlocked ? ToDisplayName(action.ToString()) : $"{ToDisplayName(action.ToString())}\n{requirement}"
+                };
+                button.AddToClassList("st-education-action");
+                button.SetEnabled(unlocked && !usedThisMonth);
+                var capturedAction = action;
+                button.clicked += () => PerformEducationAction(capturedAction);
+                educationActions.Add(button);
+            }
+        }
+
+        private void PerformEducationAction(StimEducationActionType actionType)
+        {
+            var succeeded = gameSession.TryPerformEducationAction(actionType, out var summary);
+            eventCategory.text = succeeded ? "SCHOOL PROGRESS" : "ACTION LOCKED";
+            eventTitle.text = ToDisplayName(actionType.ToString());
+            eventBody.text = succeeded
+                ? "Your school effort improved your learning path."
+                : "Meet the requirement or advance the month before trying again.";
+            resultText.text = summary;
+            resultEffects.text = string.Empty;
+            resultEffects.AddToClassList("hidden");
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
+            if (gameSession.ActiveSave.state.character.lifeStatus != "active")
+            {
+                ShowFinalLifeSummary();
+            }
+        }
+
+        private void ShowFinalLifeSummary()
+        {
+            var save = gameSession.ActiveSave;
+            var character = save.state.character;
+            endingName.text = string.IsNullOrEmpty(character.firstName)
+                ? "Your story"
+                : $"{character.firstName} {character.lastName}";
+            endingStatus.text = character.lifeStatus == "retired"
+                ? $"Retired at age {character.endedAtAge}"
+                : $"Remembered at age {character.endedAtAge}";
+            endingSummary.text = StimGameSessionService.BuildFinalLifeSummary(save);
+            advanceMonth.SetEnabled(false);
+            eventSheet.AddToClassList("hidden");
+            finalLifeSummary.RemoveFromClassList("hidden");
+        }
+
+        private void OpenNewLifeFromEnding()
+        {
+            finalLifeSummary.AddToClassList("hidden");
+            ShowNewLifeSetup(false, true);
+        }
+
+        private void RefreshCareer()
+        {
+            var state = gameSession.ActiveSave.state;
+            var adult = state.character.age >= 18;
+            careerCard.EnableInClassList("hidden", !adult);
+            if (!adult) return;
+
+            var career = state.career ?? new StimCareerState();
+            var retired = career.roleTitle == "Retired";
+            var employed = !string.IsNullOrEmpty(career.roleTitle) && !retired;
+            careerRole.text = retired ? "Retired" : employed ? career.roleTitle : "Unemployed";
+            careerSalary.text = retired
+                ? "Career complete"
+                : $"{FormatMoney(career.annualSalaryMinorUnits)} annual salary";
+
+            if (StimGameSessionService.TryGetNextCareerStep(
+                    career.roleTitle,
+                    out var nextRole,
+                    out _,
+                    out var progressRequired))
+            {
+                careerNextStep.text = $"Next step: {nextRole}";
+                careerActionProgress.text = $"{career.careerProgress} / {progressRequired} career progress";
+                careerActionFill.style.width = Length.Percent(
+                    ClampFillPercent(career.careerProgress * 100f / progressRequired));
+            }
+            else
+            {
+                careerNextStep.text = retired ? "A lifetime of work is behind you."
+                    : employed ? "Top of the current career ladder"
+                    : state.statuses.Exists(status => status.statusId == "career_interview_ready")
+                        ? "Your interview is ready"
+                        : "Apply to begin your career";
+                careerActionProgress.text = employed ? $"Career progress {career.careerProgress}" : string.Empty;
+                careerActionFill.style.width = Length.Percent(employed ? career.careerProgress : 0);
+            }
+
+            careerActions.Clear();
+            var actions = new[]
+            {
+                StimCareerActionType.Apply,
+                StimCareerActionType.Interview,
+                StimCareerActionType.WorkHard,
+                StimCareerActionType.AskForPromotion,
+                StimCareerActionType.Quit,
+                StimCareerActionType.Retire
+            };
+            var usedThisMonth = state.statuses.Exists(status => status.statusId == "monthly_career_action_used");
+            foreach (var action in actions)
+            {
+                var unlocked = StimGameSessionService.TryGetCareerActionRequirement(state, action, out var requirement);
+                var button = new Button
+                {
+                    name = $"career-action-{action.ToString().ToLowerInvariant()}",
+                    text = unlocked ? ToDisplayName(action.ToString()) : $"{ToDisplayName(action.ToString())}\n{requirement}"
+                };
+                button.AddToClassList("st-career-action");
+                button.SetEnabled(unlocked && !usedThisMonth);
+                var capturedAction = action;
+                button.clicked += () => PerformCareerAction(capturedAction);
+                careerActions.Add(button);
+            }
+        }
+
+        private void PerformCareerAction(StimCareerActionType actionType)
+        {
+            var succeeded = gameSession.TryPerformCareerAction(actionType, out var summary);
+            eventCategory.text = succeeded ? "CAREER UPDATE" : "CAREER ACTION LOCKED";
+            eventTitle.text = ToDisplayName(actionType.ToString());
+            eventBody.text = succeeded
+                ? "Your career path changed and the result was saved."
+                : "Meet the displayed requirement or advance the month before trying again.";
+            resultText.text = summary;
+            resultEffects.text = string.Empty;
+            resultEffects.AddToClassList("hidden");
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
+            if (gameSession.ActiveSave.state.character.lifeStatus != "active")
+            {
+                ShowFinalLifeSummary();
+            }
         }
 
         private void ConfigureAgeAppropriateActivities(int age)
@@ -395,6 +712,7 @@ namespace StimTycoon.Runtime
             {
                 RefreshHeader();
                 RefreshFeed();
+                RefreshSocial();
             }
         }
 
@@ -403,6 +721,153 @@ namespace StimTycoon.Runtime
             var opening = playerOverview.ClassListContains("hidden");
             playerOverview.EnableInClassList("hidden", !opening);
             toggleOverview.text = opening ? "HIDE PLAYER OVERVIEW" : "VIEW PLAYER OVERVIEW";
+        }
+
+        private void ShowLifeDestination()
+        {
+            lifeScroll.RemoveFromClassList("hidden");
+            timeDock.RemoveFromClassList("hidden");
+            socialView.AddToClassList("hidden");
+            navLife.AddToClassList("active");
+            navSocial.RemoveFromClassList("active");
+        }
+
+        private void ShowSocialDestination()
+        {
+            RefreshSocial();
+            lifeScroll.AddToClassList("hidden");
+            timeDock.AddToClassList("hidden");
+            socialView.RemoveFromClassList("hidden");
+            navLife.RemoveFromClassList("active");
+            navSocial.AddToClassList("active");
+            ShowRelationshipList();
+        }
+
+        private void ShowRelationshipList()
+        {
+            selectedRelationshipId = null;
+            relationshipDetailView.AddToClassList("hidden");
+            relationshipListView.RemoveFromClassList("hidden");
+        }
+
+        private void RefreshSocial()
+        {
+            relationshipList.Clear();
+            var relationships = gameSession.ActiveSave?.state?.relationships;
+            if (relationships == null || relationships.Count == 0)
+            {
+                var empty = new Label("Important people will appear here as your life grows.");
+                empty.AddToClassList("st-feed-empty");
+                relationshipList.Add(empty);
+                return;
+            }
+
+            foreach (var relationship in relationships)
+            {
+                if (relationship == null) continue;
+                var card = new Button { name = $"relationship-{relationship.relationshipId}" };
+                card.AddToClassList("st-relationship-card");
+                var initial = string.IsNullOrEmpty(relationship.displayName)
+                    ? "?"
+                    : relationship.displayName.Substring(0, 1).ToUpperInvariant();
+                var avatar = new Label(initial);
+                avatar.AddToClassList("st-relationship-card-avatar");
+                var copy = new VisualElement();
+                copy.AddToClassList("st-relationship-card-copy");
+                var name = new Label(string.IsNullOrEmpty(relationship.displayName)
+                    ? ToDisplayName(relationship.relationshipId)
+                    : relationship.displayName);
+                name.AddToClassList("st-relationship-card-name");
+                var meta = new Label($"{ToDisplayName(relationship.relationshipType)} · Relationship {relationship.value} / 100");
+                meta.AddToClassList("st-relationship-card-meta");
+                copy.Add(name);
+                copy.Add(meta);
+                var arrow = new Label("›");
+                arrow.AddToClassList("st-relationship-card-arrow");
+                card.Add(avatar);
+                card.Add(copy);
+                card.Add(arrow);
+                var relationshipId = relationship.relationshipId;
+                card.clicked += () => ShowRelationshipDetail(relationshipId);
+                relationshipList.Add(card);
+            }
+        }
+
+        private void ShowRelationshipDetail(string relationshipId)
+        {
+            var relationship = gameSession.ActiveSave.state.relationships.Find(
+                candidate => candidate != null && candidate.relationshipId == relationshipId);
+            if (relationship == null) return;
+
+            selectedRelationshipId = relationshipId;
+            relationshipListView.AddToClassList("hidden");
+            relationshipDetailView.RemoveFromClassList("hidden");
+            relationshipName.text = string.IsNullOrEmpty(relationship.displayName)
+                ? ToDisplayName(relationship.relationshipId)
+                : relationship.displayName;
+            relationshipAvatar.text = relationshipName.text.Substring(0, 1).ToUpperInvariant();
+            relationshipType.text = ToDisplayName(relationship.relationshipType).ToUpperInvariant();
+            relationshipStrength.text = $"Relationship {relationship.value} / 100";
+            relationshipFill.style.width = Length.Percent(ClampFillPercent(relationship.value));
+            relationshipGenetics.text = relationship.isGeneticParent
+                ? $"Inherited profile · Health {relationship.geneticHealth} · Looks {relationship.geneticLooks} · Smarts {relationship.geneticSmarts}"
+                : "This relationship is part of your growing social story.";
+            BuildRelationshipActions(relationship);
+        }
+
+        private void BuildRelationshipActions(StimRelationshipState relationship)
+        {
+            relationshipActions.Clear();
+            var interactions = new[]
+            {
+                StimRelationshipInteractionType.Talk,
+                StimRelationshipInteractionType.PlayTogether,
+                StimRelationshipInteractionType.AskForHelp,
+                StimRelationshipInteractionType.SpendTime,
+                StimRelationshipInteractionType.Argue
+            };
+            var age = gameSession.ActiveSave.state.character.age;
+            var cooldownId = $"relationship_interaction_used_{relationship.relationshipId}";
+            var usedThisMonth = gameSession.ActiveSave.state.statuses.Exists(status => status.statusId == cooldownId);
+            foreach (var interaction in interactions)
+            {
+                if (!StimGameSessionService.IsRelationshipInteractionAgeAppropriate(interaction, age)) continue;
+                var button = new Button
+                {
+                    name = $"relationship-action-{interaction.ToString().ToLowerInvariant()}",
+                    text = ToDisplayName(interaction.ToString())
+                };
+                button.AddToClassList("st-relationship-action");
+                button.SetEnabled(!usedThisMonth);
+                var capturedInteraction = interaction;
+                button.clicked += () => PerformRelationshipInteraction(capturedInteraction);
+                relationshipActions.Add(button);
+            }
+        }
+
+        private void PerformRelationshipInteraction(StimRelationshipInteractionType interactionType)
+        {
+            var succeeded = gameSession.TryPerformRelationshipInteraction(
+                selectedRelationshipId,
+                interactionType,
+                out var summary);
+            eventCategory.text = succeeded ? "SOCIAL MOMENT" : "INTERACTION UNAVAILABLE";
+            eventTitle.text = ToDisplayName(interactionType.ToString());
+            eventBody.text = succeeded
+                ? "This moment changed your relationship and became part of your life story."
+                : "Choose another step after resolving the current requirement.";
+            resultText.text = summary;
+            resultEffects.text = string.Empty;
+            resultEffects.AddToClassList("hidden");
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
+            RefreshSocial();
+            ShowRelationshipDetail(selectedRelationshipId);
         }
 
         private void ConfigureNewLifeControls()
@@ -445,12 +910,16 @@ namespace StimTycoon.Runtime
                 }
 
                 currentEvent = null;
+                finalLifeSummary.AddToClassList("hidden");
+                advanceMonth.SetEnabled(true);
                 newLifeSetup.AddToClassList("hidden");
                 eventSheet.AddToClassList("hidden");
                 choices.AddToClassList("hidden");
                 advanceMonth.RemoveFromClassList("hidden");
                 RefreshHeader();
                 RefreshFeed();
+                RefreshSocial();
+                ShowLifeDestination();
             }
             catch (ArgumentException exception)
             {
@@ -563,29 +1032,6 @@ namespace StimTycoon.Runtime
             }
 
             return char.ToUpperInvariant(id[0]) + id.Substring(1).Replace('_', ' ');
-        }
-
-        private void EnsurePrototypeCareer()
-        {
-            if (gameSession.ActiveSave.state.character.age < 18)
-            {
-                return;
-            }
-
-            if (gameSession.ActiveSave.state.career == null)
-            {
-                gameSession.ActiveSave.state.career = new StimCareerState();
-            }
-
-            var career = gameSession.ActiveSave.state.career;
-            if (!string.IsNullOrEmpty(career.roleTitle))
-            {
-                return;
-            }
-
-            career.employerId = "stim_financial_group";
-            career.roleTitle = "Analyst";
-            career.annualSalaryMinorUnits = 5000000;
         }
 
         private void RefreshFeed()

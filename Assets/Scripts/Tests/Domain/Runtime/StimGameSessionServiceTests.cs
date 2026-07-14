@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using StimTycoon.Abstractions;
 using StimTycoon.Events;
@@ -59,6 +60,35 @@ namespace StimTycoon.Tests.Domain.Runtime
         {
             Assert.That(StimGameSessionService.GetLifeStage(age), Is.EqualTo(lifeStage));
             Assert.That(StimGameSessionService.GetEducationStage(age), Is.EqualTo(educationStage));
+        }
+
+        [TestCase(5, "primary_school", "started primary school")]
+        [TestCase(11, "middle_school", "started middle school")]
+        [TestCase(14, "high_school", "started high school")]
+        [TestCase(17, "completed_secondary", "completed secondary school")]
+        public void AnnualProgression_RecordsEducationTransitionsAsMilestones(
+            int startingAge,
+            string expectedStage,
+            string expectedSummary)
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(),
+                new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = startingAge;
+            save.state.character.lifeStage = StimGameSessionService.GetLifeStage(startingAge);
+            save.state.education.stage = StimGameSessionService.GetEducationStage(startingAge);
+            save.state.calendar.monthOfYear = 12;
+            save.state.career = new StimCareerState();
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
+
+            Assert.That(nextEvent, Is.Null);
+            Assert.That(service.ActiveSave.state.education.stage, Is.EqualTo(expectedStage));
+            Assert.That(summary, Does.Contain(expectedSummary));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "milestone" && entry.text.Contains(expectedSummary)), Is.True);
         }
 
         [Test]
@@ -362,6 +392,346 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void PerformRelationshipInteraction_AppliesEffectsFeedCooldownAndAutosave()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 10;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "parent_1",
+                displayName = "Jordan Grant",
+                relationshipType = "parent",
+                value = 60
+            });
+            service.Start(save);
+
+            var performed = service.TryPerformRelationshipInteraction(
+                "parent_1",
+                StimRelationshipInteractionType.PlayTogether,
+                out var summary);
+
+            Assert.IsTrue(performed, summary);
+            Assert.That(summary, Does.Contain("Relationship +4").And.Contain("Happiness +2"));
+            Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(64));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(72));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry => entry.category == "relationship"), Is.True);
+            Assert.That(service.ActiveSave.state.statuses.Exists(
+                status => status.statusId == "relationship_interaction_used_parent_1"), Is.True);
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void PerformRelationshipInteraction_LimitsEachRelationshipOncePerMonth()
+        {
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.relationships.Add(new StimRelationshipState
+                { relationshipId = "parent_1", displayName = "Jordan", relationshipType = "parent", value = 50 });
+            save.state.relationships.Add(new StimRelationshipState
+                { relationshipId = "parent_2", displayName = "Morgan", relationshipType = "parent", value = 50 });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "parent_1", StimRelationshipInteractionType.Talk, out var firstSummary), firstSummary);
+            Assert.IsFalse(service.TryPerformRelationshipInteraction(
+                "parent_1", StimRelationshipInteractionType.SpendTime, out var duplicateSummary));
+            Assert.That(duplicateSummary, Does.Contain("already spent focused time"));
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "parent_2", StimRelationshipInteractionType.SpendTime, out var secondSummary), secondSummary);
+        }
+
+        [TestCase(7, StimRelationshipInteractionType.Argue, false)]
+        [TestCase(8, StimRelationshipInteractionType.Argue, true)]
+        [TestCase(12, StimRelationshipInteractionType.PlayTogether, true)]
+        [TestCase(13, StimRelationshipInteractionType.PlayTogether, false)]
+        [TestCase(17, StimRelationshipInteractionType.AskForHelp, true)]
+        [TestCase(18, StimRelationshipInteractionType.AskForHelp, false)]
+        [TestCase(70, StimRelationshipInteractionType.Talk, true)]
+        public void RelationshipInteractions_RespectAgeRules(
+            int age,
+            StimRelationshipInteractionType interactionType,
+            bool expected)
+        {
+            Assert.That(
+                StimGameSessionService.IsRelationshipInteractionAgeAppropriate(interactionType, age),
+                Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void PerformRelationshipInteraction_DoesNotMutateWhenCommitFails()
+        {
+            var repository = new RecordingSaveRepository { ShouldCommit = false };
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.relationships.Add(new StimRelationshipState
+                { relationshipId = "parent_1", displayName = "Jordan", relationshipType = "parent", value = 50 });
+            service.Start(save);
+
+            var performed = service.TryPerformRelationshipInteraction(
+                "parent_1", StimRelationshipInteractionType.Talk, out _);
+
+            Assert.IsFalse(performed);
+            Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(50));
+            Assert.That(service.ActiveSave.state.lifeFeed, Is.Empty);
+            Assert.That(service.ActiveSave.state.statuses, Is.Empty);
+        }
+
+        [TestCase(0, 1)]
+        [TestCase(49, 1)]
+        [TestCase(50, 2)]
+        [TestCase(149, 2)]
+        [TestCase(150, 3)]
+        [TestCase(300, 4)]
+        public void SkillLevels_FollowCumulativeXpThresholds(int experience, int expectedLevel)
+        {
+            Assert.That(StimGameSessionService.GetSkillLevel(experience), Is.EqualTo(expectedLevel));
+        }
+
+        [Test]
+        public void EducationActions_ExposeVisibleAgeAndLevelRequirements()
+        {
+            var state = CreateValidSave().state;
+            state.character.age = 10;
+
+            Assert.IsTrue(StimGameSessionService.TryGetEducationActionRequirement(
+                state, StimEducationActionType.Read, out var readRequirement), readRequirement);
+            Assert.IsFalse(StimGameSessionService.TryGetEducationActionRequirement(
+                state, StimEducationActionType.StudyGroup, out var groupRequirement));
+            Assert.That(groupRequirement, Does.Contain("Learning Level 2"));
+            Assert.IsFalse(StimGameSessionService.TryGetEducationActionRequirement(
+                state, StimEducationActionType.AdvancedProject, out var projectRequirement));
+            Assert.That(projectRequirement, Does.Contain("age 14"));
+
+            state.skills.Add(new StimSkillState { skillId = "learning", experience = 150 });
+            state.character.age = 14;
+            Assert.IsTrue(StimGameSessionService.TryGetEducationActionRequirement(
+                state, StimEducationActionType.AdvancedProject, out var unlockedRequirement), unlockedRequirement);
+        }
+
+        [Test]
+        public void PerformEducationAction_AppliesXpStatsFeedCooldownAndAutosave()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 10;
+            save.state.education.stage = "primary_school";
+            save.state.skills.Add(new StimSkillState { skillId = "learning", experience = 45 });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformEducationAction(
+                StimEducationActionType.Homework, out var summary), summary);
+
+            Assert.That(summary, Does.Contain("Learning XP +18").And.Contain("Learning Level +1"));
+            Assert.That(StimGameSessionService.GetSkillExperience(
+                service.ActiveSave.state.skills, "learning"), Is.EqualTo(63));
+            Assert.That(service.ActiveSave.state.character.smarts, Is.EqualTo(61));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(69));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry => entry.category == "education"), Is.True);
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+            Assert.IsFalse(service.TryPerformEducationAction(
+                StimEducationActionType.Read, out var cooldownSummary));
+            Assert.That(cooldownSummary, Does.Contain("already completed a school action"));
+        }
+
+        [Test]
+        public void CareerApplication_UnlocksNextMonthInterviewAndEntryRole()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.career = new StimCareerState();
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformCareerAction(
+                StimCareerActionType.Apply, out var applySummary), applySummary);
+            Assert.That(applySummary, Does.Contain("Interview unlocked next month"));
+            Assert.IsFalse(service.TryPerformCareerAction(
+                StimCareerActionType.Interview, out var cooldownSummary));
+            Assert.That(cooldownSummary, Does.Contain("already completed a career action"));
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var advanceSummary), advanceSummary);
+            Assert.IsTrue(service.TryPerformCareerAction(
+                StimCareerActionType.Interview, out var interviewSummary), interviewSummary);
+            Assert.That(service.ActiveSave.state.career.roleTitle, Is.EqualTo("Junior Associate"));
+            Assert.That(service.ActiveSave.state.career.annualSalaryMinorUnits, Is.EqualTo(4000000));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry => entry.category == "career"), Is.True);
+            Assert.That(repository.CommitCount, Is.EqualTo(3));
+        }
+
+        [TestCase("Junior Associate", "Associate", 5500000, 25)]
+        [TestCase("Associate", "Senior Associate", 7500000, 50)]
+        [TestCase("Senior Associate", "Manager", 10000000, 75)]
+        public void CareerLadder_DefinesPromotionThresholds(
+            string role,
+            string expectedNextRole,
+            long expectedSalary,
+            int expectedProgress)
+        {
+            Assert.IsTrue(StimGameSessionService.TryGetNextCareerStep(
+                role, out var nextRole, out var salary, out var progress));
+            Assert.That(nextRole, Is.EqualTo(expectedNextRole));
+            Assert.That(salary, Is.EqualTo(expectedSalary));
+            Assert.That(progress, Is.EqualTo(expectedProgress));
+        }
+
+        [Test]
+        public void CareerPromotion_RequiresProgressAndResetsItAfterPromotion()
+        {
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.career.roleTitle = "Junior Associate";
+            save.state.career.annualSalaryMinorUnits = 4000000;
+            save.state.career.careerProgress = 24;
+            service.Start(save);
+
+            Assert.IsFalse(service.TryPerformCareerAction(
+                StimCareerActionType.AskForPromotion, out var lockedSummary));
+            Assert.That(lockedSummary, Does.Contain("Requires 25 career progress"));
+            service.ActiveSave.state.career.careerProgress = 25;
+            Assert.IsTrue(service.TryPerformCareerAction(
+                StimCareerActionType.AskForPromotion, out var promotionSummary), promotionSummary);
+            Assert.That(service.ActiveSave.state.career.roleTitle, Is.EqualTo("Associate"));
+            Assert.That(service.ActiveSave.state.career.careerProgress, Is.Zero);
+            Assert.That(promotionSummary, Does.Contain("Salary +$15,000"));
+        }
+
+        [Test]
+        public void CareerRetirement_IsAgeGatedAndStopsSalaryProgression()
+        {
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 64;
+            service.Start(save);
+
+            Assert.IsFalse(service.TryPerformCareerAction(
+                StimCareerActionType.Retire, out var lockedSummary));
+            Assert.That(lockedSummary, Does.Contain("age 65"));
+            service.ActiveSave.state.character.age = 65;
+            Assert.IsTrue(service.TryPerformCareerAction(
+                StimCareerActionType.Retire, out var retirementSummary), retirementSummary);
+            Assert.That(service.ActiveSave.state.career.roleTitle, Is.EqualTo("Retired"));
+            Assert.That(service.ActiveSave.state.career.annualSalaryMinorUnits, Is.Zero);
+            Assert.That(retirementSummary, Does.Contain("Retired from Analyst"));
+            Assert.That(service.ActiveSave.state.character.lifeStatus, Is.EqualTo("retired"));
+            Assert.That(service.ActiveSave.state.character.endedAtAge, Is.EqualTo(65));
+            Assert.IsFalse(service.TryAdvanceMonth(out _, out var endedSummary));
+            Assert.That(endedSummary, Does.Contain("life has ended"));
+        }
+
+        [TestCase(49, 0)]
+        [TestCase(50, 1)]
+        [TestCase(64, 1)]
+        [TestCase(65, 2)]
+        [TestCase(80, 4)]
+        public void AnnualHealthDecline_IncreasesWithAge(int age, int expectedDecline)
+        {
+            Assert.That(StimGameSessionService.GetAnnualHealthDecline(age), Is.EqualTo(expectedDecline));
+        }
+
+        [Test]
+        public void AnnualHealthDecline_CanEndLifeAndBlocksFurtherActions()
+        {
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 79;
+            save.state.character.health = 4;
+            save.state.character.lifeStage = StimGameSessionService.GetLifeStage(79);
+            save.state.calendar.monthOfYear = 12;
+            save.state.career = new StimCareerState();
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
+
+            Assert.That(nextEvent, Is.Null);
+            Assert.That(service.ActiveSave.state.character.health, Is.Zero);
+            Assert.That(service.ActiveSave.state.character.lifeStatus, Is.EqualTo("deceased"));
+            Assert.That(service.ActiveSave.state.character.endedAtAge, Is.EqualTo(80));
+            Assert.That(summary, Does.Contain("death at age 80"));
+            Assert.That(service.ActiveSave.state.lifeFeed[^1].category, Is.EqualTo("milestone"));
+            Assert.IsFalse(service.TryPerformActivity(StimActivityType.Rest, out var actionSummary));
+            Assert.That(actionSummary, Does.Contain("life has ended"));
+        }
+
+        [Test]
+        public void Achievements_UnlockPersistAndDoNotDuplicate()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 10;
+            save.state.education.stage = "primary_school";
+            save.state.career = new StimCareerState();
+            save.state.skills.Add(new StimSkillState { skillId = "learning", experience = 45 });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformEducationAction(
+                StimEducationActionType.Read, out var actionSummary), actionSummary);
+
+            Assert.That(service.ActiveSave.state.achievements.Exists(
+                achievement => achievement.achievementId == "first_year"), Is.True);
+            Assert.That(service.ActiveSave.state.achievements.Exists(
+                achievement => achievement.achievementId == "school_days"), Is.True);
+            Assert.That(service.ActiveSave.state.achievements.Exists(
+                achievement => achievement.achievementId == "learning_level_2"), Is.True);
+            var countAfterUnlock = service.ActiveSave.state.achievements.Count;
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var advanceSummary), advanceSummary);
+            Assert.That(service.ActiveSave.state.achievements, Has.Count.EqualTo(countAfterUnlock));
+            Assert.That(service.ActiveSave.state.lifeFeed.Count(entry =>
+                entry.category == "achievement" && entry.text.Contains("Curious Mind")), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void SeededLife_ProgressesFromBirthToDeathWithoutDeveloperIntervention()
+        {
+            var catalog = CreateRepresentativeCatalog();
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(
+                catalog,
+                repository,
+                utcNow: () => DateTimeOffset.Parse("2026-07-13T20:00:00Z"));
+            var save = StimNewLifeFactory.Create(
+                new StimNewLifeRequest
+                {
+                    firstName = "Ari",
+                    lastName = "Morgan",
+                    country = "Jamaica",
+                    backgroundId = StimNewLifeFactory.WorkingClassBackground
+                },
+                "0.1.0",
+                DateTimeOffset.Parse("2026-07-13T19:00:00Z"),
+                24680);
+            Assert.IsTrue(service.TryStartNewLife(save, out var startSummary), startSummary);
+
+            var months = 0;
+            const int maximumMonths = 1800;
+            while (service.ActiveSave.state.character.lifeStatus == "active" && months < maximumMonths)
+            {
+                Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var advanceSummary), advanceSummary);
+                months++;
+                if (nextEvent == null) continue;
+                Assert.That(nextEvent.choices, Is.Not.Empty, $"Event {nextEvent.id} has no playable choice.");
+                Assert.IsTrue(service.TryResolveChoice(
+                    nextEvent.id,
+                    nextEvent.choices[0].id,
+                    out var resolutionSummary), resolutionSummary);
+            }
+
+            Assert.That(months, Is.LessThan(maximumMonths), "The seeded life did not reach an ending.");
+            Assert.That(service.ActiveSave.state.character.lifeStatus, Is.EqualTo("deceased"));
+            Assert.That(service.ActiveSave.state.character.endedAtAge, Is.GreaterThan(0));
+            Assert.That(service.ActiveSave.state.pendingEventId, Is.Null.Or.Empty);
+            Assert.That(service.ActiveSave.state.achievements.Exists(
+                achievement => achievement.achievementId == "life_complete"), Is.True);
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "milestone" && entry.text.Contains("ended in death")), Is.True);
+            Assert.That(repository.CommitCount, Is.GreaterThan(months));
+        }
+
+        [Test]
         public void LuckWeightsRandomGainsUpAndRandomLossesDown()
         {
             var gain = RepresentativeStimEvents.CreateRandomGain();
@@ -595,6 +965,24 @@ namespace StimTycoon.Tests.Domain.Runtime
                     scheduledEvents = new List<StimScheduledEventRecord>()
                 }
             };
+        }
+
+        private static InMemoryStimEventCatalog CreateRepresentativeCatalog()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateSalaryNegotiation());
+            catalog.Upsert(RepresentativeStimEvents.CreateHealthBurnout());
+            catalog.Upsert(RepresentativeStimEvents.CreateMoneyFastReturn());
+            catalog.Upsert(RepresentativeStimEvents.CreateSchoolGroupProject());
+            catalog.Upsert(RepresentativeStimEvents.CreateChildhoodGrownFolksTable());
+            catalog.Upsert(RepresentativeStimEvents.CreateRandomGain());
+            catalog.Upsert(RepresentativeStimEvents.CreateRandomLoss());
+            catalog.Upsert(RepresentativeStimEvents.CreateRandomGainRefund());
+            catalog.Upsert(RepresentativeStimEvents.CreateRandomLossRepair());
+            catalog.Upsert(RepresentativeStimEvents.CreateLuckCrossroads());
+            catalog.Upsert(RepresentativeStimEvents.CreateChildhoodDiscovery());
+            catalog.Upsert(RepresentativeStimEvents.CreateChildhoodComfort());
+            return catalog;
         }
 
         private sealed class RecordingSaveRepository : IStimSaveRepository

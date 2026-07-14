@@ -14,7 +14,11 @@ namespace StimTycoon.Tests.Domain.Save
             save.state.skills = null;
             save.state.relationships = null;
             save.state.statuses = null;
+            save.state.achievements = null;
             var json = JsonUtility.ToJson(save)
+                .Replace("\"lifeStatus\":\"active\",", string.Empty)
+                .Replace("\"endingReason\":\"\",", string.Empty)
+                .Replace("\"endedAtAge\":-1,", string.Empty)
                 .Replace("\"looks\":50,", string.Empty)
                 .Replace("\"luck\":50", "\"luckRemoved\":0");
 
@@ -24,9 +28,12 @@ namespace StimTycoon.Tests.Domain.Save
             Assert.IsTrue(report.changed);
             Assert.That(result.state.character.looks, Is.EqualTo(50));
             Assert.That(result.state.character.luck, Is.EqualTo(50));
+            Assert.That(result.state.character.lifeStatus, Is.EqualTo("active"));
+            Assert.That(result.state.character.endedAtAge, Is.EqualTo(-1));
             Assert.That(result.state.skills, Is.Not.Null);
             Assert.That(result.state.relationships, Is.Not.Null);
             Assert.That(result.state.statuses, Is.Not.Null);
+            Assert.That(result.state.achievements, Is.Not.Null);
             Assert.That(result.integrity.payloadHash, Is.Empty);
         }
 

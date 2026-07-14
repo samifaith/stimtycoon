@@ -5,7 +5,7 @@ Install vendors only when the related feature is ready. After each package chang
 ## Baseline — complete
 
 - [x] Open with Unity `6000.3.19f1` and install iOS Build Support through Unity Hub.
-- [x] Confirm a clean compile and 32 passing EditMode tests.
+- [x] Confirm a clean compile and 140 passing EditMode tests.
 - [x] Run `Tools → Stim Tycoon → Run Setup Check` with no project-level failures.
 - [x] Use the native atomic JSON repository for required local saves.
 - [x] Install Yarn Spinner from its official Git repository and isolate it behind the Stim dialogue bridge.
@@ -23,4 +23,6 @@ Install vendors only when the related feature is ready. After each package chang
 - Keep vendor SDK types inside `Assets/Scripts/Vendors` or a dedicated adapter assembly.
 - Gameplay code depends on Stim-owned interfaces, never directly on vendor SDKs.
 - Do not enable `STIM_EASY_SAVE_3` unless Easy Save 3 is deliberately imported for adapter evaluation; it is not required by the current save system.
+- Keep atomic JSON through the first device-profiling pass. The slow full-life test is dominated by repeated growing-save cloning and serialization, so changing repositories is not the first optimization.
+- If physical-device profiling proves that JSON serialization or file size is unacceptable, benchmark MessagePack behind `IStimSaveRepository` while preserving the versioned logical envelope, migrations, integrity validation, and recovery fixtures.
 - Record exact resolved versions in `Packages/packages-lock.json` and test upgrades separately.

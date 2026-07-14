@@ -1,6 +1,6 @@
 # Stim Tycoon
 
-**Status:** Phase 0 foundation with a playable monthly life-event vertical slice
+**Status:** Phase 1 offline life loop verified; Phase 2 gameplay expansion active
 
 **Target:** iOS 13+
 
@@ -24,11 +24,10 @@ The repository now contains:
 - monthly gross pay, tax withholding, living expenses, debt pressure, stat feedback, and career progression, plus annual age rollover, randomized event timing with anti-drought protection, cooldowns, and pending-event persistence
 - a mobile UI Toolkit vertical slice with choices, outcomes, cash, life feed, autosave feedback, and a collapsible six-stat player overview
 - replaceable interfaces for dialogue, saves, accounts, cloud saves, ads, and event catalogs
-- 65 passing EditMode tests covering events, runtime behavior, monthly progression, migrations, and saves
+- 140 passing EditMode tests covering events, saves, UI, relationships, education, careers, achievements, and a seeded birth-to-ending simulation
 
 Not yet implemented:
 
-- complete-life simulation from birth through death
 - Unity Authentication, Apple Game Center, and Cloud Save adapters
 - Unity LevelPlay ads
 - production navigation, accessibility, localization, art, and audio
@@ -58,7 +57,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The current verified result is **65 passing tests**. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner. Unity 6.3 can emit editor-only Test Runner layout errors when its list is context-clicked; these are not game test failures.
+The current user-verified result is **140 passing EditMode tests**, including the seeded birth-to-ending harness. The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
 
 ## Packages
 
@@ -120,14 +119,25 @@ docs/                      # Architecture and gameplay specifications
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 65-test verified baseline
+- [x] 140-test verified baseline
+- [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests
 - [ ] iOS development build
 
+## Save Format Decision
+
+Keep the Stim-owned atomic JSON repository for the current beta path. Its readable versioned envelope, migrations, integrity checks, atomic replacement, and backup recovery are more valuable right now than switching formats.
+
+The full-life Test Runner pause is primarily caused by repeatedly cloning and serializing a growing save in one synchronous simulation, not by the repository's disk-write implementation. Optimize and separate that slow test before evaluating another save package.
+
+Profile save/load on physical iPhones before changing formats. If device profiling later shows unacceptable serialization time or file size, evaluate MessagePack behind `IStimSaveRepository`; do not replace the logical save envelope or migration boundary. Easy Save 3 remains optional and is not expected to solve the simulation-test cloning cost.
+
 ## Documentation
 
 - [Master product definition and roadmap](<STIM_TYCOON_MASTER_README(2).md>)
+- [Active next task list](docs/TASKS.md)
+- [Current implementation audit](docs/IMPLEMENTATION_AUDIT_2026-07-13.md)
 - [Package install checklist](docs/PACKAGE_INSTALL_CHECKLIST.md)
 - [Phase 0 architecture checklist](docs/PHASE_0_ARCHITECTURE_CHECKLIST.md)
 - [Event schema](docs/EVENT_SCHEMA.md)

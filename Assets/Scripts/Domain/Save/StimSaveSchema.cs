@@ -60,6 +60,7 @@ namespace StimTycoon.Saves
         public List<StimSkillState> skills = new List<StimSkillState>();
         public List<StimRelationshipState> relationships = new List<StimRelationshipState>();
         public List<StimStatusState> statuses = new List<StimStatusState>();
+        public List<StimAchievementState> achievements = new List<StimAchievementState>();
         public List<StimLifeFeedEntry> lifeFeed = new List<StimLifeFeedEntry>();
         public string pendingEventId;
         public List<StimEventHistoryEntry> eventHistory = new List<StimEventHistoryEntry>();
@@ -77,6 +78,9 @@ namespace StimTycoon.Saves
         public string avatarId;
         public int appearanceSeed;
         public string lifeStage = "infant";
+        public string lifeStatus = "active";
+        public string endingReason;
+        public int endedAtAge = -1;
         public int age;
         public int health;
         public int happiness;
@@ -141,6 +145,15 @@ namespace StimTycoon.Saves
     {
         public string statusId;
         public int remainingMonths;
+    }
+
+    [Serializable]
+    public class StimAchievementState
+    {
+        public string achievementId;
+        public int unlockedAtAge;
+        public int revision;
+        public string timestampUtc;
     }
 
     [Serializable]
@@ -278,6 +291,7 @@ namespace StimTycoon.Saves
             ValidateSkills(result, save.state.skills);
             ValidateRelationships(result, save.state.relationships);
             ValidateStatuses(result, save.state.statuses);
+            ValidateAchievements(result, save.state.achievements);
             ValidateEventHistory(result, save.state.eventHistory);
             ValidateScheduledEvents(result, save.state.scheduledEvents);
 
@@ -328,6 +342,24 @@ namespace StimTycoon.Saves
             {
                 result.isValid = false;
                 result.errors.Add("state.character.age cannot be negative");
+            }
+
+            if (character.lifeStatus != "active" && character.lifeStatus != "deceased" &&
+                character.lifeStatus != "retired")
+            {
+                result.isValid = false;
+                result.errors.Add("state.character.lifeStatus must be active, deceased, or retired");
+            }
+            if (character.lifeStatus == "active" && character.endedAtAge != -1)
+            {
+                result.isValid = false;
+                result.errors.Add("active lives must use endedAtAge=-1");
+            }
+            if (character.lifeStatus != "active" &&
+                (character.endedAtAge < 0 || string.IsNullOrEmpty(character.endingReason)))
+            {
+                result.isValid = false;
+                result.errors.Add("ended lives require endedAtAge and endingReason");
             }
 
             ValidateStatRange(result, character.health, "state.character.health");
@@ -448,6 +480,19 @@ namespace StimTycoon.Saves
                 status => status?.statusId,
                 status => status == null || status.remainingMonths > 0,
                 "remainingMonths must be greater than zero");
+        }
+
+        private static void ValidateAchievements(
+            StimSaveValidationResult result,
+            List<StimAchievementState> achievements)
+        {
+            ValidateProgressRecords(
+                result,
+                achievements,
+                "state.achievements",
+                achievement => achievement?.achievementId,
+                achievement => achievement == null || achievement.unlockedAtAge >= 0 && achievement.revision >= 1,
+                "unlock age must be non-negative and revision must be positive");
         }
 
         private static void ValidateProgressRecords<T>(

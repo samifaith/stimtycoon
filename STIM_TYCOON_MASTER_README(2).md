@@ -4,19 +4,19 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 > **Final product name:** Stim Tycoon  
 > **Platform target:** iOS first, with architecture that can support Android later  
-> **Status:** Phase 1 simulation skeleton in progress; Phase 2 data foundations started
+> **Status:** Phase 1 offline loop verified; Phase 2 gameplay expansion active
 > **Primary reference set:** Three gameplay recordings supplied by the product owner  
 > **Important:** The recordings are inspiration for interaction patterns, pacing, information hierarchy, and feature depth. Stim Tycoon must use original branding, writing, visuals, balancing, content, data, and interface components.
 
 ### Implementation snapshot — July 13, 2026
 
-The repository currently runs on Unity `6000.3.19f1` and includes the event/save domain foundation, deterministic outcome resolution, Yarn Spinner dialogue bridge, native atomic JSON autosaves, an additive idempotent v1 migration boundary, and a user-verified 95-test EditMode baseline. A new game generates a complete person at birth, including identity, USA/Jamaica location, background, appearance seed, two genetic parents, inherited starting stats, finances, and a birth feed entry. Returning players may continue the active life. Monthly progression advances life and education stages, applies cash flow and signed stat changes, and selects one age-eligible event whenever the content pool contains one. Fixed-month and annual events take priority when due; otherwise selection is deterministic, randomized, Luck-weighted, and protected from immediate repetition when alternatives exist. Age-appropriate focus actions change from Play/Rest to Study/Play and then Study/Workout. Dedicated Luck, gain, and loss events retain uncertainty. The cozy-corporate Life dashboard keeps Advance Month persistent, shows Age in the header rather than as a redundant progress meter, hides the visual scrollbar while retaining touch scrolling, presents compact event/outcome overlays, and renders the newest Life Feed entry first. Skill XP, relationship values, statuses, life-feed records, and event history persist through autosave. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
+The repository currently runs on Unity `6000.3.19f1` and has a user-verified 140-test EditMode baseline. The verified offline loop begins with a randomized birth, advances through monthly events, education, relationships, careers, achievements, health decline, death or retirement, and ends with a persistent final summary. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
 
 ### Current phase assessment — July 13, 2026
 
 - **Phase 0 — Product Foundation:** offline foundation delivered. The five representative events, schemas, deterministic resolver, local-save recovery, migration boundary, and product decisions are implemented. Authentication, cloud-conflict validation, Game Center, and ads remain intentionally deferred behind offline-loop stability.
-- **Phase 1 — Simulation Skeleton:** current primary phase. Character generation, monthly aging, life stages, stats, event presentation, Life Feed, seeded randomness, and local save/load are playable. The phase exit criterion is not met because a life cannot yet progress from birth through health decline, death or retirement, and a final summary without developer intervention.
-- **Phase 2 — Skills, Education, and Relationships:** foundations started, not yet a playable phase. Education stages, activity XP, two generated parents, relationship records, relationship deltas, and persistence exist; skill levels and unlocks, school decisions, Social profiles, and relationship actions do not.
+- **Phase 1 — Simulation Skeleton:** verified complete for the offline implementation. The 140-test run includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
+- **Phase 2 — Skills, Education, and Relationships:** first playable foundations are present, but the phase is incomplete. Education stages, XP-derived Learning levels, school actions and unlocks, two generated parents, Social profiles, transactional relationship actions, and persistence exist; broader skills, enrollment decisions, peers, romance, and long-term relationship arcs do not.
 - **Phase 3 and later:** not started as complete systems. Prototype salary and monthly cash flow exist, but they do not yet constitute career ladders or the full personal-finance phase.
 
 ### Deferred Phase 0 online-validation gate
@@ -36,6 +36,14 @@ The current implementation choices supersede earlier package assumptions in this
 - **Yarn Spinner** is the branching dialogue authoring layer.
 - The Stim-owned **native atomic JSON repository** is the required local-save implementation.
 - Dialogue System for Unity and Easy Save 3 are optional future adapters, not required dependencies.
+
+### Save performance decision — July 13, 2026
+
+- Keep the versioned native atomic JSON repository through the first physical-device profiling pass.
+- The brief Test Runner pause during the full-life harness is caused primarily by synchronous repeated cloning and serialization of a save whose Life Feed grows across hundreds of simulated months; it is not evidence of a failed atomic repository.
+- First isolate/optimize the slow simulation test while retaining focused transactional autosave coverage.
+- Evaluate MessagePack behind `IStimSaveRepository` only if iPhone profiling demonstrates unacceptable save latency or file size. Preserve the logical envelope, migrations, integrity checks, atomic promotion, and recovery semantics regardless of physical format.
+- Easy Save 3 remains optional and is not the recommended fix for the current test pause.
 
 ---
 
@@ -2489,7 +2497,7 @@ Exit criteria:
 - internal risk bands match observed outcomes after modifiers
 - save version 1 passes round-trip, corruption recovery, migration, and cloud-conflict tests
 
-## Phase 1: Simulation Skeleton — Current Primary Phase
+## Phase 1: Simulation Skeleton — Verified Complete Offline
 
 Build:
 
@@ -2505,9 +2513,9 @@ Build:
 
 Exit criteria:
 
-- a test character can age from birth to death through placeholder events
+- [x] a test character can age from birth to death through authored events
 
-## Phase 2: Skills, Education, and Relationships — Foundations Started
+## Phase 2: Skills, Education, and Relationships — Active Expansion
 
 Build:
 
@@ -2846,22 +2854,32 @@ Completed foundation work:
 - [x] Add transactional Study and Workout actions with monthly cooldowns, autosave, skill XP, and signed feedback.
 - [x] Consolidate the playable Life shell onto reusable header and bottom-navigation templates.
 - [x] Add structural UI Toolkit tests for required bindings, navigation, and event-sheet defaults.
-- [x] Establish a user-verified 95-test EditMode baseline.
+- [x] Establish a user-verified 140-test EditMode baseline, including seeded birth-to-ending coverage.
 - [x] Keep Advance Month persistent outside the Life ScrollView and clamp all visual progress fills.
+- [x] Add controller interaction coverage for event presentation, activity feedback, and persistent month advancement.
+- [x] Add transactional parent interactions with age gates, per-parent monthly limits, signed feedback, Life Feed entries, autosave, and rollback safety.
+- [x] Implement the Social destination with generated-parent cards, profile detail, genetics, relationship strength, age-filtered actions, and outcome presentation.
+- [x] Add the first school action loop with XP-derived Learning levels, cumulative thresholds, monthly limits, visible progress, and gated Study Group and Advanced Project unlocks.
+- [x] Persist explicit primary-school, middle-school, high-school, and secondary-completion milestones during annual progression.
+- [x] Replace the unsaved prototype career assignment with transactional applications, delayed interviews, an entry role, work progress, promotion thresholds, quitting, and age-gated retirement.
+- [x] Wire the career path into an adult Life-dashboard panel with role, salary, next-step progress, visible requirements, and outcome presentation.
+- [x] Add additive life-ending state, age-based health decline, transactional death/retirement finalization, post-ending action guards, and a persistent final-life summary.
+- [x] Add migration-safe achievements for aging, education, skills, family, career, wealth, retirement, choices, and completed lives, with Life Feed announcements, dashboard history, and ending-summary totals.
+- [x] Add and verify a deterministic full-life harness that starts at birth, advances every month, resolves every pending authored event, persists every transaction, and asserts a completed death ending.
 
-Next milestone — playable childhood and family loop:
+Next milestone — performance, device validation, and Phase 2 depth:
 
-1. Implement the Social destination with a relationship list and parent profile detail using the two relationships already generated for every new life.
-2. Add transactional, age-appropriate parent interactions such as Talk, Play Together, Ask for Help, Spend Time, and Argue, with monthly limits, signed relationship/stat feedback, Life Feed entries, and autosave.
-3. Build the first real childhood/education loop around the existing school stages: enrollment milestones, school actions, skill levels, XP thresholds, and visible choice unlocks.
-4. Add controller interaction coverage for event presentation, Social interactions, activity feedback, and the persistent Advance Month action; validate 320, 390, 430, and 768 widths at normal and accessibility font scales.
+1. Isolate the full-life harness as slow simulation coverage and reduce redundant serialization while keeping focused transaction/recovery tests in the normal suite.
+2. Validate Life, Social, education, career, achievement, and ending views at 320, 390, 430, and 768 widths at normal and accessibility font scales.
+3. Produce the first iOS development build and profile save/load latency, save size, safe areas, touch targets, and memory on a physical supported iPhone.
+4. Expand childhood and education with enrollment decisions, stage-specific content, and additional skill paths beyond Learning.
+5. Add peers and additional relationship types before romance or long-term family arcs.
 
 After that milestone:
 
-5. Replace the prototype assigned career with an adulthood transition into applications, interviews, employment, promotion, quitting, and retirement eligibility.
-6. Add health decline, death, retirement resolution, and the final-life summary, then run seeded lives from birth to ending to satisfy the Phase 1 exit criterion.
+6. Extend the first career ladder with authored interview uncertainty, career events, and additional industries after complete-life endings are stable.
 7. Implement the Money destination with transaction history, cash flow, debt, and net worth before beginning the Business phase.
-8. Replace placeholder logo, avatar, icon, and font treatments with approved production assets and produce the first iOS development build.
+8. Replace placeholder logo, avatar, icon, and font treatments with approved production assets.
 9. Add Authentication, Game Center, Cloud Save, and LevelPlay only at their documented stability gates.
 
 The operational backlog is maintained in `docs/TASKS.md`.

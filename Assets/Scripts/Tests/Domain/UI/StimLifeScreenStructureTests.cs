@@ -26,7 +26,15 @@ namespace StimTycoon.Tests.Domain.UI
                 "advance-month", "toggle-overview", "event-continue", "focus-study", "focus-workout",
                 "focus-study-title", "focus-study-effect", "focus-workout-title", "focus-workout-effect",
                 "open-new-life", "new-life-setup", "cancel-new-life", "continue-current-life",
-                "create-new-life", "new-life-error"
+                "create-new-life", "new-life-error", "social-view", "time-dock",
+                "relationship-list-view", "relationship-list",
+                "relationship-detail-view", "relationship-back", "relationship-avatar", "relationship-name",
+                "relationship-type", "relationship-strength", "relationship-fill", "relationship-genetics",
+                "relationship-actions", "education-card", "education-stage", "learning-level", "learning-fill",
+                "learning-progress", "education-actions", "career-card", "career-role", "career-salary",
+                "career-next-step", "career-action-fill", "career-action-progress", "career-actions",
+                "final-life-summary", "ending-name", "ending-status", "ending-summary", "ending-new-life",
+                "achievements-card", "achievements-count", "achievements-list"
             };
 
             foreach (var elementName in requiredNames)
@@ -62,6 +70,9 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(eventSheet, Is.Not.Null);
             Assert.IsTrue(eventSheet.ClassListContains("hidden"));
             Assert.That(root.Q<Button>("advance-month"), Is.Not.Null);
+            Assert.IsTrue(root.Q("social-view").ClassListContains("hidden"));
+            Assert.IsFalse(root.Q("life-scroll").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q("final-life-summary").ClassListContains("hidden"));
             Assert.That(root.Q("age-fill"), Is.Null, "Age is shown in the header and should not use a stat progress bar.");
         }
 

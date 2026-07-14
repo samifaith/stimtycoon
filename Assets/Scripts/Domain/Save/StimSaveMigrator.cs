@@ -78,6 +78,13 @@ namespace StimTycoon.Saves
 
             if (save.state.character != null)
             {
+                if (!serializedSave.Contains("\"lifeStatus\""))
+                {
+                    save.state.character.lifeStatus = "active";
+                    save.state.character.endedAtAge = -1;
+                    Record(report, "state.character.lifeStatus=active");
+                    Record(report, "state.character.endedAtAge=-1");
+                }
                 if (!serializedSave.Contains("\"looks\""))
                 {
                     save.state.character.looks = 50;
@@ -124,6 +131,11 @@ namespace StimTycoon.Saves
             {
                 save.state.statuses = new List<StimStatusState>();
                 Record(report, "state.statuses created");
+            }
+            if (save.state.achievements == null || !serializedSave.Contains("\"achievements\""))
+            {
+                save.state.achievements = new List<StimAchievementState>();
+                Record(report, "state.achievements created");
             }
             if (save.state.lifeFeed == null)
             {
