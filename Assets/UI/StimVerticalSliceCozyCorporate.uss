@@ -160,6 +160,7 @@
 .st-social-content { width: 100%; max-width: 760px; align-self: center; }
 .st-social-title { margin-top: 4px; color: rgb(7, 36, 82); font-size: 30px; -unity-font-style: bold; }
 .st-social-subtitle { margin-top: 5px; margin-bottom: 16px; color: var(--st-text-secondary); font-size: 15px; white-space: normal; }
+.st-social-discover { min-height: 50px; margin-bottom: 9px; background-color: var(--st-purple-500); border-width: 0; border-radius: 14px; color: var(--st-text-inverse); font-size: 14px; -unity-font-style: bold; }
 .st-relationship-list { width: 100%; }
 .st-relationship-card { min-height: 92px; margin-bottom: 10px; padding: 13px; flex-direction: row; align-items: center; background-color: var(--st-surface-1); border-width: 1px; border-color: var(--st-border-blue); border-radius: 18px; }
 .st-relationship-card-avatar { width: 54px; height: 54px; margin-right: 12px; background-color: var(--st-surface-purple); border-radius: 18px; color: var(--st-purple-600); font-size: 24px; -unity-font-style: bold; -unity-text-align: middle-center; }

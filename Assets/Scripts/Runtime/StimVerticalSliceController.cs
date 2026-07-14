@@ -105,6 +105,8 @@ namespace StimTycoon.Runtime
         private StimSavingsTransferType savingsTransferType = StimSavingsTransferType.Deposit;
         private VisualElement relationshipListView;
         private VisualElement relationshipList;
+        private Button discoverCompatiblePerson;
+        private Label relationshipDiscoveryFeedback;
         private VisualElement relationshipDetailView;
         private Button relationshipBack;
         private Label relationshipAvatar;
@@ -234,6 +236,8 @@ namespace StimTycoon.Runtime
             indexInvestmentFeedback = root.Q<Label>("index-investment-feedback");
             relationshipListView = root.Q<VisualElement>("relationship-list-view");
             relationshipList = root.Q<VisualElement>("relationship-list");
+            discoverCompatiblePerson = root.Q<Button>("discover-compatible-person");
+            relationshipDiscoveryFeedback = root.Q<Label>("relationship-discovery-feedback");
             relationshipDetailView = root.Q<VisualElement>("relationship-detail-view");
             relationshipBack = root.Q<Button>("relationship-back");
             relationshipAvatar = root.Q<Label>("relationship-avatar");
@@ -325,7 +329,8 @@ namespace StimTycoon.Runtime
                 indexFundValue == null || indexInvestmentRequirement == null ||
                 indexInvestmentInput == null || indexInvestmentFeedback == null ||
                 relationshipListView == null ||
-                relationshipList == null || relationshipDetailView == null || relationshipBack == null ||
+                relationshipList == null || discoverCompatiblePerson == null || relationshipDiscoveryFeedback == null ||
+                relationshipDetailView == null || relationshipBack == null ||
                 relationshipAvatar == null || relationshipName == null || relationshipType == null ||
                 relationshipStrength == null || relationshipFill == null || relationshipGenetics == null ||
                 relationshipActions == null || educationCard == null || educationStage == null ||
@@ -353,6 +358,7 @@ namespace StimTycoon.Runtime
             savingsDepositMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Deposit);
             savingsWithdrawMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Withdrawal);
             relationshipBack.clicked += ShowRelationshipList;
+            discoverCompatiblePerson.clicked += DiscoverCompatiblePerson;
             endingNewLife.clicked += OpenNewLifeFromEnding;
             ConfigureNewLifeControls();
 
@@ -1447,6 +1453,11 @@ namespace StimTycoon.Runtime
         private void RefreshSocial()
         {
             relationshipList.Clear();
+            var discoveryUsed = gameSession.ActiveSave?.state?.statuses?.Exists(
+                status => status.statusId == "relationship_discovery_used") == true;
+            discoverCompatiblePerson.SetEnabled(
+                gameSession.ActiveSave?.state?.character?.age >= 18 && !discoveryUsed &&
+                string.IsNullOrEmpty(gameSession.ActiveSave?.state?.pendingEventId));
             var relationships = gameSession.ActiveSave?.state?.relationships;
             if (relationships == null || relationships.Count == 0)
             {
@@ -1500,18 +1511,33 @@ namespace StimTycoon.Runtime
                 ? ToDisplayName(relationship.relationshipId)
                 : relationship.displayName;
             relationshipAvatar.text = relationshipName.text.Substring(0, 1).ToUpperInvariant();
-            relationshipType.text = ToDisplayName(relationship.relationshipType).ToUpperInvariant();
-            relationshipStrength.text = $"Relationship {relationship.value} / 100";
+            relationshipType.text = ToDisplayName(string.IsNullOrEmpty(relationship.relationshipStage)
+                ? relationship.relationshipType
+                : relationship.relationshipStage).ToUpperInvariant();
+            relationshipStrength.text = $"Relationship {relationship.value} / 100 · Warmth {relationship.warmth} / 100";
             relationshipFill.style.width = Length.Percent(ClampFillPercent(relationship.value));
             relationshipGenetics.text = relationship.isGeneticParent
                 ? $"Inherited profile · Health {relationship.geneticHealth} · Looks {relationship.geneticLooks} · Smarts {relationship.geneticSmarts}"
                 : string.IsNullOrEmpty(relationship.origin)
                     ? "This relationship is part of your growing social story."
-                    : $"Met through {ToDisplayName(relationship.origin)} at age {relationship.introducedAtAge} · " +
+                    : $"{(string.IsNullOrEmpty(relationship.pronouns) ? string.Empty : relationship.pronouns + " · ")}" +
+                      $"Met through {ToDisplayName(string.IsNullOrEmpty(relationship.introductionContext) ? relationship.origin : relationship.introductionContext)} at age {relationship.introducedAtAge} · " +
                       (relationship.monthsSinceInteraction == 0
                           ? "Connected this month."
                           : $"{relationship.monthsSinceInteraction} months since focused time together.");
             BuildRelationshipActions(relationship);
+        }
+
+        private void DiscoverCompatiblePerson()
+        {
+            var succeeded = gameSession.TryDiscoverCompatiblePerson(out var relationshipId, out var summary);
+            relationshipDiscoveryFeedback.text = summary;
+            relationshipDiscoveryFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
+            RefreshSocial();
+            ShowRelationshipDetail(relationshipId);
         }
 
         private void BuildRelationshipActions(StimRelationshipState relationship)
@@ -1526,9 +1552,13 @@ namespace StimTycoon.Runtime
                 StimRelationshipInteractionType.Argue,
                 StimRelationshipInteractionType.Compete,
                 StimRelationshipInteractionType.Reconcile,
+                StimRelationshipInteractionType.DeepenFriendship,
                 StimRelationshipInteractionType.AskOnDate,
+                StimRelationshipInteractionType.DateNight,
                 StimRelationshipInteractionType.Commit,
-                StimRelationshipInteractionType.BreakUp
+                StimRelationshipInteractionType.BreakUp,
+                StimRelationshipInteractionType.Separate,
+                StimRelationshipInteractionType.Recover
             };
             var age = gameSession.ActiveSave.state.character.age;
             var cooldownId = $"relationship_interaction_used_{relationship.relationshipId}";
@@ -1538,13 +1568,23 @@ namespace StimTycoon.Runtime
                 if (!StimGameSessionService.IsRelationshipInteractionAgeAppropriate(interaction, age)) continue;
                 if (interaction == StimRelationshipInteractionType.Compete && relationship.relationshipType == "parent") continue;
                 if (interaction == StimRelationshipInteractionType.Reconcile && relationship.relationshipType != "rival") continue;
+                if (interaction == StimRelationshipInteractionType.DeepenFriendship &&
+                    ((relationship.relationshipType != "friend" && relationship.relationshipType != "best_friend") ||
+                     relationship.value < 65)) continue;
                 if (interaction == StimRelationshipInteractionType.AskOnDate &&
                     ((relationship.relationshipType != "friend" && relationship.relationshipType != "best_friend") ||
                      relationship.value < 60)) continue;
                 if (interaction == StimRelationshipInteractionType.Commit &&
                     (relationship.relationshipType != "dating" || relationship.value < 75)) continue;
+                if (interaction == StimRelationshipInteractionType.DateNight &&
+                    relationship.relationshipType != "dating" && relationship.relationshipType != "partner" &&
+                    relationship.relationshipType != "engaged" && relationship.relationshipType != "married") continue;
                 if (interaction == StimRelationshipInteractionType.BreakUp &&
                     relationship.relationshipType != "dating" && relationship.relationshipType != "partner") continue;
+                if (interaction == StimRelationshipInteractionType.Separate &&
+                    relationship.relationshipType != "partner" && relationship.relationshipType != "engaged") continue;
+                if (interaction == StimRelationshipInteractionType.Recover &&
+                    relationship.relationshipType != "ex_partner" && relationship.relationshipType != "estranged") continue;
                 var button = new Button
                 {
                     name = $"relationship-action-{interaction.ToString().ToLowerInvariant()}",
@@ -1556,6 +1596,112 @@ namespace StimTycoon.Runtime
                 button.clicked += () => PerformRelationshipInteraction(capturedInteraction);
                 relationshipActions.Add(button);
             }
+            if (age >= 18 && (relationship.relationshipType == "partner" ||
+                              relationship.relationshipType == "engaged" ||
+                              relationship.relationshipType == "married"))
+            {
+                AddFamilyPlanningAction(relationship, StimFamilyPlanningAction.Discuss, "Discuss family planning");
+                AddFamilyPlanningAction(relationship, StimFamilyPlanningAction.TryForChild, "Try for a child · 9 months");
+                AddFamilyPlanningAction(relationship, StimFamilyPlanningAction.PursueAdoption, "Pursue adoption · $500 · 6 months");
+                AddFamilyPlanningAction(relationship, StimFamilyPlanningAction.OptOut, "Not now");
+            }
+            if (relationship.relationshipType == "child")
+            {
+                AddParentingAction(relationship, StimParentingAction.QualityTime, "Quality time · Wellbeing and relationship");
+                AddParentingAction(relationship, StimParentingAction.SupportNeeds, "Support needs · $25 · Wellbeing");
+                AddParentingAction(relationship, StimParentingAction.Teach, "Teach · Learning and independence");
+                AddParentingAction(relationship, StimParentingAction.SetBoundaries, "Set boundaries · Independence");
+            }
+        }
+
+        private void AddParentingAction(
+            StimRelationshipState relationship,
+            StimParentingAction action,
+            string label)
+        {
+            var child = gameSession.ActiveSave.state.family.children.Find(record =>
+                record.childId == relationship.relationshipId);
+            if (child == null || child.age >= 18) return;
+            var used = gameSession.ActiveSave.state.statuses.Exists(
+                status => status.statusId == $"parenting_used_{child.childId}");
+            var button = new Button
+            {
+                name = $"parenting-action-{action.ToString().ToLowerInvariant()}",
+                text = $"{label}\nAge {child.age} · Wellbeing {child.wellbeing} · Learning {child.learning} · Independence {child.independence}"
+            };
+            button.AddToClassList("st-relationship-action");
+            button.SetEnabled(!used && (action != StimParentingAction.SupportNeeds ||
+                                        gameSession.ActiveSave.state.finances.cashMinorUnits >= 2500));
+            var capturedAction = action;
+            button.clicked += () => PerformParentingAction(capturedAction);
+            relationshipActions.Add(button);
+        }
+
+        private void PerformParentingAction(StimParentingAction action)
+        {
+            var succeeded = gameSession.TryPerformParentingAction(selectedRelationshipId, action, out var summary);
+            eventCategory.text = succeeded ? "PARENTING MOMENT" : "PARENTING ACTION UNAVAILABLE";
+            eventTitle.text = ToDisplayName(action.ToString());
+            eventBody.text = "Parenting choices affect child wellbeing, learning, independence, and your relationship over time.";
+            resultText.text = summary;
+            resultEffects.text = string.Empty;
+            resultEffects.AddToClassList("hidden");
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
+            RefreshSocial();
+            ShowRelationshipDetail(selectedRelationshipId);
+        }
+
+        private void AddFamilyPlanningAction(
+            StimRelationshipState relationship,
+            StimFamilyPlanningAction action,
+            string label)
+        {
+            var family = gameSession.ActiveSave.state.family;
+            var agreed = family.planningPreference == "open" && family.partnerConsent &&
+                         family.planningPartnerId == relationship.relationshipId;
+            var pending = !string.IsNullOrEmpty(family.pendingPath);
+            var used = gameSession.ActiveSave.state.statuses.Exists(
+                status => status.statusId == "family_planning_used");
+            var enabled = !used && (action == StimFamilyPlanningAction.Discuss ||
+                                    action == StimFamilyPlanningAction.OptOut || agreed && !pending);
+            if (action == StimFamilyPlanningAction.PursueAdoption)
+                enabled &= gameSession.ActiveSave.state.finances.cashMinorUnits >= 50000;
+            var button = new Button
+            {
+                name = $"family-action-{action.ToString().ToLowerInvariant()}",
+                text = label + (pending ? $"\nPending {ToDisplayName(family.pendingPath)} · {family.monthsUntilResolution} months" : string.Empty)
+            };
+            button.AddToClassList("st-relationship-action");
+            button.SetEnabled(enabled);
+            var capturedAction = action;
+            button.clicked += () => PerformFamilyPlanning(capturedAction);
+            relationshipActions.Add(button);
+        }
+
+        private void PerformFamilyPlanning(StimFamilyPlanningAction action)
+        {
+            var succeeded = gameSession.TryChooseFamilyPlanning(selectedRelationshipId, action, out var summary);
+            eventCategory.text = succeeded ? "FAMILY DECISION" : "FAMILY PATH UNAVAILABLE";
+            eventTitle.text = ToDisplayName(action.ToString());
+            eventBody.text = "Family planning requires an eligible adult partnership and mutual agreement. Choosing not now remains available.";
+            resultText.text = summary;
+            resultEffects.text = string.Empty;
+            resultEffects.AddToClassList("hidden");
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
+            RefreshSocial();
+            ShowRelationshipDetail(selectedRelationshipId);
         }
 
         private void PerformRelationshipInteraction(StimRelationshipInteractionType interactionType)

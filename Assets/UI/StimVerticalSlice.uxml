@@ -201,6 +201,8 @@
                     <ui:Label text="SOCIAL" class="st-section-kicker" />
                     <ui:Label text="Your people" class="st-social-title" />
                     <ui:Label text="Relationships grow through the time and choices you share." class="st-social-subtitle" />
+                    <ui:Button name="discover-compatible-person" text="DISCOVER SOMEONE COMPATIBLE" class="st-social-discover" />
+                    <ui:Label name="relationship-discovery-feedback" text="" class="st-manual-work-feedback" />
                     <ui:VisualElement name="relationship-list" class="st-relationship-list" />
                 </ui:VisualElement>
 

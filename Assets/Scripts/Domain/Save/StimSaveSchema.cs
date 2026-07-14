@@ -61,6 +61,7 @@ namespace StimTycoon.Saves
         public StimCareerState career = new StimCareerState();
         public StimEducationState education = new StimEducationState();
         public StimHouseholdState household = new StimHouseholdState();
+        public StimFamilyState family = new StimFamilyState();
         public StimHomeState home = new StimHomeState();
         public List<StimSkillState> skills = new List<StimSkillState>();
         public List<StimRelationshipState> relationships = new List<StimRelationshipState>();
@@ -191,6 +192,33 @@ namespace StimTycoon.Saves
     }
 
     [Serializable]
+    public class StimFamilyState
+    {
+        public string planningPreference = "undiscussed";
+        public string planningPartnerId;
+        public bool partnerConsent;
+        public string pendingPath;
+        public int monthsUntilResolution;
+        public List<StimChildState> children = new List<StimChildState>();
+    }
+
+    [Serializable]
+    public class StimChildState
+    {
+        public string childId;
+        public string displayName;
+        public string path;
+        public string parentRelationshipId;
+        public int joinedAtParentAge;
+        public int birthMonth;
+        public int age;
+        public int wellbeing = 60;
+        public int learning;
+        public int independence;
+        public string custodyStatus = "household";
+    }
+
+    [Serializable]
     public class StimHomeState
     {
         public string homeId = "starter_home";
@@ -233,11 +261,18 @@ namespace StimTycoon.Saves
     public class StimRelationshipState
     {
         public string relationshipId;
+        public string identityId;
         public string displayName;
+        public string pronouns;
+        public string genderIdentity;
+        public string orientation;
         public string relationshipType;
+        public string relationshipStage;
         public string origin;
+        public string introductionContext;
         public int introducedAtAge;
         public int monthsSinceInteraction;
+        public int warmth = 50;
         public bool isGeneticParent;
         public int geneticHealth;
         public int geneticLooks;
@@ -249,6 +284,19 @@ namespace StimTycoon.Saves
         public long npcDebtMinorUnits;
         public bool financesMerged;
         public int value = 50;
+        public List<StimRelationshipHistoryState> relationshipHistory = new List<StimRelationshipHistoryState>();
+    }
+
+    [Serializable]
+    public class StimRelationshipHistoryState
+    {
+        public string historyId;
+        public string type;
+        public string summary;
+        public int age;
+        public int monthOfYear;
+        public int revision;
+        public string timestampUtc;
     }
 
     [Serializable]
@@ -431,6 +479,7 @@ namespace StimTycoon.Saves
             ValidateMoneyTransactions(result, save.state.moneyTransactions);
             ValidateCareerState(result, save.state.career);
             ValidateHouseholdState(result, save.state.household);
+            ValidateFamilyState(result, save.state.family);
             ValidateHomeState(result, save.state.home);
             ValidateSkills(result, save.state.skills);
             ValidateRelationships(result, save.state.relationships);
@@ -636,6 +685,44 @@ namespace StimTycoon.Saves
             ValidateStatRange(result, household.cohesion, "state.household.cohesion");
         }
 
+        private static void ValidateFamilyState(StimSaveValidationResult result, StimFamilyState family)
+        {
+            if (family == null)
+            {
+                result.isValid = false;
+                result.errors.Add("state.family is null");
+                return;
+            }
+            if (family.monthsUntilResolution < 0 || family.monthsUntilResolution > 12 ||
+                (string.IsNullOrEmpty(family.pendingPath) != (family.monthsUntilResolution == 0)))
+            {
+                result.isValid = false;
+                result.errors.Add("state.family pending path and resolution timing are inconsistent");
+            }
+            if (family.children == null || family.children.Count > 12)
+            {
+                result.isValid = false;
+                result.errors.Add("state.family.children must contain at most 12 records");
+                return;
+            }
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            for (var index = 0; index < family.children.Count; index++)
+            {
+                var child = family.children[index];
+                if (child == null || string.IsNullOrWhiteSpace(child.childId) || !ids.Add(child.childId) ||
+                    string.IsNullOrWhiteSpace(child.displayName) ||
+                    (child.path != "pregnancy" && child.path != "adoption") ||
+                    string.IsNullOrWhiteSpace(child.parentRelationshipId) || child.joinedAtParentAge < 18 ||
+                    child.birthMonth < 1 || child.birthMonth > 12 || child.age < 0 ||
+                    child.wellbeing < 0 || child.wellbeing > 100 || child.learning < 0 || child.learning > 100 ||
+                    child.independence < 0 || child.independence > 100 || string.IsNullOrWhiteSpace(child.custodyStatus))
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.family.children[{index}] is invalid");
+                }
+            }
+        }
+
         private static void ValidateHomeState(StimSaveValidationResult result, StimHomeState home)
         {
             if (home == null)
@@ -775,12 +862,39 @@ namespace StimTycoon.Saves
                 relationship => relationship?.relationshipId,
                 relationship => relationship == null ||
                                 relationship.value >= 0 && relationship.value <= 100 &&
+                                relationship.warmth >= 0 && relationship.warmth <= 100 &&
                                 relationship.monthsSinceInteraction >= 0 &&
                                 relationship.npcSmarts >= 0 && relationship.npcSmarts <= 100 &&
                                 relationship.npcCareerLevel >= 0 && relationship.npcCareerLevel <= 5 &&
                                 relationship.npcAnnualIncomeMinorUnits >= 0 &&
                                 relationship.npcCashMinorUnits >= 0 && relationship.npcDebtMinorUnits >= 0,
                 "value/NPC fields must be within range and monthsSinceInteraction cannot be negative");
+            if (relationships == null) return;
+            for (var relationshipIndex = 0; relationshipIndex < relationships.Count; relationshipIndex++)
+            {
+                var relationship = relationships[relationshipIndex];
+                if (relationship == null) continue;
+                if (relationship.relationshipHistory == null || relationship.relationshipHistory.Count > 50)
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.relationships[{relationshipIndex}].relationshipHistory must contain at most 50 entries");
+                    continue;
+                }
+                var historyIds = new HashSet<string>(StringComparer.Ordinal);
+                for (var historyIndex = 0; historyIndex < relationship.relationshipHistory.Count; historyIndex++)
+                {
+                    var entry = relationship.relationshipHistory[historyIndex];
+                    if (entry == null || string.IsNullOrWhiteSpace(entry.historyId) ||
+                        !historyIds.Add(entry.historyId) || string.IsNullOrWhiteSpace(entry.type) ||
+                        string.IsNullOrWhiteSpace(entry.summary) || entry.age < 0 ||
+                        entry.monthOfYear < 1 || entry.monthOfYear > 12 || entry.revision < 1 ||
+                        !TryParseUtcTimestamp(entry.timestampUtc, out _))
+                    {
+                        result.isValid = false;
+                        result.errors.Add($"state.relationships[{relationshipIndex}].relationshipHistory[{historyIndex}] is invalid");
+                    }
+                }
+            }
         }
 
         private static void ValidateStatuses(StimSaveValidationResult result, List<StimStatusState> statuses)

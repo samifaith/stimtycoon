@@ -187,6 +187,54 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void PartnerDetail_ShowsConsentGatedFamilyPlanningActions()
+        {
+            var partner = session.ActiveSave.state.relationships[0];
+            partner.relationshipType = "partner";
+            partner.relationshipStage = "partnered";
+            partner.value = 80;
+            partner.warmth = 70;
+            Invoke("RefreshSocial");
+            Invoke("ShowRelationshipDetail", partner.relationshipId);
+
+            Assert.That(root.Q<Button>("family-action-discuss"), Is.Not.Null);
+            Assert.IsTrue(root.Q<Button>("family-action-discuss").enabledSelf);
+            Assert.IsFalse(root.Q<Button>("family-action-tryforchild").enabledSelf);
+            Assert.IsFalse(root.Q<Button>("family-action-pursueadoption").enabledSelf);
+            Assert.IsTrue(root.Q<Button>("family-action-optout").enabledSelf);
+
+            Invoke("PerformFamilyPlanning", StimFamilyPlanningAction.Discuss);
+            Assert.IsTrue(session.ActiveSave.state.family.partnerConsent);
+            Assert.That(root.Q<Label>("result-text").text, Does.Contain("Both partners agreed"));
+        }
+
+        [Test]
+        public void ChildDetail_ShowsParentingActionsAndRefreshesDevelopment()
+        {
+            session.ActiveSave.state.family.children.Add(new StimChildState
+            {
+                childId = "child_ui", displayName = "Ari", path = "adoption",
+                parentRelationshipId = "parent_1", joinedAtParentAge = 18,
+                birthMonth = 1, age = 8, wellbeing = 60, custodyStatus = "household"
+            });
+            session.ActiveSave.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "child_ui", displayName = "Ari", relationshipType = "child",
+                relationshipStage = "dependent_child", value = 70, warmth = 70
+            });
+            Invoke("RefreshSocial");
+            Invoke("ShowRelationshipDetail", "child_ui");
+
+            Assert.That(root.Q<Button>("parenting-action-qualitytime"), Is.Not.Null);
+            Assert.That(root.Q<Button>("parenting-action-supportneeds").text, Does.Contain("$25"));
+            Invoke("PerformParentingAction", StimParentingAction.Teach);
+
+            Assert.That(session.ActiveSave.state.family.children[0].learning, Is.EqualTo(7));
+            Assert.That(root.Q<Label>("result-text").text, Does.Contain("Learning improved"));
+            Assert.IsFalse(root.Q<Button>("parenting-action-qualitytime").enabledSelf);
+        }
+
+        [Test]
         public void EducationCard_ShowsLevelsLocksAndTransactionalProgress()
         {
             session.ActiveSave.state.character.age = 10;
@@ -421,6 +469,23 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void SocialDiscovery_CreatesPersonAndOpensPersistentDetail()
+        {
+            Invoke("RefreshSocial");
+            Assert.IsTrue(root.Q<Button>("discover-compatible-person").enabledSelf);
+
+            Invoke("DiscoverCompatiblePerson");
+
+            Assert.That(session.ActiveSave.state.relationships, Has.Count.EqualTo(3));
+            var discovered = session.ActiveSave.state.relationships[^1];
+            Assert.That(discovered.origin, Is.EqualTo("compatible_discovery"));
+            Assert.That(root.Q<Label>("relationship-name").text, Is.EqualTo(discovered.displayName));
+            Assert.That(root.Q<Label>("relationship-strength").text, Does.Contain("Warmth 50"));
+            Assert.That(root.Q<Label>("relationship-genetics").text, Does.Contain("Met through"));
+            Assert.IsFalse(root.Q<Button>("discover-compatible-person").enabledSelf);
+        }
+
+        [Test]
         public void MoneyDestination_ManualTapPaysCurrentJobsHourlyRate()
         {
             session.ActiveSave.state.career = new StimCareerState
@@ -527,6 +592,8 @@ namespace StimTycoon.Tests.Domain.UI
                 { "lifeScroll", "life-scroll" }, { "socialView", "social-view" },
                 { "timeDock", "time-dock" }, { "navLife", "nav-life" }, { "navSocial", "nav-social" },
                 { "relationshipListView", "relationship-list-view" }, { "relationshipList", "relationship-list" },
+                { "discoverCompatiblePerson", "discover-compatible-person" },
+                { "relationshipDiscoveryFeedback", "relationship-discovery-feedback" },
                 { "relationshipDetailView", "relationship-detail-view" },
                 { "relationshipBack", "relationship-back" }, { "relationshipAvatar", "relationship-avatar" },
                 { "relationshipName", "relationship-name" }, { "relationshipType", "relationship-type" },

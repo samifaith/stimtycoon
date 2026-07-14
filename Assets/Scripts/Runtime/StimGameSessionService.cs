@@ -36,9 +36,29 @@ namespace StimTycoon.Runtime
         Argue,
         Compete,
         Reconcile,
+        DeepenFriendship,
         AskOnDate,
+        DateNight,
         Commit,
-        BreakUp
+        BreakUp,
+        Separate,
+        Recover
+    }
+
+    public enum StimFamilyPlanningAction
+    {
+        Discuss,
+        TryForChild,
+        PursueAdoption,
+        OptOut
+    }
+
+    public enum StimParentingAction
+    {
+        QualityTime,
+        SupportNeeds,
+        Teach,
+        SetBoundaries
     }
 
     public enum StimPaymentMethod
@@ -400,7 +420,8 @@ namespace StimTycoon.Runtime
                 candidateSave.state.finances.spouseAnnualIncomeMinorUnits, paidMonth);
             var paycheck = playerPaycheck + spousePaycheck;
             var taxes = CalculateTaxWithholding(paycheck, candidateSave.state.finances.taxRateBasisPoints);
-            var baseExpenses = candidateSave.state.finances.monthlyLivingExpensesMinorUnits;
+            var childExpenses = (candidateSave.state.family?.children?.FindAll(child => child.age < 18).Count ?? 0) * 25000L;
+            var baseExpenses = candidateSave.state.finances.monthlyLivingExpensesMinorUnits + childExpenses;
             var homeConditionExpense = CalculateHomeConditionExpense(baseExpenses, candidateSave.state.home?.condition ?? 100);
             var expenses = baseExpenses + homeConditionExpense;
             var netCashFlow = paycheck - taxes - expenses;
@@ -432,6 +453,7 @@ namespace StimTycoon.Runtime
             {
                 candidateSave.state.calendar.monthOfYear = 1;
                 candidateSave.state.character.age++;
+                AdvanceChildAges(candidateSave);
                 UpdateLifeAndEducationStage(candidateSave.state);
                 var healthDecline = GetAnnualHealthDecline(candidateSave.state.character.age);
                 candidateSave.state.character.health = ClampStat(
@@ -447,6 +469,7 @@ namespace StimTycoon.Runtime
             {
                 candidateSave.state.annualReview.monthsAccumulated++;
             }
+            AdvancePendingFamilyPath(candidateSave);
             if (!completedYear) candidateSave.state.calendar.monthOfYear++;
             var lifeEnded = IsLifeEnded(candidateSave.state.character);
             nextEvent = lifeEnded ? null : SelectEligibleEvent(candidateSave, paidMonth, completedYear);
@@ -1522,6 +1545,252 @@ namespace StimTycoon.Runtime
             state.home.condition = ClampStat(state.home.condition - 1);
         }
 
+        public bool TryDiscoverCompatiblePerson(out string relationshipId, out string summary)
+        {
+            relationshipId = string.Empty;
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+            if (IsLifeEnded(ActiveSave.state.character))
+            {
+                summary = "This life has ended. Start a new life to continue playing.";
+                return false;
+            }
+            if (ActiveSave.state.character.age < 18)
+            {
+                summary = "Compatible-person discovery is available to adults age 18 and older.";
+                return false;
+            }
+            if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
+            {
+                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before meeting someone new.";
+                return false;
+            }
+            NormalizeProgressCollections(ActiveSave.state);
+            const string cooldownId = "relationship_discovery_used";
+            if (ActiveSave.state.statuses.Exists(status => status.statusId == cooldownId))
+            {
+                summary = "You already met someone new this month. Advance the month to discover again.";
+                return false;
+            }
+            if (ActiveSave.state.relationships.FindAll(relationship =>
+                    relationship != null && relationship.origin == "compatible_discovery").Count >= 20)
+            {
+                summary = "Your discovery list is full. Develop the relationships already in your life.";
+                return false;
+            }
+
+            var candidateSave = CloneSave(ActiveSave);
+            NormalizeProgressCollections(candidateSave.state);
+            candidateSave.revision++;
+            candidateSave.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
+            var step = candidateSave.rng.step++;
+            var names = new[] { "Alex Morgan", "Casey Rivera", "Jordan Lee", "Morgan Patel", "Riley Bennett", "Taylor Okafor" };
+            var contexts = new[] { "community event", "mutual friends", "local class", "volunteer project", "neighborhood gathering" };
+            var name = names[StableIndex(candidateSave.rng.seed, step + 101, names.Length)];
+            var context = contexts[StableIndex(candidateSave.rng.seed, step + 211, contexts.Length)];
+            relationshipId = $"compatible_{candidateSave.rng.seed}_{step}_{candidateSave.state.relationships.Count}";
+            var person = new StimRelationshipState
+            {
+                relationshipId = relationshipId,
+                identityId = $"identity_{candidateSave.rng.seed}_{step}",
+                displayName = name,
+                pronouns = step % 3 == 0 ? "she/her" : step % 3 == 1 ? "he/him" : "they/them",
+                genderIdentity = step % 3 == 0 ? "woman" : step % 3 == 1 ? "man" : "nonbinary",
+                orientation = "compatible_with_player",
+                relationshipType = "friend",
+                relationshipStage = "introduced",
+                origin = "compatible_discovery",
+                introductionContext = context,
+                introducedAtAge = candidateSave.state.character.age,
+                warmth = 50,
+                value = 45
+            };
+            AppendRelationshipHistory(candidateSave, person, "introduced", $"Met through {context}.");
+            candidateSave.state.relationships.Add(person);
+            AddOrRefreshStatus(candidateSave.state.statuses, cooldownId, 1);
+            summary = $"Met {name} through {context} · Friendship 45 · Warmth 50";
+            AddLifeFeedEntry(candidateSave, "relationship", summary);
+            if (!saveRepository.TryCommitAutosave(JsonUtility.ToJson(candidateSave), out var commitSummary))
+            {
+                relationshipId = string.Empty;
+                summary = commitSummary;
+                return false;
+            }
+            ActiveSave = candidateSave;
+            return true;
+        }
+
+        public bool TryChooseFamilyPlanning(
+            string partnerRelationshipId,
+            StimFamilyPlanningAction action,
+            out string summary)
+        {
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+            if (ActiveSave.state.character.age < 18)
+            {
+                summary = "Family planning is available only to adults.";
+                return false;
+            }
+            if (IsLifeEnded(ActiveSave.state.character) || !string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
+            {
+                summary = "Resolve the current life state before making a family-planning decision.";
+                return false;
+            }
+            var partner = ActiveSave.state.relationships.Find(relationship =>
+                relationship != null && relationship.relationshipId == partnerRelationshipId);
+            if (partner == null ||
+                partner.relationshipType != "partner" && partner.relationshipType != "engaged" &&
+                partner.relationshipType != "married")
+            {
+                summary = "Family planning requires an active adult partner, engagement, or marriage.";
+                return false;
+            }
+            if (action != StimFamilyPlanningAction.OptOut && partner.value < 70)
+            {
+                summary = "Discuss family planning after the relationship reaches 70 strength.";
+                return false;
+            }
+            var family = ActiveSave.state.family;
+            if (action != StimFamilyPlanningAction.Discuss && action != StimFamilyPlanningAction.OptOut &&
+                (family.planningPreference != "open" || !family.partnerConsent ||
+                 family.planningPartnerId != partnerRelationshipId))
+            {
+                summary = "Both partners must discuss and agree before beginning this family path.";
+                return false;
+            }
+            if ((action == StimFamilyPlanningAction.TryForChild || action == StimFamilyPlanningAction.PursueAdoption) &&
+                (!string.IsNullOrEmpty(family.pendingPath) || family.children.Count >= 12))
+            {
+                summary = !string.IsNullOrEmpty(family.pendingPath)
+                    ? "A pregnancy or adoption path is already pending."
+                    : "This household has reached the supported child-record capacity.";
+                return false;
+            }
+            const string cooldownId = "family_planning_used";
+            if (ActiveSave.state.statuses.Exists(status => status.statusId == cooldownId))
+            {
+                summary = "You already made a family-planning decision this month.";
+                return false;
+            }
+            var adoptionCost = action == StimFamilyPlanningAction.PursueAdoption ? 50000L : 0L;
+            if (ActiveSave.state.finances.cashMinorUnits < adoptionCost)
+            {
+                summary = $"Beginning adoption costs {FormatMoney(adoptionCost)} in fees and preparation.";
+                return false;
+            }
+
+            var candidateSave = CloneSave(ActiveSave);
+            NormalizeProgressCollections(candidateSave.state);
+            candidateSave.revision++;
+            candidateSave.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
+            var candidateFamily = candidateSave.state.family;
+            var candidatePartner = candidateSave.state.relationships.Find(relationship =>
+                relationship.relationshipId == partnerRelationshipId);
+            switch (action)
+            {
+                case StimFamilyPlanningAction.Discuss:
+                    candidateFamily.planningPreference = "open";
+                    candidateFamily.planningPartnerId = partnerRelationshipId;
+                    candidateFamily.partnerConsent = candidatePartner.value >= 70 && candidatePartner.warmth >= 60;
+                    summary = candidateFamily.partnerConsent
+                        ? $"Discussed family planning with {candidatePartner.displayName} · Both partners agreed to keep the path open"
+                        : $"Discussed family planning with {candidatePartner.displayName} · No mutual agreement was reached";
+                    break;
+                case StimFamilyPlanningAction.TryForChild:
+                    candidateFamily.pendingPath = "pregnancy";
+                    candidateFamily.monthsUntilResolution = 9;
+                    summary = "Both partners agreed to try for a child · Pregnancy path pending for 9 months";
+                    break;
+                case StimFamilyPlanningAction.PursueAdoption:
+                    candidateSave.state.finances.cashMinorUnits -= adoptionCost;
+                    candidateFamily.pendingPath = "adoption";
+                    candidateFamily.monthsUntilResolution = 6;
+                    summary = $"Both partners began the adoption process · Cost {FormatMoney(adoptionCost)} · Review pending for 6 months";
+                    break;
+                case StimFamilyPlanningAction.OptOut:
+                    candidateFamily.planningPreference = "not_now";
+                    if (string.IsNullOrEmpty(candidateFamily.pendingPath))
+                        candidateFamily.planningPartnerId = partnerRelationshipId;
+                    candidateFamily.partnerConsent = false;
+                    summary = "Chose not to pursue a new family path right now · Existing pending paths are unchanged";
+                    break;
+                default:
+                    summary = "Unsupported family-planning action.";
+                    return false;
+            }
+            AddOrRefreshStatus(candidateSave.state.statuses, cooldownId, 1);
+            candidatePartner.warmth = ClampStat(candidatePartner.warmth +
+                (action == StimFamilyPlanningAction.OptOut ? 0 : 1));
+            AppendRelationshipHistory(candidateSave, candidatePartner,
+                $"family_{action.ToString().ToLowerInvariant()}", summary);
+            AddLifeFeedEntry(candidateSave, "family", summary);
+            if (!saveRepository.TryCommitAutosave(JsonUtility.ToJson(candidateSave), out var commitSummary))
+            {
+                summary = commitSummary;
+                return false;
+            }
+            ActiveSave = candidateSave;
+            return true;
+        }
+
+        private static void AdvancePendingFamilyPath(StimSaveEnvelope save)
+        {
+            var family = save.state.family;
+            if (family == null || string.IsNullOrEmpty(family.pendingPath) || family.monthsUntilResolution <= 0) return;
+            family.monthsUntilResolution--;
+            if (family.monthsUntilResolution > 0) return;
+            var path = family.pendingPath;
+            var childNumber = family.children.Count + 1;
+            var childId = $"child_{save.lifeId}_{childNumber}";
+            var childName = new[] { "Ari", "Kai", "Maya", "Noah", "Zoe", "Eli" }[
+                StableIndex(save.rng.seed, save.rng.step + childNumber * 17, 6)];
+            var planningPartner = save.state.relationships.Find(relationship =>
+                relationship != null && relationship.relationshipId == family.planningPartnerId);
+            var custodyStatus = planningPartner != null && planningPartner.relationshipType == "ex_partner"
+                ? "shared"
+                : "household";
+            family.children.Add(new StimChildState
+            {
+                childId = childId,
+                displayName = childName,
+                path = path,
+                parentRelationshipId = family.planningPartnerId,
+                joinedAtParentAge = save.state.character.age,
+                birthMonth = save.state.calendar.monthOfYear,
+                age = 0,
+                custodyStatus = custodyStatus
+            });
+            var childRelationship = new StimRelationshipState
+            {
+                relationshipId = childId,
+                identityId = $"identity_{childId}",
+                displayName = childName,
+                relationshipType = "child",
+                relationshipStage = "dependent_child",
+                origin = path,
+                introductionContext = path == "adoption" ? "joined through adoption" : "born into the household",
+                introducedAtAge = save.state.character.age,
+                warmth = 70,
+                value = 70
+            };
+            AppendRelationshipHistory(save, childRelationship, path == "adoption" ? "adopted" : "born",
+                path == "adoption" ? "Joined the household through adoption." : "Was born into the household.");
+            save.state.relationships.Add(childRelationship);
+            family.pendingPath = string.Empty;
+            family.monthsUntilResolution = 0;
+            save.state.household.happiness = ClampStat(save.state.household.happiness + 5);
+            save.state.household.cohesion = ClampStat(save.state.household.cohesion + 4);
+            AddLifeFeedEntry(save, "family",
+                path == "adoption" ? $"Welcomed {childName} through adoption." : $"Welcomed {childName} after childbirth.");
+        }
+
         public bool TryPerformRelationshipInteraction(
             string relationshipId,
             StimRelationshipInteractionType interactionType,
@@ -1564,6 +1833,13 @@ namespace StimTycoon.Runtime
                 summary = "Reconciliation is available after this relationship becomes a rivalry.";
                 return false;
             }
+            if (interactionType == StimRelationshipInteractionType.DeepenFriendship &&
+                ((relationship.relationshipType != "friend" && relationship.relationshipType != "best_friend") ||
+                 relationship.value < 65))
+            {
+                summary = "Deepening friendship requires a friendship with at least 65 strength.";
+                return false;
+            }
             if (interactionType == StimRelationshipInteractionType.Compete && relationship.relationshipType == "parent")
             {
                 summary = "Competition is available with peers and rivals.";
@@ -1582,10 +1858,29 @@ namespace StimTycoon.Runtime
                 summary = "Commitment requires a dating relationship with at least 75 strength.";
                 return false;
             }
+            if (interactionType == StimRelationshipInteractionType.DateNight &&
+                relationship.relationshipType != "dating" && relationship.relationshipType != "partner" &&
+                relationship.relationshipType != "engaged" && relationship.relationshipType != "married")
+            {
+                summary = "A date night requires an active adult romantic relationship.";
+                return false;
+            }
             if (interactionType == StimRelationshipInteractionType.BreakUp &&
                 relationship.relationshipType != "dating" && relationship.relationshipType != "partner")
             {
                 summary = "There is no active romantic relationship to end.";
+                return false;
+            }
+            if (interactionType == StimRelationshipInteractionType.Separate &&
+                relationship.relationshipType != "partner" && relationship.relationshipType != "engaged")
+            {
+                summary = "Separation is available to partners and engaged couples; marriage uses the authored crossroads process.";
+                return false;
+            }
+            if (interactionType == StimRelationshipInteractionType.Recover &&
+                relationship.relationshipType != "ex_partner" && relationship.relationshipType != "estranged")
+            {
+                summary = "Recovery is available after a separation or estrangement.";
                 return false;
             }
 
@@ -1643,8 +1938,18 @@ namespace StimTycoon.Runtime
                     happinessDelta = 1;
                     smartsDelta = 0;
                     break;
+                case StimRelationshipInteractionType.DeepenFriendship:
+                    relationshipDelta = 6;
+                    happinessDelta = 2;
+                    smartsDelta = 0;
+                    break;
                 case StimRelationshipInteractionType.AskOnDate:
                     relationshipDelta = 5;
+                    happinessDelta = 3;
+                    smartsDelta = 0;
+                    break;
+                case StimRelationshipInteractionType.DateNight:
+                    relationshipDelta = 4;
                     happinessDelta = 3;
                     smartsDelta = 0;
                     break;
@@ -1658,6 +1963,16 @@ namespace StimTycoon.Runtime
                     happinessDelta = -5;
                     smartsDelta = 0;
                     break;
+                case StimRelationshipInteractionType.Separate:
+                    relationshipDelta = -15;
+                    happinessDelta = -4;
+                    smartsDelta = 0;
+                    break;
+                case StimRelationshipInteractionType.Recover:
+                    relationshipDelta = 5;
+                    happinessDelta = 1;
+                    smartsDelta = 0;
+                    break;
                 default:
                     summary = $"Relationship interaction {interactionType} is not supported.";
                     return false;
@@ -1667,11 +1982,38 @@ namespace StimTycoon.Runtime
             candidateRelationship.monthsSinceInteraction = 0;
             UpdateRelationshipStage(candidateRelationship, interactionType == StimRelationshipInteractionType.Reconcile);
             if (interactionType == StimRelationshipInteractionType.AskOnDate)
+            {
                 candidateRelationship.relationshipType = "dating";
+                candidateRelationship.relationshipStage = "dating";
+            }
             else if (interactionType == StimRelationshipInteractionType.Commit)
+            {
                 candidateRelationship.relationshipType = "partner";
+                candidateRelationship.relationshipStage = "partnered";
+            }
             else if (interactionType == StimRelationshipInteractionType.BreakUp)
+            {
                 candidateRelationship.relationshipType = "ex_partner";
+                candidateRelationship.relationshipStage = "separated";
+            }
+            else if (interactionType == StimRelationshipInteractionType.DeepenFriendship)
+            {
+                candidateRelationship.relationshipType = "best_friend";
+                candidateRelationship.relationshipStage = "close_friendship";
+            }
+            else if (interactionType == StimRelationshipInteractionType.DateNight)
+                candidateRelationship.relationshipStage = "romantic_growth";
+            else if (interactionType == StimRelationshipInteractionType.Separate)
+            {
+                candidateRelationship.relationshipType = "ex_partner";
+                candidateRelationship.relationshipStage = "separated";
+                ApplyChildCustodyAfterSeparation(candidateSave.state, candidateRelationship.relationshipId);
+            }
+            else if (interactionType == StimRelationshipInteractionType.Recover)
+            {
+                candidateRelationship.relationshipType = "friend";
+                candidateRelationship.relationshipStage = "recovered_friendship";
+            }
             candidateSave.state.character.happiness = ClampStat(
                 candidateSave.state.character.happiness + happinessDelta);
             candidateSave.state.character.smarts = ClampStat(
@@ -1685,6 +2027,9 @@ namespace StimTycoon.Runtime
                       $" · Relationship {FormatSignedValue(relationshipDelta)}" +
                       (happinessDelta == 0 ? string.Empty : $" · Happiness {FormatSignedValue(happinessDelta)}") +
                       (smartsDelta == 0 ? string.Empty : $" · Smarts {FormatSignedValue(smartsDelta)}");
+            candidateRelationship.warmth = ClampStat(candidateRelationship.warmth + relationshipDelta);
+            AppendRelationshipHistory(candidateSave, candidateRelationship,
+                interactionType.ToString().ToLowerInvariant(), summary);
             AddLifeFeedEntry(candidateSave, "relationship", summary);
 
             EvaluateAchievements(candidateSave);
@@ -1699,6 +2044,150 @@ namespace StimTycoon.Runtime
             return true;
         }
 
+        public bool TryPerformParentingAction(
+            string childId,
+            StimParentingAction action,
+            out string summary)
+        {
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+            var child = ActiveSave.state.family?.children?.Find(record => record.childId == childId);
+            var relationship = ActiveSave.state.relationships.Find(candidate =>
+                candidate != null && candidate.relationshipId == childId && candidate.relationshipType == "child");
+            if (child == null || relationship == null)
+            {
+                summary = "This child record is not available for parenting.";
+                return false;
+            }
+            if (child.age >= 18)
+            {
+                summary = "This child is now an adult; use normal relationship actions to stay connected.";
+                return false;
+            }
+            if (IsLifeEnded(ActiveSave.state.character) || !string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
+            {
+                summary = "Resolve the current life state before choosing a parenting action.";
+                return false;
+            }
+            var cooldownId = $"parenting_used_{childId}";
+            if (ActiveSave.state.statuses.Exists(status => status.statusId == cooldownId))
+            {
+                summary = $"You already chose focused parenting time with {child.displayName} this month.";
+                return false;
+            }
+            var cost = action == StimParentingAction.SupportNeeds ? 2500L : 0L;
+            if (ActiveSave.state.finances.cashMinorUnits < cost)
+            {
+                summary = $"Supporting these needs costs {FormatMoney(cost)}.";
+                return false;
+            }
+
+            var candidateSave = CloneSave(ActiveSave);
+            NormalizeProgressCollections(candidateSave.state);
+            candidateSave.revision++;
+            candidateSave.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
+            var candidateChild = candidateSave.state.family.children.Find(record => record.childId == childId);
+            var candidateRelationship = candidateSave.state.relationships.Find(candidate => candidate.relationshipId == childId);
+            candidateSave.state.finances.cashMinorUnits -= cost;
+            int relationshipDelta;
+            switch (action)
+            {
+                case StimParentingAction.QualityTime:
+                    candidateChild.wellbeing = ClampStat(candidateChild.wellbeing + 5);
+                    relationshipDelta = 5;
+                    summary = $"Spent quality time with {candidateChild.displayName} · Wellbeing +5 · Relationship +5";
+                    break;
+                case StimParentingAction.SupportNeeds:
+                    candidateChild.wellbeing = ClampStat(candidateChild.wellbeing + 7);
+                    relationshipDelta = 3;
+                    summary = $"Supported {candidateChild.displayName}'s needs · Cost {FormatMoney(cost)} · Wellbeing +7 · Relationship +3";
+                    break;
+                case StimParentingAction.Teach:
+                    candidateChild.learning = ClampStat(candidateChild.learning + (candidateChild.age < 6 ? 4 : 7));
+                    candidateChild.independence = ClampStat(candidateChild.independence + (candidateChild.age >= 12 ? 3 : 1));
+                    relationshipDelta = 2;
+                    summary = $"Taught {candidateChild.displayName} · Learning improved · Independence improved · Relationship +2";
+                    break;
+                case StimParentingAction.SetBoundaries:
+                    candidateChild.independence = ClampStat(candidateChild.independence + 5);
+                    candidateChild.wellbeing = ClampStat(candidateChild.wellbeing + (candidateChild.age >= 6 ? 1 : -1));
+                    relationshipDelta = candidateChild.age >= 6 ? 1 : -1;
+                    summary = $"Set age-appropriate boundaries with {candidateChild.displayName} · Independence +5 · Relationship {FormatSignedValue(relationshipDelta)}";
+                    break;
+                default:
+                    summary = "Unsupported parenting action.";
+                    return false;
+            }
+            candidateRelationship.value = ClampStat(candidateRelationship.value + relationshipDelta);
+            candidateRelationship.warmth = ClampStat(candidateRelationship.warmth + relationshipDelta);
+            candidateRelationship.monthsSinceInteraction = 0;
+            AddOrRefreshStatus(candidateSave.state.statuses, cooldownId, 1);
+            AppendRelationshipHistory(candidateSave, candidateRelationship,
+                $"parenting_{action.ToString().ToLowerInvariant()}", summary);
+            AddLifeFeedEntry(candidateSave, "family", summary);
+            if (!saveRepository.TryCommitAutosave(JsonUtility.ToJson(candidateSave), out var commitSummary))
+            {
+                summary = commitSummary;
+                return false;
+            }
+            ActiveSave = candidateSave;
+            return true;
+        }
+
+        private static void AdvanceChildAges(StimSaveEnvelope save)
+        {
+            if (save.state.family?.children == null) return;
+            foreach (var child in save.state.family.children)
+            {
+                child.age++;
+                if (child.age != 18) continue;
+                child.custodyStatus = "independent";
+                child.independence = Math.Max(child.independence, 60);
+                var relationship = save.state.relationships.Find(candidate =>
+                    candidate != null && candidate.relationshipId == child.childId);
+                if (relationship == null) continue;
+                relationship.relationshipType = "adult_child";
+                relationship.relationshipStage = "adult_child";
+                AppendRelationshipHistory(save, relationship, "reached_adulthood",
+                    $"{child.displayName} reached adulthood.");
+                AddLifeFeedEntry(save, "family", $"{child.displayName} reached adulthood and became independent.");
+            }
+        }
+
+        private static void ApplyChildCustodyAfterSeparation(StimGameState state, string partnerRelationshipId)
+        {
+            if (state.family?.children == null) return;
+            foreach (var child in state.family.children)
+            {
+                if (child.age < 18 && child.parentRelationshipId == partnerRelationshipId)
+                    child.custodyStatus = "shared";
+            }
+        }
+
+        private static void AppendRelationshipHistory(
+            StimSaveEnvelope save,
+            StimRelationshipState relationship,
+            string type,
+            string summary)
+        {
+            relationship.relationshipHistory ??= new List<StimRelationshipHistoryState>();
+            relationship.relationshipHistory.Add(new StimRelationshipHistoryState
+            {
+                historyId = $"{relationship.relationshipId}_{save.revision}_{relationship.relationshipHistory.Count}",
+                type = type,
+                summary = summary,
+                age = save.state.character.age,
+                monthOfYear = save.state.calendar.monthOfYear,
+                revision = save.revision,
+                timestampUtc = save.updatedAtUtc
+            });
+            while (relationship.relationshipHistory.Count > 50)
+                relationship.relationshipHistory.RemoveAt(0);
+        }
+
         public static bool IsRelationshipInteractionAgeAppropriate(
             StimRelationshipInteractionType interactionType,
             int age)
@@ -1710,8 +2199,12 @@ namespace StimTycoon.Runtime
                 case StimRelationshipInteractionType.Argue: return age >= 8;
                 case StimRelationshipInteractionType.Compete: return age >= 8;
                 case StimRelationshipInteractionType.Reconcile: return age >= 10;
+                case StimRelationshipInteractionType.DeepenFriendship: return age >= 10;
                 case StimRelationshipInteractionType.AskOnDate:
-                case StimRelationshipInteractionType.BreakUp: return age >= 18;
+                case StimRelationshipInteractionType.DateNight:
+                case StimRelationshipInteractionType.BreakUp:
+                case StimRelationshipInteractionType.Separate:
+                case StimRelationshipInteractionType.Recover: return age >= 18;
                 case StimRelationshipInteractionType.Commit: return age >= 21;
                 case StimRelationshipInteractionType.Talk:
                 case StimRelationshipInteractionType.SpendTime:
@@ -2400,7 +2893,7 @@ namespace StimTycoon.Runtime
             var spouseIncomeBefore = save.state.finances.spouseAnnualIncomeMinorUnits;
             var cashBeforeRelationshipTransition = save.state.finances.cashMinorUnits;
             var debtBeforeRelationshipTransition = save.state.finances.debtMinorUnits;
-            ApplyRomanceChoice(save.state, resolution.eventId, resolution.choiceId);
+            ApplyRomanceChoice(save, resolution.eventId, resolution.choiceId);
             if (save.state.finances.spouseAnnualIncomeMinorUnits > spouseIncomeBefore)
             {
                 AddLifeFeedEntry(save, "money",
@@ -2606,33 +3099,60 @@ namespace StimTycoon.Runtime
             }
         }
 
-        private static void ApplyRomanceChoice(StimGameState state, string eventId, string choiceId)
+        private static void ApplyRomanceChoice(StimSaveEnvelope save, string eventId, string choiceId)
         {
+            var state = save?.state;
             if (state?.relationships == null) return;
             var relationship = state.relationships.Find(candidate =>
                 candidate != null && candidate.relationshipId == "school_peer_primary");
             if (relationship == null) return;
+            var previousType = relationship.relationshipType;
             if (eventId == RepresentativeStimEvents.PromInvitationId)
+            {
                 relationship.relationshipType = choiceId == "attend_prom_together" ? "dating" : "friend";
+                relationship.relationshipStage = choiceId == "attend_prom_together" ? "dating" : "friendship";
+            }
             else if (eventId == RepresentativeStimEvents.ProposalId)
             {
-                if (choiceId == "propose_marriage") relationship.relationshipType = "engaged";
-                else if (choiceId == "end_partnership") relationship.relationshipType = "ex_partner";
+                if (choiceId == "propose_marriage")
+                {
+                    relationship.relationshipType = "engaged";
+                    relationship.relationshipStage = "engaged";
+                }
+                else if (choiceId == "end_partnership")
+                {
+                    relationship.relationshipType = "ex_partner";
+                    relationship.relationshipStage = "separated";
+                }
             }
             else if (eventId == RepresentativeStimEvents.WeddingId)
             {
                 if (choiceId == "get_married")
                 {
                     relationship.relationshipType = "married";
+                    relationship.relationshipStage = "married";
                     MergeSpouseFinances(state, relationship);
                 }
-                else if (choiceId == "call_off_wedding") relationship.relationshipType = "ex_partner";
+                else if (choiceId == "call_off_wedding")
+                {
+                    relationship.relationshipType = "ex_partner";
+                    relationship.relationshipStage = "separated";
+                }
             }
             else if (eventId == RepresentativeStimEvents.MarriageCrossroadsId &&
                      (choiceId == "separate" || choiceId == "divorce"))
             {
                 relationship.relationshipType = "ex_partner";
+                relationship.relationshipStage = choiceId == "divorce" ? "divorced" : "separated";
                 state.finances.spouseAnnualIncomeMinorUnits = 0;
+                ApplyChildCustodyAfterSeparation(state, relationship.relationshipId);
+            }
+            if (!string.Equals(previousType, relationship.relationshipType, StringComparison.Ordinal))
+            {
+                relationship.warmth = ClampStat(relationship.warmth +
+                    (relationship.relationshipType == "ex_partner" ? -10 : 5));
+                AppendRelationshipHistory(save, relationship, choiceId,
+                    $"Relationship changed from {ToDisplayName(previousType)} to {ToDisplayName(relationship.relationshipType)}.");
             }
         }
 

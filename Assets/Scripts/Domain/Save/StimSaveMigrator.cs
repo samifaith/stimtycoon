@@ -188,6 +188,22 @@ namespace StimTycoon.Saves
                 save.state.household = new StimHouseholdState();
                 Record(report, "state.household created");
             }
+            if (save.state.family == null || !serializedSave.Contains("\"family\""))
+            {
+                save.state.family = new StimFamilyState();
+                Record(report, "state.family created");
+            }
+            else if (save.state.family.children != null && save.state.family.children.Count > 0 &&
+                     !serializedSave.Contains("\"custodyStatus\""))
+            {
+                foreach (var child in save.state.family.children)
+                {
+                    if (child == null) continue;
+                    child.wellbeing = 60;
+                    child.custodyStatus = child.age >= 18 ? "independent" : "household";
+                }
+                Record(report, "state.family child development and custody created");
+            }
             if (save.state.home == null || !serializedSave.Contains("\"home\""))
             {
                 save.state.home = new StimHomeState();
@@ -209,6 +225,13 @@ namespace StimTycoon.Saves
             {
                 save.state.relationships = new List<StimRelationshipState>();
                 Record(report, "state.relationships created");
+            }
+            if (save.state.relationships != null && save.state.relationships.Count > 0 &&
+                !serializedSave.Contains("\"relationshipHistory\""))
+            {
+                foreach (var relationship in save.state.relationships)
+                    if (relationship != null) relationship.relationshipHistory = new List<StimRelationshipHistoryState>();
+                Record(report, "state.relationships relationship history created");
             }
             if (save.state.statuses == null)
             {

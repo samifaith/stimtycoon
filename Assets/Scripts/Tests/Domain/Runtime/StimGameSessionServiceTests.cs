@@ -831,6 +831,66 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void CompatibleDiscovery_PersistsIdentityContextWarmthStageAndBoundedHistory()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), repository,
+                utcNow: () => DateTimeOffset.Parse("2026-07-14T12:00:00Z"));
+            service.Start(CreateValidSave());
+
+            Assert.IsTrue(service.TryDiscoverCompatiblePerson(out var relationshipId, out var summary), summary);
+            var person = service.ActiveSave.state.relationships.Find(
+                relationship => relationship.relationshipId == relationshipId);
+            Assert.That(person, Is.Not.Null);
+            Assert.That(person.identityId, Is.Not.Empty);
+            Assert.That(person.displayName, Is.Not.Empty);
+            Assert.That(person.pronouns, Is.Not.Empty);
+            Assert.That(person.orientation, Is.EqualTo("compatible_with_player"));
+            Assert.That(person.relationshipStage, Is.EqualTo("introduced"));
+            Assert.That(person.introductionContext, Is.Not.Empty);
+            Assert.That(person.warmth, Is.EqualTo(50));
+            Assert.That(person.relationshipHistory, Has.Count.EqualTo(1));
+            Assert.That(person.relationshipHistory[0].type, Is.EqualTo("introduced"));
+            Assert.IsFalse(service.TryDiscoverCompatiblePerson(out _, out var cooldown));
+            Assert.That(cooldown, Does.Contain("already met someone"));
+
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                relationshipId, StimRelationshipInteractionType.Talk, out var talk), talk);
+            person = service.ActiveSave.state.relationships.Find(
+                relationship => relationship.relationshipId == relationshipId);
+            Assert.That(person.warmth, Is.EqualTo(52));
+            Assert.That(person.relationshipHistory, Has.Count.EqualTo(2));
+
+            var reloaded = JsonUtility.FromJson<StimSaveEnvelope>(repository.LastCommittedSave);
+            Assert.IsTrue(StimSaveValidator.ValidateSave(reloaded).isValid);
+            Assert.That(reloaded.state.relationships.Find(
+                relationship => relationship.relationshipId == relationshipId).relationshipHistory,
+                Has.Count.EqualTo(2));
+        }
+
+        [Test]
+        public void CompatibleDiscovery_EnforcesAdultGateAndRollsBackFailedCommit()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 17;
+            service.Start(save);
+
+            Assert.IsFalse(service.TryDiscoverCompatiblePerson(out _, out var ageSummary));
+            Assert.That(ageSummary, Does.Contain("18 and older"));
+            service.ActiveSave.state.character.age = 18;
+            repository.ShouldCommit = false;
+
+            Assert.IsFalse(service.TryDiscoverCompatiblePerson(out var relationshipId, out var failedSummary));
+            Assert.That(relationshipId, Is.Empty);
+            Assert.That(failedSummary, Is.EqualTo("failed"));
+            Assert.That(service.ActiveSave.state.relationships, Is.Empty);
+            Assert.That(service.ActiveSave.state.statuses, Is.Empty);
+        }
+
+        [Test]
         public void PerformRelationshipInteraction_LimitsEachRelationshipOncePerMonth()
         {
             var service = new StimGameSessionService(new InMemoryStimEventCatalog(), new RecordingSaveRepository());
@@ -860,6 +920,10 @@ namespace StimTycoon.Tests.Domain.Runtime
         [TestCase(18, StimRelationshipInteractionType.AskOnDate, true)]
         [TestCase(20, StimRelationshipInteractionType.Commit, false)]
         [TestCase(21, StimRelationshipInteractionType.Commit, true)]
+        [TestCase(17, StimRelationshipInteractionType.DateNight, false)]
+        [TestCase(18, StimRelationshipInteractionType.DateNight, true)]
+        [TestCase(17, StimRelationshipInteractionType.Separate, false)]
+        [TestCase(18, StimRelationshipInteractionType.Separate, true)]
         [TestCase(17, StimRelationshipInteractionType.BreakUp, false)]
         [TestCase(18, StimRelationshipInteractionType.BreakUp, true)]
         [TestCase(70, StimRelationshipInteractionType.Talk, true)]
@@ -911,6 +975,198 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(service.ActiveSave.state.lifeFeed.FindAll(
                 entry => entry != null && entry.category == "relationship"), Has.Count.EqualTo(3));
             Assert.That(repository.CommitCount, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void RelationshipLifecycle_RequiresAndPersistsFriendshipRomanceSeparationAndRecoveryStages()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 24;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "compatible_1",
+                identityId = "identity_1",
+                displayName = "Alex Morgan",
+                relationshipType = "friend",
+                relationshipStage = "friendship",
+                value = 65,
+                warmth = 60
+            });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "compatible_1", StimRelationshipInteractionType.DeepenFriendship, out var deepen), deepen);
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("best_friend"));
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipStage, Is.EqualTo("close_friendship"));
+
+            AdvanceAndAssert(service);
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "compatible_1", StimRelationshipInteractionType.AskOnDate, out var date), date);
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipStage, Is.EqualTo("dating"));
+
+            AdvanceAndAssert(service);
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "compatible_1", StimRelationshipInteractionType.DateNight, out var dateNight), dateNight);
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipStage, Is.EqualTo("romantic_growth"));
+
+            AdvanceAndAssert(service);
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "compatible_1", StimRelationshipInteractionType.Commit, out var commit), commit);
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("partner"));
+
+            AdvanceAndAssert(service);
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "compatible_1", StimRelationshipInteractionType.Separate, out var separate), separate);
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipStage, Is.EqualTo("separated"));
+
+            AdvanceAndAssert(service);
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "compatible_1", StimRelationshipInteractionType.Recover, out var recover), recover);
+            var relationship = service.ActiveSave.state.relationships[0];
+            Assert.That(relationship.relationshipType, Is.EqualTo("friend"));
+            Assert.That(relationship.relationshipStage, Is.EqualTo("recovered_friendship"));
+            Assert.That(relationship.relationshipHistory, Has.Count.EqualTo(6));
+            Assert.That(relationship.relationshipHistory.ConvertAll(entry => entry.type),
+                Is.EqualTo(new[] { "deepenfriendship", "askondate", "datenight", "commit", "separate", "recover" }));
+            Assert.That(JsonUtility.FromJson<StimSaveEnvelope>(repository.LastCommittedSave)
+                .state.relationships[0].relationshipStage, Is.EqualTo("recovered_friendship"));
+        }
+
+        [Test]
+        public void FamilyPlanning_RequiresMutualDiscussionAndPregnancyCreatesDurableChild()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "partner_1", displayName = "Alex", relationshipType = "partner",
+                relationshipStage = "partnered", value = 80, warmth = 70
+            });
+            service.Start(save);
+
+            Assert.IsFalse(service.TryChooseFamilyPlanning(
+                "partner_1", StimFamilyPlanningAction.TryForChild, out var consentRequired));
+            Assert.That(consentRequired, Does.Contain("Both partners"));
+            Assert.IsTrue(service.TryChooseFamilyPlanning(
+                "partner_1", StimFamilyPlanningAction.Discuss, out var discussed), discussed);
+            Assert.IsTrue(service.ActiveSave.state.family.partnerConsent);
+
+            AdvanceAndAssert(service);
+            Assert.IsTrue(service.TryChooseFamilyPlanning(
+                "partner_1", StimFamilyPlanningAction.TryForChild, out var started), started);
+            Assert.That(service.ActiveSave.state.family.monthsUntilResolution, Is.EqualTo(9));
+            for (var month = 0; month < 9; month++) AdvanceAndAssert(service);
+
+            Assert.That(service.ActiveSave.state.family.pendingPath, Is.Empty);
+            Assert.That(service.ActiveSave.state.family.children, Has.Count.EqualTo(1));
+            var child = service.ActiveSave.state.family.children[0];
+            Assert.That(child.path, Is.EqualTo("pregnancy"));
+            Assert.That(child.age, Is.Zero);
+            Assert.That(service.ActiveSave.state.relationships.Exists(relationship =>
+                relationship.relationshipId == child.childId && relationship.relationshipType == "child"), Is.True);
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "family" && entry.text.Contains("childbirth")), Is.True);
+            Assert.IsTrue(StimSaveValidator.ValidateSave(
+                JsonUtility.FromJson<StimSaveEnvelope>(repository.LastCommittedSave)).isValid);
+        }
+
+        [Test]
+        public void Adoption_IsAtomicTimedAndAddsOngoingChildExpenses()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.finances.cashMinorUnits = 100000;
+            save.state.finances.monthlyLivingExpensesMinorUnits = 100000;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "spouse_1", displayName = "Morgan", relationshipType = "married",
+                relationshipStage = "married", value = 85, warmth = 75
+            });
+            save.state.family.planningPreference = "open";
+            save.state.family.planningPartnerId = "spouse_1";
+            save.state.family.partnerConsent = true;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryChooseFamilyPlanning(
+                "spouse_1", StimFamilyPlanningAction.PursueAdoption, out var adoption), adoption);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(50000));
+            for (var month = 0; month < 6; month++) AdvanceAndAssert(service);
+            Assert.That(service.ActiveSave.state.family.children[0].path, Is.EqualTo("adoption"));
+
+            AdvanceAndAssert(service);
+            Assert.That(service.ActiveSave.state.finances.lastExpensesMinorUnits, Is.EqualTo(125000));
+        }
+
+        [Test]
+        public void ParentingActions_UpdateChildDevelopmentHistoryAndMonthlyCooldown()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            AddTestChild(save, "child_1", 8, "partner_1");
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformParentingAction(
+                "child_1", StimParentingAction.Teach, out var teach), teach);
+            var child = service.ActiveSave.state.family.children[0];
+            var relationship = service.ActiveSave.state.relationships.Find(item => item.relationshipId == "child_1");
+            Assert.That(child.learning, Is.EqualTo(7));
+            Assert.That(child.independence, Is.EqualTo(1));
+            Assert.That(relationship.value, Is.EqualTo(72));
+            Assert.That(relationship.relationshipHistory[^1].type, Is.EqualTo("parenting_teach"));
+            Assert.IsFalse(service.TryPerformParentingAction(
+                "child_1", StimParentingAction.QualityTime, out var cooldown));
+            Assert.That(cooldown, Does.Contain("already chose focused parenting"));
+
+            AdvanceAndAssert(service);
+            Assert.IsTrue(service.TryPerformParentingAction(
+                "child_1", StimParentingAction.SupportNeeds, out var support), support);
+            Assert.That(service.ActiveSave.state.family.children[0].wellbeing, Is.EqualTo(67));
+        }
+
+        [Test]
+        public void Child_TransitionsToIndependentAdultAndStopsAddingChildExpenses()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.calendar.monthOfYear = 12;
+            save.state.finances.monthlyLivingExpensesMinorUnits = 100000;
+            AddTestChild(save, "child_1", 17, "partner_1");
+            service.Start(save);
+
+            AdvanceAndAssert(service);
+            Assert.That(service.ActiveSave.state.family.children[0].age, Is.EqualTo(18));
+            Assert.That(service.ActiveSave.state.family.children[0].custodyStatus, Is.EqualTo("independent"));
+            Assert.That(service.ActiveSave.state.relationships.Find(item => item.relationshipId == "child_1")
+                .relationshipType, Is.EqualTo("adult_child"));
+
+            AdvanceAndAssert(service);
+            Assert.That(service.ActiveSave.state.finances.lastExpensesMinorUnits, Is.EqualTo(100000));
+        }
+
+        [Test]
+        public void PartnerSeparation_AssignsSharedCustodyWithoutDeletingChildHistory()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "partner_1", displayName = "Alex", relationshipType = "partner",
+                relationshipStage = "partnered", value = 80, warmth = 70
+            });
+            AddTestChild(save, "child_1", 5, "partner_1");
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "partner_1", StimRelationshipInteractionType.Separate, out var summary), summary);
+            Assert.That(service.ActiveSave.state.family.children[0].custodyStatus, Is.EqualTo("shared"));
+            Assert.That(service.ActiveSave.state.relationships.Exists(item => item.relationshipId == "child_1"), Is.True);
         }
 
         [Test]
@@ -2864,6 +3120,44 @@ namespace StimTycoon.Tests.Domain.Runtime
                     scheduledEvents = new List<StimScheduledEventRecord>()
                 }
             };
+        }
+
+        private static void AdvanceAndAssert(StimGameSessionService service)
+        {
+            Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
+            Assert.That(nextEvent, Is.Null);
+        }
+
+        private static void AddTestChild(
+            StimSaveEnvelope save,
+            string childId,
+            int age,
+            string partnerRelationshipId)
+        {
+            save.state.family.children.Add(new StimChildState
+            {
+                childId = childId,
+                displayName = "Ari",
+                path = "adoption",
+                parentRelationshipId = partnerRelationshipId,
+                joinedAtParentAge = 24,
+                birthMonth = 1,
+                age = age,
+                wellbeing = 60,
+                custodyStatus = age >= 18 ? "independent" : "household"
+            });
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = childId,
+                identityId = $"identity_{childId}",
+                displayName = "Ari",
+                relationshipType = age >= 18 ? "adult_child" : "child",
+                relationshipStage = age >= 18 ? "adult_child" : "dependent_child",
+                origin = "adoption",
+                introducedAtAge = 24,
+                value = 70,
+                warmth = 70
+            });
         }
 
         private static InMemoryStimEventCatalog CreateRepresentativeCatalog()

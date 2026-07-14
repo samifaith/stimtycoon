@@ -36,9 +36,11 @@ This is the active queue after the user-verified 242-test EditMode baseline on J
 
 ### M10 — Relationships, dating, and family expansion
 
-- [ ] Add compatible-person discovery with persistent identity, history, warmth, stage, and introduction context.
-- [ ] Expand friendship, rivalry, dating, partnership, marriage, separation, and recovery into multi-step consequence chains.
-- [ ] Add consent-aware family planning, pregnancy/adoption, childbirth, child records, parenting choices, and household consequences.
+- [x] Add adult-only compatible-person discovery with deterministic persistent identity, bounded history, warmth, stage, introduction context, monthly cooldown, capacity cap, Life Feed output, reload coverage, and rollback-safe autosave.
+- [x] Expand friendship, rivalry, dating, partnership, engagement, marriage, separation/divorce, and recovery into gated multi-step chains with warmth, stage, bounded history, cooldowns, authored transitions, and persisted consequences.
+- [x] Add consent-aware family planning, pregnancy/adoption, childbirth, child records, parenting choices, and household consequences.
+  - [x] Add mutual discussion/opt-out state, consent-gated pregnancy and adoption paths, persisted resolution timers, atomic adoption fees, duplicate-pending protection, child records/relationships, arrival consequences, and ongoing child expenses.
+  - [x] Add age-appropriate parenting choices, shared-custody state after separation, annual child aging, independent adult-child transitions, bounded development, and dependent-expense retirement at age 18.
 - [ ] Preserve friendship thresholds, adult-only romantic rules, opt-outs, and authored exceptions.
 - [ ] Add editorial and automated safety checks for age, consent, family roles, identity, relationship eligibility, and sensitive-event exclusions.
 - [ ] Test household/child relationship history across reload, aging, separation, custody, death, and new-life boundaries.

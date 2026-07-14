@@ -28,7 +28,7 @@ namespace StimTycoon.Tests.Domain.UI
                 "context-activities",
                 "open-new-life", "new-life-setup", "cancel-new-life", "continue-current-life",
                 "create-new-life", "new-life-error", "social-view", "time-dock",
-                "relationship-list-view", "relationship-list",
+                "relationship-list-view", "relationship-list", "discover-compatible-person", "relationship-discovery-feedback",
                 "relationship-detail-view", "relationship-back", "relationship-avatar", "relationship-name",
                 "relationship-type", "relationship-strength", "relationship-fill", "relationship-genetics",
                 "relationship-actions", "education-card", "education-stage", "learning-level", "learning-fill",
