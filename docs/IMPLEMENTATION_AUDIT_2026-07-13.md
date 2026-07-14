@@ -15,7 +15,7 @@ The repository has a reliable Phase 0 foundation and a user-verified Phase 1 off
 | Persistent effects | Implemented | Six player stats, household happiness/cohesion, skill XP, life decisions, relationships, statuses, career progress, cash, debt, salary, spouse income, and revolving credit |
 | Relationships | Implemented foundation | School peers, friendship stages, neglect, drama follow-ups, identity, dating, prom, first kiss, partnership, engagement, marriage, counseling, separation, and divorce |
 | Household economy | Implemented foundation | One-time spouse asset/debt merge, combined monthly income, fixed activity prices, cash-or-credit choices, risk-based APR, and monthly interest |
-| Automated baseline | Verified after this audit | 196 EditMode tests passed in the user-verified July 14, 2026 Run All, including the expanded focused coverage |
+| Automated baseline | Verified after this audit | 200 EditMode tests passed in the user-verified July 14, 2026 Run All, including expanded Phase 2 and transaction-boundary coverage |
 | Playable presentation | In progress | Portrait Life dashboard, fixed navigation, event overlay, hidden visual scrollbar |
 | New-life generation | Implemented | One-button generation creates identity, location, background, parents/genetics, inherited stats, finances, and birth state |
 | Focus activities | Implemented | Play/Rest, Study/Play, and Study/Workout rotate by age; actions transact through the session service, autosave, enforce a monthly cooldown, and show signed feedback |
@@ -40,6 +40,7 @@ The repository has a reliable Phase 0 foundation and a user-verified Phase 1 off
 
 - Continue using `UIDocument`; do not introduce `PanelRenderer`.
 - Keep simulation mutations inside `StimGameSessionService` or dedicated application services.
+- Route newly extracted action paths through `StimSaveTransactionRunner`; Education is the first migrated compatibility slice.
 - Keep event risk labels hidden during normal play.
 - Every visible action must produce explicit signed feedback such as `Smarts +2` or `Health −1`.
 - The free Sinanata design-system package is not retained because all published tags use an API signature that fails with the pinned Unity editor. Stim-owned `ds-` structural classes remain replaceable.

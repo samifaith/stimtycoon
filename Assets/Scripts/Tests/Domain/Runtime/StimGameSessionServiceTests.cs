@@ -1093,6 +1093,30 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void PerformEducationAction_WhenAutosaveFails_RollsBackCandidate()
+        {
+            var repository = new RecordingSaveRepository { ShouldCommit = false };
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 10;
+            save.state.education.stage = "primary_school";
+            service.Start(save);
+
+            var originalRevision = service.ActiveSave.revision;
+            var originalSmarts = service.ActiveSave.state.character.smarts;
+
+            Assert.IsFalse(service.TryPerformEducationAction(
+                StimEducationActionType.Read, out var summary));
+            Assert.That(summary, Is.EqualTo("failed"));
+            Assert.That(service.ActiveSave, Is.SameAs(save));
+            Assert.That(service.ActiveSave.revision, Is.EqualTo(originalRevision));
+            Assert.That(service.ActiveSave.state.character.smarts, Is.EqualTo(originalSmarts));
+            Assert.That(service.ActiveSave.state.statuses.Exists(
+                status => status.statusId == StimEducationActionService.MonthlyCooldownStatusId), Is.False);
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+        }
+
+        [Test]
         public void CareerApplication_UnlocksNextMonthInterviewAndEntryRole()
         {
             var repository = new RecordingSaveRepository();

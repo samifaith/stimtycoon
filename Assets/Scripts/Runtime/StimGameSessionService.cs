@@ -83,6 +83,8 @@ namespace StimTycoon.Runtime
         private readonly IStimSaveRepository saveRepository;
         private readonly StimOutcomeResolver outcomeResolver;
         private readonly Func<DateTimeOffset> utcNow;
+        private readonly StimSaveTransactionRunner transactionRunner;
+        private readonly StimEducationActionService educationActionService;
 
         public StimSaveEnvelope ActiveSave { get; private set; }
         public StimChoiceResolution LastResolution { get; private set; }
@@ -98,6 +100,8 @@ namespace StimTycoon.Runtime
             this.saveRepository = saveRepository ?? throw new ArgumentNullException(nameof(saveRepository));
             this.outcomeResolver = outcomeResolver ?? new StimOutcomeResolver();
             this.utcNow = utcNow ?? (() => DateTimeOffset.UtcNow);
+            transactionRunner = new StimSaveTransactionRunner(this.saveRepository, this.utcNow);
+            educationActionService = new StimEducationActionService();
         }
 
         public void Start(StimSaveEnvelope save)
@@ -1067,83 +1071,24 @@ namespace StimTycoon.Runtime
 
         public bool TryPerformEducationAction(StimEducationActionType actionType, out string summary)
         {
-            if (ActiveSave == null)
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidateSave =>
+                {
+                    var result = educationActionService.Apply(candidateSave, actionType);
+                    if (result.Succeeded)
+                    {
+                        EvaluateAchievements(candidateSave);
+                    }
+                    return result;
+                },
+                out var committedSave,
+                out summary);
+            if (succeeded)
             {
-                summary = "No active save is loaded.";
-                return false;
+                ActiveSave = committedSave;
             }
-            if (IsLifeEnded(ActiveSave.state.character))
-            {
-                summary = "This life has ended. Start a new life to continue playing.";
-                return false;
-            }
-            if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
-            {
-                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before studying.";
-                return false;
-            }
-
-            NormalizeProgressCollections(ActiveSave.state);
-            if (!TryGetEducationActionRequirement(ActiveSave.state, actionType, out var requirement))
-            {
-                summary = requirement;
-                return false;
-            }
-            const string cooldownStatusId = "monthly_education_action_used";
-            if (ActiveSave.state.statuses.Exists(status => status.statusId == cooldownStatusId))
-            {
-                summary = "You already completed a school action this month. Advance the month to study again.";
-                return false;
-            }
-
-            var candidateSave = CloneSave(ActiveSave);
-            NormalizeProgressCollections(candidateSave.state);
-            candidateSave.revision++;
-            candidateSave.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
-            int xpDelta;
-            int smartsDelta;
-            int happinessDelta;
-            switch (actionType)
-            {
-                case StimEducationActionType.Read:
-                    xpDelta = 12; smartsDelta = 1; happinessDelta = 0;
-                    break;
-                case StimEducationActionType.Homework:
-                    xpDelta = 18; smartsDelta = 1; happinessDelta = -1;
-                    break;
-                case StimEducationActionType.StudyGroup:
-                    xpDelta = 25; smartsDelta = 1; happinessDelta = 1;
-                    break;
-                case StimEducationActionType.AdvancedProject:
-                    xpDelta = 35; smartsDelta = 2; happinessDelta = -1;
-                    break;
-                default:
-                    summary = $"Education action {actionType} is not supported.";
-                    return false;
-            }
-
-            var previousLevel = GetSkillLevel(GetSkillExperience(candidateSave.state.skills, "learning"));
-            ApplySkillXp(candidateSave.state.skills, "learning", xpDelta);
-            var experience = GetSkillExperience(candidateSave.state.skills, "learning");
-            var newLevel = GetSkillLevel(experience);
-            candidateSave.state.character.smarts = ClampStat(candidateSave.state.character.smarts + smartsDelta);
-            candidateSave.state.character.happiness = ClampStat(candidateSave.state.character.happiness + happinessDelta);
-            AddOrRefreshStatus(candidateSave.state.statuses, cooldownStatusId, 1);
-            summary = $"{ToDisplayName(actionType.ToString())} complete · Learning XP +{xpDelta}" +
-                      $" · Smarts {FormatSignedValue(smartsDelta)}" +
-                      (happinessDelta == 0 ? string.Empty : $" · Happiness {FormatSignedValue(happinessDelta)}") +
-                      (newLevel > previousLevel ? $" · Learning Level +{newLevel - previousLevel}" : string.Empty);
-            AddLifeFeedEntry(candidateSave, "education", summary);
-
-            EvaluateAchievements(candidateSave);
-            var serializedSave = JsonUtility.ToJson(candidateSave);
-            if (!saveRepository.TryCommitAutosave(serializedSave, out var commitSummary))
-            {
-                summary = commitSummary;
-                return false;
-            }
-            ActiveSave = candidateSave;
-            return true;
+            return succeeded;
         }
 
         public static bool TryGetEducationActionRequirement(
@@ -1151,53 +1096,22 @@ namespace StimTycoon.Runtime
             StimEducationActionType actionType,
             out string requirement)
         {
-            if (state?.character == null || state.character.age < 6 || state.character.age >= 18)
-            {
-                requirement = "Available while enrolled in primary or secondary school.";
-                return false;
-            }
-            var level = GetSkillLevel(GetSkillExperience(state.skills, "learning"));
-            switch (actionType)
-            {
-                case StimEducationActionType.Read:
-                case StimEducationActionType.Homework:
-                    requirement = string.Empty;
-                    return true;
-                case StimEducationActionType.StudyGroup:
-                    requirement = level >= 2 ? string.Empty : "Unlocks at Learning Level 2.";
-                    return level >= 2;
-                case StimEducationActionType.AdvancedProject:
-                    if (state.character.age < 14)
-                    {
-                        requirement = "Unlocks at age 14.";
-                        return false;
-                    }
-                    requirement = level >= 3 ? string.Empty : "Unlocks at Learning Level 3.";
-                    return level >= 3;
-                default:
-                    requirement = "Unsupported school action.";
-                    return false;
-            }
+            return StimEducationActionService.TryGetRequirement(state, actionType, out requirement);
         }
 
         public static int GetSkillExperience(List<StimSkillState> skills, string skillId)
         {
-            var skill = skills?.Find(candidate => candidate != null && candidate.skillId == skillId);
-            return Math.Max(0, skill?.experience ?? 0);
+            return StimEducationActionService.GetSkillExperience(skills, skillId);
         }
 
         public static int GetSkillLevel(int experience)
         {
-            experience = Math.Max(0, experience);
-            var level = 1;
-            while (25L * level * (level + 1) <= experience) level++;
-            return level;
+            return StimEducationActionService.GetSkillLevel(experience);
         }
 
         public static int GetExperienceForSkillLevel(int level)
         {
-            if (level <= 1) return 0;
-            return (int)Math.Min(int.MaxValue, 25L * (level - 1) * level);
+            return StimEducationActionService.GetExperienceForSkillLevel(level);
         }
 
         public bool TryPerformCareerAction(StimCareerActionType actionType, out string summary)
