@@ -663,7 +663,7 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(engaged.relationshipType, Is.EqualTo("engaged"));
             Assert.That(engaged.value, Is.EqualTo(90));
             Assert.That(service.LastFinancialImpactMinorUnits, Is.EqualTo(-50000));
-            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(950000));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(50000));
             Assert.That(service.ActiveSave.state.scheduledEvents.Exists(
                 record => record.eventId == RepresentativeStimEvents.WeddingId), Is.True);
 
@@ -674,8 +674,8 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(married.relationshipType, Is.EqualTo("married"));
             Assert.That(married.value, Is.EqualTo(95));
             Assert.That(service.ActiveSave.state.finances.spouseAnnualIncomeMinorUnits, Is.EqualTo(6000000));
-            Assert.That(service.LastFinancialImpactMinorUnits, Is.EqualTo(39334));
-            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(989334));
+            Assert.That(service.LastFinancialImpactMinorUnits, Is.EqualTo(57334));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(107334));
             Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
                 entry.category == "event" && entry.text.Contains("Got married")), Is.True);
             Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
@@ -707,14 +707,14 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.IsTrue(service.TryResolveChoice(
                 RepresentativeStimEvents.WeddingId, "get_married", out var weddingSummary), weddingSummary);
             Assert.That(service.ActiveSave.state.finances.spouseAnnualIncomeMinorUnits, Is.EqualTo(12000000));
-            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(1553334));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(671334));
             Assert.That(service.ActiveSave.state.finances.debtMinorUnits, Is.EqualTo(100000));
             Assert.That(service.ActiveSave.state.relationships[0].financesMerged, Is.True);
             Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
                 entry.category == "money" && entry.text.Contains("Combined household finances")), Is.True);
 
             Assert.IsTrue(service.TryAdvanceMonth(out _, out var monthSummary), monthSummary);
-            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(2970001));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(2088001));
         }
 
         [Test]
@@ -899,8 +899,8 @@ namespace StimTycoon.Tests.Domain.Runtime
                 RepresentativeStimEvents.MarriageCrossroadsId, "divorce", out var divorceSummary), divorceSummary);
             Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("ex_partner"));
             Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(35));
-            Assert.That(service.LastFinancialImpactMinorUnits, Is.EqualTo(-300000));
-            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(700000));
+            Assert.That(service.LastFinancialImpactMinorUnits, Is.EqualTo(-75000));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(25000));
             Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
                 entry.category == "money" && entry.text.Contains("Financial impact")), Is.True);
         }
@@ -976,7 +976,7 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(service.ActiveSave.state.household.cohesion, Is.EqualTo(53));
             Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(73));
             Assert.That(service.ActiveSave.state.relationships[1].value, Is.EqualTo(63));
-            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(995500));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(95500));
             Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
                 entry.category == "activity" && entry.text.Contains("Family movie night")), Is.True);
         }
@@ -1336,9 +1336,36 @@ namespace StimTycoon.Tests.Domain.Runtime
                 months++;
                 if (nextEvent == null) continue;
                 Assert.That(nextEvent.choices, Is.Not.Empty, $"Event {nextEvent.id} has no playable choice.");
+                var selectedChoice = nextEvent.choices.Find(choice =>
+                    StimGameSessionService.CalculateChoicePotentialCost(
+                        nextEvent, choice, service.ActiveSave.state) == 0);
+                if (selectedChoice == null)
+                {
+                    selectedChoice = nextEvent.choices.Find(choice =>
+                        StimGameSessionService.CalculateChoicePotentialCost(
+                            nextEvent, choice, service.ActiveSave.state) <=
+                        service.ActiveSave.state.finances.cashMinorUnits);
+                }
+                if (selectedChoice == null)
+                {
+                    var availableCredit = Math.Max(0,
+                        StimGameSessionService.CalculateHouseholdCreditLimit(service.ActiveSave.state) -
+                        service.ActiveSave.state.finances.debtMinorUnits);
+                    selectedChoice = nextEvent.choices.Find(choice =>
+                        StimGameSessionService.CalculateChoicePotentialCost(
+                            nextEvent, choice, service.ActiveSave.state) <= availableCredit);
+                }
+                Assert.That(selectedChoice, Is.Not.Null,
+                    $"Event {nextEvent.id} has no choice payable with current cash or available credit.");
+                var potentialCost = StimGameSessionService.CalculateChoicePotentialCost(
+                    nextEvent, selectedChoice, service.ActiveSave.state);
+                var paymentMethod = potentialCost <= service.ActiveSave.state.finances.cashMinorUnits
+                    ? StimPaymentMethod.Cash
+                    : StimPaymentMethod.Credit;
                 Assert.IsTrue(service.TryResolveChoice(
                     nextEvent.id,
-                    nextEvent.choices[0].id,
+                    selectedChoice.id,
+                    paymentMethod,
                     out var resolutionSummary), resolutionSummary);
             }
 

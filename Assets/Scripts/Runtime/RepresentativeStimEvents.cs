@@ -739,7 +739,10 @@ namespace StimTycoon.Runtime
                         "The cost still stings, but support keeps it manageable.", "Asked for help with an unexpected expense.", "random_loss_help",
                         new Effect { type = EffectType.CashDelta, targetId = "cash", value = -2000 },
                         new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 1 },
-                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -1 })
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -1 }),
+                    CreateCertainChoice("accept_the_setback", "Accept the setback",
+                        "You cannot cover the expense and live with the consequences for now.", "Could not afford an unexpected expense.", "random_loss_unaffordable",
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -4 })
                 }
             };
         }
@@ -803,7 +806,10 @@ namespace StimTycoon.Runtime
                         "You keep going without spending as much, but the inconvenience follows you.", "Worked around a broken item.", "random_repair_delayed",
                         new Effect { type = EffectType.CashDelta, targetId = "cash", value = -1500 },
                         new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 1 },
-                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -2 })
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -2 }),
+                    CreateCertainChoice("go_without_it", "Go without it",
+                        "You cannot afford a repair, so you make do without the item for now.", "Went without something that broke.", "random_repair_unaffordable",
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -4 })
                 }
             };
         }

@@ -103,6 +103,34 @@ Attempt action
 → Face harder opportunities and risks
 ```
 
+### Interactive destination standard
+
+The reference screens establish the desired **interaction density and choice structure**, not a visual, economic, or content template to copy. Stim Tycoon must keep its original identity, life-feed-centered narrative, grounded economy, inclusive relationship rules, and consequence-driven simulation.
+
+Every major destination should be a playable workspace rather than a passive summary. Its actions should use a shared interaction contract containing:
+
+- a stable action ID and destination;
+- age, life-stage, stat, skill, relationship, career, ownership, and prior-choice requirements;
+- a clear locked reason when requirements are not met;
+- an up-front preview of cash cost, available cash or credit payment methods, resource/stat changes, progress gained, duration or cooldown, and meaningful risk;
+- `Ready`, `In Progress`, `Complete`, `Claimable`, and `Locked` states where applicable;
+- one atomic resolution that updates the save, records durable progression, and writes the outcome to the Life Feed;
+- deterministic seeded resolution for chance-based outcomes and safe recovery if autosave fails.
+
+The common mobile interaction vocabulary should include action cards, progress bars, requirement chips, signed cost/reward previews, confirmation for destructive choices, and reusable `5% / 10% / 25% / 50% / 100%` amount controls for transfers, repayments, and investments. Timers may support short activities and offline completion, but core progress must never require advertising, premium currency, or pay-to-skip. Buttons must remain usable at supported phone widths and accessibility text scales.
+
+The first interactive activity families are:
+
+1. **Education and study:** choose a study track, meet entry requirements, pay an explicitly authored tuition or material cost, select an easy/medium/hard session, trade time and personal resources for XP, advance through visible qualification tiers, and unlock later careers and events.
+2. **Money and banking:** move exact or percentage-based amounts between cash and savings, show a transparent grounded interest rate and projected return, repay revolving credit, and later unlock investing, property, and casino-risk content behind appropriate age, knowledge, and financial gates. Do not use exaggerated per-minute returns.
+3. **Home and personal development:** interact with room objects to read, train, rest, maintain the home, or spend time with household members. Show house progress, item stock/capacity, resource costs, cooldowns, and the stat, skill, relationship, or household benefit before confirmation.
+4. **Relationships and dating:** discover compatible age-appropriate people, inspect a persistent relationship state, and choose social actions that build warmth, friendship, romance, rivalry, or distance. Normal dating still requires the established friendship threshold; only explicitly authored adult casual encounters may bypass it.
+5. **Business operations:** operate one complete business through work actions, action points, revenue and expense previews, staffing, upgrades, locations, timers, risks, valuation, and sale. Active tapping may accelerate an allowed action, but business success must still come from decisions and simulation state.
+6. **Goals, tasks, and achievements:** present Main, Daily, and Life goals with visible progress, direct navigation, and non-premium rewards. Life goals and achievements reward varied stories rather than repetitive grinding; watching an advertisement is never a required baseline task.
+7. **Major-life transitions:** give birth, coming of age, graduation, marriage, parenthood, retirement, death, and new-life transitions focused presentations that clearly record what changed and then return the player to the evolving Life Feed.
+
+Resources shown in an interaction must come from Stim Tycoon's actual simulation; the design must not invent health, energy, hunger, premium currencies, or countdown pressure merely because they appear in a reference. Costs remain fixed or explicitly authored where appropriate, and anything with a cost offers cash or available credit under the existing credit rules.
+
 ---
 
 ## 2. Product Pillars
@@ -2519,6 +2547,11 @@ Exit criteria:
 
 Build:
 
+- shared interactive-action contract, action cards, previews, requirements, progress, cooldowns, and atomic outcomes
+- education-track selection and difficulty-based study sessions
+- home-object activities, books/inventory, personal training, and household actions
+- compatible-person discovery and persistent dating interactions
+- Main, Daily, and Life goals connected to achievements
 - skills and XP
 - practice actions
 - school stages
@@ -2873,15 +2906,19 @@ Next milestone — performance, device validation, and Phase 2 depth:
 1. Isolate the full-life harness as slow simulation coverage and reduce redundant serialization while keeping focused transaction/recovery tests in the normal suite.
 2. Validate Life, Social, education, career, achievement, and ending views at 320, 390, 430, and 768 widths at normal and accessibility font scales.
 3. Produce the first iOS development build and profile save/load latency, save size, safe areas, touch targets, and memory on a physical supported iPhone.
-4. Expand childhood and education with enrollment decisions, stage-specific content, and additional skill paths beyond Learning.
-5. Expand the implemented relationship/household foundation into family planning, children, custody, inheritance, and additional adult drama arcs.
+4. Implement the shared interactive-action contract and reusable action-card UI, including requirements, previews, progress, timers/cooldowns, amount controls, atomic save behavior, and Life Feed outcomes.
+5. Ship the first Education vertical slice: study-track selection, entry requirements, explicitly authored costs, difficulty-based sessions, qualification progress, and career/event unlocks.
+6. Expand childhood and education with stage-specific content and additional skill paths beyond Learning.
+7. Expand the implemented relationship/household foundation into interactive home activities, dating discovery, family planning, children, custody, inheritance, and additional adult drama arcs.
 
 After that milestone:
 
-6. Extend the first career ladder with authored interview uncertainty, career events, and additional industries after complete-life endings are stable.
-7. Complete the Money destination with transaction history, credit repayment controls, cash-flow detail, and investing gates before beginning the Business phase.
-8. Replace placeholder logo, avatar, icon, and font treatments with approved production assets.
-9. Add Authentication, Game Center, Cloud Save, and LevelPlay only at their documented stability gates.
+8. Complete the Money interaction slice with savings transfers, reusable amount controls, transaction history, credit repayment, cash-flow detail, and investing gates.
+9. Add home-object reading/training/household activities, compatible-person discovery, and the Main/Daily/Life goal board on the shared action framework.
+10. Extend the first career ladder with authored interview uncertainty, career events, and additional industries after complete-life endings are stable.
+11. Build one complete interactive business before adding more business types, property, or portfolio breadth.
+12. Replace placeholder logo, avatar, icon, and font treatments with approved production assets.
+13. Add Authentication, Game Center, Cloud Save, and LevelPlay only at their documented stability gates.
 
 The operational backlog is maintained in `docs/TASKS.md`.
 

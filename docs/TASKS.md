@@ -18,9 +18,39 @@ This is the active queue after the user-verified 147-test EditMode baseline and 
 - [ ] Profile save/load latency, save size, memory, safe areas, and touch targets on a physical supported iPhone.
 - [ ] Evaluate MessagePack behind `IStimSaveRepository` only if device profiling shows unacceptable JSON latency or file size.
 
-## P1 — Branching life simulation
+## P1 — Interactive gameplay framework
 
-### P1A — School, work, and persistent paths
+### P1A — Shared action contract and UI
+
+- [ ] Define a reusable activity/action model with stable ID, destination, prerequisites, locked reason, costs, payment methods, resource/stat deltas, progress, duration/cooldown, risk, outcome, and feed metadata.
+- [ ] Support `Ready`, `In Progress`, `Complete`, `Claimable`, and `Locked` states without tying completion to premium currency or advertising.
+- [ ] Build reusable UI Toolkit action cards with requirement chips, signed previews, progress, timers/cooldowns, cash-or-credit selection, confirmation, and accessible feedback.
+- [ ] Build a reusable `5% / 10% / 25% / 50% / 100%` amount selector plus exact-amount validation for transfers, repayments, and later investments.
+- [ ] Resolve each action as one deterministic transaction: validate, apply, autosave, roll back on failure, and write every completed outcome to the Life Feed.
+- [ ] Persist in-progress activities and reconcile elapsed offline time without granting duplicate completion or rewards.
+- [ ] Add focused model, controller, rollback, reload, and UI structure tests before expanding activity content.
+
+### P1B — Interactive vertical slices
+
+- [ ] **Education:** choose a study track; show prerequisites and explicitly authored costs; select easy/medium/hard study sessions; trade time/resources for XP; advance visible qualification tiers; unlock careers and events.
+- [ ] **Money:** deposit and withdraw exact or percentage amounts; show grounded interest and projected income; add credit repayment; retain cash-or-credit choices for eligible costs; gate investing, property, and casino-risk content.
+- [ ] **Home:** interact with room objects to read, train, rest, maintain the home, and perform household activities; show stock/capacity, house progress, costs, cooldowns, and benefits.
+- [ ] **Relationships:** discover compatible age-appropriate people, inspect persistent warmth/stage/history, and choose social or romantic actions while preserving friendship-threshold and adult casual-event rules.
+- [ ] **Business:** operate one complete business with work actions, action points, revenue/expense previews, staffing, upgrades, locations, timers, risks, valuation, failure, and sale.
+- [ ] **Goals:** add Main, Daily, and Life goals with visible progress, direct `Go` navigation, claimable non-premium rewards, and achievement integration; never require watching an ad.
+- [ ] **Transitions:** add focused birth, coming-of-age, graduation, marriage, parenthood, retirement, death, and new-life presentations with persisted Life Feed consequences.
+
+### Interactive quality gates
+
+- [ ] Every action displays its requirements and known tradeoffs before commitment; chance-based choices describe risk without exposing hidden rolls.
+- [ ] Every monetary action uses integer minor units, explicit authored costs/rates, affordability checks, and atomic cash/credit handling.
+- [ ] Every reward and completion can be granted only once across tap spam, reload, interruption, and offline reconciliation.
+- [ ] Every slice works at 320, 390, 430, and 768 widths and at 100% and 130% text scale with 44-point-or-larger primary targets.
+- [ ] Stim-specific content, pacing, visuals, and economy remain original; reference products supply interaction patterns only.
+
+## P2 — Branching life simulation
+
+### P2A — School, work, and persistent paths
 
 - [x] Add an additive persistent life-path/decision record so later content can test choices without inferring them from feed text.
 - [x] Replace automatic school transitions with required enrollment/path decisions at primary, middle, and high-school ages.
@@ -34,7 +64,7 @@ This is the active queue after the user-verified 147-test EditMode baseline and 
 - [ ] Add at least two skill paths beyond Learning, with XP thresholds and visible action/event unlocks.
 - [ ] Add multiple career industries, education requirements, authored interview uncertainty, firing, unemployment, career changes, and distinct promotion ladders.
 
-### P1B — Relationships and family
+### P2B — Relationships and family
 
 - [x] Add a supportive coming-of-age identity chain where the player chooses a persistent gender identity at 16 and sexual orientation at 17.
 - [x] Continue coming of age into consent-aware prom, dating, and first-kiss branches with friendly and opt-out paths.
@@ -62,7 +92,7 @@ This is the active queue after the user-verified 147-test EditMode baseline and 
 - [ ] Add consent-aware family-planning choices, pregnancy/adoption event chains, childbirth, and child relationship records for adults.
 - [ ] Let children age alongside the player and create parenting, custody, sibling, inheritance, and intergenerational consequences.
 
-### P1C — Drama, health, death, and endings
+### P2C — Drama, health, death, and endings
 
 - [ ] Add chained drama stories with prerequisites and follow-ups instead of isolated random events: school conflict, family secrets, workplace rivalry, financial crisis, infidelity, estrangement, and reconciliation.
 - [ ] Expand health gameplay with illness, injury, checkups, treatment, recovery, chronic statuses, addiction safeguards, and player choices before late-life decline.
@@ -77,7 +107,7 @@ This is the active queue after the user-verified 147-test EditMode baseline and 
 - [ ] Seeded tests cover at least three materially different complete lives: education/career success, relationship/family focus, and unstable or adverse path.
 - [ ] Sensitive content remains age-appropriate, non-exploitative, and configurable for intensity before authored drama is expanded.
 
-## P2 — Money destination
+## P3 — Money destination
 
 - [x] Implement the first playable Money destination using the existing four-tab shell.
 - [x] Add a transactional manual-work tap that pays one hour at annual salary ÷ 2,080, rounded to the nearest cent.
@@ -87,7 +117,7 @@ This is the active queue after the user-verified 147-test EditMode baseline and 
 - [ ] Add debt repayment and emergency-expense decisions before investing.
 - [ ] Add stock/index investing only after cash-flow and transaction-history behavior is stable.
 
-## P3 — First business slice
+## P4 — First business slice
 
 - [ ] Implement one complete business type before expanding to three.
 - [ ] Add the business state model, shorter operating turns, action budget, revenue, expenses, and annual settlement.

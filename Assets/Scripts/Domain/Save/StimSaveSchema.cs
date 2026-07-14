@@ -541,7 +541,7 @@ namespace StimTycoon.Saves
                                 relationship.npcCareerLevel >= 0 && relationship.npcCareerLevel <= 5 &&
                                 relationship.npcAnnualIncomeMinorUnits >= 0 &&
                                 relationship.npcCashMinorUnits >= 0 && relationship.npcDebtMinorUnits >= 0,
-                "relationship and NPC finance values must be within their valid non-negative ranges");
+                "value/NPC fields must be within range and monthsSinceInteraction cannot be negative");
         }
 
         private static void ValidateStatuses(StimSaveValidationResult result, List<StimStatusState> statuses)
