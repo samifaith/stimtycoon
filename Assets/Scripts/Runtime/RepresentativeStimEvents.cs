@@ -17,6 +17,16 @@ namespace StimTycoon.Runtime
         public const string LuckCrossroadsId = "world_luck_crossroads_001";
         public const string ChildhoodDiscoveryId = "childhood_small_discovery_001";
         public const string ChildhoodComfortId = "childhood_need_comfort_001";
+        public const string PeerTrustConflictId = "relationship_peer_trust_conflict_001";
+        public const string PeerTrustAftermathId = "relationship_peer_trust_aftermath_001";
+        public const string PeerJealousyId = "relationship_peer_jealousy_001";
+        public const string ComingOfAgeGenderId = "coming_of_age_gender_identity_001";
+        public const string ComingOfAgeOrientationId = "coming_of_age_orientation_001";
+        public const string PromInvitationId = "romance_prom_invitation_001";
+        public const string FirstKissId = "romance_first_kiss_001";
+        public const string ProposalId = "romance_proposal_001";
+        public const string WeddingId = "romance_wedding_001";
+        public const string MarriageCrossroadsId = "romance_marriage_crossroads_001";
 
         public static StimEvent CreateSalaryNegotiation()
         {
@@ -919,6 +929,469 @@ namespace StimTycoon.Runtime
                         "The quiet helps you settle and understand what you needed.", "Took quiet time during a hard day.", "childhood_comfort_quiet",
                         new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -1 },
                         new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 1 })
+                }
+            };
+        }
+
+        public static StimEvent CreatePeerTrustConflict()
+        {
+            return new StimEvent
+            {
+                id = PeerTrustConflictId,
+                category = EventCategory.Relationship,
+                titleKey = "A confidence under pressure",
+                bodyKey = "A school friend trusts you with something private. Another student pushes you to share it.",
+                toneTags = new List<string> { "friendship", "drama", "trust", "age_appropriate" },
+                ageRange = new AgeRange { minAge = 10, maxAge = 17 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{\"relationshipId\":\"school_peer_primary\"}",
+                cooldownYears = 0,
+                repeatPolicy = RepeatPolicy.Never,
+                timingPolicy = EventTimingPolicy.AnyMonth,
+                monthlyTriggerChance = 0.28f,
+                analyticsTags = new List<string> { "relationship", "friendship_drama" },
+                choices = new List<Choice>
+                {
+                    CreateDramaChoice("keep_confidence", "Keep your friend's confidence",
+                        "You protect the confidence even when the social pressure gets uncomfortable.",
+                        "Protected a friend's trust under pressure.", "peer_trust_protected", 8, 2),
+                    CreateDramaChoice("stay_silent", "Stay out of it",
+                        "Your silence avoids the confrontation, but your friend notices you did not stand beside them.",
+                        "Stayed silent during a friend's difficult moment.", "peer_trust_silent", -5, -2),
+                    CreateDramaChoice("share_secret", "Share it to gain attention",
+                        "The secret spreads quickly, and your friend realizes where it started.",
+                        "Betrayed a friend's confidence for attention.", "peer_trust_betrayed", -18, 1)
+                }
+            };
+        }
+
+        public static StimEvent CreatePeerTrustAftermath()
+        {
+            return new StimEvent
+            {
+                id = PeerTrustAftermathId,
+                category = EventCategory.Relationship,
+                titleKey = "The trust conversation returns",
+                bodyKey = "Time has passed, but the unresolved moment between you and your school friend comes up again.",
+                toneTags = new List<string> { "friendship", "follow_up", "reconciliation" },
+                ageRange = new AgeRange { minAge = 11, maxAge = 21 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{\"relationshipId\":\"school_peer_primary\"}",
+                cooldownYears = 0,
+                repeatPolicy = RepeatPolicy.Never,
+                timingPolicy = EventTimingPolicy.AnyMonth,
+                monthlyTriggerChance = 0.01f,
+                analyticsTags = new List<string> { "relationship", "friendship_follow_up" },
+                choices = new List<Choice>
+                {
+                    CreateCertainChoice("talk_honestly", "Talk honestly and repair things",
+                        "An honest conversation gives the friendship room to recover.",
+                        "Had an honest conversation about broken trust.", "peer_aftermath_repair",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 10 }),
+                    CreateCertainChoice("compete_instead", "Turn the tension into competition",
+                        "The tension becomes a rivalry that pushes both of you harder.",
+                        "Turned unresolved tension into competition.", "peer_aftermath_compete",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = -6 },
+                        new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 2 }),
+                    CreateCertainChoice("walk_away", "Walk away from the friendship",
+                        "You decide the friendship no longer belongs in your life.",
+                        "Walked away from a damaged friendship.", "peer_aftermath_walked_away",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = -15 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 1 })
+                }
+            };
+        }
+
+        public static StimEvent CreatePeerJealousy()
+        {
+            return new StimEvent
+            {
+                id = PeerJealousyId,
+                category = EventCategory.Relationship,
+                titleKey = "Pulled between two friends",
+                bodyKey = "Your longtime friend feels replaced by someone you met more recently. Both are watching how you handle it.",
+                toneTags = new List<string> { "friendship", "jealousy", "social_group", "age_appropriate" },
+                ageRange = new AgeRange { minAge = 13, maxAge = 17 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{\"relationshipId\":\"school_peer_primary\",\"secondaryRelationshipId\":\"school_peer_middle\"}",
+                cooldownYears = 0,
+                repeatPolicy = RepeatPolicy.Never,
+                timingPolicy = EventTimingPolicy.AnyMonth,
+                monthlyTriggerChance = 0.22f,
+                analyticsTags = new List<string> { "relationship", "jealousy", "friendship_drama" },
+                choices = new List<Choice>
+                {
+                    CreateCertainChoice("bring_them_together", "Bring both friends together",
+                        "You acknowledge the jealousy without choosing sides, giving the group a chance to reset.",
+                        "Addressed jealousy without abandoning either friend.", "peer_jealousy_inclusive",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 5 },
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_middle", value = 5 },
+                        new Effect { type = EffectType.SkillXp, targetId = "social", value = 8 }),
+                    CreateCertainChoice("choose_old_friend", "Reassure your longtime friend",
+                        "Your longtime friend feels secure again, but the newer friendship takes the rejection personally.",
+                        "Chose a longtime friend during a jealous conflict.", "peer_jealousy_old_friend",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 10 },
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_middle", value = -10 }),
+                    CreateCertainChoice("choose_new_friend", "Stand with your newer friend",
+                        "The newer bond grows stronger while your longtime friend feels pushed aside.",
+                        "Chose a newer friend during a jealous conflict.", "peer_jealousy_new_friend",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = -12 },
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_middle", value = 10 }),
+                    CreateCertainChoice("enjoy_attention", "Keep them competing for your attention",
+                        "The attention feels exciting briefly, but both friends lose trust in you.",
+                        "Encouraged two friends to compete for attention.", "peer_jealousy_manipulated",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = -10 },
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_middle", value = -10 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 2 })
+                }
+            };
+        }
+
+        public static StimEvent CreateComingOfAgeGender()
+        {
+            var evt = new StimEvent
+            {
+                id = ComingOfAgeGenderId,
+                category = EventCategory.Relationship,
+                titleKey = "Becoming more yourself",
+                bodyKey = "As you grow into yourself, you have space to describe your gender identity. There is no wrong answer, and it can evolve later.",
+                toneTags = new List<string> { "reflective", "supportive", "identity" },
+                ageRange = new AgeRange { minAge = 16, maxAge = 16 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{}",
+                cooldownYears = 100,
+                repeatPolicy = RepeatPolicy.Never,
+                timingPolicy = EventTimingPolicy.AnnualRollover,
+                monthlyTriggerChance = 1f,
+                analyticsTags = new List<string> { "coming_of_age", "identity" },
+                choices = new List<Choice>
+                {
+                    CreateIdentityChoice("identify_woman", "I am a woman", "You chose to describe yourself as a woman."),
+                    CreateIdentityChoice("identify_man", "I am a man", "You chose to describe yourself as a man."),
+                    CreateIdentityChoice("identify_nonbinary", "I am nonbinary", "You chose to describe yourself as nonbinary."),
+                    CreateIdentityChoice("still_questioning_gender", "I am still figuring it out", "You gave yourself time to keep exploring your gender identity.")
+                }
+            };
+            foreach (var choice in evt.choices)
+            {
+                choice.outcomes[0].followUps.Add(new ScheduledEventRef
+                {
+                    eventId = ComingOfAgeOrientationId,
+                    minYearsFromNow = 1,
+                    maxYearsFromNow = 1,
+                    probability = 1f,
+                    cancellationRule = string.Empty
+                });
+            }
+            return evt;
+        }
+
+        public static StimEvent CreateComingOfAgeOrientation()
+        {
+            var evt = new StimEvent
+            {
+                id = ComingOfAgeOrientationId,
+                category = EventCategory.Relationship,
+                titleKey = "Understanding attraction",
+                bodyKey = "You are learning more about who you are drawn to. Choose the description that feels closest right now; identity can evolve later.",
+                toneTags = new List<string> { "reflective", "supportive", "identity" },
+                ageRange = new AgeRange { minAge = 17, maxAge = 17 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{}",
+                cooldownYears = 100,
+                repeatPolicy = RepeatPolicy.Never,
+                timingPolicy = EventTimingPolicy.AnnualRollover,
+                monthlyTriggerChance = 1f,
+                analyticsTags = new List<string> { "coming_of_age", "orientation" },
+                choices = new List<Choice>
+                {
+                    CreateIdentityChoice("orientation_straight", "Straight", "You chose straight as the description that fits you."),
+                    CreateIdentityChoice("orientation_gay_lesbian", "Gay or lesbian", "You chose gay or lesbian as the description that fits you."),
+                    CreateIdentityChoice("orientation_bisexual", "Bisexual", "You chose bisexual as the description that fits you."),
+                    CreateIdentityChoice("orientation_pansexual", "Pansexual", "You chose pansexual as the description that fits you."),
+                    CreateIdentityChoice("orientation_asexual", "Asexual", "You chose asexual as the description that fits you."),
+                    CreateIdentityChoice("still_questioning_orientation", "Still questioning", "You gave yourself time to keep understanding your orientation.")
+                }
+            };
+            foreach (var choice in evt.choices)
+            {
+                choice.outcomes[0].followUps.Add(new ScheduledEventRef
+                {
+                    eventId = PromInvitationId,
+                    minYearsFromNow = 1,
+                    maxYearsFromNow = 1,
+                    probability = 1f,
+                    cancellationRule = string.Empty
+                });
+            }
+            return evt;
+        }
+
+        public static StimEvent CreatePromInvitation()
+        {
+            var attendTogether = CreateCertainChoice(
+                "attend_prom_together", "Go to prom as a date",
+                "You and a close friend went to prom together and began dating.",
+                "Went to prom with a close friend and started dating.", "prom_date",
+                new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 15 },
+                new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 5 });
+            attendTogether.outcomes[0].followUps.Add(new ScheduledEventRef
+            {
+                eventId = FirstKissId,
+                minYearsFromNow = 1,
+                maxYearsFromNow = 1,
+                probability = 1f,
+                cancellationRule = "school_peer_primary_missing"
+            });
+            return new StimEvent
+            {
+                id = PromInvitationId,
+                category = EventCategory.Relationship,
+                titleKey = "A prom invitation",
+                bodyKey = "A close friend asks how you would feel about going to prom together. You can make it romantic, keep it friendly, or decline.",
+                toneTags = new List<string> { "romance", "coming_of_age", "choice" },
+                ageRange = new AgeRange { minAge = 18, maxAge = 18 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{\"relationshipId\":\"school_peer_primary\",\"minimumRelationshipValue\":60}",
+                cooldownYears = 100,
+                repeatPolicy = RepeatPolicy.Never,
+                timingPolicy = EventTimingPolicy.AnnualRollover,
+                monthlyTriggerChance = 1f,
+                analyticsTags = new List<string> { "romance", "prom" },
+                choices = new List<Choice>
+                {
+                    attendTogether,
+                    CreateCertainChoice("attend_prom_as_friends", "Go as friends",
+                        "You and your friend shared a fun prom night without making it romantic.",
+                        "Went to prom with a close friend as friends.", "prom_friends",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 8 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 3 }),
+                    CreateCertainChoice("decline_prom", "Politely decline",
+                        "You politely declined and spent prom night your own way.",
+                        "Declined a prom invitation.", "prom_declined",
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 1 })
+                }
+            };
+        }
+
+        public static StimEvent CreateFirstKiss()
+        {
+            return new StimEvent
+            {
+                id = FirstKissId,
+                category = EventCategory.Relationship,
+                titleKey = "A quiet moment together",
+                bodyKey = "After another meaningful date, you and your partner pause close together. You decide what feels comfortable.",
+                toneTags = new List<string> { "romance", "consent", "milestone" },
+                ageRange = new AgeRange { minAge = 19, maxAge = 19 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{\"relationshipId\":\"school_peer_primary\",\"relationshipType\":\"dating\"}",
+                cooldownYears = 100,
+                repeatPolicy = RepeatPolicy.Never,
+                timingPolicy = EventTimingPolicy.AnnualRollover,
+                monthlyTriggerChance = 1f,
+                analyticsTags = new List<string> { "romance", "first_kiss", "consent" },
+                choices = new List<Choice>
+                {
+                    CreateCertainChoice("share_first_kiss", "Kiss Taylor",
+                        "You both leaned in and shared your first kiss.",
+                        "Shared a first kiss with a partner.", "first_kiss_shared",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 10 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 5 }),
+                    CreateCertainChoice("wait_to_kiss", "Say you want to wait",
+                        "Your partner respected your boundary, and the honest moment brought you closer.",
+                        "Chose to wait before a first kiss.", "first_kiss_waited",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 5 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 2 })
+                }
+            };
+        }
+
+        public static StimEvent CreateProposal()
+        {
+            var propose = CreateCertainChoice("propose_marriage", "Propose marriage",
+                "Your partner said yes, and you became engaged.",
+                "Proposed marriage and became engaged.", "proposal_accepted",
+                new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 5 },
+                new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 6 });
+            propose.outcomes[0].followUps.Add(new ScheduledEventRef
+            {
+                eventId = WeddingId,
+                minYearsFromNow = 1,
+                maxYearsFromNow = 1,
+                probability = 1f,
+                cancellationRule = "engagement_ended"
+            });
+            return new StimEvent
+            {
+                id = ProposalId,
+                category = EventCategory.Relationship,
+                titleKey = "A shared future",
+                bodyKey = "Your partnership feels strong enough to consider marriage. You decide whether this is the right time.",
+                toneTags = new List<string> { "romance", "commitment", "adult" },
+                ageRange = new AgeRange { minAge = 24, maxAge = 65 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{\"relationshipId\":\"school_peer_primary\",\"relationshipType\":\"partner\",\"minimumRelationshipValue\":80}",
+                cooldownYears = 100,
+                repeatPolicy = RepeatPolicy.Never,
+                timingPolicy = EventTimingPolicy.AnnualRollover,
+                monthlyTriggerChance = 1f,
+                analyticsTags = new List<string> { "romance", "proposal" },
+                choices = new List<Choice>
+                {
+                    propose,
+                    CreateCertainChoice("wait_on_proposal", "Wait until it feels right",
+                        "You chose not to rush marriage, and your partner respected the conversation.",
+                        "Chose to wait before proposing.", "proposal_waited",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 2 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 1 }),
+                    CreateCertainChoice("end_partnership", "Admit the relationship should end",
+                        "You ended the partnership instead of promising a future you did not want.",
+                        "Ended a long-term partnership.", "proposal_breakup",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = -20 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -6 })
+                }
+            };
+        }
+
+        public static StimEvent CreateWedding()
+        {
+            var evt = new StimEvent
+            {
+                id = WeddingId,
+                category = EventCategory.Relationship,
+                titleKey = "The wedding day",
+                bodyKey = "The wedding day arrives. You can marry, postpone together, or call it off before making the commitment.",
+                toneTags = new List<string> { "romance", "marriage", "choice" },
+                ageRange = new AgeRange { minAge = 25, maxAge = 66 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{\"relationshipId\":\"school_peer_primary\",\"relationshipType\":\"engaged\"}",
+                cooldownYears = 1,
+                repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnnualRollover,
+                monthlyTriggerChance = 1f,
+                analyticsTags = new List<string> { "romance", "wedding", "marriage" },
+                choices = new List<Choice>
+                {
+                    CreateCertainChoice("get_married", "Get married",
+                        "You exchanged vows and began married life together.",
+                        "Got married.", "wedding_married",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 5 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 8 }),
+                    CreateCertainChoice("postpone_wedding", "Postpone together",
+                        "You mutually postponed the wedding while remaining engaged.",
+                        "Postponed the wedding together.", "wedding_postponed",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 1 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -1 }),
+                    CreateCertainChoice("call_off_wedding", "Call off the wedding",
+                        "You called off the wedding and ended the relationship.",
+                        "Called off a wedding.", "wedding_cancelled",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = -25 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -8 })
+                }
+            };
+            evt.choices[1].outcomes[0].followUps.Add(new ScheduledEventRef
+            {
+                eventId = WeddingId,
+                minYearsFromNow = 1,
+                maxYearsFromNow = 1,
+                probability = 1f,
+                cancellationRule = "engagement_ended"
+            });
+            return evt;
+        }
+
+        public static StimEvent CreateMarriageCrossroads()
+        {
+            return new StimEvent
+            {
+                id = MarriageCrossroadsId,
+                category = EventCategory.Relationship,
+                titleKey = "A marriage at a crossroads",
+                bodyKey = "Distance has built between you and your spouse. You decide whether to repair the marriage, separate, or divorce.",
+                toneTags = new List<string> { "marriage", "conflict", "adult" },
+                ageRange = new AgeRange { minAge = 25, maxAge = 85 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{\"relationshipId\":\"school_peer_primary\",\"relationshipType\":\"married\",\"maximumRelationshipValue\":55}",
+                cooldownYears = 2,
+                repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnnualRollover,
+                monthlyTriggerChance = 1f,
+                analyticsTags = new List<string> { "romance", "marriage", "conflict" },
+                choices = new List<Choice>
+                {
+                    CreateCertainChoice("seek_counseling", "Seek counseling",
+                        "You invested in counseling and began rebuilding trust together.",
+                        "Started marriage counseling.", "marriage_counseling",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 12 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 2 }),
+                    CreateCertainChoice("recommit", "Recommit to each other",
+                        "You had an honest conversation and recommitted to the marriage.",
+                        "Recommitted to a strained marriage.", "marriage_recommit",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = 8 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 1 }),
+                    CreateCertainChoice("separate", "Separate for now",
+                        "You separated and ended the active partnership without filing for divorce.",
+                        "Separated from a spouse.", "marriage_separated",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = -10 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -5 }),
+                    CreateCertainChoice("divorce", "File for divorce",
+                        "The marriage ended in divorce, including legal fees and an asset settlement.",
+                        "Divorced a spouse.", "marriage_divorced",
+                        new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = -20 },
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -8 })
+                }
+            };
+        }
+
+        private static Choice CreateIdentityChoice(string id, string label, string result)
+        {
+            return CreateCertainChoice(id, label, result, result, id,
+                new Effect { type = EffectType.StatDelta, targetId = "happiness", value = 1 });
+        }
+
+        private static Choice CreateDramaChoice(
+            string id, string label, string result, string feed, string telemetry,
+            int relationshipDelta, int happinessDelta)
+        {
+            var choice = CreateCertainChoice(id, label, result, feed, telemetry,
+                new Effect { type = EffectType.RelationshipDelta, targetId = "school_peer_primary", value = relationshipDelta },
+                new Effect { type = EffectType.StatDelta, targetId = "happiness", value = happinessDelta });
+            choice.outcomes[0].followUps.Add(new ScheduledEventRef
+            {
+                eventId = PeerTrustAftermathId,
+                minYearsFromNow = 1,
+                maxYearsFromNow = 2,
+                probability = 1f,
+                cancellationRule = "school_peer_primary_missing"
+            });
+            return choice;
+        }
+
+        private static Choice CreateCertainChoice(
+            string id, string label, string result, string feed, string telemetry,
+            params Effect[] effects)
+        {
+            return new Choice
+            {
+                id = id,
+                labelKey = label,
+                riskPreview = RiskLevel.Safe,
+                rewardPreview = RewardLevel.Medium,
+                baseSuccessChance = 1f,
+                modifierRuleIds = new List<string>(),
+                outcomes = new List<Outcome>
+                {
+                    new Outcome
+                    {
+                        id = id + "_result",
+                        classification = OutcomeClassification.Neutral,
+                        resultTextKey = result,
+                        feedEntryKey = feed,
+                        telemetryCode = telemetry,
+                        weightWithinResultGroup = 1f,
+                        effects = new List<Effect>(effects)
+                    }
                 }
             };
         }

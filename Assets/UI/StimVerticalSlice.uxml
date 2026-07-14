@@ -9,24 +9,13 @@
 
         <ui:ScrollView name="life-scroll" mode="Vertical" class="st-life-scroll">
             <ui:VisualElement class="st-life-content">
-                <ui:VisualElement class="st-polished-card st-worth-card">
-                    <ui:VisualElement class="st-worth-copy">
-                        <ui:Label text="TOTAL NET WORTH" class="st-section-kicker" />
-                        <ui:Label name="net-worth-value" text="$1.42M" class="st-worth-value" />
-                        <ui:Label name="net-worth-trend" text="↑ +12.4%  vs last year" class="st-worth-trend" />
-                    </ui:VisualElement>
-                    <ui:VisualElement class="st-worth-chart">
-                        <ui:VisualElement class="st-worth-bars">
-                            <ui:VisualElement class="st-worth-bar bar-1" />
-                            <ui:VisualElement class="st-worth-bar bar-2" />
-                            <ui:VisualElement class="st-worth-bar bar-3" />
-                            <ui:VisualElement class="st-worth-bar bar-4" />
-                            <ui:VisualElement class="st-worth-bar bar-5" />
-                            <ui:VisualElement class="st-worth-bar bar-6" />
-                            <ui:VisualElement class="st-worth-bar bar-7 current" />
+                <ui:VisualElement name="life-feed-card" class="st-polished-card st-feed-card">
+                    <ui:Label text="LIFE FEED" class="st-section-kicker" />
+                    <ui:ScrollView name="life-feed-scroll" mode="Vertical" class="st-feed-scroll">
+                        <ui:VisualElement name="life-feed-list" class="st-feed-list">
+                            <ui:Label text="Your next decision will appear here." class="st-feed-empty" />
                         </ui:VisualElement>
-                        <ui:Label text="CURRENT" class="st-chart-badge" />
-                    </ui:VisualElement>
+                    </ui:ScrollView>
                 </ui:VisualElement>
 
                 <ui:VisualElement name="player-overview" class="st-polished-card st-stats-card">
@@ -75,6 +64,7 @@
                             <ui:Label text="♥" class="st-focus-icon" /><ui:Label name="focus-workout-title" text="Workout" class="st-focus-title" /><ui:Label name="focus-workout-effect" text="+ Health" class="st-focus-effect" /><ui:Label text="START" class="st-focus-cta" />
                         </ui:Button>
                     </ui:VisualElement>
+                    <ui:VisualElement name="context-activities" class="st-context-activities" />
                 </ui:VisualElement>
 
                 <ui:VisualElement name="education-card" class="st-polished-card st-education-card hidden">
@@ -111,20 +101,34 @@
                     <ui:VisualElement name="achievements-list" class="st-achievements-list" />
                 </ui:VisualElement>
 
-                <ui:VisualElement class="st-polished-card st-feed-card">
-                    <ui:Label text="LIFE FEED" class="st-section-kicker" />
-                    <ui:ScrollView name="life-feed-scroll" mode="Vertical" class="st-feed-scroll">
-                        <ui:VisualElement name="life-feed-list" class="st-feed-list">
-                            <ui:Label text="Your next decision will appear here." class="st-feed-empty" />
-                        </ui:VisualElement>
-                    </ui:ScrollView>
-                </ui:VisualElement>
-
                 <ui:VisualElement class="hidden">
                     <ui:Button name="toggle-overview" text="Overview" />
                     <ui:Label name="overview-career" text="Analyst" />
                     <ui:Label name="overview-calendar" text="Month 1" />
                     <ui:Label name="annual-salary-value" text="$50,000" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+
+        <ui:ScrollView name="money-view" mode="Vertical" class="st-money-view hidden">
+            <ui:VisualElement class="st-money-content">
+                <ui:Label text="MONEY" class="st-section-kicker" />
+                <ui:Label text="Earn and manage" class="st-social-title" />
+                <ui:Label text="Work a paid hour using your current job's calculated hourly rate." class="st-social-subtitle" />
+                <ui:VisualElement name="net-worth-card" class="st-polished-card st-worth-card">
+                    <ui:VisualElement class="st-worth-copy">
+                        <ui:Label text="TOTAL NET WORTH" class="st-section-kicker" />
+                        <ui:Label name="net-worth-value" text="$1.42M" class="st-worth-value" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="st-polished-card st-manual-work-card">
+                    <ui:Label text="MANUAL WORK" class="st-section-kicker" />
+                    <ui:Label name="manual-work-role" text="Get a job to begin" class="st-manual-work-role" />
+                    <ui:Label name="manual-work-rate" text="$0.00 per hour" class="st-manual-work-rate" />
+                    <ui:Label name="money-cash-value" text="$0" class="st-money-cash" />
+                    <ui:Label text="CURRENT CASH" class="st-money-cash-label" />
+                    <ui:Button name="manual-work-tap" text="WORK 1 HOUR" class="st-manual-work-button" />
+                    <ui:Label name="manual-work-feedback" text="" class="st-manual-work-feedback" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:ScrollView>

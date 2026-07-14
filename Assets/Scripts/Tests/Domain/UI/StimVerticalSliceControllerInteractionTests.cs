@@ -170,6 +170,30 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void EducationCard_PresentsAndCommitsRequiredSchoolPath()
+        {
+            session.ActiveSave.state.character.age = 15;
+            session.ActiveSave.state.character.lifeStage = StimGameSessionService.GetLifeStage(15);
+            session.ActiveSave.state.education.stage = "high_school";
+            session.ActiveSave.state.education.awaitingDecisionId = "education_high_transition";
+
+            Invoke("RefreshHeader");
+
+            Assert.That(root.Q<Label>("education-stage").text, Is.EqualTo("School path decision required"));
+            Assert.That(root.Q<Button>("school-path-academictrack"), Is.Not.Null);
+            Assert.That(root.Q<Button>("school-path-vocationaltrack"), Is.Not.Null);
+            Assert.That(root.Q<Button>("school-path-leaveschool"), Is.Not.Null);
+
+            Invoke("PerformSchoolPathChoice", StimSchoolPathChoice.VocationalTrack);
+
+            Assert.That(session.ActiveSave.state.education.schoolPath, Is.EqualTo("vocational_track"));
+            Assert.That(session.ActiveSave.state.lifeDecisions, Has.Count.EqualTo(1));
+            Assert.That(StimGameSessionService.GetSkillExperience(
+                session.ActiveSave.state.skills, "practical"), Is.EqualTo(15));
+            Assert.That(root.Q<Label>("result-text").text, Does.Contain("Practical XP +15"));
+        }
+
+        [Test]
         public void CareerCard_DrivesApplicationInterviewAndHiringFlow()
         {
             session.ActiveSave.state.career = new StimCareerState();
@@ -190,6 +214,22 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(session.ActiveSave.state.career.roleTitle, Is.EqualTo("Junior Associate"));
             Assert.That(root.Q<Label>("career-role").text, Is.EqualTo("Junior Associate"));
             Assert.That(root.Q<Label>("result-text").text, Does.Contain("Hired"));
+        }
+
+        [Test]
+        public void ContextActivityDeck_ChangesForEmployedAdult()
+        {
+            session.ActiveSave.state.character.age = 30;
+            session.ActiveSave.state.career.roleTitle = "Junior Associate";
+            session.ActiveSave.state.career.annualSalaryMinorUnits = 4000000;
+
+            Invoke("RefreshHeader");
+
+            Assert.That(root.Q<Button>("context-activity-workshift"), Is.Not.Null);
+            Assert.That(root.Q<Button>("context-activity-overtime"), Is.Not.Null);
+            Assert.That(root.Q<Button>("context-activity-training"), Is.Not.Null);
+            Assert.That(root.Q<Button>("context-activity-socialize"), Is.Not.Null);
+            Assert.That(root.Q<Button>("context-activity-attendschool"), Is.Null);
         }
 
         [Test]
@@ -229,6 +269,28 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(root.Q("achievements-list").Q<Label>(className: "st-achievement-name").text, Is.EqualTo("Hired"));
         }
 
+        [Test]
+        public void MoneyDestination_ManualTapPaysCurrentJobsHourlyRate()
+        {
+            session.ActiveSave.state.career = new StimCareerState
+            {
+                roleTitle = "Junior Associate",
+                annualSalaryMinorUnits = 4000000
+            };
+            var cashBefore = session.ActiveSave.state.finances.cashMinorUnits;
+            Invoke("ShowMoneyDestination");
+
+            Assert.IsFalse(root.Q("money-view").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q<Button>("nav-money").ClassListContains("active"));
+            Assert.That(root.Q<Label>("manual-work-rate").text, Is.EqualTo("$19.23 per hour"));
+            Assert.That(root.Q<Button>("manual-work-tap").text, Does.Contain("+$19.23"));
+
+            Invoke("PerformManualWorkTap");
+
+            Assert.That(session.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore + 1923));
+            Assert.That(root.Q<Label>("manual-work-feedback").text, Does.Contain("Cash +$19.23"));
+        }
+
         private void BindControllerFields()
         {
             SetField("gameSession", session);
@@ -254,6 +316,7 @@ namespace StimTycoon.Tests.Domain.UI
                 { "focusWorkout", "focus-workout" }, { "focusStudyTitle", "focus-study-title" },
                 { "focusStudyEffect", "focus-study-effect" }, { "focusWorkoutTitle", "focus-workout-title" },
                 { "focusWorkoutEffect", "focus-workout-effect" },
+                { "contextActivities", "context-activities" },
                 { "lifeScroll", "life-scroll" }, { "socialView", "social-view" },
                 { "timeDock", "time-dock" }, { "navLife", "nav-life" }, { "navSocial", "nav-social" },
                 { "relationshipListView", "relationship-list-view" }, { "relationshipList", "relationship-list" },
@@ -272,7 +335,10 @@ namespace StimTycoon.Tests.Domain.UI
                 { "finalLifeSummary", "final-life-summary" }, { "endingName", "ending-name" },
                 { "endingStatus", "ending-status" }, { "endingSummary", "ending-summary" },
                 { "endingNewLife", "ending-new-life" }, { "achievementsCount", "achievements-count" },
-                { "achievementsList", "achievements-list" }
+                { "achievementsList", "achievements-list" }, { "navMoney", "nav-money" },
+                { "moneyView", "money-view" }, { "manualWorkRole", "manual-work-role" },
+                { "manualWorkRate", "manual-work-rate" }, { "moneyCashValue", "money-cash-value" },
+                { "manualWorkTap", "manual-work-tap" }, { "manualWorkFeedback", "manual-work-feedback" }
             };
 
             foreach (var binding in bindings)

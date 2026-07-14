@@ -72,6 +72,8 @@ namespace StimTycoon.Runtime
                         firstName = firstName,
                         lastName = lastName,
                         pronouns = pronouns,
+                        genderIdentity = "undiscovered",
+                        sexualOrientation = "undiscovered",
                         country = country,
                         backgroundId = background,
                         avatarId = avatarId,
@@ -88,6 +90,7 @@ namespace StimTycoon.Runtime
                     finances = new StimFinancesState { cashMinorUnits = startingStats.cashMinorUnits },
                     career = new StimCareerState(),
                     education = new StimEducationState { stage = "not_started" },
+                    household = new StimHouseholdState(),
                     relationships = new List<StimRelationshipState> { parents[0].relationship, parents[1].relationship },
                     lifeFeed = new List<StimLifeFeedEntry>
                     {

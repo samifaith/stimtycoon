@@ -10,14 +10,14 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 ### Implementation snapshot — July 13, 2026
 
-The repository currently runs on Unity `6000.3.19f1` and has a user-verified 140-test EditMode baseline. The verified offline loop begins with a randomized birth, advances through monthly events, education, relationships, careers, achievements, health decline, death or retirement, and ends with a persistent final summary. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
+The repository currently runs on Unity `6000.3.19f1` and has a user-verified 147-test EditMode baseline, with substantial additional tests awaiting the next complete Unity run. The offline loop begins with randomized birth and now includes required school paths, contextual activities, persistent peers and drama, identity choices, friendship-gated romance, marriage and divorce, household stats, spouse-derived finances, and revolving credit before continuing through careers, achievements, health decline, and a persistent ending summary. Manual work pays one hour at annual salary divided by 2,080. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
 
 ### Current phase assessment — July 13, 2026
 
 - **Phase 0 — Product Foundation:** offline foundation delivered. The five representative events, schemas, deterministic resolver, local-save recovery, migration boundary, and product decisions are implemented. Authentication, cloud-conflict validation, Game Center, and ads remain intentionally deferred behind offline-loop stability.
-- **Phase 1 — Simulation Skeleton:** verified complete for the offline implementation. The 140-test run includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
-- **Phase 2 — Skills, Education, and Relationships:** first playable foundations are present, but the phase is incomplete. Education stages, XP-derived Learning levels, school actions and unlocks, two generated parents, Social profiles, transactional relationship actions, and persistence exist; broader skills, enrollment decisions, peers, romance, and long-term relationship arcs do not.
-- **Phase 3 and later:** not started as complete systems. Prototype salary and monthly cash flow exist, but they do not yet constitute career ladders or the full personal-finance phase.
+- **Phase 1 — Simulation Skeleton:** verified complete for the offline implementation. The 147-test run includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
+- **Phase 2 — Skills, Education, and Relationships:** materially underway but incomplete. Required enrollment/path decisions, contextual school/work activities, peers, friendship/drama history, identity, romance, marriage maintenance, household stats, and spouse finances exist. Broader skills, family planning, children, custody, inheritance, and additional relationship arcs remain.
+- **Phase 3 and later:** partial foundations exist. A career ladder, monthly cash flow, manual work, household income, fixed costs, debt, credit limits, variable APR, and interest are playable, but full career industries, transaction history, repayment controls, investing, and business systems remain incomplete.
 
 ### Deferred Phase 0 online-validation gate
 
@@ -41,7 +41,7 @@ The current implementation choices supersede earlier package assumptions in this
 
 - Keep the versioned native atomic JSON repository through the first physical-device profiling pass.
 - The brief Test Runner pause during the full-life harness is caused primarily by synchronous repeated cloning and serialization of a save whose Life Feed grows across hundreds of simulated months; it is not evidence of a failed atomic repository.
-- First isolate/optimize the slow simulation test while retaining focused transactional autosave coverage.
+- The harness is tagged `SlowSimulation` for separate selection and reports duration, months, transactions, maximum JSON size, and final Life Feed size. Transactional autosaves use compact JSON to remove pretty-print overhead while retaining focused atomic-save coverage.
 - Evaluate MessagePack behind `IStimSaveRepository` only if iPhone profiling demonstrates unacceptable save latency or file size. Preserve the logical envelope, migrations, integrity checks, atomic promotion, and recovery semantics regardless of physical format.
 - Easy Save 3 remains optional and is not the recommended fix for the current test pause.
 
@@ -2854,7 +2854,7 @@ Completed foundation work:
 - [x] Add transactional Study and Workout actions with monthly cooldowns, autosave, skill XP, and signed feedback.
 - [x] Consolidate the playable Life shell onto reusable header and bottom-navigation templates.
 - [x] Add structural UI Toolkit tests for required bindings, navigation, and event-sheet defaults.
-- [x] Establish a user-verified 140-test EditMode baseline, including seeded birth-to-ending coverage.
+- [x] Establish a user-verified 147-test EditMode baseline, including seeded birth-to-ending and Money/manual-work coverage.
 - [x] Keep Advance Month persistent outside the Life ScrollView and clamp all visual progress fills.
 - [x] Add controller interaction coverage for event presentation, activity feedback, and persistent month advancement.
 - [x] Add transactional parent interactions with age gates, per-parent monthly limits, signed feedback, Life Feed entries, autosave, and rollback safety.
@@ -2866,6 +2866,7 @@ Completed foundation work:
 - [x] Add additive life-ending state, age-based health decline, transactional death/retirement finalization, post-ending action guards, and a persistent final-life summary.
 - [x] Add migration-safe achievements for aging, education, skills, family, career, wealth, retirement, choices, and completed lives, with Life Feed announcements, dashboard history, and ending-summary totals.
 - [x] Add and verify a deterministic full-life harness that starts at birth, advances every month, resolves every pending authored event, persists every transaction, and asserts a completed death ending.
+- [x] Add and verify the first Money destination and a transactional manual-work tap worth one hour at the current job's annual salary divided by 2,080.
 
 Next milestone — performance, device validation, and Phase 2 depth:
 
@@ -2873,12 +2874,12 @@ Next milestone — performance, device validation, and Phase 2 depth:
 2. Validate Life, Social, education, career, achievement, and ending views at 320, 390, 430, and 768 widths at normal and accessibility font scales.
 3. Produce the first iOS development build and profile save/load latency, save size, safe areas, touch targets, and memory on a physical supported iPhone.
 4. Expand childhood and education with enrollment decisions, stage-specific content, and additional skill paths beyond Learning.
-5. Add peers and additional relationship types before romance or long-term family arcs.
+5. Expand the implemented relationship/household foundation into family planning, children, custody, inheritance, and additional adult drama arcs.
 
 After that milestone:
 
 6. Extend the first career ladder with authored interview uncertainty, career events, and additional industries after complete-life endings are stable.
-7. Implement the Money destination with transaction history, cash flow, debt, and net worth before beginning the Business phase.
+7. Complete the Money destination with transaction history, credit repayment controls, cash-flow detail, and investing gates before beginning the Business phase.
 8. Replace placeholder logo, avatar, icon, and font treatments with approved production assets.
 9. Add Authentication, Game Center, Cloud Save, and LevelPlay only at their documented stability gates.
 

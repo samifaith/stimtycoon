@@ -95,6 +95,16 @@ namespace StimTycoon.Saves
                     save.state.character.luck = 50;
                     Record(report, "state.character.luck=50");
                 }
+                if (!serializedSave.Contains("\"genderIdentity\""))
+                {
+                    save.state.character.genderIdentity = "undiscovered";
+                    Record(report, "state.character.genderIdentity=undiscovered");
+                }
+                if (!serializedSave.Contains("\"sexualOrientation\""))
+                {
+                    save.state.character.sexualOrientation = "undiscovered";
+                    Record(report, "state.character.sexualOrientation=undiscovered");
+                }
             }
 
             if (save.state.calendar == null)
@@ -107,6 +117,17 @@ namespace StimTycoon.Saves
                 save.state.finances = new StimFinancesState();
                 Record(report, "state.finances created");
             }
+            else if (!serializedSave.Contains("\"spouseAnnualIncomeMinorUnits\""))
+            {
+                save.state.finances.spouseAnnualIncomeMinorUnits = 0;
+                Record(report, "state.finances.spouseAnnualIncomeMinorUnits=0");
+            }
+            if (save.state.finances != null && !serializedSave.Contains("\"householdCreditBalanceMinorUnits\""))
+            {
+                save.state.finances.householdCreditBalanceMinorUnits = 0;
+                save.state.finances.householdCreditAprBasisPoints = 0;
+                Record(report, "state.finances household credit fields created");
+            }
             if (save.state.career == null)
             {
                 save.state.career = new StimCareerState();
@@ -116,6 +137,11 @@ namespace StimTycoon.Saves
             {
                 save.state.education = new StimEducationState();
                 Record(report, "state.education created");
+            }
+            if (save.state.household == null || !serializedSave.Contains("\"household\""))
+            {
+                save.state.household = new StimHouseholdState();
+                Record(report, "state.household created");
             }
             if (save.state.skills == null)
             {
@@ -136,6 +162,11 @@ namespace StimTycoon.Saves
             {
                 save.state.achievements = new List<StimAchievementState>();
                 Record(report, "state.achievements created");
+            }
+            if (save.state.lifeDecisions == null || !serializedSave.Contains("\"lifeDecisions\""))
+            {
+                save.state.lifeDecisions = new List<StimLifeDecisionState>();
+                Record(report, "state.lifeDecisions created");
             }
             if (save.state.lifeFeed == null)
             {

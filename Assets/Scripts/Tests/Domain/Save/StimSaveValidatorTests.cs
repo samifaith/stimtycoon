@@ -126,6 +126,60 @@ namespace StimTycoon.Tests.Domain.Save
         }
 
         [Test]
+        public void ValidateSave_RejectsNegativeRelationshipNeglectCounter()
+        {
+            var save = CreateValidSave();
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "friend",
+                relationshipType = "friend",
+                value = 50,
+                monthsSinceInteraction = -1
+            });
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error =>
+                error.Contains("monthsSinceInteraction")));
+        }
+
+        [Test]
+        public void ValidateSave_AcceptsPersistentLifeDecision()
+        {
+            var save = CreateValidSave();
+            save.state.lifeDecisions.Add(new StimLifeDecisionState
+            {
+                decisionId = "education_primary_enrollment",
+                choiceId = "public_school",
+                age = 6,
+                monthOfYear = 1,
+                revision = 12,
+                timestampUtc = "2026-07-11T19:04:12Z"
+            });
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsTrue(result.isValid, StimSaveValidator.GetValidationSummary(result, save.saveId));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsDuplicateLifeDecisionIds()
+        {
+            var save = CreateValidSave();
+            save.state.lifeDecisions.Add(new StimLifeDecisionState
+                { decisionId = "education_primary_enrollment", choiceId = "public_school", monthOfYear = 1 });
+            save.state.lifeDecisions.Add(new StimLifeDecisionState
+                { decisionId = "education_primary_enrollment", choiceId = "homeschool", monthOfYear = 1 });
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error =>
+                error.Contains("state.lifeDecisions contains duplicate id education_primary_enrollment")));
+        }
+
+        [Test]
         public void ValidateSave_RejectsExpiredPersistedStatus()
         {
             var save = CreateValidSave();

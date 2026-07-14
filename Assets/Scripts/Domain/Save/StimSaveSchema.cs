@@ -57,10 +57,12 @@ namespace StimTycoon.Saves
         public StimFinancesState finances = new StimFinancesState();
         public StimCareerState career = new StimCareerState();
         public StimEducationState education = new StimEducationState();
+        public StimHouseholdState household = new StimHouseholdState();
         public List<StimSkillState> skills = new List<StimSkillState>();
         public List<StimRelationshipState> relationships = new List<StimRelationshipState>();
         public List<StimStatusState> statuses = new List<StimStatusState>();
         public List<StimAchievementState> achievements = new List<StimAchievementState>();
+        public List<StimLifeDecisionState> lifeDecisions = new List<StimLifeDecisionState>();
         public List<StimLifeFeedEntry> lifeFeed = new List<StimLifeFeedEntry>();
         public string pendingEventId;
         public List<StimEventHistoryEntry> eventHistory = new List<StimEventHistoryEntry>();
@@ -73,6 +75,8 @@ namespace StimTycoon.Saves
         public string firstName;
         public string lastName;
         public string pronouns;
+        public string genderIdentity = "undiscovered";
+        public string sexualOrientation = "undiscovered";
         public string country;
         public string backgroundId;
         public string avatarId;
@@ -103,6 +107,16 @@ namespace StimTycoon.Saves
         public long debtMinorUnits;
         public long monthlyLivingExpensesMinorUnits;
         public int taxRateBasisPoints;
+        public long spouseAnnualIncomeMinorUnits;
+        public long householdCreditBalanceMinorUnits;
+        public int householdCreditAprBasisPoints;
+    }
+
+    [Serializable]
+    public class StimHouseholdState
+    {
+        public int happiness = 50;
+        public int cohesion = 50;
     }
 
     [Serializable]
@@ -118,6 +132,9 @@ namespace StimTycoon.Saves
     public class StimEducationState
     {
         public string stage = "not_started";
+        public string schoolPath;
+        public string awaitingDecisionId;
+        public bool graduatedSecondary;
     }
 
     [Serializable]
@@ -133,10 +150,19 @@ namespace StimTycoon.Saves
         public string relationshipId;
         public string displayName;
         public string relationshipType;
+        public string origin;
+        public int introducedAtAge;
+        public int monthsSinceInteraction;
         public bool isGeneticParent;
         public int geneticHealth;
         public int geneticLooks;
         public int geneticSmarts;
+        public int npcSmarts;
+        public int npcCareerLevel;
+        public long npcAnnualIncomeMinorUnits;
+        public long npcCashMinorUnits;
+        public long npcDebtMinorUnits;
+        public bool financesMerged;
         public int value = 50;
     }
 
@@ -152,6 +178,17 @@ namespace StimTycoon.Saves
     {
         public string achievementId;
         public int unlockedAtAge;
+        public int revision;
+        public string timestampUtc;
+    }
+
+    [Serializable]
+    public class StimLifeDecisionState
+    {
+        public string decisionId;
+        public string choiceId;
+        public int age;
+        public int monthOfYear = 1;
         public int revision;
         public string timestampUtc;
     }
@@ -288,10 +325,12 @@ namespace StimTycoon.Saves
             ValidateCalendarState(result, save.state.calendar);
             ValidateFinancesState(result, save.state.finances);
             ValidateCareerState(result, save.state.career);
+            ValidateHouseholdState(result, save.state.household);
             ValidateSkills(result, save.state.skills);
             ValidateRelationships(result, save.state.relationships);
             ValidateStatuses(result, save.state.statuses);
             ValidateAchievements(result, save.state.achievements);
+            ValidateLifeDecisions(result, save.state.lifeDecisions);
             ValidateEventHistory(result, save.state.eventHistory);
             ValidateScheduledEvents(result, save.state.scheduledEvents);
 
@@ -389,6 +428,22 @@ namespace StimTycoon.Saves
                 result.isValid = false;
                 result.errors.Add("state.finances.debtMinorUnits cannot be negative");
             }
+            if (finances.spouseAnnualIncomeMinorUnits < 0)
+            {
+                result.isValid = false;
+                result.errors.Add("state.finances.spouseAnnualIncomeMinorUnits cannot be negative");
+            }
+            if (finances.householdCreditBalanceMinorUnits < 0 ||
+                finances.householdCreditBalanceMinorUnits > finances.debtMinorUnits)
+            {
+                result.isValid = false;
+                result.errors.Add("household credit balance must be non-negative and cannot exceed total debt");
+            }
+            if (finances.householdCreditAprBasisPoints < 0 || finances.householdCreditAprBasisPoints > 10000)
+            {
+                result.isValid = false;
+                result.errors.Add("household credit APR must be within [0, 10000] basis points");
+            }
 
 
             if (finances.monthlyLivingExpensesMinorUnits < 0)
@@ -402,6 +457,18 @@ namespace StimTycoon.Saves
                 result.isValid = false;
                 result.errors.Add("state.finances.taxRateBasisPoints must be within [0, 10000]");
             }
+        }
+
+        private static void ValidateHouseholdState(StimSaveValidationResult result, StimHouseholdState household)
+        {
+            if (household == null)
+            {
+                result.isValid = false;
+                result.errors.Add("state.household is null");
+                return;
+            }
+            ValidateStatRange(result, household.happiness, "state.household.happiness");
+            ValidateStatRange(result, household.cohesion, "state.household.cohesion");
         }
 
         private static void ValidateCalendarState(StimSaveValidationResult result, StimCalendarState calendar)
@@ -467,8 +534,14 @@ namespace StimTycoon.Saves
                 relationships,
                 "state.relationships",
                 relationship => relationship?.relationshipId,
-                relationship => relationship == null || relationship.value >= 0 && relationship.value <= 100,
-                "value must be within [0, 100]");
+                relationship => relationship == null ||
+                                relationship.value >= 0 && relationship.value <= 100 &&
+                                relationship.monthsSinceInteraction >= 0 &&
+                                relationship.npcSmarts >= 0 && relationship.npcSmarts <= 100 &&
+                                relationship.npcCareerLevel >= 0 && relationship.npcCareerLevel <= 5 &&
+                                relationship.npcAnnualIncomeMinorUnits >= 0 &&
+                                relationship.npcCashMinorUnits >= 0 && relationship.npcDebtMinorUnits >= 0,
+                "relationship and NPC finance values must be within their valid non-negative ranges");
         }
 
         private static void ValidateStatuses(StimSaveValidationResult result, List<StimStatusState> statuses)
@@ -493,6 +566,23 @@ namespace StimTycoon.Saves
                 achievement => achievement?.achievementId,
                 achievement => achievement == null || achievement.unlockedAtAge >= 0 && achievement.revision >= 1,
                 "unlock age must be non-negative and revision must be positive");
+        }
+
+        private static void ValidateLifeDecisions(
+            StimSaveValidationResult result,
+            List<StimLifeDecisionState> decisions)
+        {
+            ValidateProgressRecords(
+                result,
+                decisions,
+                "state.lifeDecisions",
+                decision => decision?.decisionId,
+                decision => decision == null ||
+                            !string.IsNullOrWhiteSpace(decision.choiceId) &&
+                            decision.age >= 0 &&
+                            decision.monthOfYear >= 1 && decision.monthOfYear <= 12 &&
+                            decision.revision >= 0,
+                "choiceId is required; age/revision cannot be negative; monthOfYear must be within [1, 12]");
         }
 
         private static void ValidateProgressRecords<T>(

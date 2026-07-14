@@ -18,13 +18,14 @@ namespace StimTycoon.Tests.Domain.UI
             var requiredNames = new[]
             {
                 "cash-value", "life-summary", "avatar-glyph", "event-category", "event-title", "event-body",
-                "result-text", "result-effects", "life-feed-scroll", "life-feed-list", "overview-career", "overview-calendar",
+                "result-text", "result-effects", "life-feed-card", "life-feed-scroll", "life-feed-list", "overview-career", "overview-calendar",
                 "health-value", "happiness-value", "smarts-value", "looks-value", "luck-value",
                 "career-progress-value", "monthly-paycheck-value", "annual-salary-value", "net-worth-value",
                 "choices", "result-card", "player-overview", "career-progress-fill",
                 "event-sheet", "health-fill", "happiness-fill", "smarts-fill", "looks-fill", "luck-fill",
                 "advance-month", "toggle-overview", "event-continue", "focus-study", "focus-workout",
                 "focus-study-title", "focus-study-effect", "focus-workout-title", "focus-workout-effect",
+                "context-activities",
                 "open-new-life", "new-life-setup", "cancel-new-life", "continue-current-life",
                 "create-new-life", "new-life-error", "social-view", "time-dock",
                 "relationship-list-view", "relationship-list",
@@ -34,13 +35,46 @@ namespace StimTycoon.Tests.Domain.UI
                 "learning-progress", "education-actions", "career-card", "career-role", "career-salary",
                 "career-next-step", "career-action-fill", "career-action-progress", "career-actions",
                 "final-life-summary", "ending-name", "ending-status", "ending-summary", "ending-new-life",
-                "achievements-card", "achievements-count", "achievements-list"
+                "achievements-card", "achievements-count", "achievements-list", "money-view", "net-worth-card",
+                "manual-work-role", "manual-work-rate", "money-cash-value",
+                "manual-work-tap", "manual-work-feedback"
             };
 
             foreach (var elementName in requiredNames)
             {
                 Assert.That(root.Q(elementName), Is.Not.Null, $"Playable Life UXML is missing '{elementName}'.");
             }
+        }
+
+        [Test]
+        public void PlayableLifeScreen_PutsFeedFirstAndNetWorthInMoney()
+        {
+            var root = Clone(PlayableLifePath);
+            var lifeContent = root.Q(className: "st-life-content");
+            var moneyContent = root.Q(className: "st-money-content");
+            var feedCard = root.Q("life-feed-card");
+            var netWorthCard = root.Q("net-worth-card");
+
+            Assert.That(lifeContent.ElementAt(0), Is.SameAs(feedCard));
+            Assert.IsTrue(lifeContent.Contains(feedCard));
+            Assert.IsFalse(lifeContent.Contains(netWorthCard));
+            Assert.IsTrue(moneyContent.Contains(netWorthCard));
+            Assert.That(root.Q("net-worth-trend"), Is.Null, "Net Worth must not show an uncomputed trend.");
+            Assert.That(root.Q(className: "st-worth-chart"), Is.Null, "Net Worth must not show a decorative chart without history data.");
+        }
+
+        [TestCase(320f, true)]
+        [TestCase(360f, true)]
+        [TestCase(390f, false)]
+        [TestCase(430f, false)]
+        [TestCase(768f, false)]
+        public void ResponsiveLayout_UsesCompactRulesAtNarrowWidths(float width, bool expectedCompact)
+        {
+            var root = new VisualElement();
+
+            StimVerticalSliceController.ApplyResponsiveLayout(root, width);
+
+            Assert.That(root.ClassListContains("st-compact-width"), Is.EqualTo(expectedCompact));
         }
 
         [Test]

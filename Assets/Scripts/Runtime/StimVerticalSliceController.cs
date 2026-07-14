@@ -60,11 +60,19 @@ namespace StimTycoon.Runtime
         private Label focusStudyEffect;
         private Label focusWorkoutTitle;
         private Label focusWorkoutEffect;
+        private VisualElement contextActivities;
         private ScrollView lifeScroll;
         private ScrollView socialView;
         private VisualElement timeDock;
         private Button navLife;
+        private Button navMoney;
         private Button navSocial;
+        private ScrollView moneyView;
+        private Label manualWorkRole;
+        private Label manualWorkRate;
+        private Label moneyCashValue;
+        private Button manualWorkTap;
+        private Label manualWorkFeedback;
         private VisualElement relationshipListView;
         private VisualElement relationshipList;
         private VisualElement relationshipDetailView;
@@ -97,6 +105,7 @@ namespace StimTycoon.Runtime
         private Button endingNewLife;
         private Label achievementsCount;
         private VisualElement achievementsList;
+        private VisualElement rootElement;
         private StimActivityType primaryFocusActivity;
         private StimActivityType secondaryFocusActivity;
         private StimEvent currentEvent;
@@ -107,6 +116,8 @@ namespace StimTycoon.Runtime
             document.panelSettings = panelSettings;
             document.visualTreeAsset = visualTreeAsset;
             var root = document.rootVisualElement;
+            rootElement = root;
+            root.RegisterCallback<GeometryChangedEvent>(HandleRootGeometryChanged);
             cashValue = root.Q<Label>("cash-value");
             lifeSummary = root.Q<Label>("life-summary");
             eventCategory = root.Q<Label>("event-category");
@@ -149,11 +160,19 @@ namespace StimTycoon.Runtime
             focusStudyEffect = root.Q<Label>("focus-study-effect");
             focusWorkoutTitle = root.Q<Label>("focus-workout-title");
             focusWorkoutEffect = root.Q<Label>("focus-workout-effect");
+            contextActivities = root.Q<VisualElement>("context-activities");
             lifeScroll = root.Q<ScrollView>("life-scroll");
             socialView = root.Q<ScrollView>("social-view");
             timeDock = root.Q<VisualElement>("time-dock");
             navLife = root.Q<Button>("nav-life");
+            navMoney = root.Q<Button>("nav-money");
             navSocial = root.Q<Button>("nav-social");
+            moneyView = root.Q<ScrollView>("money-view");
+            manualWorkRole = root.Q<Label>("manual-work-role");
+            manualWorkRate = root.Q<Label>("manual-work-rate");
+            moneyCashValue = root.Q<Label>("money-cash-value");
+            manualWorkTap = root.Q<Button>("manual-work-tap");
+            manualWorkFeedback = root.Q<Label>("manual-work-feedback");
             relationshipListView = root.Q<VisualElement>("relationship-list-view");
             relationshipList = root.Q<VisualElement>("relationship-list");
             relationshipDetailView = root.Q<VisualElement>("relationship-detail-view");
@@ -199,6 +218,16 @@ namespace StimTycoon.Runtime
             catalog.Upsert(RepresentativeStimEvents.CreateLuckCrossroads());
             catalog.Upsert(RepresentativeStimEvents.CreateChildhoodDiscovery());
             catalog.Upsert(RepresentativeStimEvents.CreateChildhoodComfort());
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerTrustConflict());
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerTrustAftermath());
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerJealousy());
+            catalog.Upsert(RepresentativeStimEvents.CreateComingOfAgeGender());
+            catalog.Upsert(RepresentativeStimEvents.CreateComingOfAgeOrientation());
+            catalog.Upsert(RepresentativeStimEvents.CreatePromInvitation());
+            catalog.Upsert(RepresentativeStimEvents.CreateFirstKiss());
+            catalog.Upsert(RepresentativeStimEvents.CreateProposal());
+            catalog.Upsert(RepresentativeStimEvents.CreateWedding());
+            catalog.Upsert(RepresentativeStimEvents.CreateMarriageCrossroads());
             gameSession = new StimGameSessionService(catalog, new NativeStimSaveRepository());
             var loadedExistingLife = gameSession.TryLoadLatest(out _);
 
@@ -218,7 +247,10 @@ namespace StimTycoon.Runtime
                 cancelNewLife == null || continueCurrentLife == null || createNewLife == null || openNewLife == null ||
                 focusStudy == null || focusWorkout == null || focusStudyTitle == null || focusStudyEffect == null ||
                 focusWorkoutTitle == null || focusWorkoutEffect == null || lifeScroll == null || socialView == null ||
-                timeDock == null || navLife == null || navSocial == null || relationshipListView == null ||
+                contextActivities == null ||
+                timeDock == null || navLife == null || navMoney == null || navSocial == null || moneyView == null ||
+                manualWorkRole == null || manualWorkRate == null || moneyCashValue == null ||
+                manualWorkTap == null || manualWorkFeedback == null || relationshipListView == null ||
                 relationshipList == null || relationshipDetailView == null || relationshipBack == null ||
                 relationshipAvatar == null || relationshipName == null || relationshipType == null ||
                 relationshipStrength == null || relationshipFill == null || relationshipGenetics == null ||
@@ -240,7 +272,9 @@ namespace StimTycoon.Runtime
             focusStudy.clicked += () => PerformActivity(primaryFocusActivity);
             focusWorkout.clicked += () => PerformActivity(secondaryFocusActivity);
             navLife.clicked += ShowLifeDestination;
+            navMoney.clicked += ShowMoneyDestination;
             navSocial.clicked += ShowSocialDestination;
+            manualWorkTap.clicked += PerformManualWorkTap;
             relationshipBack.clicked += ShowRelationshipList;
             endingNewLife.clicked += OpenNewLifeFromEnding;
             ConfigureNewLifeControls();
@@ -285,13 +319,29 @@ namespace StimTycoon.Runtime
             ShowNewLifeSetup(true, false);
         }
 
+        private void OnDisable()
+        {
+            rootElement?.UnregisterCallback<GeometryChangedEvent>(HandleRootGeometryChanged);
+        }
+
+        private void HandleRootGeometryChanged(GeometryChangedEvent evt)
+        {
+            ApplyResponsiveLayout(rootElement, evt.newRect.width);
+        }
+
+        public static void ApplyResponsiveLayout(VisualElement root, float width)
+        {
+            if (root == null) return;
+            root.EnableInClassList("st-compact-width", width > 0f && width <= 360f);
+        }
+
         public void Configure(PanelSettings settings, VisualTreeAsset tree)
         {
             panelSettings = settings;
             visualTreeAsset = tree;
         }
 
-        private void Resolve(string choiceId)
+        private void Resolve(string choiceId, StimPaymentMethod paymentMethod = StimPaymentMethod.Cash)
         {
             if (currentEvent == null)
             {
@@ -301,6 +351,7 @@ namespace StimTycoon.Runtime
             if (!gameSession.TryResolveChoice(
                     currentEvent.id,
                     choiceId,
+                    paymentMethod,
                     out var summary))
             {
                 resultText.text = summary;
@@ -379,24 +430,40 @@ namespace StimTycoon.Runtime
             for (var index = 0; index < evt.choices.Count; index++)
             {
                 var choice = evt.choices[index];
-                var button = new Button { name = $"choice-{choice.id}" };
-                button.AddToClassList("choice-button");
-                if (index > 0)
+                var potentialCost = StimGameSessionService.CalculateChoicePotentialCost(
+                    evt, choice, gameSession.ActiveSave.state);
+                AddEventChoiceButton(choice, index, StimPaymentMethod.Cash,
+                    potentialCost > 0 ? $" · Pay cash (up to {FormatMoney(potentialCost)})" : string.Empty);
+                if (potentialCost > 0 && gameSession.ActiveSave.state.character.age >= 18)
                 {
-                    button.AddToClassList("secondary");
+                    AddEventChoiceButton(choice, index + 1, StimPaymentMethod.Credit,
+                        $" · Use credit (up to {FormatMoney(potentialCost)})");
                 }
-
-                var title = new Label(choice.labelKey);
-                title.AddToClassList("choice-title");
-                button.Add(title);
-                var choiceId = choice.id;
-                button.clicked += () => Resolve(choiceId);
-                choices.Add(button);
             }
             choices.RemoveFromClassList("hidden");
             resultCard.AddToClassList("hidden");
             eventContinue.AddToClassList("hidden");
             eventSheet.RemoveFromClassList("hidden");
+        }
+
+        private void AddEventChoiceButton(
+            Choice choice,
+            int visualIndex,
+            StimPaymentMethod paymentMethod,
+            string paymentLabel)
+        {
+            var button = new Button
+            {
+                name = $"choice-{choice.id}-{paymentMethod.ToString().ToLowerInvariant()}"
+            };
+            button.AddToClassList("choice-button");
+            if (visualIndex > 0) button.AddToClassList("secondary");
+            var title = new Label(choice.labelKey + paymentLabel);
+            title.AddToClassList("choice-title");
+            button.Add(title);
+            var choiceId = choice.id;
+            button.clicked += () => Resolve(choiceId, paymentMethod);
+            choices.Add(button);
         }
 
         private void RefreshHeader()
@@ -438,6 +505,23 @@ namespace StimTycoon.Runtime
             RefreshEducation();
             RefreshCareer();
             RefreshAchievements();
+            RefreshMoney();
+        }
+
+        private void RefreshMoney()
+        {
+            var state = gameSession.ActiveSave.state;
+            var career = state.career ?? new StimCareerState();
+            var employed = !string.IsNullOrEmpty(career.roleTitle) && career.roleTitle != "Retired" &&
+                           career.annualSalaryMinorUnits > 0 && state.character.lifeStatus == "active";
+            var hourlyRate = StimGameSessionService.CalculateHourlyRateMinorUnits(career.annualSalaryMinorUnits);
+            manualWorkRole.text = employed ? career.roleTitle : "Get a salaried job to begin";
+            manualWorkRate.text = employed ? $"{FormatPreciseMoney(hourlyRate)} per hour" : "$0.00 per hour";
+            moneyCashValue.text = FormatMoney(state.finances.cashMinorUnits);
+            manualWorkTap.text = employed
+                ? $"WORK 1 HOUR  ·  +{FormatPreciseMoney(hourlyRate)}"
+                : "WORK 1 HOUR";
+            manualWorkTap.SetEnabled(employed && string.IsNullOrEmpty(state.pendingEventId));
         }
 
         private void RefreshAchievements()
@@ -495,6 +579,28 @@ namespace StimTycoon.Runtime
             learningFill.style.width = Length.Percent(ClampFillPercent(levelProgress * 100f / levelSpan));
 
             educationActions.Clear();
+            if (!string.IsNullOrEmpty(state.education.awaitingDecisionId))
+            {
+                var pathChoices = state.education.awaitingDecisionId == "education_high_transition"
+                    ? new[] { StimSchoolPathChoice.AcademicTrack, StimSchoolPathChoice.VocationalTrack, StimSchoolPathChoice.LeaveSchool }
+                    : state.education.awaitingDecisionId == "education_middle_transition"
+                        ? new[] { StimSchoolPathChoice.PublicSchool, StimSchoolPathChoice.Homeschool, StimSchoolPathChoice.LeaveSchool }
+                        : new[] { StimSchoolPathChoice.PublicSchool, StimSchoolPathChoice.Homeschool };
+                educationStage.text = "School path decision required";
+                foreach (var pathChoice in pathChoices)
+                {
+                    var capturedChoice = pathChoice;
+                    var button = new Button
+                    {
+                        name = $"school-path-{pathChoice.ToString().ToLowerInvariant()}",
+                        text = ToDisplayName(pathChoice.ToString())
+                    };
+                    button.AddToClassList("st-education-action");
+                    button.clicked += () => PerformSchoolPathChoice(capturedChoice);
+                    educationActions.Add(button);
+                }
+                return;
+            }
             var actions = new[]
             {
                 StimEducationActionType.Read,
@@ -517,6 +623,26 @@ namespace StimTycoon.Runtime
                 button.clicked += () => PerformEducationAction(capturedAction);
                 educationActions.Add(button);
             }
+        }
+
+        private void PerformSchoolPathChoice(StimSchoolPathChoice choice)
+        {
+            var succeeded = gameSession.TryChooseSchoolPath(choice, out var summary);
+            eventCategory.text = succeeded ? "LIFE PATH" : "PATH LOCKED";
+            eventTitle.text = ToDisplayName(choice.ToString());
+            eventBody.text = succeeded
+                ? "This decision is now part of your permanent life history and can affect later opportunities."
+                : "This path is not available at the current school transition.";
+            resultText.text = summary;
+            resultEffects.text = string.Empty;
+            resultEffects.AddToClassList("hidden");
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
         }
 
         private void PerformEducationAction(StimEducationActionType actionType)
@@ -684,6 +810,42 @@ namespace StimTycoon.Runtime
             }
             focusStudy.SetEnabled(true);
             focusWorkout.SetEnabled(true);
+            RefreshContextActivities(gameSession.ActiveSave.state);
+        }
+
+        private void RefreshContextActivities(StimGameState state)
+        {
+            contextActivities.Clear();
+            StimActivityType[] activities;
+            var employed = !string.IsNullOrEmpty(state.career?.roleTitle) && state.career.roleTitle != "Retired";
+            if (state.character.age < 5)
+                activities = new[] { StimActivityType.FamilyTime, StimActivityType.FamilyMovie, StimActivityType.Explore };
+            else if (state.character.age < 13)
+                activities = new[] { StimActivityType.AttendSchool, StimActivityType.FamilyTime, StimActivityType.FamilyMovie, StimActivityType.Explore };
+            else if (state.character.age < 18)
+                activities = new[] { StimActivityType.AttendSchool, StimActivityType.JoinClub, StimActivityType.FamilyMovie, StimActivityType.Socialize };
+            else if (state.character.age >= 65)
+                activities = new[] { StimActivityType.Hobby, StimActivityType.FamilyTime, StimActivityType.FamilyMovie, StimActivityType.FamilyMovieCredit, StimActivityType.Socialize, StimActivityType.Checkup };
+            else if (employed)
+                activities = new[] { StimActivityType.WorkShift, StimActivityType.Overtime, StimActivityType.Training, StimActivityType.FamilyTime, StimActivityType.FamilyMovie, StimActivityType.FamilyMovieCredit, StimActivityType.Socialize };
+            else
+                activities = new[] { StimActivityType.Training, StimActivityType.FamilyTime, StimActivityType.FamilyMovie, StimActivityType.FamilyMovieCredit, StimActivityType.Socialize, StimActivityType.Rest };
+
+            var usedThisMonth = state.statuses.Exists(status => status.statusId == "monthly_focus_used");
+            foreach (var activity in activities)
+            {
+                var available = StimGameSessionService.TryGetActivityRequirement(state, activity, out var requirement);
+                var capturedActivity = activity;
+                var button = new Button
+                {
+                    name = $"context-activity-{activity.ToString().ToLowerInvariant()}",
+                    text = available ? ToDisplayName(activity.ToString()) : $"{ToDisplayName(activity.ToString())}\n{requirement}"
+                };
+                button.AddToClassList("st-context-activity");
+                button.SetEnabled(available && !usedThisMonth);
+                button.clicked += () => PerformActivity(capturedActivity);
+                contextActivities.Add(button);
+            }
         }
 
         private void CloseEventSheet()
@@ -727,8 +889,22 @@ namespace StimTycoon.Runtime
         {
             lifeScroll.RemoveFromClassList("hidden");
             timeDock.RemoveFromClassList("hidden");
+            moneyView.AddToClassList("hidden");
             socialView.AddToClassList("hidden");
             navLife.AddToClassList("active");
+            navMoney.RemoveFromClassList("active");
+            navSocial.RemoveFromClassList("active");
+        }
+
+        private void ShowMoneyDestination()
+        {
+            RefreshMoney();
+            lifeScroll.AddToClassList("hidden");
+            timeDock.AddToClassList("hidden");
+            socialView.AddToClassList("hidden");
+            moneyView.RemoveFromClassList("hidden");
+            navLife.RemoveFromClassList("active");
+            navMoney.AddToClassList("active");
             navSocial.RemoveFromClassList("active");
         }
 
@@ -737,10 +913,28 @@ namespace StimTycoon.Runtime
             RefreshSocial();
             lifeScroll.AddToClassList("hidden");
             timeDock.AddToClassList("hidden");
+            moneyView.AddToClassList("hidden");
             socialView.RemoveFromClassList("hidden");
             navLife.RemoveFromClassList("active");
+            navMoney.RemoveFromClassList("active");
             navSocial.AddToClassList("active");
             ShowRelationshipList();
+        }
+
+        private void PerformManualWorkTap()
+        {
+            var succeeded = gameSession.TryPerformManualWorkTap(out _, out var summary);
+            manualWorkFeedback.text = summary;
+            if (!succeeded)
+            {
+                manualWorkFeedback.style.color = new StyleColor(Color.red);
+                RefreshMoney();
+                return;
+            }
+
+            manualWorkFeedback.style.color = StyleKeyword.Null;
+            RefreshHeader();
+            RefreshFeed();
         }
 
         private void ShowRelationshipList()
@@ -811,7 +1005,12 @@ namespace StimTycoon.Runtime
             relationshipFill.style.width = Length.Percent(ClampFillPercent(relationship.value));
             relationshipGenetics.text = relationship.isGeneticParent
                 ? $"Inherited profile · Health {relationship.geneticHealth} · Looks {relationship.geneticLooks} · Smarts {relationship.geneticSmarts}"
-                : "This relationship is part of your growing social story.";
+                : string.IsNullOrEmpty(relationship.origin)
+                    ? "This relationship is part of your growing social story."
+                    : $"Met through {ToDisplayName(relationship.origin)} at age {relationship.introducedAtAge} · " +
+                      (relationship.monthsSinceInteraction == 0
+                          ? "Connected this month."
+                          : $"{relationship.monthsSinceInteraction} months since focused time together.");
             BuildRelationshipActions(relationship);
         }
 
@@ -824,7 +1023,12 @@ namespace StimTycoon.Runtime
                 StimRelationshipInteractionType.PlayTogether,
                 StimRelationshipInteractionType.AskForHelp,
                 StimRelationshipInteractionType.SpendTime,
-                StimRelationshipInteractionType.Argue
+                StimRelationshipInteractionType.Argue,
+                StimRelationshipInteractionType.Compete,
+                StimRelationshipInteractionType.Reconcile,
+                StimRelationshipInteractionType.AskOnDate,
+                StimRelationshipInteractionType.Commit,
+                StimRelationshipInteractionType.BreakUp
             };
             var age = gameSession.ActiveSave.state.character.age;
             var cooldownId = $"relationship_interaction_used_{relationship.relationshipId}";
@@ -832,6 +1036,15 @@ namespace StimTycoon.Runtime
             foreach (var interaction in interactions)
             {
                 if (!StimGameSessionService.IsRelationshipInteractionAgeAppropriate(interaction, age)) continue;
+                if (interaction == StimRelationshipInteractionType.Compete && relationship.relationshipType == "parent") continue;
+                if (interaction == StimRelationshipInteractionType.Reconcile && relationship.relationshipType != "rival") continue;
+                if (interaction == StimRelationshipInteractionType.AskOnDate &&
+                    ((relationship.relationshipType != "friend" && relationship.relationshipType != "best_friend") ||
+                     relationship.value < 60)) continue;
+                if (interaction == StimRelationshipInteractionType.Commit &&
+                    (relationship.relationshipType != "dating" || relationship.value < 75)) continue;
+                if (interaction == StimRelationshipInteractionType.BreakUp &&
+                    relationship.relationshipType != "dating" && relationship.relationshipType != "partner") continue;
                 var button = new Button
                 {
                     name = $"relationship-action-{interaction.ToString().ToLowerInvariant()}",
@@ -936,6 +1149,11 @@ namespace StimTycoon.Runtime
         private static string FormatMoney(long minorUnits)
         {
             return (minorUnits / 100m).ToString("C0");
+        }
+
+        private static string FormatPreciseMoney(long minorUnits)
+        {
+            return (minorUnits / 100m).ToString("C2");
         }
 
         public static float ClampFillPercent(float value)

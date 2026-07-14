@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
 using StimTycoon.Abstractions;
@@ -188,11 +189,31 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.IsTrue(resolved, summary);
             Assert.That(service.LastResolution.outcome.id, Is.EqualTo("raise_approved"));
             Assert.That(service.ActiveSave.state.career.annualSalaryMinorUnits, Is.EqualTo(5500000));
+            var resolvedFeedEntry = service.ActiveSave.state.lifeFeed.FindLast(entry =>
+                entry != null && entry.category == "event");
+            Assert.That(resolvedFeedEntry, Is.Not.Null);
+            Assert.That(resolvedFeedEntry.category, Is.EqualTo("event"));
+            Assert.That(resolvedFeedEntry.text, Does.Contain("Negotiated a salary increase."));
+            Assert.That(resolvedFeedEntry.text, Does.Contain("Your manager approves a meaningful raise."));
 
             Assert.IsTrue(service.TryAdvanceMonth(out _, out var paycheckSummary), paycheckSummary);
             Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(558334));
             Assert.That(service.ActiveSave.state.career.careerProgress, Is.EqualTo(1));
             Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(76));
+        }
+
+        [Test]
+        public void OutcomeFeedText_FallsBackToTheResolvedResult()
+        {
+            var outcome = new Outcome
+            {
+                resultTextKey = "The exact resolved outcome remains visible.",
+                feedEntryKey = string.Empty
+            };
+
+            Assert.That(
+                StimGameSessionService.BuildOutcomeFeedText(outcome),
+                Is.EqualTo("The exact resolved outcome remains visible."));
         }
 
         [Test]
@@ -448,6 +469,12 @@ namespace StimTycoon.Tests.Domain.Runtime
         [TestCase(13, StimRelationshipInteractionType.PlayTogether, false)]
         [TestCase(17, StimRelationshipInteractionType.AskForHelp, true)]
         [TestCase(18, StimRelationshipInteractionType.AskForHelp, false)]
+        [TestCase(17, StimRelationshipInteractionType.AskOnDate, false)]
+        [TestCase(18, StimRelationshipInteractionType.AskOnDate, true)]
+        [TestCase(20, StimRelationshipInteractionType.Commit, false)]
+        [TestCase(21, StimRelationshipInteractionType.Commit, true)]
+        [TestCase(17, StimRelationshipInteractionType.BreakUp, false)]
+        [TestCase(18, StimRelationshipInteractionType.BreakUp, true)]
         [TestCase(70, StimRelationshipInteractionType.Talk, true)]
         public void RelationshipInteractions_RespectAgeRules(
             int age,
@@ -457,6 +484,446 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(
                 StimGameSessionService.IsRelationshipInteractionAgeAppropriate(interactionType, age),
                 Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void AdultFriendship_CanBecomePartnershipAndEndWithPersistentFeedHistory()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "friend_adult_1",
+                displayName = "Avery",
+                relationshipType = "friend",
+                value = 70
+            });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "friend_adult_1", StimRelationshipInteractionType.AskOnDate, out var dateSummary), dateSummary);
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("dating"));
+            Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(75));
+            Assert.IsFalse(service.TryPerformRelationshipInteraction(
+                "friend_adult_1", StimRelationshipInteractionType.Commit, out var cooldownSummary));
+            Assert.That(cooldownSummary, Does.Contain("already spent focused time"));
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var firstAdvanceSummary), firstAdvanceSummary);
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "friend_adult_1", StimRelationshipInteractionType.Commit, out var commitSummary), commitSummary);
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("partner"));
+            Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(80));
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var secondAdvanceSummary), secondAdvanceSummary);
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "friend_adult_1", StimRelationshipInteractionType.BreakUp, out var breakupSummary), breakupSummary);
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("ex_partner"));
+            Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(60));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(74));
+            Assert.That(service.ActiveSave.state.lifeFeed.FindAll(
+                entry => entry != null && entry.category == "relationship"), Has.Count.EqualTo(3));
+            Assert.That(repository.CommitCount, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void ComingOfAge_RecordsPlayerChosenGenderAndOrientationAcrossEventChain()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateComingOfAgeGender());
+            catalog.Upsert(RepresentativeStimEvents.CreateComingOfAgeOrientation());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 15;
+            save.state.character.lifeStage = StimGameSessionService.GetLifeStage(15);
+            save.state.character.genderIdentity = "undiscovered";
+            save.state.character.sexualOrientation = "undiscovered";
+            save.state.calendar.monthOfYear = 12;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var genderEvent, out var birthdaySummary), birthdaySummary);
+            Assert.That(genderEvent?.id, Is.EqualTo(RepresentativeStimEvents.ComingOfAgeGenderId));
+            Assert.IsTrue(service.TryResolveChoice(
+                genderEvent.id, "identify_nonbinary", out var genderSummary), genderSummary);
+            Assert.That(service.ActiveSave.state.character.genderIdentity, Is.EqualTo("nonbinary"));
+            Assert.That(service.ActiveSave.state.scheduledEvents.Exists(
+                record => record.eventId == RepresentativeStimEvents.ComingOfAgeOrientationId), Is.True);
+
+            StimEvent orientationEvent = null;
+            for (var month = 0; month < 12; month++)
+            {
+                Assert.IsTrue(service.TryAdvanceMonth(out orientationEvent, out var advanceSummary), advanceSummary);
+            }
+
+            Assert.That(orientationEvent?.id, Is.EqualTo(RepresentativeStimEvents.ComingOfAgeOrientationId));
+            Assert.IsTrue(service.TryResolveChoice(
+                orientationEvent.id, "orientation_bisexual", out var orientationSummary), orientationSummary);
+            Assert.That(service.ActiveSave.state.character.sexualOrientation, Is.EqualTo("bisexual"));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "event" && entry.text.Contains("nonbinary")), Is.True);
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "event" && entry.text.Contains("bisexual")), Is.True);
+        }
+
+        [Test]
+        public void PromDate_CreatesDatingRelationshipAndSchedulesConsentAwareFirstKiss()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreatePromInvitation());
+            catalog.Upsert(RepresentativeStimEvents.CreateFirstKiss());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 18;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                displayName = "Taylor",
+                relationshipType = "friend",
+                value = 65
+            });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryResolveChoice(
+                RepresentativeStimEvents.PromInvitationId,
+                "attend_prom_together",
+                out var promSummary), promSummary);
+            var partner = service.ActiveSave.state.relationships.Find(
+                relationship => relationship.relationshipId == "school_peer_primary");
+            Assert.That(partner, Is.Not.Null);
+            Assert.That(partner.relationshipType, Is.EqualTo("dating"));
+            Assert.That(partner.value, Is.EqualTo(80));
+            Assert.That(service.ActiveSave.state.scheduledEvents.Exists(
+                record => record.eventId == RepresentativeStimEvents.FirstKissId), Is.True);
+
+            service.ActiveSave.state.character.age = 19;
+            Assert.IsTrue(service.TryResolveChoice(
+                RepresentativeStimEvents.FirstKissId,
+                "wait_to_kiss",
+                out var kissSummary), kissSummary);
+            Assert.That(partner.value, Is.EqualTo(80),
+                "The active object remains transactional and must not be mutated in place.");
+            var persistedPartner = service.ActiveSave.state.relationships.Find(
+                relationship => relationship.relationshipId == "school_peer_primary");
+            Assert.That(persistedPartner.value, Is.EqualTo(85));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "event" && entry.text.Contains("respected your boundary")), Is.True);
+        }
+
+        [Test]
+        public void PromDate_RejectsFriendshipBelowDatingThreshold()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreatePromInvitation());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 18;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                displayName = "Taylor",
+                relationshipType = "friend",
+                value = 59
+            });
+            service.Start(save);
+
+            Assert.IsFalse(service.TryResolveChoice(
+                RepresentativeStimEvents.PromInvitationId,
+                "attend_prom_together",
+                out var summary));
+            Assert.That(summary, Does.Contain("at least 60"));
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("friend"));
+            Assert.That(service.ActiveSave.state.lifeFeed, Is.Empty);
+        }
+
+        [Test]
+        public void StrongAdultPartnership_CanBecomeEngagementAndMarriage()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateProposal());
+            catalog.Upsert(RepresentativeStimEvents.CreateWedding());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 25;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                displayName = "Taylor",
+                relationshipType = "partner",
+                value = 85,
+                npcAnnualIncomeMinorUnits = 6000000,
+                npcCashMinorUnits = 0,
+                npcDebtMinorUnits = 0
+            });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryResolveChoice(
+                RepresentativeStimEvents.ProposalId, "propose_marriage", out var proposalSummary), proposalSummary);
+            var engaged = service.ActiveSave.state.relationships.Find(
+                relationship => relationship.relationshipId == "school_peer_primary");
+            Assert.That(engaged.relationshipType, Is.EqualTo("engaged"));
+            Assert.That(engaged.value, Is.EqualTo(90));
+            Assert.That(service.LastFinancialImpactMinorUnits, Is.EqualTo(-50000));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(950000));
+            Assert.That(service.ActiveSave.state.scheduledEvents.Exists(
+                record => record.eventId == RepresentativeStimEvents.WeddingId), Is.True);
+
+            Assert.IsTrue(service.TryResolveChoice(
+                RepresentativeStimEvents.WeddingId, "get_married", out var weddingSummary), weddingSummary);
+            var married = service.ActiveSave.state.relationships.Find(
+                relationship => relationship.relationshipId == "school_peer_primary");
+            Assert.That(married.relationshipType, Is.EqualTo("married"));
+            Assert.That(married.value, Is.EqualTo(95));
+            Assert.That(service.ActiveSave.state.finances.spouseAnnualIncomeMinorUnits, Is.EqualTo(6000000));
+            Assert.That(service.LastFinancialImpactMinorUnits, Is.EqualTo(39334));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(989334));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "event" && entry.text.Contains("Got married")), Is.True);
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "money" && entry.text.Contains("Financial impact")), Is.True);
+        }
+
+        [Test]
+        public void Marriage_MergesNpcFundsOnceAndCombinesFutureMonthlyIncome()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateWedding());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 25;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                displayName = "Taylor",
+                relationshipType = "engaged",
+                value = 95,
+                npcSmarts = 80,
+                npcCareerLevel = 4,
+                npcAnnualIncomeMinorUnits = 12000000,
+                npcCashMinorUnits = 500000,
+                npcDebtMinorUnits = 100000
+            });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryResolveChoice(
+                RepresentativeStimEvents.WeddingId, "get_married", out var weddingSummary), weddingSummary);
+            Assert.That(service.ActiveSave.state.finances.spouseAnnualIncomeMinorUnits, Is.EqualTo(12000000));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(1553334));
+            Assert.That(service.ActiveSave.state.finances.debtMinorUnits, Is.EqualTo(100000));
+            Assert.That(service.ActiveSave.state.relationships[0].financesMerged, Is.True);
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "money" && entry.text.Contains("Combined household finances")), Is.True);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var monthSummary), monthSummary);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(2970001));
+        }
+
+        [Test]
+        public void WeddingFinancialImpact_CanBePositiveOrNegativeBasedOnLifeFactors()
+        {
+            var modestState = CreateValidSave().state;
+            modestState.career.annualSalaryMinorUnits = 3000000;
+            modestState.career.careerProgress = 80;
+            modestState.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                relationshipType = "engaged",
+                value = 95
+            });
+            var affluentState = CreateValidSave().state;
+            affluentState.career.annualSalaryMinorUnits = 30000000;
+            affluentState.career.careerProgress = 10;
+            affluentState.finances.cashMinorUnits = 10000000;
+            affluentState.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                relationshipType = "engaged",
+                value = 80
+            });
+
+            Assert.That(StimGameSessionService.CalculateEventFinancialImpact(
+                RepresentativeStimEvents.WeddingId, "get_married", modestState), Is.GreaterThan(0));
+            Assert.That(StimGameSessionService.CalculateEventFinancialImpact(
+                RepresentativeStimEvents.WeddingId, "get_married", affluentState), Is.LessThan(0));
+        }
+
+        [TestCase(RepresentativeStimEvents.HealthBurnoutId, "take_a_break")]
+        [TestCase(RepresentativeStimEvents.PeerTrustConflictId, "keep_confidence")]
+        [TestCase(RepresentativeStimEvents.ComingOfAgeGenderId, "identify_nonbinary")]
+        [TestCase(RepresentativeStimEvents.FirstKissId, "share_first_kiss")]
+        [TestCase(RepresentativeStimEvents.ProposalId, "end_partnership")]
+        public void NonFinancialEventChoices_HaveNoImplicitFinancialImpact(string eventId, string choiceId)
+        {
+            var state = CreateValidSave().state;
+
+            Assert.That(
+                StimGameSessionService.CalculateEventFinancialImpact(eventId, choiceId, state),
+                Is.Zero);
+        }
+
+        [Test]
+        public void Proposal_RejectsWeakOrUnderagePartnership()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateProposal());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 23;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                relationshipType = "partner",
+                value = 79
+            });
+            service.Start(save);
+
+            Assert.IsFalse(service.TryResolveChoice(
+                RepresentativeStimEvents.ProposalId, "propose_marriage", out var summary));
+            Assert.That(summary, Does.Contain("age 24+").And.Contain("80 relationship strength"));
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("partner"));
+        }
+
+        [Test]
+        public void CostedEvent_OffersCreditWhenCashIsInsufficientAndLineIsAvailable()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateProposal());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 25;
+            save.state.finances.cashMinorUnits = 0;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                relationshipType = "partner",
+                value = 85
+            });
+            service.Start(save);
+
+            Assert.IsFalse(service.TryResolveChoice(
+                RepresentativeStimEvents.ProposalId, "propose_marriage", out var cashFailure));
+            Assert.That(cashFailure, Does.Contain("more cash").And.Contain("credit option"));
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("partner"));
+
+            Assert.IsTrue(service.TryResolveChoice(
+                RepresentativeStimEvents.ProposalId,
+                "propose_marriage",
+                StimPaymentMethod.Credit,
+                out var creditSummary), creditSummary);
+            Assert.That(creditSummary, Does.Contain("paid by credit").And.Contain("APR"));
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("engaged"));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(77));
+            Assert.That(service.ActiveSave.state.finances.householdCreditBalanceMinorUnits, Is.EqualTo(50000));
+            Assert.That(service.ActiveSave.state.finances.debtMinorUnits, Is.EqualTo(50000));
+        }
+
+        [Test]
+        public void CreditDenial_ReducesHappinessWithoutApplyingPurchaseEffects()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateProposal());
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(catalog, repository);
+            var save = CreateValidSave();
+            save.state.character.age = 25;
+            save.state.finances.cashMinorUnits = 0;
+            save.state.finances.debtMinorUnits = 2000000;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                relationshipType = "partner",
+                value = 85
+            });
+            service.Start(save);
+
+            Assert.IsFalse(service.TryResolveChoice(
+                RepresentativeStimEvents.ProposalId,
+                "propose_marriage",
+                StimPaymentMethod.Credit,
+                out var summary));
+
+            Assert.That(summary, Does.Contain("Credit was denied").And.Contain("Happiness −2"));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(68));
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("partner"));
+            Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(85));
+            Assert.That(service.ActiveSave.state.eventHistory, Is.Empty);
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "money" && entry.text.Contains("Credit denied")), Is.True);
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void AuthoredCashCost_UsesTheSameCashOrCreditPaymentPath()
+        {
+            var evt = RepresentativeStimEvents.CreateRandomLoss();
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(evt);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.finances.cashMinorUnits = 0;
+            service.Start(save);
+
+            Assert.That(StimGameSessionService.CalculateChoicePotentialCost(
+                evt, evt.choices[0], save.state), Is.EqualTo(4000));
+            Assert.IsFalse(service.TryResolveChoice(
+                evt.id, "handle_it_now", out var cashFailure));
+            Assert.That(cashFailure, Does.Contain("credit option"));
+            Assert.IsTrue(service.TryResolveChoice(
+                evt.id, "handle_it_now", StimPaymentMethod.Credit, out var creditSummary), creditSummary);
+            Assert.That(service.ActiveSave.state.finances.householdCreditBalanceMinorUnits, Is.EqualTo(4000));
+            Assert.That(service.ActiveSave.state.finances.debtMinorUnits, Is.EqualTo(4000));
+        }
+
+        [Test]
+        public void NeglectedMarriage_DecaysAndDivorceAppliesAuthoredSettlement()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateMarriageCrossroads());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 30;
+            save.state.career = new StimCareerState();
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                displayName = "Taylor",
+                relationshipType = "married",
+                value = 56
+            });
+            service.Start(save);
+
+            for (var month = 0; month < 6; month++)
+                Assert.IsTrue(service.TryAdvanceMonth(out _, out var advanceSummary), advanceSummary);
+            Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(55));
+
+            Assert.IsTrue(service.TryResolveChoice(
+                RepresentativeStimEvents.MarriageCrossroadsId, "divorce", out var divorceSummary), divorceSummary);
+            Assert.That(service.ActiveSave.state.relationships[0].relationshipType, Is.EqualTo("ex_partner"));
+            Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(35));
+            Assert.That(service.LastFinancialImpactMinorUnits, Is.EqualTo(-300000));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(700000));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "money" && entry.text.Contains("Financial impact")), Is.True);
+        }
+
+        [Test]
+        public void MarriageCrossroads_RejectsHealthyMarriage()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateMarriageCrossroads());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 30;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                relationshipType = "married",
+                value = 56
+            });
+            service.Start(save);
+
+            Assert.IsFalse(service.TryResolveChoice(
+                RepresentativeStimEvents.MarriageCrossroadsId, "divorce", out var summary));
+            Assert.That(summary, Does.Contain("55 relationship strength or below"));
         }
 
         [Test]
@@ -476,6 +943,95 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(50));
             Assert.That(service.ActiveSave.state.lifeFeed, Is.Empty);
             Assert.That(service.ActiveSave.state.statuses, Is.Empty);
+        }
+
+        [Test]
+        public void FamilyMovie_ImprovesHouseholdAndFamilyRelationshipsAndChargesTickets()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 30;
+            save.state.finances.spouseAnnualIncomeMinorUnits = 6000000;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "spouse_1",
+                relationshipType = "married",
+                value = 70
+            });
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "child_1",
+                relationshipType = "child",
+                value = 60
+            });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformActivity(
+                StimActivityType.FamilyMovie, out var summary), summary);
+
+            Assert.That(summary, Does.Contain("Household happiness +4").And.Contain("Cost $45"));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(73));
+            Assert.That(service.ActiveSave.state.household.happiness, Is.EqualTo(54));
+            Assert.That(service.ActiveSave.state.household.cohesion, Is.EqualTo(53));
+            Assert.That(service.ActiveSave.state.relationships[0].value, Is.EqualTo(73));
+            Assert.That(service.ActiveSave.state.relationships[1].value, Is.EqualTo(63));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(995500));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "activity" && entry.text.Contains("Family movie night")), Is.True);
+        }
+
+        [Test]
+        public void FamilyMovieCredit_RequiresCreditLineAndAddsOnlyFixedTicketDebt()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 30;
+            save.state.finances.cashMinorUnits = 0;
+            save.state.finances.debtMinorUnits = 10000;
+            save.state.relationships.Add(new StimRelationshipState
+                { relationshipId = "spouse_1", relationshipType = "married", value = 70 });
+            save.state.relationships.Add(new StimRelationshipState
+                { relationshipId = "child_1", relationshipType = "child", value = 60 });
+            service.Start(save);
+
+            Assert.IsFalse(service.TryPerformActivity(
+                StimActivityType.FamilyMovie, out var cashSummary));
+            Assert.That(cashSummary, Does.Contain("costs $45").And.Contain("credit option"));
+            Assert.IsTrue(service.TryPerformActivity(
+                StimActivityType.FamilyMovieCredit, out var creditSummary), creditSummary);
+            Assert.That(creditSummary, Does.Contain("Charged to credit $45"));
+            Assert.That(creditSummary, Does.Contain("Credit approved").And.Contain("Happiness +1"));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(74));
+            Assert.That(creditSummary, Does.Contain("APR 17.52%"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.Zero);
+            Assert.That(service.ActiveSave.state.finances.debtMinorUnits, Is.EqualTo(14500));
+            Assert.That(service.ActiveSave.state.finances.householdCreditBalanceMinorUnits, Is.EqualTo(4500));
+            Assert.That(service.ActiveSave.state.finances.householdCreditAprBasisPoints, Is.EqualTo(1752));
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var monthSummary), monthSummary);
+            Assert.That(monthSummary, Does.Contain("credit interest $1"));
+            Assert.That(service.ActiveSave.state.finances.householdCreditBalanceMinorUnits, Is.EqualTo(4566));
+            Assert.That(service.ActiveSave.state.finances.debtMinorUnits, Is.EqualTo(14566));
+        }
+
+        [Test]
+        public void HouseholdCreditApr_RespondsToIncomeStabilityCohesionAndDebtLoad()
+        {
+            var strong = CreateValidSave().state;
+            strong.career.annualSalaryMinorUnits = 20000000;
+            strong.career.careerProgress = 100;
+            strong.household.cohesion = 90;
+            strong.finances.debtMinorUnits = 0;
+            var risky = CreateValidSave().state;
+            risky.career.annualSalaryMinorUnits = 2000000;
+            risky.career.careerProgress = 0;
+            risky.household.cohesion = 10;
+            risky.finances.debtMinorUnits = 1500000;
+
+            Assert.That(StimGameSessionService.CalculateHouseholdCreditAprBasisPoints(strong), Is.EqualTo(800));
+            Assert.That(StimGameSessionService.CalculateHouseholdCreditAprBasisPoints(risky), Is.EqualTo(2999));
         }
 
         [TestCase(0, 1)]
@@ -621,6 +1177,63 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(endedSummary, Does.Contain("life has ended"));
         }
 
+        [TestCase(0, 0)]
+        [TestCase(4000000, 1923)]
+        [TestCase(5500000, 2644)]
+        [TestCase(10000000, 4808)]
+        public void ManualWorkTap_UsesAnnualSalaryHourlyRate(long annualSalary, long expectedHourlyRate)
+        {
+            Assert.That(
+                StimGameSessionService.CalculateHourlyRateMinorUnits(annualSalary),
+                Is.EqualTo(expectedHourlyRate));
+        }
+
+        [Test]
+        public void ManualWorkTap_AddsOneHourlyRateAndAutosaves()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.career.roleTitle = "Junior Associate";
+            save.state.career.annualSalaryMinorUnits = 4000000;
+            var cashBefore = save.state.finances.cashMinorUnits;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformManualWorkTap(out var earnings, out var summary), summary);
+
+            Assert.That(earnings, Is.EqualTo(1923));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore + 1923));
+            Assert.That(service.ActiveSave.revision, Is.EqualTo(2));
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+            Assert.That(summary, Does.Contain("Cash +$19.23"));
+        }
+
+        [Test]
+        public void ManualWorkTap_RejectsUnemployedAndRollsBackFailedCommit()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.career = new StimCareerState();
+            service.Start(save);
+
+            Assert.IsFalse(service.TryPerformManualWorkTap(out var unemployedEarnings, out var unemployedSummary));
+            Assert.That(unemployedEarnings, Is.Zero);
+            Assert.That(unemployedSummary, Does.Contain("salaried job"));
+
+            save.state.career = new StimCareerState
+            {
+                roleTitle = "Associate",
+                annualSalaryMinorUnits = 5500000
+            };
+            service.Start(save);
+            repository.ShouldCommit = false;
+            var cashBefore = service.ActiveSave.state.finances.cashMinorUnits;
+            Assert.IsFalse(service.TryPerformManualWorkTap(out var failedEarnings, out _));
+            Assert.That(failedEarnings, Is.Zero);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore));
+        }
+
         [TestCase(49, 0)]
         [TestCase(50, 1)]
         [TestCase(64, 1)]
@@ -685,6 +1298,7 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        [Category("SlowSimulation")]
         public void SeededLife_ProgressesFromBirthToDeathWithoutDeveloperIntervention()
         {
             var catalog = CreateRepresentativeCatalog();
@@ -706,10 +1320,18 @@ namespace StimTycoon.Tests.Domain.Runtime
                 24680);
             Assert.IsTrue(service.TryStartNewLife(save, out var startSummary), startSummary);
 
+            var stopwatch = Stopwatch.StartNew();
             var months = 0;
             const int maximumMonths = 1800;
             while (service.ActiveSave.state.character.lifeStatus == "active" && months < maximumMonths)
             {
+                if (!string.IsNullOrEmpty(service.ActiveSave.state.education.awaitingDecisionId))
+                {
+                    var schoolChoice = service.ActiveSave.state.education.awaitingDecisionId == "education_high_transition"
+                        ? StimSchoolPathChoice.AcademicTrack
+                        : StimSchoolPathChoice.PublicSchool;
+                    Assert.IsTrue(service.TryChooseSchoolPath(schoolChoice, out var schoolSummary), schoolSummary);
+                }
                 Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var advanceSummary), advanceSummary);
                 months++;
                 if (nextEvent == null) continue;
@@ -729,6 +1351,277 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
                 entry.category == "milestone" && entry.text.Contains("ended in death")), Is.True);
             Assert.That(repository.CommitCount, Is.GreaterThan(months));
+            stopwatch.Stop();
+            TestContext.Progress.WriteLine(
+                $"SlowSimulation: {months} months, {repository.CommitCount} commits, " +
+                $"{repository.MaxSerializedLength} max JSON chars, " +
+                $"{service.ActiveSave.state.lifeFeed.Count} feed entries, " +
+                $"{stopwatch.ElapsedMilliseconds} ms.");
+        }
+
+        [Test]
+        public void SchoolTransition_RequiresAChoiceAndPersistsTheSelectedBranch()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(),
+                repository,
+                utcNow: () => DateTimeOffset.Parse("2026-07-13T20:00:00Z"));
+            var save = CreateValidSave();
+            save.state.character.age = 5;
+            save.state.calendar.monthOfYear = 12;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var transitionSummary), transitionSummary);
+            Assert.That(service.ActiveSave.state.education.awaitingDecisionId,
+                Is.EqualTo("education_primary_enrollment"));
+            Assert.IsFalse(service.TryAdvanceMonth(out _, out var blockedSummary));
+            Assert.That(blockedSummary, Does.Contain("Choose a school path"));
+
+            Assert.IsTrue(service.TryChooseSchoolPath(
+                StimSchoolPathChoice.Homeschool,
+                out var choiceSummary), choiceSummary);
+
+            Assert.That(service.ActiveSave.state.education.schoolPath, Is.EqualTo("homeschool"));
+            Assert.That(service.ActiveSave.state.education.awaitingDecisionId, Is.Empty);
+            Assert.That(service.ActiveSave.state.lifeDecisions, Has.Count.EqualTo(1));
+            Assert.That(service.ActiveSave.state.lifeDecisions[0].decisionId,
+                Is.EqualTo("education_primary_enrollment"));
+            Assert.That(service.ActiveSave.state.lifeDecisions[0].choiceId, Is.EqualTo("homeschool"));
+            var peer = service.ActiveSave.state.relationships.Find(relationship =>
+                relationship.relationshipId == "school_peer_primary");
+            Assert.That(peer, Is.Not.Null);
+            Assert.That(peer.relationshipType, Is.EqualTo("friend"));
+            Assert.That(peer.origin, Is.EqualTo("neighborhood"));
+            Assert.That(peer.introducedAtAge, Is.EqualTo(6));
+            Assert.That(repository.LastCommittedSave, Does.Contain("education_primary_enrollment"));
+        }
+
+        [Test]
+        public void SchoolPathChoice_RollsBackWhenAutosaveFails()
+        {
+            var repository = new RecordingSaveRepository { ShouldCommit = false };
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 15;
+            save.state.education.stage = "high_school";
+            save.state.education.awaitingDecisionId = "education_high_transition";
+            service.Start(save);
+
+            Assert.IsFalse(service.TryChooseSchoolPath(
+                StimSchoolPathChoice.VocationalTrack,
+                out _));
+
+            Assert.That(service.ActiveSave.state.education.schoolPath, Is.Null.Or.Empty);
+            Assert.That(service.ActiveSave.state.education.awaitingDecisionId,
+                Is.EqualTo("education_high_transition"));
+            Assert.That(service.ActiveSave.state.lifeDecisions, Is.Empty);
+        }
+
+        [Test]
+        public void ContextActivity_OvertimeRequiresEmploymentAndCommitsPayProgressAndHealth()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 30;
+            save.state.career.roleTitle = string.Empty;
+            service.Start(save);
+
+            Assert.IsFalse(service.TryPerformActivity(StimActivityType.Overtime, out var lockedSummary));
+            Assert.That(lockedSummary, Does.Contain("active job"));
+
+            service.ActiveSave.state.career.roleTitle = "Junior Associate";
+            service.ActiveSave.state.career.annualSalaryMinorUnits = 4000000;
+            var cashBefore = service.ActiveSave.state.finances.cashMinorUnits;
+            var healthBefore = service.ActiveSave.state.character.health;
+
+            Assert.IsTrue(service.TryPerformActivity(StimActivityType.Overtime, out var summary), summary);
+
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits,
+                Is.EqualTo(cashBefore + StimGameSessionService.CalculateHourlyRateMinorUnits(4000000) * 4));
+            Assert.That(service.ActiveSave.state.career.careerProgress, Is.EqualTo(6));
+            Assert.That(service.ActiveSave.state.character.health, Is.EqualTo(healthBefore - 2));
+            var overtimeFeedEntry = service.ActiveSave.state.lifeFeed.FindLast(entry =>
+                entry != null && entry.category == "activity" && entry.text.Contains("Worked overtime"));
+            Assert.That(overtimeFeedEntry, Is.Not.Null);
+        }
+
+        [Test]
+        public void PeerRelationship_CanBecomeARivalAndReconcileLater()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(),
+                new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 15;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                displayName = "Maya",
+                relationshipType = "friend",
+                origin = "primary_school",
+                introducedAtAge = 6,
+                value = 27
+            });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "school_peer_primary", StimRelationshipInteractionType.Argue, out var argueSummary), argueSummary);
+            Assert.That(service.ActiveSave.state.relationships.Find(relationship =>
+                relationship.relationshipId == "school_peer_primary").relationshipType, Is.EqualTo("rival"));
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var advanceSummary), advanceSummary);
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "school_peer_primary", StimRelationshipInteractionType.Reconcile, out var reconcileSummary), reconcileSummary);
+            Assert.That(service.ActiveSave.state.relationships.Find(relationship =>
+                relationship.relationshipId == "school_peer_primary").relationshipType, Is.EqualTo("friend"));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "relationship" && entry.text.Contains("Reconcile with Maya")), Is.True);
+        }
+
+        [Test]
+        public void Friendship_NeglectCanDowngradeBestFriendAndRecordsTheChange()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(),
+                new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "old_friend",
+                displayName = "Alex",
+                relationshipType = "best_friend",
+                origin = "primary_school",
+                introducedAtAge = 6,
+                value = 75,
+                monthsSinceInteraction = 3
+            });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var summary), summary);
+
+            var friendship = service.ActiveSave.state.relationships.Find(relationship =>
+                relationship.relationshipId == "old_friend");
+            Assert.That(friendship.value, Is.EqualTo(74));
+            Assert.That(friendship.relationshipType, Is.EqualTo("friend"));
+            Assert.That(friendship.monthsSinceInteraction, Is.EqualTo(4));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "relationship" && entry.text.Contains("best friend to friend")), Is.True);
+        }
+
+        [Test]
+        public void ScheduledFollowUp_TriggersAtAnnualRolloverAndIsConsumed()
+        {
+            var followUp = RepresentativeStimEvents.CreateSalaryNegotiation();
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(followUp);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.calendar.monthOfYear = 12;
+            save.state.scheduledEvents.Add(new StimScheduledEventRecord
+            {
+                eventId = followUp.id,
+                earliestTriggerAge = 25,
+                latestTriggerAge = 26,
+                chance = 1f,
+                sourceEventId = "relationship_drama_setup"
+            });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
+
+            Assert.That(nextEvent, Is.Not.Null);
+            Assert.That(nextEvent.id, Is.EqualTo(followUp.id));
+            Assert.That(service.ActiveSave.state.pendingEventId, Is.EqualTo(followUp.id));
+            Assert.That(service.ActiveSave.state.scheduledEvents, Is.Empty);
+        }
+
+        [Test]
+        public void PeerDrama_BetrayalSchedulesAndResolvesLaterConsequence()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerTrustConflict());
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerTrustAftermath());
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerJealousy());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 14;
+            save.state.calendar.monthOfYear = 6;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                displayName = "Maya",
+                relationshipType = "friend",
+                origin = "primary_school",
+                introducedAtAge = 6,
+                value = 55
+            });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryResolveChoice(
+                RepresentativeStimEvents.PeerTrustConflictId,
+                "share_secret",
+                out var betrayalSummary), betrayalSummary);
+            Assert.That(service.ActiveSave.state.relationships.Find(relationship =>
+                relationship.relationshipId == "school_peer_primary").value, Is.EqualTo(37));
+            Assert.That(service.ActiveSave.state.scheduledEvents, Has.Count.EqualTo(1));
+            Assert.That(service.ActiveSave.state.scheduledEvents[0].eventId,
+                Is.EqualTo(RepresentativeStimEvents.PeerTrustAftermathId));
+
+            service.ActiveSave.state.calendar.monthOfYear = 12;
+            Assert.IsTrue(service.TryAdvanceMonth(out var followUp, out var advanceSummary), advanceSummary);
+            Assert.That(followUp?.id, Is.EqualTo(RepresentativeStimEvents.PeerTrustAftermathId));
+            Assert.IsTrue(service.TryResolveChoice(
+                followUp.id,
+                "talk_honestly",
+                out var repairSummary), repairSummary);
+
+            Assert.That(service.ActiveSave.state.relationships.Find(relationship =>
+                relationship.relationshipId == "school_peer_primary").value, Is.EqualTo(47));
+            Assert.That(service.ActiveSave.state.eventHistory.Exists(entry =>
+                entry.eventId == RepresentativeStimEvents.PeerTrustAftermathId), Is.True);
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "event" && entry.text.Contains("honest conversation")), Is.True);
+        }
+
+        [Test]
+        public void PeerJealousy_RequiresBothPeersAndBranchesBothRelationships()
+        {
+            var jealousy = RepresentativeStimEvents.CreatePeerJealousy();
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(jealousy);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 14;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary", displayName = "Maya",
+                relationshipType = "friend", value = 50
+            });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var unavailable, out var quietSummary), quietSummary);
+            Assert.That(unavailable, Is.Null);
+
+            service.ActiveSave.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_middle", displayName = "Alex",
+                relationshipType = "friend", value = 50
+            });
+            Assert.IsTrue(service.TryAdvanceMonth(out var eventWithBothPeers, out var eventSummary), eventSummary);
+            Assert.That(eventWithBothPeers?.id, Is.EqualTo(RepresentativeStimEvents.PeerJealousyId));
+            Assert.IsTrue(service.TryResolveChoice(
+                eventWithBothPeers.id,
+                "choose_new_friend",
+                out var resolutionSummary), resolutionSummary);
+
+            Assert.That(service.ActiveSave.state.relationships.Find(relationship =>
+                relationship.relationshipId == "school_peer_primary").value, Is.EqualTo(38));
+            Assert.That(service.ActiveSave.state.relationships.Find(relationship =>
+                relationship.relationshipId == "school_peer_middle").value, Is.EqualTo(60));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "event" && entry.text.Contains("newer bond grows stronger")), Is.True);
         }
 
         [Test]
@@ -982,6 +1875,15 @@ namespace StimTycoon.Tests.Domain.Runtime
             catalog.Upsert(RepresentativeStimEvents.CreateLuckCrossroads());
             catalog.Upsert(RepresentativeStimEvents.CreateChildhoodDiscovery());
             catalog.Upsert(RepresentativeStimEvents.CreateChildhoodComfort());
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerTrustConflict());
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerTrustAftermath());
+            catalog.Upsert(RepresentativeStimEvents.CreateComingOfAgeGender());
+            catalog.Upsert(RepresentativeStimEvents.CreateComingOfAgeOrientation());
+            catalog.Upsert(RepresentativeStimEvents.CreatePromInvitation());
+            catalog.Upsert(RepresentativeStimEvents.CreateFirstKiss());
+            catalog.Upsert(RepresentativeStimEvents.CreateProposal());
+            catalog.Upsert(RepresentativeStimEvents.CreateWedding());
+            catalog.Upsert(RepresentativeStimEvents.CreateMarriageCrossroads());
             return catalog;
         }
 
@@ -990,11 +1892,15 @@ namespace StimTycoon.Tests.Domain.Runtime
             public bool ShouldCommit { get; set; } = true;
             public int CommitCount { get; private set; }
             public string LastCommittedSave { get; private set; }
+            public int MaxSerializedLength { get; private set; }
 
             public bool TryCommitAutosave(string serializedSave, out string persistenceSummary)
             {
                 CommitCount++;
                 LastCommittedSave = serializedSave;
+                MaxSerializedLength = System.Math.Max(
+                    MaxSerializedLength,
+                    serializedSave?.Length ?? 0);
                 persistenceSummary = ShouldCommit ? "saved" : "failed";
                 return ShouldCommit;
             }

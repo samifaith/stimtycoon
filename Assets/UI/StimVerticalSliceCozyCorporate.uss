@@ -5,7 +5,6 @@
 }
 
 .st-life-header {
-    height: 112px;
     min-height: 112px;
     padding: 12px 10px;
     flex-direction: row;
@@ -17,15 +16,15 @@
 .st-profile-avatar { width: 48px; height: 58px; align-items: center; justify-content: center; background-color: var(--st-surface-1); border-width: 2px; border-color: var(--st-border-blue); border-radius: 14px; }
 .st-profile-avatar-glyph { font-size: 30px; color: var(--st-purple-600); }
 .st-profile-meta { margin-left: 5px; }
-.st-age-pill { min-width: 68px; height: 29px; padding: 4px 7px; background-color: var(--st-surface-1); border-width: 2px; border-color: var(--st-border-blue); border-radius: 15px; color: var(--st-text-primary); font-size: 11px; -unity-font-style: bold; -unity-text-align: middle-center; }
-.st-xp-pill { width: 78px; height: 27px; margin-top: 4px; background-color: var(--st-surface-1); border-width: 2px; border-color: var(--st-border-blue); border-radius: 14px; overflow: hidden; justify-content: center; }
+.st-age-pill { min-width: 68px; min-height: 29px; padding: 4px 7px; background-color: var(--st-surface-1); border-width: 2px; border-color: var(--st-border-blue); border-radius: 15px; color: var(--st-text-primary); font-size: 11px; -unity-font-style: bold; -unity-text-align: middle-center; white-space: normal; }
+.st-xp-pill { width: 78px; min-height: 27px; margin-top: 4px; background-color: var(--st-surface-1); border-width: 2px; border-color: var(--st-border-blue); border-radius: 14px; overflow: hidden; justify-content: center; }
 .st-xp-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 58%; background-color: var(--st-cyan-500); }
 .st-xp-label { color: var(--st-text-primary); font-size: 9px; -unity-font-style: bold; -unity-text-align: middle-center; }
 
 .st-wordmark { width: 84px; align-items: center; justify-content: center; }
 .st-wordmark-primary { font-size: 24px; color: var(--st-purple-600); -unity-font-style: bold; letter-spacing: 1px; }
 .st-wordmark-secondary { margin-top: -5px; font-size: 14px; color: var(--st-yellow-500); -unity-font-style: bold; letter-spacing: 1px; }
-.st-balance-pill { min-width: 116px; height: 50px; padding: 6px 7px; flex-direction: row; align-items: center; justify-content: space-between; background-color: var(--st-surface-yellow); border-width: 2px; border-color: var(--st-yellow-500); border-radius: 23px; }
+.st-balance-pill { min-width: 116px; min-height: 50px; padding: 6px 7px; flex-direction: row; align-items: center; justify-content: space-between; background-color: var(--st-surface-yellow); border-width: 2px; border-color: var(--st-yellow-500); border-radius: 23px; }
 .st-balance-icon { width: 28px; height: 28px; background-color: rgb(214, 248, 201); border-radius: 9px; color: var(--st-success-500); font-size: 18px; -unity-font-style: bold; -unity-text-align: middle-center; }
 .st-balance-value { margin-left: 4px; color: var(--st-text-primary); font-size: 13px; -unity-font-style: bold; }
 .st-balance-add { width: 30px; height: 30px; margin-left: 4px; padding: 0; background-color: var(--st-yellow-400); border-width: 0; border-radius: 15px; color: var(--st-text-primary); font-size: 19px; -unity-font-style: bold; }
@@ -37,17 +36,10 @@
 .st-life-content { width: 100%; max-width: 760px; align-self: center; }
 .st-polished-card { margin-bottom: 14px; padding: 18px; background-color: var(--st-surface-1); border-width: 1px; border-color: var(--st-border-soft); border-radius: 22px; }
 
-.st-worth-card { min-height: 220px; flex-direction: row; align-items: center; justify-content: space-between; }
-.st-worth-copy { width: 43%; }
+.st-worth-card { min-height: 132px; justify-content: center; }
+.st-worth-copy { width: 100%; }
 .st-section-kicker { color: rgb(66, 86, 125); font-size: 14px; letter-spacing: 1px; -unity-font-style: bold; }
 .st-worth-value { margin-top: 8px; color: rgb(7, 36, 82); font-size: 50px; -unity-font-style: bold; }
-.st-worth-trend { margin-top: 8px; color: var(--st-success-500); font-size: 16px; -unity-font-style: bold; }
-.st-worth-chart { width: 54%; height: 164px; justify-content: flex-end; }
-.st-worth-bars { height: 125px; flex-direction: row; align-items: flex-end; border-bottom-width: 2px; border-bottom-color: var(--st-cyan-600); }
-.st-worth-bar { flex-grow: 1; min-width: 18px; margin-left: 4px; margin-right: 4px; background-color: rgb(178, 221, 250); border-radius: 7px 7px 0 0; }
-.st-worth-bar.bar-1 { height: 34%; }.st-worth-bar.bar-2 { height: 35%; }.st-worth-bar.bar-3 { height: 44%; }.st-worth-bar.bar-4 { height: 51%; }.st-worth-bar.bar-5 { height: 66%; }.st-worth-bar.bar-6 { height: 82%; }.st-worth-bar.bar-7 { height: 100%; }
-.st-worth-bar.current { background-color: var(--st-pink-500); }
-.st-chart-badge { position: absolute; right: 0; top: 0; padding: 6px 9px; background-color: var(--st-pink-500); border-radius: 9px; color: var(--st-text-inverse); font-size: 12px; -unity-font-style: bold; }
 
 .st-stats-card { padding: 18px; }
 .st-section-heading { flex-direction: row; align-items: center; margin-bottom: 12px; }
@@ -76,6 +68,8 @@
 .st-focus-tile.study .st-focus-effect { color: var(--st-cyan-600); }.st-focus-tile.workout .st-focus-effect { color: var(--st-pink-500); }.st-focus-tile.work .st-focus-effect { color: rgb(201, 134, 0); }
 .st-focus-cta { width: 100%; min-height: 38px; margin-top: 10px; padding: 9px; border-radius: 18px; color: var(--st-text-inverse); font-size: 14px; -unity-font-style: bold; -unity-text-align: middle-center; }
 .st-focus-tile.study .st-focus-cta { background-color: var(--st-cyan-600); }.st-focus-tile.workout .st-focus-cta { background-color: var(--st-pink-500); }.st-focus-tile.work .st-focus-cta { background-color: var(--st-yellow-400); color: rgb(96, 61, 0); }
+.st-context-activities { margin-top: 12px; flex-direction: row; flex-wrap: wrap; }
+.st-context-activity { width: 48%; min-height: 52px; margin-right: 2%; margin-bottom: 8px; padding: 9px; background-color: var(--st-surface-blue); border-width: 1px; border-color: var(--st-border-blue); border-radius: 14px; color: var(--st-text-primary); font-size: 13px; -unity-font-style: bold; white-space: normal; }
 .st-education-stage { color: var(--st-text-primary); font-size: 18px; -unity-font-style: bold; }
 .st-education-level { margin-top: 7px; color: var(--st-purple-600); font-size: 14px; -unity-font-style: bold; }
 .st-education-track { height: 11px; margin-top: 7px; background-color: rgb(224, 231, 242); border-radius: 6px; overflow: hidden; }
@@ -109,9 +103,22 @@
 .st-advance-month { min-width: 172px; min-height: 48px; padding: 11px 16px; background-color: var(--st-cyan-600); border-width: 0; border-radius: 18px; color: var(--st-text-inverse); font-size: 14px; -unity-font-style: bold; }
 .st-advance-month:hover { background-color: var(--st-purple-500); }
 
-.st-life-bottom-nav { height: 78px; min-height: 78px; padding: 8px 14px; flex-direction: row; align-items: center; justify-content: space-around; background-color: var(--st-surface-1); border-top-width: 1px; border-top-color: var(--st-border-soft); }
+.st-life-bottom-nav { min-height: 78px; padding: 8px 14px; flex-direction: row; align-items: center; justify-content: space-around; background-color: var(--st-surface-1); border-top-width: 1px; border-top-color: var(--st-border-soft); }
 .st-life-nav-item { flex-grow: 1; min-width: 74px; min-height: 58px; margin-left: 3px; margin-right: 3px; background-color: rgba(0,0,0,0); border-width: 0; border-radius: 17px; color: rgb(66, 86, 125); font-size: 14px; -unity-font-style: bold; }
 .st-life-nav-item.active { background-color: var(--st-surface-blue); color: var(--st-cyan-600); }
+
+.st-money-view { flex-grow: 1; }
+.st-money-view .unity-scroller--vertical, .st-money-view .unity-scroller--horizontal { display: none; }
+.st-money-view > .unity-scroll-view__content-container { padding: 18px 18px 28px 18px; }
+.st-money-content { width: 100%; max-width: 760px; align-self: center; }
+.st-manual-work-card { align-items: center; }
+.st-manual-work-role { margin-top: 8px; color: var(--st-text-primary); font-size: 20px; -unity-font-style: bold; -unity-text-align: middle-center; }
+.st-manual-work-rate { margin-top: 4px; color: var(--st-success-500); font-size: 16px; -unity-font-style: bold; }
+.st-money-cash { margin-top: 20px; color: rgb(7, 36, 82); font-size: 38px; -unity-font-style: bold; }
+.st-money-cash-label { color: var(--st-text-secondary); font-size: 11px; letter-spacing: 0.8px; -unity-font-style: bold; }
+.st-manual-work-button { width: 100%; min-height: 82px; margin-top: 20px; background-color: var(--st-success-500); border-width: 0; border-radius: 22px; color: var(--st-text-inverse); font-size: 20px; -unity-font-style: bold; }
+.st-manual-work-button:disabled { opacity: 0.5; }
+.st-manual-work-feedback { min-height: 22px; margin-top: 11px; color: var(--st-success-500); font-size: 14px; -unity-font-style: bold; white-space: normal; -unity-text-align: middle-center; }
 
 .st-social-view { flex-grow: 1; }
 .st-social-view .unity-scroller--vertical, .st-social-view .unity-scroller--horizontal { display: none; }
@@ -166,5 +173,36 @@
 .st-ending-status { margin-top: 10px; color: var(--st-purple-600); font-size: 18px; -unity-font-style: bold; -unity-text-align: middle-center; }
 .st-ending-summary { margin-top: 14px; color: var(--st-text-secondary); font-size: 15px; white-space: normal; -unity-text-align: middle-center; }
 .st-ending-action { width: 100%; min-height: 52px; margin-top: 20px; background-color: var(--st-cyan-600); border-width: 0; border-radius: 16px; color: var(--st-text-inverse); font-size: 15px; -unity-font-style: bold; }
+
+/* 320–360 point layouts: preserve readable content and reachable primary actions. */
+.st-compact-width .st-life-header { min-height: 96px; padding-left: 6px; padding-right: 6px; }
+.st-compact-width .st-wordmark { display: none; }
+.st-compact-width .st-profile-avatar { width: 42px; height: 50px; }
+.st-compact-width .st-age-pill { min-width: 60px; padding-left: 4px; padding-right: 4px; }
+.st-compact-width .st-xp-pill { width: 68px; }
+.st-compact-width .st-balance-pill { min-width: 104px; padding-left: 5px; padding-right: 5px; }
+.st-compact-width .st-balance-value { font-size: 12px; }
+.st-compact-width .st-life-scroll > .unity-scroll-view__content-container,
+.st-compact-width .st-money-view > .unity-scroll-view__content-container,
+.st-compact-width .st-social-view > .unity-scroll-view__content-container { padding-left: 10px; padding-right: 10px; }
+.st-compact-width .st-polished-card { padding: 14px; border-radius: 18px; }
+.st-compact-width .st-worth-card { min-height: 112px; }
+.st-compact-width .st-worth-copy { width: 100%; }
+.st-compact-width .st-worth-value { font-size: 38px; white-space: normal; }
+.st-compact-width .st-stat-icon { width: 38px; height: 38px; margin-right: 8px; }
+.st-compact-width .st-stat-number { width: 68px; margin-left: 7px; font-size: 13px; }
+.st-compact-width .st-education-action, .st-compact-width .st-career-action { width: 100%; margin-right: 0; }
+.st-compact-width .st-context-activity { width: 100%; margin-right: 0; }
+.st-compact-width .st-time-dock { padding: 9px 10px; flex-direction: column; align-items: stretch; }
+.st-compact-width .st-new-life-link { width: 100%; min-height: 44px; margin-right: 0; margin-bottom: 7px; }
+.st-compact-width .st-time-copy { margin-right: 0; margin-bottom: 7px; align-items: center; }
+.st-compact-width .st-advance-month { width: 100%; min-width: 0; min-height: 52px; }
+.st-compact-width .st-life-bottom-nav { padding-left: 4px; padding-right: 4px; }
+.st-compact-width .st-life-nav-item { min-width: 0; min-height: 58px; margin-left: 1px; margin-right: 1px; padding-left: 2px; padding-right: 2px; font-size: 11px; }
+.st-compact-width .st-event-scrim, .st-compact-width .st-setup-scrim, .st-compact-width .st-ending-scrim { padding: 8px; }
+.st-compact-width .st-event-sheet, .st-compact-width .st-setup-sheet, .st-compact-width .st-ending-card { padding: 14px; border-radius: 18px; }
+.st-compact-width .st-name-row, .st-compact-width .st-option-row { flex-direction: column; }
+.st-compact-width .st-setup-field, .st-compact-width .st-option-button { width: 100%; margin-right: 0; margin-bottom: 8px; }
+.st-compact-width .st-ending-title { font-size: 26px; white-space: normal; }
 
 .hidden { display: none; }

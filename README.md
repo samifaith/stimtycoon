@@ -22,9 +22,12 @@ The repository now contains:
 - Yarn Spinner dialogue authoring behind a Stim-owned bridge
 - all five representative events—childhood, school, career, health, and money—wired through the C# resolver
 - monthly gross pay, tax withholding, living expenses, debt pressure, stat feedback, and career progression, plus annual age rollover, randomized event timing with anti-drought protection, cooldowns, and pending-event persistence
+- required school-path decisions, context-sensitive childhood/school/work activities, persistent peers, relationship drift, authored drama, and scheduled consequences
+- a coming-of-age identity chain followed by friendship-gated dating, prom, first-kiss, partnership, engagement, marriage, strain, counseling, separation, and divorce branches
+- persistent household happiness/cohesion, spouse-derived savings/debt/income, fixed-price family activities, and cash-or-credit payment selection with risk-based APR and monthly interest
 - a mobile UI Toolkit vertical slice with choices, outcomes, cash, life feed, autosave feedback, and a collapsible six-stat player overview
 - replaceable interfaces for dialogue, saves, accounts, cloud saves, ads, and event catalogs
-- 140 passing EditMode tests covering events, saves, UI, relationships, education, careers, achievements, and a seeded birth-to-ending simulation
+- a user-verified 147-test EditMode baseline plus newly added focused coverage for branching school, peers, romance, marriage, household finance, credit, and event-payment behavior awaiting the next full Unity Run All
 
 Not yet implemented:
 
@@ -57,7 +60,11 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The current user-verified result is **140 passing EditMode tests**, including the seeded birth-to-ending harness. The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
+The current user-verified result is **147 passing EditMode tests**, including the seeded birth-to-ending harness. That harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
+
+The repository now contains additional tests beyond that verified baseline. Do not treat 147 as the current discovered-test count; it is the last complete run explicitly confirmed by the product owner. Run all EditMode tests after pulling this revision to establish the next verified baseline.
+
+The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. Transactional autosaves now use compact rather than pretty-printed JSON to avoid unnecessary formatting allocation and whitespace. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
 
 ## Packages
 
@@ -119,7 +126,7 @@ docs/                      # Architecture and gameplay specifications
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 140-test verified baseline
+- [x] 147-test verified baseline
 - [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests
@@ -129,7 +136,7 @@ docs/                      # Architecture and gameplay specifications
 
 Keep the Stim-owned atomic JSON repository for the current beta path. Its readable versioned envelope, migrations, integrity checks, atomic replacement, and backup recovery are more valuable right now than switching formats.
 
-The full-life Test Runner pause is primarily caused by repeatedly cloning and serializing a growing save in one synchronous simulation, not by the repository's disk-write implementation. Optimize and separate that slow test before evaluating another save package.
+The full-life Test Runner pause is primarily caused by repeatedly cloning and serializing a growing save in one synchronous simulation, not by the repository's disk-write implementation. The harness is now separately categorized and instrumented, and transactional output is compact JSON. Use its measurements to guide further optimization before evaluating another save package.
 
 Profile save/load on physical iPhones before changing formats. If device profiling later shows unacceptable serialization time or file size, evaluate MessagePack behind `IStimSaveRepository`; do not replace the logical save envelope or migration boundary. Easy Save 3 remains optional and is not expected to solve the simulation-test cloning cost.
 
