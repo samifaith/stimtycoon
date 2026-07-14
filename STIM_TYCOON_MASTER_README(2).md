@@ -4,15 +4,15 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 > **Final product name:** Stim Tycoon  
 > **Platform target:** iOS first, with architecture that can support Android later  
-> **Status:** Phase 1 offline loop verified; Phase 2 gameplay expansion active
+> **Status:** Phase 1 offline loop verified; Phase 2 gameplay expansion active; shared-action foundation delivered
 > **Primary reference set:** Three gameplay recordings supplied by the product owner  
 > **Important:** The recordings are inspiration for interaction patterns, pacing, information hierarchy, and feature depth. Stim Tycoon must use original branding, writing, visuals, balancing, content, data, and interface components.
 
-### Implementation snapshot — July 13, 2026
+### Implementation snapshot — July 14, 2026
 
-The repository currently runs on Unity `6000.3.19f1` and has a user-verified 203-test EditMode baseline as of July 14, 2026. The offline loop begins with randomized birth and now includes required school paths, contextual activities, persistent peers and drama, identity choices, friendship-gated romance, marriage and divorce, household stats, spouse-derived finances, and revolving credit before continuing through careers, achievements, health decline, and a persistent ending summary. Manual work pays one hour at annual salary divided by 2,080. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
+The repository currently runs on Unity `6000.3.19f1` and has a user-verified 203-test EditMode baseline as of July 14, 2026. The offline loop begins with randomized birth and now includes required school paths, contextual activities, persistent peers and drama, identity choices, friendship-gated romance, marriage and divorce, household stats, spouse-derived finances, and revolving credit before continuing through careers, achievements, health decline, and a persistent ending summary. Manual work pays one hour at annual salary divided by 2,080. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, compact native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. A reusable transaction runner and migration-safe shared-action contract now provide stable action instances, reload-safe idempotency, availability states, signed previews, persisted completion, and reusable UI Toolkit cards; Education is the first reference consumer. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
 
-### Current phase assessment — July 13, 2026
+### Current phase assessment — July 14, 2026
 
 - **Phase 0 — Product Foundation:** offline foundation delivered. The five representative events, schemas, deterministic resolver, local-save recovery, migration boundary, and product decisions are implemented. Authentication, cloud-conflict validation, Game Center, and ads remain intentionally deferred behind offline-loop stability.
 - **Phase 1 — Simulation Skeleton:** verified complete for the offline implementation. The 203-test run includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
@@ -2900,25 +2900,30 @@ Completed foundation work:
 - [x] Add migration-safe achievements for aging, education, skills, family, career, wealth, retirement, choices, and completed lives, with Life Feed announcements, dashboard history, and ending-summary totals.
 - [x] Add and verify a deterministic full-life harness that starts at birth, advances every month, resolves every pending authored event, persists every transaction, and asserts a completed death ending.
 - [x] Add and verify the first Money destination and a transactional manual-work tap worth one hour at the current job's annual salary divided by 2,080.
+- [x] Replace pretty-printed autosave output with compact persisted JSON and verify the expanded 196-test baseline.
+- [x] Introduce a reusable candidate-save transaction runner and extract Education action rules without breaking the existing session API.
+- [x] Define migration-safe shared action instances with availability states, signed previews, persisted completion, and duplicate-award protection across reload.
+- [x] Render Education through reusable UI Toolkit action cards and establish a user-verified 203-test baseline.
 
-Next milestone — performance, device validation, and Phase 2 depth:
+Next milestone — complete the interactive framework and first deep Education slice:
 
-1. Isolate the full-life harness as slow simulation coverage and reduce redundant serialization while keeping focused transaction/recovery tests in the normal suite.
-2. Validate Life, Social, education, career, achievement, and ending views at 320, 390, 430, and 768 widths at normal and accessibility font scales.
-3. Produce the first iOS development build and profile save/load latency, save size, safe areas, touch targets, and memory on a physical supported iPhone.
-4. Implement the shared interactive-action contract and reusable action-card UI, including requirements, previews, progress, timers/cooldowns, amount controls, atomic save behavior, and Life Feed outcomes.
-5. Ship the first Education vertical slice: study-track selection, entry requirements, explicitly authored costs, difficulty-based sessions, qualification progress, and career/event unlocks.
-6. Expand childhood and education with stage-specific content and additional skill paths beyond Learning.
-7. Expand the implemented relationship/household foundation into interactive home activities, dating discovery, family planning, children, custody, inheritance, and additional adult drama arcs.
+1. Complete shared action-state transitions for in-progress and claimable work, including timers/cooldowns and interruption-safe reconciliation.
+2. Add reusable cash-or-credit confirmation plus percentage and exact-amount controls for Money and later investment actions.
+3. Ship the deep Education slice: study-track selection, entry requirements, explicitly authored costs, difficulty-based sessions, qualification progress, and career/event unlocks.
+4. Expand childhood and education with stage-specific content and at least two skill paths beyond Learning.
+5. Validate Life, Social, Education, Career, Achievements, event overlays, new-life setup, and endings at 320, 390, 430, and 768 widths at normal and accessibility font scales.
+6. Produce the first iOS development build and profile save/load latency, save size, safe areas, touch targets, and memory on a physical supported iPhone.
+7. Reduce redundant full-save serialization only where profiling shows value, while preserving focused transaction, recovery, migration, and corruption tests.
 
 After that milestone:
 
-8. Complete the Money interaction slice with savings transfers, reusable amount controls, transaction history, credit repayment, cash-flow detail, and investing gates.
+8. Complete the Money interaction slice with savings transfers, transaction history, credit repayment, cash-flow detail, and investing gates.
 9. Add home-object reading/training/household activities, compatible-person discovery, and the Main/Daily/Life goal board on the shared action framework.
-10. Extend the first career ladder with authored interview uncertainty, career events, and additional industries after complete-life endings are stable.
-11. Build one complete interactive business before adding more business types, property, or portfolio breadth.
-12. Replace placeholder logo, avatar, icon, and font treatments with approved production assets.
-13. Add Authentication, Game Center, Cloud Save, and LevelPlay only at their documented stability gates.
+10. Expand the relationship/household foundation into dating discovery, family planning, children, custody, inheritance, and additional adult drama arcs.
+11. Extend the first career ladder with authored interview uncertainty, career events, and additional industries after complete-life endings are stable.
+12. Build one complete interactive business before adding more business types, property, or portfolio breadth.
+13. Replace placeholder logo, avatar, icon, and font treatments with approved production assets.
+14. Add Authentication, Game Center, Cloud Save, and LevelPlay only at their documented stability gates.
 
 The operational backlog is maintained in `docs/TASKS.md`.
 

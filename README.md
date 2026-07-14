@@ -1,6 +1,6 @@
 # Stim Tycoon
 
-**Status:** Phase 1 offline life loop verified; Phase 2 gameplay expansion active
+**Status:** Phase 1 offline life loop verified; Phase 2 gameplay expansion active; shared-action foundation delivered
 
 **Target:** iOS 13+
 
@@ -37,6 +37,20 @@ Not yet implemented:
 - Unity LevelPlay ads
 - production navigation, accessibility, localization, art, and audio
 - iOS device build and automated play-flow coverage
+
+## Current Focus
+
+Milestones 1–3 are complete: the repository has a verified 203-test baseline, compact native autosaves, an extracted transaction boundary, migration-safe action progress, reload-safe idempotency, and reusable Education action cards.
+
+The next implementation sequence is:
+
+1. Finish the shared framework states and controls: in-progress/claimable transitions, timers, cash-or-credit confirmation, and reusable percentage/exact-amount input.
+2. Complete the Education vertical slice with study tracks, authored costs, difficulty-based sessions, qualification progress, and career/event unlocks.
+3. Add at least two skill paths beyond Learning and connect them to visible prerequisites and later consequences.
+4. Validate all current screens at 320, 390, 430, and 768 widths, including 130% text scale.
+5. Produce the first iOS development build and profile persistence, memory, safe areas, and touch behavior on a supported iPhone.
+
+See [the active task list](docs/TASKS.md) for acceptance criteria and later Money, Home, Relationship, and Business slices.
 
 ## Open and Run
 
@@ -108,6 +122,7 @@ docs/                      # Architecture and gameplay specifications
 - C# domain code owns eligibility, probability, effects, scheduling, and save validation.
 - Yarn owns dialogue copy and choice flow; it does not mutate gameplay state directly.
 - Every resolved action is applied to a candidate save and committed atomically before becoming active state.
+- Interactive slices use stable action IDs and persisted instance IDs so completion remains single-award across repeated taps and reloads.
 - Every event outcome must include a non-zero numeric stat change, shown with an explicit `+` or `−` on the outcome card.
 - RNG seed and step live in the save so outcomes are reproducible.
 - Currency is stored in integer minor units.
