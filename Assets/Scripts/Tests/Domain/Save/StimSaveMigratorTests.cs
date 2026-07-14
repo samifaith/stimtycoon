@@ -18,6 +18,11 @@ namespace StimTycoon.Tests.Domain.Save
             save.state.statuses = null;
             save.state.achievements = null;
             var json = JsonUtility.ToJson(save)
+                .Replace("\"home\":{\"homeId\":\"starter_home\",\"condition\":80,\"upgradeLevel\":0,\"improvementProgress\":0,\"readingMaterialStock\":3,\"readingMaterialCapacity\":3,\"trainingEquipmentCondition\":100},", string.Empty)
+                .Replace("\"moneyTransactions\":[],", string.Empty)
+                .Replace("\"annualReviewHistory\":[],", string.Empty)
+                .Replace("\"majorOutcomeSummaries\":[],", string.Empty)
+                .Replace("\"savingsMinorUnits\":0,", string.Empty)
                 .Replace("\"lifeStatus\":\"active\",", string.Empty)
                 .Replace("\"endingReason\":\"\",", string.Empty)
                 .Replace("\"endedAtAge\":-1,", string.Empty)
@@ -38,6 +43,15 @@ namespace StimTycoon.Tests.Domain.Save
             Assert.That(result.state.relationships, Is.Not.Null);
             Assert.That(result.state.statuses, Is.Not.Null);
             Assert.That(result.state.achievements, Is.Not.Null);
+            Assert.That(result.state.moneyTransactions, Is.Not.Null.And.Empty);
+            Assert.That(result.state.finances.savingsMinorUnits, Is.Zero);
+            Assert.That(result.state.annualReviewHistory, Is.Not.Null.And.Empty);
+            Assert.That(result.state.annualReview.majorOutcomeSummaries, Is.Not.Null.And.Empty);
+            Assert.That(result.state.home, Is.Not.Null);
+            Assert.That(result.state.home.homeId, Is.EqualTo("starter_home"));
+            Assert.That(result.state.home.condition, Is.EqualTo(80));
+            Assert.That(result.state.home.readingMaterialStock, Is.EqualTo(3));
+            Assert.That(result.state.home.trainingEquipmentCondition, Is.EqualTo(100));
             Assert.That(result.integrity.payloadHash, Is.Empty);
         }
 

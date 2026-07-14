@@ -63,6 +63,10 @@ namespace StimTycoon.Runtime
         private Label focusWorkoutTitle;
         private Label focusWorkoutEffect;
         private VisualElement contextActivities;
+        private Label homeCondition;
+        private Label homeProgress;
+        private VisualElement homeActions;
+        private Label homeUpgradeFeedback;
         private ScrollView lifeScroll;
         private ScrollView socialView;
         private VisualElement timeDock;
@@ -75,6 +79,30 @@ namespace StimTycoon.Runtime
         private Label moneyCashValue;
         private Button manualWorkTap;
         private Label manualWorkFeedback;
+        private Label savingsBalanceValue;
+        private Label savingsAvailableValue;
+        private Button savingsDepositMode;
+        private Button savingsWithdrawMode;
+        private VisualElement savingsAmountInput;
+        private Label savingsTransferFeedback;
+        private VisualElement moneyTransactionHistory;
+        private Label cashFlowGross;
+        private Label cashFlowTaxes;
+        private Label cashFlowExpenses;
+        private Label cashFlowCreditInterest;
+        private Label cashFlowSavingsInterest;
+        private Label cashFlowNet;
+        private Label savingsProjection;
+        private Label creditBalanceValue;
+        private Label creditDetailValue;
+        private Label availableCreditValue;
+        private VisualElement creditRepaymentInput;
+        private Label creditRepaymentFeedback;
+        private Label indexFundValue;
+        private Label indexInvestmentRequirement;
+        private VisualElement indexInvestmentInput;
+        private Label indexInvestmentFeedback;
+        private StimSavingsTransferType savingsTransferType = StimSavingsTransferType.Deposit;
         private VisualElement relationshipListView;
         private VisualElement relationshipList;
         private VisualElement relationshipDetailView;
@@ -165,6 +193,10 @@ namespace StimTycoon.Runtime
             focusWorkoutTitle = root.Q<Label>("focus-workout-title");
             focusWorkoutEffect = root.Q<Label>("focus-workout-effect");
             contextActivities = root.Q<VisualElement>("context-activities");
+            homeCondition = root.Q<Label>("home-condition");
+            homeProgress = root.Q<Label>("home-progress");
+            homeActions = root.Q<VisualElement>("home-actions");
+            homeUpgradeFeedback = root.Q<Label>("home-upgrade-feedback");
             lifeScroll = root.Q<ScrollView>("life-scroll");
             socialView = root.Q<ScrollView>("social-view");
             timeDock = root.Q<VisualElement>("time-dock");
@@ -177,6 +209,29 @@ namespace StimTycoon.Runtime
             moneyCashValue = root.Q<Label>("money-cash-value");
             manualWorkTap = root.Q<Button>("manual-work-tap");
             manualWorkFeedback = root.Q<Label>("manual-work-feedback");
+            savingsBalanceValue = root.Q<Label>("savings-balance-value");
+            savingsAvailableValue = root.Q<Label>("savings-available-value");
+            savingsDepositMode = root.Q<Button>("savings-deposit-mode");
+            savingsWithdrawMode = root.Q<Button>("savings-withdraw-mode");
+            savingsAmountInput = root.Q<VisualElement>("savings-amount-input");
+            savingsTransferFeedback = root.Q<Label>("savings-transfer-feedback");
+            moneyTransactionHistory = root.Q<VisualElement>("money-transaction-history");
+            cashFlowGross = root.Q<Label>("cash-flow-gross");
+            cashFlowTaxes = root.Q<Label>("cash-flow-taxes");
+            cashFlowExpenses = root.Q<Label>("cash-flow-expenses");
+            cashFlowCreditInterest = root.Q<Label>("cash-flow-credit-interest");
+            cashFlowSavingsInterest = root.Q<Label>("cash-flow-savings-interest");
+            cashFlowNet = root.Q<Label>("cash-flow-net");
+            savingsProjection = root.Q<Label>("savings-projection");
+            creditBalanceValue = root.Q<Label>("credit-balance-value");
+            creditDetailValue = root.Q<Label>("credit-detail-value");
+            availableCreditValue = root.Q<Label>("available-credit-value");
+            creditRepaymentInput = root.Q<VisualElement>("credit-repayment-input");
+            creditRepaymentFeedback = root.Q<Label>("credit-repayment-feedback");
+            indexFundValue = root.Q<Label>("index-fund-value");
+            indexInvestmentRequirement = root.Q<Label>("index-investment-requirement");
+            indexInvestmentInput = root.Q<VisualElement>("index-investment-input");
+            indexInvestmentFeedback = root.Q<Label>("index-investment-feedback");
             relationshipListView = root.Q<VisualElement>("relationship-list-view");
             relationshipList = root.Q<VisualElement>("relationship-list");
             relationshipDetailView = root.Q<VisualElement>("relationship-detail-view");
@@ -211,6 +266,8 @@ namespace StimTycoon.Runtime
             achievementsList = root.Q<VisualElement>("achievements-list");
 
             var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateYearInReview());
+            catalog.Upsert(RepresentativeStimEvents.CreateHomeDeferredMaintenance());
             catalog.Upsert(RepresentativeStimEvents.CreateSalaryNegotiation());
             catalog.Upsert(RepresentativeStimEvents.CreateHealthBurnout());
             catalog.Upsert(RepresentativeStimEvents.CreateMoneyFastReturn());
@@ -253,10 +310,21 @@ namespace StimTycoon.Runtime
                 cancelNewLife == null || continueCurrentLife == null || createNewLife == null || openNewLife == null ||
                 focusStudy == null || focusWorkout == null || focusStudyTitle == null || focusStudyEffect == null ||
                 focusWorkoutTitle == null || focusWorkoutEffect == null || lifeScroll == null || socialView == null ||
-                contextActivities == null ||
+                contextActivities == null || homeCondition == null || homeProgress == null ||
+                homeActions == null || homeUpgradeFeedback == null ||
                 timeDock == null || navLife == null || navMoney == null || navSocial == null || moneyView == null ||
                 manualWorkRole == null || manualWorkRate == null || moneyCashValue == null ||
-                manualWorkTap == null || manualWorkFeedback == null || relationshipListView == null ||
+                manualWorkTap == null || manualWorkFeedback == null || savingsBalanceValue == null ||
+                savingsAvailableValue == null || savingsDepositMode == null || savingsWithdrawMode == null ||
+                savingsAmountInput == null || savingsTransferFeedback == null || moneyTransactionHistory == null ||
+                cashFlowGross == null || cashFlowTaxes == null || cashFlowExpenses == null ||
+                cashFlowCreditInterest == null || cashFlowSavingsInterest == null || cashFlowNet == null ||
+                savingsProjection == null ||
+                creditBalanceValue == null || creditDetailValue == null || availableCreditValue == null ||
+                creditRepaymentInput == null || creditRepaymentFeedback == null ||
+                indexFundValue == null || indexInvestmentRequirement == null ||
+                indexInvestmentInput == null || indexInvestmentFeedback == null ||
+                relationshipListView == null ||
                 relationshipList == null || relationshipDetailView == null || relationshipBack == null ||
                 relationshipAvatar == null || relationshipName == null || relationshipType == null ||
                 relationshipStrength == null || relationshipFill == null || relationshipGenetics == null ||
@@ -282,6 +350,8 @@ namespace StimTycoon.Runtime
             navMoney.clicked += ShowMoneyDestination;
             navSocial.clicked += ShowSocialDestination;
             manualWorkTap.clicked += PerformManualWorkTap;
+            savingsDepositMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Deposit);
+            savingsWithdrawMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Withdrawal);
             relationshipBack.clicked += ShowRelationshipList;
             endingNewLife.clicked += OpenNewLifeFromEnding;
             ConfigureNewLifeControls();
@@ -489,7 +559,9 @@ namespace StimTycoon.Runtime
         {
             eventCategory.text = $"{evt.category.ToString().ToUpperInvariant()} EVENT";
             eventTitle.text = evt.titleKey;
-            eventBody.text = evt.bodyKey;
+            eventBody.text = evt.id == RepresentativeStimEvents.YearInReviewId
+                ? StimGameSessionService.BuildAnnualReviewSummary(gameSession.ActiveSave.state)
+                : evt.bodyKey;
             choices.Clear();
             for (var index = 0; index < evt.choices.Count; index++)
             {
@@ -535,7 +607,9 @@ namespace StimTycoon.Runtime
             var state = gameSession.ActiveSave.state;
             var career = state.career;
             cashValue.text = FormatMoney(state.finances.cashMinorUnits);
-            netWorthValue.text = FormatMoney(state.finances.cashMinorUnits - state.finances.debtMinorUnits);
+            netWorthValue.text = FormatMoney(
+                state.finances.cashMinorUnits + state.finances.savingsMinorUnits +
+                state.finances.indexFundMinorUnits - state.finances.debtMinorUnits);
             lifeSummary.text = string.IsNullOrEmpty(state.character.firstName)
                 ? $"Age {state.character.age}"
                 : $"{state.character.firstName} · {state.character.age}";
@@ -570,7 +644,83 @@ namespace StimTycoon.Runtime
             RefreshSkills();
             RefreshCareer();
             RefreshAchievements();
+            RefreshHome();
             RefreshMoney();
+        }
+
+        private void RefreshHome()
+        {
+            var state = gameSession.ActiveSave.state;
+            var home = state.home ?? new StimHomeState();
+            var requiredProgress = StimGameSessionService.GetHomeUpgradeRequiredProgress(home.upgradeLevel);
+            var definition = StimHomeContentCatalog.Get(home.homeId) ??
+                             StimHomeContentCatalog.Get("starter_home");
+            homeCondition.text = $"{definition.displayName} · Condition {home.condition} / 100";
+            homeProgress.text = home.upgradeLevel >= 3
+                ? $"Level 3 · Fully upgraded · Reading stock {home.readingMaterialStock}/{home.readingMaterialCapacity} · Equipment {home.trainingEquipmentCondition}%"
+                : $"Level {home.upgradeLevel} · Improvement {home.improvementProgress}/{requiredProgress} · Reading stock {home.readingMaterialStock}/{home.readingMaterialCapacity} · Equipment {home.trainingEquipmentCondition}%";
+            homeActions.Clear();
+            foreach (var action in definition.actions)
+                AddHomeAction(action);
+
+            if (home.upgradeLevel < 3)
+            {
+                var cost = StimGameSessionService.GetHomeUpgradeCost(home.upgradeLevel);
+                var button = new Button
+                {
+                    name = "home-upgrade",
+                    text = $"UPGRADE TO LEVEL {home.upgradeLevel + 1}\n{FormatMoney(cost)} · Requires {requiredProgress} progress · Improves home benefits"
+                };
+                button.AddToClassList("st-home-action");
+                button.AddToClassList("st-home-upgrade");
+                button.SetEnabled(home.improvementProgress >= requiredProgress && state.finances.cashMinorUnits >= cost);
+                button.clicked += PerformHomeUpgrade;
+                homeActions.Add(button);
+            }
+        }
+
+        private void AddHomeAction(StimHomeActionDefinition definition)
+        {
+            var state = gameSession.ActiveSave.state;
+            var actionType = definition.actionType;
+            var cost = definition.costMinorUnits;
+            var cooldownId = $"home_{actionType.ToString().ToLowerInvariant()}_used";
+            var coolingDown = state.statuses.Exists(status => status.statusId == cooldownId);
+            var hasCapacity = actionType != StimHomeActionType.Read || state.home.readingMaterialStock > 0;
+            hasCapacity &= actionType != StimHomeActionType.Train || state.home.trainingEquipmentCondition >= 10;
+            var button = new Button
+            {
+                name = $"home-action-{actionType.ToString().ToLowerInvariant()}",
+                text = $"{definition.displayName}\n{(cost == 0 ? "Free" : FormatMoney(cost))} · {definition.benefitPreview}" +
+                       $" · {ToDisplayName(definition.roomObjectId)}" +
+                       (coolingDown ? "\nAvailable next month" : string.Empty)
+            };
+            button.AddToClassList("st-home-action");
+            button.SetEnabled(!coolingDown && hasCapacity && state.finances.cashMinorUnits >= cost);
+            var capturedAction = actionType;
+            button.clicked += () => PerformHomeAction(capturedAction);
+            homeActions.Add(button);
+        }
+
+        private void PerformHomeAction(StimHomeActionType actionType)
+        {
+            var succeeded = gameSession.TryPerformHomeAction(actionType, out var summary);
+            homeUpgradeFeedback.text = summary;
+            homeUpgradeFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
+            RefreshSocial();
+        }
+
+        private void PerformHomeUpgrade()
+        {
+            var succeeded = gameSession.TryUpgradeHome(out var summary);
+            homeUpgradeFeedback.text = summary;
+            homeUpgradeFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
         }
 
         private void RefreshSkills()
@@ -627,10 +777,129 @@ namespace StimTycoon.Runtime
             manualWorkRole.text = employed ? career.roleTitle : "Get a salaried job to begin";
             manualWorkRate.text = employed ? $"{FormatPreciseMoney(hourlyRate)} per hour" : "$0.00 per hour";
             moneyCashValue.text = FormatMoney(state.finances.cashMinorUnits);
+            savingsBalanceValue.text = FormatMoney(state.finances.savingsMinorUnits);
             manualWorkTap.text = employed
                 ? $"WORK 1 HOUR  ·  +{FormatPreciseMoney(hourlyRate)}"
                 : "WORK 1 HOUR";
             manualWorkTap.SetEnabled(employed && string.IsNullOrEmpty(state.pendingEventId));
+            var available = savingsTransferType == StimSavingsTransferType.Deposit
+                ? state.finances.cashMinorUnits
+                : state.finances.savingsMinorUnits;
+            savingsAvailableValue.text = savingsTransferType == StimSavingsTransferType.Deposit
+                ? $"Available cash: {FormatMoney(available)}"
+                : $"Available savings: {FormatMoney(available)}";
+            savingsDepositMode.EnableInClassList("active", savingsTransferType == StimSavingsTransferType.Deposit);
+            savingsWithdrawMode.EnableInClassList("active", savingsTransferType == StimSavingsTransferType.Withdrawal);
+            savingsAmountInput.Clear();
+            savingsAmountInput.Add(StimActionInputFactory.CreateAmountSelector(
+                available, amount => PerformSavingsTransfer(amount)));
+            RefreshMoneyTransactionHistory(state);
+            cashFlowGross.text = $"Gross income: {FormatMoney(state.finances.lastGrossIncomeMinorUnits)}";
+            cashFlowTaxes.text = $"Taxes: −{FormatMoney(state.finances.lastTaxesMinorUnits)}";
+            cashFlowExpenses.text = $"Expenses: −{FormatMoney(state.finances.lastExpensesMinorUnits)}";
+            cashFlowCreditInterest.text = $"Credit interest: −{FormatMoney(state.finances.lastCreditInterestMinorUnits)}";
+            cashFlowSavingsInterest.text = $"Savings interest: +{FormatMoney(state.finances.lastSavingsInterestMinorUnits)}";
+            cashFlowNet.text = $"Net change: {FormatSignedMoney(state.finances.lastNetCashFlowMinorUnits)}";
+            var projectedInterest = StimGameSessionService.CalculateProjectedAnnualSavingsInterest(state.finances);
+            savingsProjection.text = $"{state.finances.savingsApyBasisPoints / 100m:0.00}% APY · " +
+                                     $"about {FormatMoney(projectedInterest)} interest over one year at the current balance; rate may change.";
+            var creditBalance = state.finances.householdCreditBalanceMinorUnits;
+            var creditLimit = StimGameSessionService.CalculateHouseholdCreditLimit(state);
+            var availableCredit = Math.Max(0, creditLimit - state.finances.debtMinorUnits);
+            creditBalanceValue.text = $"Balance: {FormatMoney(creditBalance)}";
+            creditDetailValue.text = creditBalance > 0
+                ? $"{state.finances.householdCreditAprBasisPoints / 100m:0.00}% APR · Total debt {FormatMoney(state.finances.debtMinorUnits)}"
+                : $"No active revolving balance · Total debt {FormatMoney(state.finances.debtMinorUnits)}";
+            availableCreditValue.text = $"Available credit: {FormatMoney(availableCredit)} of {FormatMoney(creditLimit)}";
+            creditRepaymentInput.Clear();
+            creditRepaymentInput.Add(StimActionInputFactory.CreateAmountSelector(
+                Math.Min(state.finances.cashMinorUnits, creditBalance), PerformCreditRepayment));
+            indexFundValue.text = $"Index fund: {FormatMoney(state.finances.indexFundMinorUnits)}";
+            var canInvest = StimGameSessionService.TryGetIndexInvestmentRequirement(state, out var investmentRequirement);
+            indexInvestmentRequirement.text = canInvest
+                ? "Unlocked · Minimum contribution $10"
+                : $"Locked · {investmentRequirement}";
+            indexInvestmentInput.Clear();
+            if (canInvest)
+                indexInvestmentInput.Add(StimActionInputFactory.CreateAmountSelector(
+                    state.finances.cashMinorUnits, PerformIndexInvestment));
+        }
+
+        private void SetSavingsTransferType(StimSavingsTransferType transferType)
+        {
+            savingsTransferType = transferType;
+            savingsTransferFeedback.text = string.Empty;
+            RefreshMoney();
+        }
+
+        private void PerformSavingsTransfer(long amountMinorUnits)
+        {
+            var succeeded = gameSession.TryTransferSavings(
+                savingsTransferType, amountMinorUnits, out var summary);
+            savingsTransferFeedback.text = summary;
+            savingsTransferFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
+            RefreshMoney();
+            savingsTransferFeedback.text = summary;
+        }
+
+        private void RefreshMoneyTransactionHistory(StimGameState state)
+        {
+            moneyTransactionHistory.Clear();
+            var history = state.moneyTransactions;
+            if (history == null || history.Count == 0)
+            {
+                moneyTransactionHistory.Add(new Label("No savings transfers yet.")
+                    { name = "money-history-empty" });
+                return;
+            }
+            var first = Math.Max(0, history.Count - 10);
+            for (var index = history.Count - 1; index >= first; index--)
+            {
+                var entry = history[index];
+                var row = new VisualElement();
+                row.AddToClassList("st-money-history-row");
+                var transactionName = entry.type == "savings_deposit" ? "Deposit" :
+                    entry.type == "savings_withdrawal" ? "Withdrawal" :
+                    entry.type == "credit_repayment" ? "Credit repayment" : "Savings interest";
+                if (entry.type == "index_investment") transactionName = "Index contribution";
+                else if (entry.type == "index_gain") transactionName = "Index gain";
+                else if (entry.type == "index_loss") transactionName = "Index loss";
+                var title = new Label($"{transactionName} · {FormatMoney(entry.amountMinorUnits)}");
+                title.AddToClassList("st-money-history-title");
+                var detail = new Label(
+                    $"Age {entry.age}, month {entry.monthOfYear} · Cash {FormatMoney(entry.cashBalanceMinorUnits)} · Savings {FormatMoney(entry.savingsBalanceMinorUnits)}");
+                detail.AddToClassList("st-money-history-detail");
+                row.Add(title);
+                row.Add(detail);
+                moneyTransactionHistory.Add(row);
+            }
+        }
+
+        private void PerformCreditRepayment(long amountMinorUnits)
+        {
+            var succeeded = gameSession.TryRepayHouseholdCredit(amountMinorUnits, out var summary);
+            creditRepaymentFeedback.text = summary;
+            creditRepaymentFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
+            RefreshMoney();
+            creditRepaymentFeedback.text = summary;
+        }
+
+        private void PerformIndexInvestment(long amountMinorUnits)
+        {
+            var succeeded = gameSession.TryInvestInIndexFund(amountMinorUnits, out var summary);
+            indexInvestmentFeedback.text = summary;
+            indexInvestmentFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
+            RefreshMoney();
+            indexInvestmentFeedback.text = summary;
         }
 
         private void RefreshAchievements()

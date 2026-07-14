@@ -37,7 +37,16 @@ namespace StimTycoon.Tests.Domain.UI
                 "final-life-summary", "ending-name", "ending-status", "ending-summary", "ending-new-life",
                 "achievements-card", "achievements-count", "achievements-list", "money-view", "net-worth-card",
                 "manual-work-role", "manual-work-rate", "money-cash-value",
-                "manual-work-tap", "manual-work-feedback"
+                "manual-work-tap", "manual-work-feedback", "savings-card", "savings-balance-value",
+                "savings-available-value", "savings-deposit-mode", "savings-withdraw-mode",
+                "savings-amount-input", "savings-transfer-feedback", "money-history-card",
+                "money-transaction-history", "cash-flow-card", "cash-flow-gross", "cash-flow-taxes",
+                "cash-flow-expenses", "cash-flow-credit-interest", "cash-flow-savings-interest",
+                "cash-flow-net", "savings-projection", "credit-repayment-card", "credit-balance-value",
+                "credit-detail-value", "available-credit-value", "credit-repayment-input",
+                "credit-repayment-feedback", "index-investment-card", "index-fund-value",
+                "index-investment-requirement", "index-investment-input", "index-investment-feedback",
+                "home-card", "home-condition", "home-progress", "home-actions", "home-upgrade-feedback"
             };
 
             foreach (var elementName in requiredNames)

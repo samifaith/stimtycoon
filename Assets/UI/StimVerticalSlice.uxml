@@ -76,6 +76,17 @@
                     <ui:VisualElement name="context-activities" class="st-context-activities" />
                 </ui:VisualElement>
 
+                <ui:VisualElement name="home-card" class="st-polished-card st-home-card">
+                    <ui:VisualElement class="st-section-heading">
+                        <ui:Label text="⌂" class="st-section-heading-icon" />
+                        <ui:Label text="HOME" class="st-section-heading-title" />
+                    </ui:VisualElement>
+                    <ui:Label name="home-condition" text="Starter Home · Condition 80 / 100" class="st-home-status" />
+                    <ui:Label name="home-progress" text="Level 0 · Improvement progress 0 / 10" class="st-money-help" />
+                    <ui:VisualElement name="home-actions" class="st-home-actions" />
+                    <ui:Label name="home-upgrade-feedback" text="" class="st-manual-work-feedback" />
+                </ui:VisualElement>
+
                 <ui:VisualElement name="education-card" class="st-polished-card st-education-card hidden">
                     <ui:VisualElement class="st-section-heading">
                         <ui:Label text="A+" class="st-section-heading-icon" />
@@ -138,6 +149,48 @@
                     <ui:Label text="CURRENT CASH" class="st-money-cash-label" />
                     <ui:Button name="manual-work-tap" text="WORK 1 HOUR" class="st-manual-work-button" />
                     <ui:Label name="manual-work-feedback" text="" class="st-manual-work-feedback" />
+                </ui:VisualElement>
+                <ui:VisualElement name="savings-card" class="st-polished-card st-savings-card">
+                    <ui:Label text="SAVINGS" class="st-section-kicker" />
+                    <ui:Label name="savings-balance-value" text="$0" class="st-savings-balance" />
+                    <ui:Label text="Move money between cash and savings. Transfers do not create or destroy wealth." class="st-money-help" />
+                    <ui:VisualElement class="st-transfer-tabs">
+                        <ui:Button name="savings-deposit-mode" text="DEPOSIT" class="st-transfer-mode active" />
+                        <ui:Button name="savings-withdraw-mode" text="WITHDRAW" class="st-transfer-mode" />
+                    </ui:VisualElement>
+                    <ui:Label name="savings-available-value" text="Available cash: $0" class="st-money-help" />
+                    <ui:VisualElement name="savings-amount-input" />
+                    <ui:Label name="savings-transfer-feedback" text="" class="st-manual-work-feedback" />
+                </ui:VisualElement>
+                <ui:VisualElement name="money-history-card" class="st-polished-card st-money-history-card">
+                    <ui:Label text="RECENT TRANSFERS" class="st-section-kicker" />
+                    <ui:VisualElement name="money-transaction-history" />
+                </ui:VisualElement>
+                <ui:VisualElement name="cash-flow-card" class="st-polished-card st-money-history-card">
+                    <ui:Label text="LAST MONTH CASH FLOW" class="st-section-kicker" />
+                    <ui:Label name="cash-flow-gross" text="Gross income: $0" class="st-money-help" />
+                    <ui:Label name="cash-flow-taxes" text="Taxes: $0" class="st-money-help" />
+                    <ui:Label name="cash-flow-expenses" text="Expenses: $0" class="st-money-help" />
+                    <ui:Label name="cash-flow-credit-interest" text="Credit interest: $0" class="st-money-help" />
+                    <ui:Label name="cash-flow-savings-interest" text="Savings interest: $0" class="st-money-help" />
+                    <ui:Label name="cash-flow-net" text="Net change: $0" class="st-savings-balance" />
+                    <ui:Label name="savings-projection" text="Savings projection unavailable" class="st-money-help" />
+                </ui:VisualElement>
+                <ui:VisualElement name="credit-repayment-card" class="st-polished-card st-money-history-card">
+                    <ui:Label text="REVOLVING CREDIT" class="st-section-kicker" />
+                    <ui:Label name="credit-balance-value" text="Balance: $0" class="st-savings-balance" />
+                    <ui:Label name="credit-detail-value" text="No active revolving balance" class="st-money-help" />
+                    <ui:Label name="available-credit-value" text="Available credit: $0" class="st-money-help" />
+                    <ui:VisualElement name="credit-repayment-input" />
+                    <ui:Label name="credit-repayment-feedback" text="" class="st-manual-work-feedback" />
+                </ui:VisualElement>
+                <ui:VisualElement name="index-investment-card" class="st-polished-card st-money-history-card">
+                    <ui:Label text="LONG-TERM INVESTING" class="st-section-kicker" />
+                    <ui:Label name="index-fund-value" text="Index fund: $0" class="st-savings-balance" />
+                    <ui:Label name="index-investment-requirement" text="Requirements loading" class="st-money-help" />
+                    <ui:Label text="Broad-market investing can rise or fall. No return is guaranteed, and emergency savings comes first." class="st-money-help" />
+                    <ui:VisualElement name="index-investment-input" />
+                    <ui:Label name="index-investment-feedback" text="" class="st-manual-work-feedback" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:ScrollView>

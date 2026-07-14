@@ -27,6 +27,135 @@ namespace StimTycoon.Runtime
         public const string ProposalId = "romance_proposal_001";
         public const string WeddingId = "romance_wedding_001";
         public const string MarriageCrossroadsId = "romance_marriage_crossroads_001";
+        public const string YearInReviewId = "time_year_in_review_001";
+        public const string HomeDeferredMaintenanceId = "home_deferred_maintenance_001";
+
+        public static StimEvent CreateHomeDeferredMaintenance()
+        {
+            return new StimEvent
+            {
+                id = HomeDeferredMaintenanceId,
+                category = EventCategory.Money,
+                titleKey = "The home needs attention",
+                bodyKey = "Small problems have accumulated. Repairing them now costs money, but leaving them unresolved strains the household.",
+                toneTags = new List<string> { "grounded", "household", "maintenance" },
+                ageRange = new AgeRange { minAge = 0, maxAge = 120 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{\"maximumHomeCondition\":24}",
+                cooldownYears = 1,
+                repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnyMonth,
+                monthlyTriggerChance = 1f,
+                analyticsTags = new List<string> { "home", "condition", "expense" },
+                choices = new List<Choice>
+                {
+                    new Choice
+                    {
+                        id = "repair_now", labelKey = "Repair the most urgent problems · $75",
+                        riskPreview = RiskLevel.Safe, rewardPreview = RewardLevel.Medium, baseSuccessChance = 1f,
+                        outcomes = new List<Outcome>
+                        {
+                            new Outcome
+                            {
+                                id = "urgent_repairs_completed", classification = OutcomeClassification.Positive,
+                                resultTextKey = "The urgent repairs are complete and the home feels steadier.",
+                                feedEntryKey = "Completed urgent home repairs.", telemetryCode = "home_repair_paid",
+                                weightWithinResultGroup = 1f,
+                                effects = new List<Effect>
+                                {
+                                    new Effect { type = EffectType.CashDelta, targetId = "cash", value = -7500 },
+                                    new Effect { type = EffectType.StatDelta, targetId = "home_condition", value = 30 }
+                                }
+                            }
+                        }
+                    },
+                    new Choice
+                    {
+                        id = "defer_repairs", labelKey = "Defer the repairs · Happiness −2",
+                        riskPreview = RiskLevel.Safe, rewardPreview = RewardLevel.Low, baseSuccessChance = 1f,
+                        outcomes = new List<Outcome>
+                        {
+                            new Outcome
+                            {
+                                id = "repairs_deferred", classification = OutcomeClassification.Negative,
+                                resultTextKey = "The problems remain, and the unresolved strain follows the household.",
+                                feedEntryKey = "Deferred urgent home repairs.", telemetryCode = "home_repair_deferred",
+                                weightWithinResultGroup = 1f,
+                                effects = new List<Effect>
+                                {
+                                    new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -2 }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        public static StimEvent CreateYearInReview()
+        {
+            return new StimEvent
+            {
+                id = YearInReviewId,
+                category = EventCategory.World,
+                titleKey = "Year in Review",
+                bodyKey = "A full year has passed. Looking at what changed, what will you carry into the year ahead?",
+                toneTags = new List<string> { "reflective", "milestone" },
+                ageRange = new AgeRange { minAge = 0, maxAge = 120 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = "{}",
+                cooldownYears = 0,
+                repeatPolicy = RepeatPolicy.Repeatable,
+                timingPolicy = EventTimingPolicy.AnnualRollover,
+                monthlyTriggerChance = 1f,
+                analyticsTags = new List<string> { "time", "annual_review", "annual_reward" },
+                choices = new List<Choice>
+                {
+                    AnnualFocus("build_security", "Build security · guaranteed $500 reward", "You set aside a modest cushion for the year ahead.", "year_review_security", RewardLevel.Medium),
+                    AnnualFocus("invest_in_growth", "Invest in growth · Qualification XP +12 and Learning XP +12", "You commit the year's lesson to your own growth.", "year_review_growth", RewardLevel.Medium),
+                    AnnualFocus("nurture_connections", "Nurture connections · closest relationship +6 and household happiness +4", "You choose to make more room for the people around you.", "year_review_connections", RewardLevel.Medium)
+                }
+            };
+        }
+
+        private static Choice AnnualFocus(string id, string label, string result, string telemetry, RewardLevel reward)
+        {
+            var effects = new List<Effect>();
+            switch (id)
+            {
+                case "build_security":
+                    effects.Add(new Effect { type = EffectType.CashDelta, targetId = "cash", value = 50000 });
+                    break;
+                case "invest_in_growth":
+                    effects.Add(new Effect { type = EffectType.SkillXp, targetId = "learning", value = 12 });
+                    break;
+                case "nurture_connections":
+                    effects.Add(new Effect { type = EffectType.RelationshipDelta, targetId = "closest_relationship", value = 6 });
+                    break;
+            }
+            return new Choice
+            {
+                id = id,
+                labelKey = label,
+                riskPreview = RiskLevel.Safe,
+                rewardPreview = reward,
+                baseSuccessChance = 1f,
+                modifierRuleIds = new List<string>(),
+                outcomes = new List<Outcome>
+                {
+                    new Outcome
+                    {
+                        id = id + "_chosen",
+                        classification = OutcomeClassification.Positive,
+                        resultTextKey = result,
+                        feedEntryKey = "Completed the Year in Review.",
+                        telemetryCode = telemetry,
+                        weightWithinResultGroup = 1f,
+                        effects = effects
+                    }
+                }
+            };
+        }
 
         public static StimEvent CreateSalaryNegotiation()
         {

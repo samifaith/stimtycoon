@@ -9,30 +9,30 @@ This is the active queue after the user-verified 242-test EditMode baseline on J
 ### M7 — Time, Year in Review, and annual rewards
 
 - [x] Verify and ship Advance Year as up to twelve ordinary monthly transactions with per-month autosave and immediate stops for required input, failures, events, or endings.
-- [ ] Add an annual-change accumulator covering money, stats, relationships, Education, skills, career, and major Life Feed outcomes.
-- [ ] Present a Year in Review event after every completed twelve-month cycle, whether reached month-by-month or through Advance Year.
-- [ ] Offer meaningful next-year choices and grant one previewed, path-appropriate annual benefit exactly once.
-- [ ] Persist annual-event and reward claim state so tap spam, reload, interruption, and offline reconciliation cannot duplicate it.
-- [ ] Add the save-schema migration, validation, rollback, and old-save fixtures required by annual accumulators and reward-claim records.
-- [ ] Define deterministic annual-summary ordering and bounded history retention so Year in Review remains stable and saves do not grow without limit.
+- [x] Add an annual-change accumulator covering money, stats, relationships, Education, skills, career, and major Life Feed outcomes.
+- [x] Present a Year in Review event after every completed twelve-month cycle, whether reached month-by-month or through Advance Year.
+- [x] Offer meaningful next-year choices and grant one previewed, path-appropriate annual benefit exactly once.
+- [x] Persist annual-event and reward claim state so tap spam, reload, interruption, and offline reconciliation cannot duplicate it.
+- [x] Add the save-schema migration, validation, rollback, and old-save fixtures required by annual accumulators and reward-claim records.
+- [x] Define deterministic annual-summary ordering and bounded history retention so Year in Review remains stable and saves do not grow without limit.
 
 ### M8 — Money and banking vertical slice
 
-- [ ] Add transactional deposits, withdrawals, exact amounts, percentage amounts, and savings balance/history.
-- [ ] Show grounded interest, projected returns, monthly cash flow, taxes, expenses, debt, and available credit without exaggerated rates.
-- [ ] Add revolving-credit repayment and cash-or-credit confirmation using integer minor units and atomic rollback.
-- [ ] Gate investing behind age, knowledge, qualification, and available-funds requirements; keep gambling/casino risk out until banking is stable.
-- [ ] Add seeded economy simulations and balance budgets for income, expenses, debt, interest, investing risk, and wealth growth across starting backgrounds.
-- [ ] Cap or archive transaction history without losing balances, auditability, or recovery correctness.
+- [x] Add transactional deposits, withdrawals, exact amounts, percentage amounts, and savings balance/history.
+- [x] Show grounded interest, projected returns, monthly cash flow, taxes, expenses, debt, and available credit without exaggerated rates.
+- [x] Add revolving-credit repayment and cash-or-credit confirmation using integer minor units and atomic rollback.
+- [x] Gate investing behind age, knowledge, qualification, emergency savings, and available-funds requirements; keep gambling/casino risk out until banking is stable.
+- [x] Add seeded economy simulations and balance budgets for income, expenses, debt, interest, investing risk, and wealth growth across starting backgrounds.
+- [x] Cap or archive transaction history without losing balances, auditability, or recovery correctness.
 
 ### M9 — Home and personal-development vertical slice
 
-- [ ] Add one persistent home with room-object actions for reading, training, rest, maintenance, and household time.
-- [ ] Show each action's cost, stock/capacity, cooldown, progress, and benefit before commitment.
-- [ ] Connect home condition and household cohesion to expenses, Happiness, relationships, and authored events.
-- [ ] Add at least one meaningful upgrade path without introducing premium currency or artificial countdown pressure.
-- [ ] Persist ownership, condition, inventory/capacity, and upgrade state through migration and reload fixtures.
-- [ ] Establish the reusable asset/content contract for later homes and room objects before adding breadth.
+- [x] Add one persistent home with transactional actions for reading, training, rest, maintenance, and household time, including independent monthly cooldowns and rollback-safe autosave.
+- [x] Show each action's cost, reading/equipment stock or capacity, cooldown, improvement progress, affordability, and benefit before commitment.
+- [x] Connect low home condition to repair overhead, Happiness, household cohesion, household relationships, and an authored repair-or-defer event.
+- [x] Add a three-level cash-and-earned-progress home upgrade path that restores condition and improves home-action benefits without premium currency or artificial countdown pressure.
+- [x] Persist ownership, condition, reading stock/capacity, equipment condition, improvement progress, and upgrade state through validation and additive migration fixtures.
+- [x] Establish and validate a reusable home/room-object content contract with stable IDs, action mappings, previews, costs, capacity consumption, condition wear, progress, and upgrade scaling; drive runtime and UI metadata from it.
 
 ### M10 — Relationships, dating, and family expansion
 
@@ -155,9 +155,9 @@ This is the active queue after the user-verified 242-test EditMode baseline on J
 ### Time controls
 
 - [x] Add Advance Year as a safe batch of up to twelve normal Advance Month transactions, stopping for pending events, required school/life decisions, claimable work, failures, endings, or other player input.
-- [ ] Show a batch summary covering elapsed months and important money, stat, relationship, education, and career changes.
-- [ ] End every completed twelve-month cycle—whether reached month-by-month or through Advance Year—with an authored Year in Review event that condenses major outcomes and offers meaningful next-year options.
-- [ ] Grant one clearly previewed, path-appropriate year-completion benefit and persist its claim so it cannot duplicate across taps, reloads, interruption, or offline reconciliation.
+- [x] Show a batch summary covering elapsed months and important money, stat, relationship, education, and career changes.
+- [x] End every completed twelve-month cycle—whether reached month-by-month or through Advance Year—with an authored Year in Review event that condenses major outcomes and offers meaningful next-year options.
+- [x] Grant one clearly previewed, path-appropriate year-completion benefit and persist its claim so it cannot duplicate across taps, reloads, interruption, or offline reconciliation.
 - [ ] Keep Advance Month free and always available. If Advance Year is monetized later, treat it only as optional convenience with an earned/free path; never let it bypass consequences or improve hidden odds.
 
 ## P2 — Branching life simulation

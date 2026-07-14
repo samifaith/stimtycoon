@@ -47,6 +47,21 @@ namespace StimTycoon.Runtime
         Credit
     }
 
+    public enum StimSavingsTransferType
+    {
+        Deposit,
+        Withdrawal
+    }
+
+    public enum StimHomeActionType
+    {
+        Read,
+        Train,
+        Rest,
+        Maintain,
+        HouseholdTime
+    }
+
     public enum StimEducationActionType
     {
         Read,
@@ -210,6 +225,12 @@ namespace StimTycoon.Runtime
                 summary = $"Event {eventId} was not found.";
                 return false;
             }
+            if (eventId == RepresentativeStimEvents.YearInReviewId &&
+                !string.Equals(ActiveSave.state.pendingEventId, eventId, StringComparison.Ordinal))
+            {
+                summary = "The Year in Review reward is not pending or was already claimed.";
+                return false;
+            }
 
             if (eventId == RepresentativeStimEvents.PromInvitationId && choiceId == "attend_prom_together")
             {
@@ -276,6 +297,8 @@ namespace StimTycoon.Runtime
 
             var candidateSave = CloneSave(ActiveSave);
             var financialImpact = ApplyResolution(candidateSave, resolution);
+            financialImpact += ApplyAnnualReviewReward(candidateSave, resolution.eventId, resolution.choiceId);
+            QueueDeferredAnnualReview(candidateSave, resolution.eventId);
             if (!TryApplyFinancialImpact(candidateSave.state, financialImpact, paymentMethod, out summary))
             {
                 if (financialImpact < 0 && paymentMethod == StimPaymentMethod.Credit)
@@ -293,6 +316,8 @@ namespace StimTycoon.Runtime
                     $"{candidateSave.state.finances.householdCreditAprBasisPoints / 100m:0.00}% APR · Happiness +1.");
             }
             EvaluateAchievements(candidateSave);
+            if (eventId == RepresentativeStimEvents.YearInReviewId)
+                BeginAnnualCycleIfNeeded(candidateSave.state);
             var serializedSave = JsonUtility.ToJson(candidateSave);
             if (!saveRepository.TryCommitAutosave(serializedSave, out summary))
             {
@@ -364,18 +389,29 @@ namespace StimTycoon.Runtime
 
             var candidateSave = CloneSave(ActiveSave);
             NormalizeProgressCollections(candidateSave.state);
+            BeginAnnualCycleIfNeeded(candidateSave.state);
             candidateSave.revision++;
             candidateSave.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
             var paidMonth = candidateSave.state.calendar.monthOfYear;
             var creditInterest = AccrueHouseholdCreditInterest(candidateSave.state.finances);
+            var savingsInterest = AccrueSavingsInterest(candidateSave, paidMonth);
             var playerPaycheck = CalculateMonthlyPaycheck(candidateSave.state.career.annualSalaryMinorUnits, paidMonth);
             var spousePaycheck = CalculateMonthlyPaycheck(
                 candidateSave.state.finances.spouseAnnualIncomeMinorUnits, paidMonth);
             var paycheck = playerPaycheck + spousePaycheck;
             var taxes = CalculateTaxWithholding(paycheck, candidateSave.state.finances.taxRateBasisPoints);
-            var expenses = candidateSave.state.finances.monthlyLivingExpensesMinorUnits;
+            var baseExpenses = candidateSave.state.finances.monthlyLivingExpensesMinorUnits;
+            var homeConditionExpense = CalculateHomeConditionExpense(baseExpenses, candidateSave.state.home?.condition ?? 100);
+            var expenses = baseExpenses + homeConditionExpense;
             var netCashFlow = paycheck - taxes - expenses;
             ApplyMonthlyCashFlow(candidateSave.state.finances, paycheck, taxes, expenses);
+            candidateSave.state.finances.lastGrossIncomeMinorUnits = paycheck;
+            candidateSave.state.finances.lastTaxesMinorUnits = taxes;
+            candidateSave.state.finances.lastExpensesMinorUnits = expenses;
+            candidateSave.state.finances.lastCreditInterestMinorUnits = creditInterest;
+            candidateSave.state.finances.lastSavingsInterestMinorUnits = savingsInterest;
+            candidateSave.state.finances.lastNetCashFlowMinorUnits =
+                netCashFlow + savingsInterest - creditInterest;
             if (!string.IsNullOrEmpty(candidateSave.state.career.roleTitle) &&
                 candidateSave.state.career.roleTitle != "Retired")
             {
@@ -384,6 +420,7 @@ namespace StimTycoon.Runtime
             }
             candidateSave.state.character.happiness = ClampStat(
                 candidateSave.state.character.happiness + (netCashFlow >= 0 ? 1 : -2));
+            ApplyMonthlyHomeCondition(candidateSave.state, homeConditionExpense);
             AdvanceStatuses(candidateSave.state.statuses);
             AdvanceRelationships(candidateSave);
 
@@ -403,11 +440,14 @@ namespace StimTycoon.Runtime
                 {
                     FinalizeLife(candidateSave.state.character, "deceased", "health_decline");
                 }
+                ApplyAnnualIndexFundReturn(candidateSave);
+                CompleteAnnualCycle(candidateSave.state);
             }
             else
             {
-                candidateSave.state.calendar.monthOfYear++;
+                candidateSave.state.annualReview.monthsAccumulated++;
             }
+            if (!completedYear) candidateSave.state.calendar.monthOfYear++;
             var lifeEnded = IsLifeEnded(candidateSave.state.character);
             nextEvent = lifeEnded ? null : SelectEligibleEvent(candidateSave, paidMonth, completedYear);
             candidateSave.state.pendingEventId = nextEvent?.id;
@@ -418,7 +458,9 @@ namespace StimTycoon.Runtime
             var hasCareer = !string.IsNullOrEmpty(candidateSave.state.career.roleTitle) &&
                             candidateSave.state.career.roleTitle != "Retired";
             var cashFlowSummary = $"gross {FormatMoney(paycheck)}, taxes {FormatMoney(taxes)}, expenses {FormatMoney(expenses)}, net {FormatSignedMoney(netCashFlow)}" +
-                                  (creditInterest > 0 ? $", credit interest {FormatMoney(creditInterest)}" : string.Empty);
+                                  (homeConditionExpense > 0 ? $", home repair overhead {FormatMoney(homeConditionExpense)}" : string.Empty) +
+                                  (creditInterest > 0 ? $", credit interest {FormatMoney(creditInterest)}" : string.Empty) +
+                                  (savingsInterest > 0 ? $", savings interest +{FormatMoney(savingsInterest)}" : string.Empty);
             var stageChanged = !string.Equals(previousLifeStage, candidateSave.state.character.lifeStage, StringComparison.Ordinal);
             var educationStageChanged = !string.Equals(
                 previousEducationStage,
@@ -469,6 +511,286 @@ namespace StimTycoon.Runtime
 
             ActiveSave = candidateSave;
             return true;
+        }
+
+        public bool TryTransferSavings(
+            StimSavingsTransferType transferType,
+            long amountMinorUnits,
+            out string summary)
+        {
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+            if (IsLifeEnded(ActiveSave.state.character))
+            {
+                summary = "This life has ended. Start a new life to continue playing.";
+                return false;
+            }
+            if (amountMinorUnits <= 0)
+            {
+                summary = "Transfer amount must be at least one cent.";
+                return false;
+            }
+
+            if (!transactionRunner.TryExecute(
+                    ActiveSave,
+                    candidate => ApplySavingsTransfer(candidate, transferType, amountMinorUnits),
+                    out var committedSave,
+                    out summary))
+            {
+                return false;
+            }
+            ActiveSave = committedSave;
+            return true;
+        }
+
+        public bool TryTransferSavingsPercentage(
+            StimSavingsTransferType transferType,
+            int percentage,
+            out string summary)
+        {
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+            var available = transferType == StimSavingsTransferType.Deposit
+                ? ActiveSave.state.finances.cashMinorUnits
+                : ActiveSave.state.finances.savingsMinorUnits;
+            if (!StimActionAmountService.TrySelectPercentage(
+                    available, percentage, out var amountMinorUnits, out summary))
+            {
+                return false;
+            }
+            return TryTransferSavings(transferType, amountMinorUnits, out summary);
+        }
+
+        public bool TryRepayHouseholdCredit(long amountMinorUnits, out string summary)
+        {
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+            if (IsLifeEnded(ActiveSave.state.character))
+            {
+                summary = "This life has ended. Start a new life to continue playing.";
+                return false;
+            }
+            if (amountMinorUnits <= 0)
+            {
+                summary = "Repayment amount must be at least one cent.";
+                return false;
+            }
+            if (!transactionRunner.TryExecute(
+                    ActiveSave,
+                    candidate => ApplyHouseholdCreditRepayment(candidate, amountMinorUnits),
+                    out var committedSave,
+                    out summary)) return false;
+            ActiveSave = committedSave;
+            return true;
+        }
+
+        public bool TryRepayHouseholdCreditPercentage(int percentage, out string summary)
+        {
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+            var available = Math.Min(
+                ActiveSave.state.finances.cashMinorUnits,
+                ActiveSave.state.finances.householdCreditBalanceMinorUnits);
+            if (!StimActionAmountService.TrySelectPercentage(
+                    available, percentage, out var amountMinorUnits, out summary)) return false;
+            return TryRepayHouseholdCredit(amountMinorUnits, out summary);
+        }
+
+        private static StimTransactionMutationResult ApplyHouseholdCreditRepayment(
+            StimSaveEnvelope save,
+            long amountMinorUnits)
+        {
+            NormalizeProgressCollections(save.state);
+            var finances = save.state.finances;
+            if (finances.householdCreditBalanceMinorUnits <= 0)
+                return StimTransactionMutationResult.Failure("There is no revolving credit balance to repay.");
+            if (amountMinorUnits > finances.cashMinorUnits)
+                return StimTransactionMutationResult.Failure("Repayment exceeds available cash.");
+            if (amountMinorUnits > finances.householdCreditBalanceMinorUnits)
+                return StimTransactionMutationResult.Failure("Repayment exceeds the revolving credit balance.");
+
+            finances.cashMinorUnits -= amountMinorUnits;
+            finances.householdCreditBalanceMinorUnits -= amountMinorUnits;
+            finances.debtMinorUnits = Math.Max(0, finances.debtMinorUnits - amountMinorUnits);
+            if (finances.householdCreditBalanceMinorUnits == 0)
+                finances.householdCreditAprBasisPoints = 0;
+            save.state.moneyTransactions.Add(new StimMoneyTransactionState
+            {
+                transactionId = $"money_{save.revision}_credit_repayment",
+                type = "credit_repayment",
+                amountMinorUnits = amountMinorUnits,
+                cashBalanceMinorUnits = finances.cashMinorUnits,
+                savingsBalanceMinorUnits = finances.savingsMinorUnits,
+                age = save.state.character.age,
+                monthOfYear = save.state.calendar.monthOfYear,
+                revision = save.revision,
+                timestampUtc = save.updatedAtUtc
+            });
+            while (save.state.moneyTransactions.Count > 100)
+                save.state.moneyTransactions.RemoveAt(0);
+            AddLifeFeedEntry(save, "money",
+                $"Repaid {FormatMoney(amountMinorUnits)} of revolving credit · Balance {FormatMoney(finances.householdCreditBalanceMinorUnits)}.");
+            return StimTransactionMutationResult.Success(
+                $"Repaid {FormatMoney(amountMinorUnits)} · Credit balance {FormatMoney(finances.householdCreditBalanceMinorUnits)}" +
+                $" · Cash {FormatMoney(finances.cashMinorUnits)}.");
+        }
+
+        public static bool TryGetIndexInvestmentRequirement(StimGameState state, out string requirement)
+        {
+            if (state?.character == null || state.finances == null)
+            {
+                requirement = "Financial information is unavailable.";
+                return false;
+            }
+            if (state.character.age < 18)
+            {
+                requirement = "Index investing unlocks at age 18.";
+                return false;
+            }
+            if (state.character.smarts < 55)
+            {
+                requirement = "Reach 55 Smarts to understand long-term investment risk.";
+                return false;
+            }
+            if (state.education == null ||
+                !state.education.graduatedSecondary && state.education.qualificationExperience < 50)
+            {
+                requirement = "Complete secondary school or reach the Certificate qualification tier.";
+                return false;
+            }
+            var requiredSavings = Math.Max(50000L, state.finances.monthlyLivingExpensesMinorUnits);
+            if (state.finances.savingsMinorUnits < requiredSavings)
+            {
+                requirement = $"Build an emergency savings cushion of {FormatMoney(requiredSavings)} first.";
+                return false;
+            }
+            if (state.finances.cashMinorUnits < 1000)
+            {
+                requirement = "At least $10 available cash is required to invest.";
+                return false;
+            }
+            requirement = string.Empty;
+            return true;
+        }
+
+        public bool TryInvestInIndexFund(long amountMinorUnits, out string summary)
+        {
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+            if (amountMinorUnits < 1000)
+            {
+                summary = "Index contributions must be at least $10.";
+                return false;
+            }
+            if (!transactionRunner.TryExecute(
+                    ActiveSave,
+                    candidate => ApplyIndexInvestment(candidate, amountMinorUnits),
+                    out var committedSave,
+                    out summary)) return false;
+            ActiveSave = committedSave;
+            return true;
+        }
+
+        private static StimTransactionMutationResult ApplyIndexInvestment(
+            StimSaveEnvelope save,
+            long amountMinorUnits)
+        {
+            NormalizeProgressCollections(save.state);
+            if (!TryGetIndexInvestmentRequirement(save.state, out var requirement))
+                return StimTransactionMutationResult.Failure(requirement);
+            if (amountMinorUnits > save.state.finances.cashMinorUnits)
+                return StimTransactionMutationResult.Failure("Investment exceeds available cash.");
+            var finances = save.state.finances;
+            finances.cashMinorUnits -= amountMinorUnits;
+            finances.indexFundMinorUnits += amountMinorUnits;
+            save.state.moneyTransactions.Add(new StimMoneyTransactionState
+            {
+                transactionId = $"money_{save.revision}_index_investment",
+                type = "index_investment",
+                amountMinorUnits = amountMinorUnits,
+                cashBalanceMinorUnits = finances.cashMinorUnits,
+                savingsBalanceMinorUnits = finances.savingsMinorUnits,
+                age = save.state.character.age,
+                monthOfYear = save.state.calendar.monthOfYear,
+                revision = save.revision,
+                timestampUtc = save.updatedAtUtc
+            });
+            while (save.state.moneyTransactions.Count > 100)
+                save.state.moneyTransactions.RemoveAt(0);
+            AddLifeFeedEntry(save, "money",
+                $"Contributed {FormatMoney(amountMinorUnits)} to a broad index fund · Market returns are not guaranteed.");
+            return StimTransactionMutationResult.Success(
+                $"Invested {FormatMoney(amountMinorUnits)} · Index fund {FormatMoney(finances.indexFundMinorUnits)}" +
+                " · Returns can rise or fall.");
+        }
+
+        private static StimTransactionMutationResult ApplySavingsTransfer(
+            StimSaveEnvelope save,
+            StimSavingsTransferType transferType,
+            long amountMinorUnits)
+        {
+            NormalizeProgressCollections(save.state);
+            var finances = save.state.finances;
+            var available = transferType == StimSavingsTransferType.Deposit
+                ? finances.cashMinorUnits
+                : finances.savingsMinorUnits;
+            if (amountMinorUnits > available)
+            {
+                return StimTransactionMutationResult.Failure(
+                    transferType == StimSavingsTransferType.Deposit
+                        ? "Deposit exceeds available cash."
+                        : "Withdrawal exceeds available savings.");
+            }
+
+            if (transferType == StimSavingsTransferType.Deposit)
+            {
+                finances.cashMinorUnits -= amountMinorUnits;
+                finances.savingsMinorUnits += amountMinorUnits;
+            }
+            else
+            {
+                finances.savingsMinorUnits -= amountMinorUnits;
+                finances.cashMinorUnits += amountMinorUnits;
+            }
+
+            var type = transferType == StimSavingsTransferType.Deposit
+                ? "savings_deposit"
+                : "savings_withdrawal";
+            save.state.moneyTransactions.Add(new StimMoneyTransactionState
+            {
+                transactionId = $"money_{save.revision}_{type}",
+                type = type,
+                amountMinorUnits = amountMinorUnits,
+                cashBalanceMinorUnits = finances.cashMinorUnits,
+                savingsBalanceMinorUnits = finances.savingsMinorUnits,
+                age = save.state.character.age,
+                monthOfYear = save.state.calendar.monthOfYear,
+                revision = save.revision,
+                timestampUtc = save.updatedAtUtc
+            });
+            while (save.state.moneyTransactions.Count > 100)
+                save.state.moneyTransactions.RemoveAt(0);
+            var verb = transferType == StimSavingsTransferType.Deposit ? "Deposited" : "Withdrew";
+            AddLifeFeedEntry(save, "money",
+                $"{verb} {FormatMoney(amountMinorUnits)} · Savings {FormatMoney(finances.savingsMinorUnits)}.");
+            return StimTransactionMutationResult.Success(
+                $"{verb} {FormatMoney(amountMinorUnits)} · Cash {FormatMoney(finances.cashMinorUnits)}" +
+                $" · Savings {FormatMoney(finances.savingsMinorUnits)}.");
         }
 
         public bool TryAdvanceYear(
@@ -527,9 +849,41 @@ namespace StimTycoon.Runtime
             var ageDelta = ActiveSave.state.character.age - startingAge;
             var currentCash = ActiveSave.state.finances?.cashMinorUnits ?? 0L;
             var cashDelta = currentCash - startingCash;
-            return $"Advanced {monthsProcessed} month{(monthsProcessed == 1 ? string.Empty : "s")}" +
+            var summary = $"Advanced {monthsProcessed} month{(monthsProcessed == 1 ? string.Empty : "s")}" +
                    $" · Age {(ageDelta >= 0 ? "+" : string.Empty)}{ageDelta}" +
                    $" · Cash {FormatSignedMoney(cashDelta)} · {outcome}";
+            if (ageDelta > 0 && ActiveSave.state.annualReview?.completedAtAge == ActiveSave.state.character.age)
+                summary += " " + BuildAnnualReviewSummary(ActiveSave.state);
+            return summary;
+        }
+
+        public static string BuildAnnualReviewSummary(StimGameState state)
+        {
+            var review = state?.annualReview;
+            if (review == null || review.completedAtAge < 0) return "A full year has passed.";
+            return $"Age {review.completedAtAge} review · Cash {FormatSignedMoney(review.cashDeltaMinorUnits)}" +
+                   $" · Savings {FormatSignedMoney(review.savingsDeltaMinorUnits)}" +
+                   $" · Investments {FormatSignedMoney(review.indexFundDeltaMinorUnits)}" +
+                   $" · Debt {FormatSignedMoney(review.debtDeltaMinorUnits)}" +
+                   $" · Health {FormatSignedNumber(review.healthDelta)}" +
+                   $" · Happiness {FormatSignedNumber(review.happinessDelta)}" +
+                   $" · Smarts {FormatSignedNumber(review.smartsDelta)}" +
+                   $" · Career {FormatSignedNumber(review.careerProgressDelta)}" +
+                   $" · Qualification XP {FormatSignedNumber(review.qualificationExperienceDelta)}" +
+                   $" · Skills {FormatSignedNumber(review.skillExperienceDelta)}" +
+                   $" · Relationships {FormatSignedNumber(review.relationshipValueDelta)}" +
+                   BuildAnnualOutcomeText(review.majorOutcomeSummaries) + ". Choose a focus for next year.";
+        }
+
+        private static string BuildAnnualOutcomeText(List<string> outcomes)
+        {
+            if (outcomes == null || outcomes.Count == 0) return string.Empty;
+            return " · Highlights: " + string.Join(" | ", outcomes);
+        }
+
+        private static string FormatSignedNumber(int value)
+        {
+            return value > 0 ? $"+{value}" : value.ToString();
         }
 
         public static string GetLifeStage(int age)
@@ -567,7 +921,8 @@ namespace StimTycoon.Runtime
                 ? "This life"
                 : $"{character.firstName}'s life";
             var ending = character.lifeStatus == "retired" ? "retirement" : "death";
-            var netWorth = state.finances.cashMinorUnits - state.finances.debtMinorUnits;
+            var netWorth = state.finances.cashMinorUnits + state.finances.savingsMinorUnits +
+                           state.finances.indexFundMinorUnits - state.finances.debtMinorUnits;
             return $"{name} ended in {ending} at age {character.endedAtAge} · Net worth {FormatMoney(netWorth)}" +
                    $" · {state.achievements.Count} achievements · {state.eventHistory.Count} events" +
                    $" · {state.lifeFeed.Count} life chapters";
@@ -642,6 +997,12 @@ namespace StimTycoon.Runtime
             var choiceId = ToSchoolPathChoiceId(choice);
             education.schoolPath = choiceId;
             education.awaitingDecisionId = string.Empty;
+            if (education != null && candidateSave.state.annualReview?.completedAtAge == candidateSave.state.character.age &&
+                candidateSave.state.annualReview.rewardedAtAge != candidateSave.state.character.age &&
+                eventCatalog.TryGetEvent(RepresentativeStimEvents.YearInReviewId, out _))
+            {
+                candidateSave.state.pendingEventId = RepresentativeStimEvents.YearInReviewId;
+            }
 
             switch (choice)
             {
@@ -945,6 +1306,220 @@ namespace StimTycoon.Runtime
 
             ActiveSave = candidateSave;
             return true;
+        }
+
+        public bool TryPerformHomeAction(StimHomeActionType actionType, out string summary)
+        {
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+            if (IsLifeEnded(ActiveSave.state.character))
+            {
+                summary = "This life has ended. Start a new life to continue playing.";
+                return false;
+            }
+            if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
+            {
+                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before using the home.";
+                return false;
+            }
+
+            NormalizeProgressCollections(ActiveSave.state);
+            var cooldownId = $"home_{actionType.ToString().ToLowerInvariant()}_used";
+            if (ActiveSave.state.statuses.Exists(status => status.statusId == cooldownId))
+            {
+                summary = $"You already completed this home action this month. Advance the month to use it again.";
+                return false;
+            }
+
+            var actionDefinition = StimHomeContentCatalog.GetAction(ActiveSave.state.home.homeId, actionType);
+            if (actionDefinition == null)
+            {
+                summary = $"Home action {actionType} is not authored for {ActiveSave.state.home.homeId}.";
+                return false;
+            }
+            var cost = actionDefinition.costMinorUnits;
+            if (ActiveSave.state.finances.cashMinorUnits < cost)
+            {
+                summary = $"This home action costs {FormatMoney(cost)}, but only {FormatMoney(ActiveSave.state.finances.cashMinorUnits)} is available.";
+                return false;
+            }
+            if (actionType == StimHomeActionType.Read && ActiveSave.state.home.readingMaterialStock <= 0)
+            {
+                summary = "No reading materials remain. Maintain the home to restock them.";
+                return false;
+            }
+            if (actionType == StimHomeActionType.Train && ActiveSave.state.home.trainingEquipmentCondition < 10)
+            {
+                summary = "The training equipment needs maintenance before it can be used safely.";
+                return false;
+            }
+
+            var candidateSave = CloneSave(ActiveSave);
+            NormalizeProgressCollections(candidateSave.state);
+            candidateSave.state.home ??= new StimHomeState();
+            candidateSave.revision++;
+            candidateSave.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
+            candidateSave.state.finances.cashMinorUnits -= cost;
+            var homeBonus = candidateSave.state.home.upgradeLevel;
+
+            switch (actionType)
+            {
+                case StimHomeActionType.Read:
+                    candidateSave.state.home.readingMaterialStock -= actionDefinition.capacityConsumed;
+                    candidateSave.state.character.smarts = ClampStat(candidateSave.state.character.smarts + 1);
+                    ApplySkillXp(candidateSave.state.skills, "learning", 8 + homeBonus * 2);
+                    candidateSave.state.home.condition = ClampStat(candidateSave.state.home.condition + actionDefinition.conditionDelta);
+                    candidateSave.state.home.improvementProgress = ClampStat(candidateSave.state.home.improvementProgress + actionDefinition.improvementProgressDelta);
+                    summary = $"Read at home · Cost {FormatMoney(cost)} · Smarts +1 · Learning XP +{8 + homeBonus * 2} · Home condition −1";
+                    break;
+                case StimHomeActionType.Train:
+                    candidateSave.state.home.trainingEquipmentCondition = ClampStat(
+                        candidateSave.state.home.trainingEquipmentCondition - actionDefinition.capacityConsumed);
+                    candidateSave.state.character.health = ClampStat(candidateSave.state.character.health + 1);
+                    ApplySkillXp(candidateSave.state.skills, "fitness", 10 + homeBonus * 2);
+                    candidateSave.state.home.condition = ClampStat(candidateSave.state.home.condition + actionDefinition.conditionDelta);
+                    candidateSave.state.home.improvementProgress = ClampStat(candidateSave.state.home.improvementProgress + actionDefinition.improvementProgressDelta);
+                    summary = $"Trained at home · Cost {FormatMoney(cost)} · Health +1 · Fitness XP +{10 + homeBonus * 2} · Home condition −2";
+                    break;
+                case StimHomeActionType.Rest:
+                    candidateSave.state.character.health = ClampStat(candidateSave.state.character.health + 3 + homeBonus);
+                    candidateSave.state.character.happiness = ClampStat(candidateSave.state.character.happiness + 2 + homeBonus);
+                    summary = $"Rested at home · Free · Health +{3 + homeBonus} · Happiness +{2 + homeBonus}";
+                    break;
+                case StimHomeActionType.Maintain:
+                    candidateSave.state.home.condition = ClampStat(candidateSave.state.home.condition + actionDefinition.conditionDelta);
+                    candidateSave.state.home.improvementProgress = ClampStat(candidateSave.state.home.improvementProgress + actionDefinition.improvementProgressDelta);
+                    candidateSave.state.home.readingMaterialStock = candidateSave.state.home.readingMaterialCapacity;
+                    candidateSave.state.home.trainingEquipmentCondition = ClampStat(
+                        candidateSave.state.home.trainingEquipmentCondition + 30);
+                    summary = $"Maintained the home · Cost {FormatMoney(cost)} · Home condition +20 · Supplies restocked · Equipment repaired · Improvement progress +5";
+                    break;
+                case StimHomeActionType.HouseholdTime:
+                    candidateSave.state.household.happiness = ClampStat(candidateSave.state.household.happiness + 4);
+                    candidateSave.state.household.cohesion = ClampStat(candidateSave.state.household.cohesion + 3);
+                    foreach (var relationship in candidateSave.state.relationships)
+                    {
+                        if (IsHouseholdRelationship(relationship))
+                            relationship.value = ClampStat(relationship.value + 2);
+                    }
+                    summary = $"Spent time with the household · Cost {FormatMoney(cost)} · Household happiness +4 · Cohesion +3 · Relationships +2";
+                    break;
+                default:
+                    summary = $"Home action {actionType} is not supported.";
+                    return false;
+            }
+
+            AddOrRefreshStatus(candidateSave.state.statuses, cooldownId, 1);
+            AddLifeFeedEntry(candidateSave, "home", summary);
+            var serializedSave = JsonUtility.ToJson(candidateSave);
+            if (!saveRepository.TryCommitAutosave(serializedSave, out var commitSummary))
+            {
+                summary = commitSummary;
+                return false;
+            }
+            ActiveSave = candidateSave;
+            return true;
+        }
+
+        public bool TryUpgradeHome(out string summary)
+        {
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+            if (IsLifeEnded(ActiveSave.state.character))
+            {
+                summary = "This life has ended. Start a new life to continue playing.";
+                return false;
+            }
+            if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
+            {
+                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before upgrading the home.";
+                return false;
+            }
+            var home = ActiveSave.state.home;
+            if (home == null || home.upgradeLevel >= 3)
+            {
+                summary = "This home is already fully upgraded.";
+                return false;
+            }
+            var requiredProgress = GetHomeUpgradeRequiredProgress(home.upgradeLevel);
+            var cost = GetHomeUpgradeCost(home.upgradeLevel);
+            if (home.improvementProgress < requiredProgress)
+            {
+                summary = $"Build {requiredProgress} improvement progress before upgrading ({home.improvementProgress}/{requiredProgress}).";
+                return false;
+            }
+            if (ActiveSave.state.finances.cashMinorUnits < cost)
+            {
+                summary = $"The next home upgrade costs {FormatMoney(cost)}, but only {FormatMoney(ActiveSave.state.finances.cashMinorUnits)} is available.";
+                return false;
+            }
+
+            var candidateSave = CloneSave(ActiveSave);
+            candidateSave.revision++;
+            candidateSave.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
+            candidateSave.state.finances.cashMinorUnits -= cost;
+            candidateSave.state.home.upgradeLevel++;
+            candidateSave.state.home.improvementProgress -= requiredProgress;
+            candidateSave.state.home.condition = 100;
+            summary = $"Upgraded the home to level {candidateSave.state.home.upgradeLevel} · Cost {FormatMoney(cost)} · Condition restored · Home activity benefits improved";
+            AddLifeFeedEntry(candidateSave, "home", summary);
+            if (!saveRepository.TryCommitAutosave(JsonUtility.ToJson(candidateSave), out var commitSummary))
+            {
+                summary = commitSummary;
+                return false;
+            }
+            ActiveSave = candidateSave;
+            return true;
+        }
+
+        public static int GetHomeUpgradeRequiredProgress(int currentLevel)
+        {
+            return currentLevel >= 0 && currentLevel < 3 ? 10 + currentLevel * 10 : 0;
+        }
+
+        public static long GetHomeUpgradeCost(int currentLevel)
+        {
+            switch (currentLevel)
+            {
+                case 0: return 50000;
+                case 1: return 150000;
+                case 2: return 300000;
+                default: return 0;
+            }
+        }
+
+        public static long GetHomeActionCost(StimHomeActionType actionType)
+        {
+            return StimHomeContentCatalog.GetAction("starter_home", actionType)?.costMinorUnits ?? 0;
+        }
+
+        public static long CalculateHomeConditionExpense(long baseMonthlyExpenses, int condition)
+        {
+            if (baseMonthlyExpenses <= 0 || condition >= 50) return 0;
+            var basisPoints = condition < 25 ? 1000 : 500;
+            return (long)Math.Round(baseMonthlyExpenses * (basisPoints / 10000m), MidpointRounding.AwayFromZero);
+        }
+
+        private static void ApplyMonthlyHomeCondition(StimGameState state, long conditionExpense)
+        {
+            if (state.home == null) return;
+            if (conditionExpense > 0)
+            {
+                state.character.happiness = ClampStat(state.character.happiness - (state.home.condition < 25 ? 2 : 1));
+                state.household.cohesion = ClampStat(state.household.cohesion - 1);
+                foreach (var relationship in state.relationships)
+                {
+                    if (IsHouseholdRelationship(relationship))
+                        relationship.value = ClampStat(relationship.value - 1);
+                }
+            }
+            state.home.condition = ClampStat(state.home.condition - 1);
         }
 
         public bool TryPerformRelationshipInteraction(
@@ -1660,6 +2235,83 @@ namespace StimTycoon.Runtime
             return interest;
         }
 
+        public static long CalculateProjectedAnnualSavingsInterest(StimFinancesState finances)
+        {
+            if (finances == null || finances.savingsMinorUnits <= 0 || finances.savingsApyBasisPoints <= 0)
+                return 0;
+            return (long)Math.Round(
+                finances.savingsMinorUnits * (finances.savingsApyBasisPoints / 10000m),
+                MidpointRounding.AwayFromZero);
+        }
+
+        public static int CalculateAnnualIndexReturnBasisPoints(int seed, int age)
+        {
+            unchecked
+            {
+                var value = (uint)(seed * 1103515245 + age * 12345 + 0x9E3779B9);
+                value ^= value >> 16;
+                return -1200 + (int)(value % 3001u);
+            }
+        }
+
+        private static void ApplyAnnualIndexFundReturn(StimSaveEnvelope save)
+        {
+            var finances = save.state.finances;
+            if (finances.indexFundMinorUnits <= 0) return;
+            var basisPoints = CalculateAnnualIndexReturnBasisPoints(save.rng.seed, save.state.character.age);
+            var change = (long)Math.Round(
+                finances.indexFundMinorUnits * (basisPoints / 10000m),
+                MidpointRounding.AwayFromZero);
+            if (change == 0) return;
+            if (change < 0) change = -Math.Min(finances.indexFundMinorUnits, -change);
+            finances.indexFundMinorUnits += change;
+            save.state.moneyTransactions ??= new List<StimMoneyTransactionState>();
+            save.state.moneyTransactions.Add(new StimMoneyTransactionState
+            {
+                transactionId = $"money_{save.revision}_index_{(change > 0 ? "gain" : "loss")}",
+                type = change > 0 ? "index_gain" : "index_loss",
+                amountMinorUnits = Math.Abs(change),
+                cashBalanceMinorUnits = finances.cashMinorUnits,
+                savingsBalanceMinorUnits = finances.savingsMinorUnits,
+                age = save.state.character.age,
+                monthOfYear = 12,
+                revision = save.revision,
+                timestampUtc = save.updatedAtUtc
+            });
+            while (save.state.moneyTransactions.Count > 100)
+                save.state.moneyTransactions.RemoveAt(0);
+            AddLifeFeedEntry(save, "money",
+                $"Annual index fund change {FormatSignedMoney(change)} ({basisPoints / 100m:+0.00;-0.00;0.00}%) · " +
+                $"Balance {FormatMoney(finances.indexFundMinorUnits)}.");
+        }
+
+        private static long AccrueSavingsInterest(StimSaveEnvelope save, int paidMonth)
+        {
+            var finances = save.state.finances;
+            if (finances.savingsMinorUnits <= 0 || finances.savingsApyBasisPoints <= 0) return 0;
+            var interest = (long)Math.Round(
+                finances.savingsMinorUnits * (finances.savingsApyBasisPoints / 120000m),
+                MidpointRounding.AwayFromZero);
+            if (interest <= 0) return 0;
+            finances.savingsMinorUnits += interest;
+            save.state.moneyTransactions ??= new List<StimMoneyTransactionState>();
+            save.state.moneyTransactions.Add(new StimMoneyTransactionState
+            {
+                transactionId = $"money_{save.revision}_savings_interest",
+                type = "savings_interest",
+                amountMinorUnits = interest,
+                cashBalanceMinorUnits = finances.cashMinorUnits,
+                savingsBalanceMinorUnits = finances.savingsMinorUnits,
+                age = save.state.character.age,
+                monthOfYear = paidMonth,
+                revision = save.revision,
+                timestampUtc = save.updatedAtUtc
+            });
+            while (save.state.moneyTransactions.Count > 100)
+                save.state.moneyTransactions.RemoveAt(0);
+            return interest;
+        }
+
         private static void ApplyFamilyMovieBenefits(StimGameState state)
         {
             state.character.happiness = ClampStat(state.character.happiness + 3);
@@ -2079,7 +2731,21 @@ namespace StimTycoon.Runtime
             string relationshipId,
             float value)
         {
-            var relationship = relationships.Find(candidate => candidate.relationshipId == relationshipId);
+            StimRelationshipState relationship;
+            if (relationshipId == "closest_relationship")
+            {
+                relationship = null;
+                foreach (var candidate in relationships)
+                {
+                    if (candidate != null && (relationship == null || candidate.value > relationship.value))
+                        relationship = candidate;
+                }
+                if (relationship == null) return;
+            }
+            else
+            {
+                relationship = relationships.Find(candidate => candidate.relationshipId == relationshipId);
+            }
             if (relationship == null)
             {
                 relationship = new StimRelationshipState { relationshipId = relationshipId };
@@ -2169,6 +2835,140 @@ namespace StimTycoon.Runtime
                 relationship.relationshipType = "friend";
         }
 
+        private static void BeginAnnualCycleIfNeeded(StimGameState state)
+        {
+            state.annualReview ??= new StimAnnualReviewState();
+            var review = state.annualReview;
+            if (review.monthsAccumulated != 0) return;
+            review.cycleStartAge = state.character.age;
+            review.startingCashMinorUnits = state.finances.cashMinorUnits;
+            review.startingSavingsMinorUnits = state.finances.savingsMinorUnits;
+            review.startingIndexFundMinorUnits = state.finances.indexFundMinorUnits;
+            review.startingDebtMinorUnits = state.finances.debtMinorUnits;
+            review.startingHealth = state.character.health;
+            review.startingHappiness = state.character.happiness;
+            review.startingSmarts = state.character.smarts;
+            review.startingCareerProgress = state.career?.careerProgress ?? 0;
+            review.startingQualificationExperience = state.education?.qualificationExperience ?? 0;
+            review.startingRelationshipValue = TotalRelationshipValue(state.relationships);
+            review.startingSkillExperience = TotalSkillExperience(state.skills);
+            review.startingLifeFeedCount = state.lifeFeed?.Count ?? 0;
+            review.majorOutcomeSummaries ??= new List<string>();
+            review.majorOutcomeSummaries.Clear();
+        }
+
+        private static void CompleteAnnualCycle(StimGameState state)
+        {
+            var review = state.annualReview;
+            review.monthsAccumulated = 12;
+            review.completedAtAge = state.character.age;
+            review.cashDeltaMinorUnits = state.finances.cashMinorUnits - review.startingCashMinorUnits;
+            review.savingsDeltaMinorUnits = state.finances.savingsMinorUnits - review.startingSavingsMinorUnits;
+            review.indexFundDeltaMinorUnits = state.finances.indexFundMinorUnits - review.startingIndexFundMinorUnits;
+            review.debtDeltaMinorUnits = state.finances.debtMinorUnits - review.startingDebtMinorUnits;
+            review.healthDelta = state.character.health - review.startingHealth;
+            review.happinessDelta = state.character.happiness - review.startingHappiness;
+            review.smartsDelta = state.character.smarts - review.startingSmarts;
+            review.careerProgressDelta = (state.career?.careerProgress ?? 0) - review.startingCareerProgress;
+            review.qualificationExperienceDelta = (state.education?.qualificationExperience ?? 0) - review.startingQualificationExperience;
+            review.relationshipValueDelta = TotalRelationshipValue(state.relationships) - review.startingRelationshipValue;
+            review.skillExperienceDelta = TotalSkillExperience(state.skills) - review.startingSkillExperience;
+            CaptureAnnualOutcomes(state, review);
+        }
+
+        private static int TotalSkillExperience(List<StimSkillState> skills)
+        {
+            if (skills == null) return 0;
+            var total = 0;
+            foreach (var skill in skills) total += skill?.experience ?? 0;
+            return total;
+        }
+
+        private static void CaptureAnnualOutcomes(StimGameState state, StimAnnualReviewState review)
+        {
+            review.majorOutcomeSummaries ??= new List<string>();
+            review.majorOutcomeSummaries.Clear();
+            if (state.lifeFeed == null) return;
+            var candidates = new List<StimLifeFeedEntry>();
+            for (var index = Math.Min(review.startingLifeFeedCount, state.lifeFeed.Count);
+                 index < state.lifeFeed.Count; index++)
+            {
+                var entry = state.lifeFeed[index];
+                if (entry != null && IsMajorAnnualOutcomeCategory(entry.category)) candidates.Add(entry);
+            }
+            candidates.Sort((left, right) =>
+            {
+                var revision = left.revision.CompareTo(right.revision);
+                return revision != 0 ? revision : string.CompareOrdinal(left.entryId, right.entryId);
+            });
+            var start = Math.Max(0, candidates.Count - 5);
+            for (var index = start; index < candidates.Count; index++)
+                review.majorOutcomeSummaries.Add(candidates[index].text);
+        }
+
+        private static bool IsMajorAnnualOutcomeCategory(string category)
+        {
+            return category == "event" || category == "milestone" || category == "achievement" ||
+                   category == "education" || category == "career" || category == "relationship";
+        }
+
+        private static int TotalRelationshipValue(List<StimRelationshipState> relationships)
+        {
+            if (relationships == null) return 0;
+            var total = 0;
+            foreach (var relationship in relationships) total += relationship?.value ?? 0;
+            return total;
+        }
+
+        private static long ApplyAnnualReviewReward(StimSaveEnvelope save, string eventId, string choiceId)
+        {
+            if (eventId != RepresentativeStimEvents.YearInReviewId) return 0;
+            var review = save.state.annualReview;
+            if (review == null || review.completedAtAge < 0 || review.rewardedAtAge == review.completedAtAge)
+                return 0;
+
+            review.rewardedAtAge = review.completedAtAge;
+            save.state.annualReviewHistory ??= new List<StimAnnualReviewHistoryState>();
+            save.state.annualReviewHistory.Add(new StimAnnualReviewHistoryState
+            {
+                completedAtAge = review.completedAtAge,
+                rewardChoiceId = choiceId,
+                summary = BuildAnnualReviewSummary(save.state),
+                revision = save.revision,
+                timestampUtc = save.updatedAtUtc
+            });
+            while (save.state.annualReviewHistory.Count > 10)
+                save.state.annualReviewHistory.RemoveAt(0);
+            review.monthsAccumulated = 0;
+            review.cycleStartAge = -1;
+            switch (choiceId)
+            {
+                case "build_security":
+                    return 0;
+                case "invest_in_growth":
+                    if (save.state.education != null) save.state.education.qualificationExperience += 12;
+                    return 0;
+                case "nurture_connections":
+                    save.state.household.happiness = ClampStat(save.state.household.happiness + 4);
+                    return 0;
+                default:
+                    return 0;
+            }
+        }
+
+        private void QueueDeferredAnnualReview(StimSaveEnvelope save, string resolvedEventId)
+        {
+            var review = save.state.annualReview;
+            if (resolvedEventId == RepresentativeStimEvents.YearInReviewId || review == null ||
+                review.completedAtAge != save.state.character.age ||
+                review.rewardedAtAge == review.completedAtAge ||
+                !eventCatalog.TryGetEvent(RepresentativeStimEvents.YearInReviewId, out _))
+            {
+                return;
+            }
+            save.state.pendingEventId = RepresentativeStimEvents.YearInReviewId;
+        }
+
         private static void NormalizeProgressCollections(StimGameState state)
         {
             if (state == null)
@@ -2181,6 +2981,9 @@ namespace StimTycoon.Runtime
             state.achievements ??= new List<StimAchievementState>();
             state.lifeDecisions ??= new List<StimLifeDecisionState>();
             state.household ??= new StimHouseholdState();
+            state.annualReview ??= new StimAnnualReviewState();
+            state.annualReviewHistory ??= new List<StimAnnualReviewHistoryState>();
+            state.moneyTransactions ??= new List<StimMoneyTransactionState>();
             state.lifeFeed ??= new List<StimLifeFeedEntry>();
             state.scheduledEvents ??= new List<StimScheduledEventRecord>();
         }
@@ -2291,6 +3094,10 @@ namespace StimTycoon.Runtime
                 case "luck":
                     save.state.character.luck = ClampStat(save.state.character.luck + delta);
                     break;
+                case "home_condition":
+                    if (save.state.home != null)
+                        save.state.home.condition = ClampStat(save.state.home.condition + delta);
+                    break;
             }
         }
 
@@ -2307,12 +3114,23 @@ namespace StimTycoon.Runtime
                 return scheduled;
             }
 
+            if (!string.IsNullOrEmpty(save.state.education?.awaitingDecisionId))
+            {
+                return null;
+            }
+
             if (completedYear && save.state.character.age == 16 &&
                 save.state.character.genderIdentity == "undiscovered" &&
                 eventCatalog.TryGetEvent(RepresentativeStimEvents.ComingOfAgeGenderId, out var identityEvent) &&
                 IsEligible(identityEvent, save))
             {
                 return identityEvent;
+            }
+
+            if (completedYear && eventCatalog.TryGetEvent(RepresentativeStimEvents.YearInReviewId, out var review) &&
+                IsEligible(review, save))
+            {
+                return review;
             }
 
             var eligible = new List<StimEvent>();
@@ -2486,6 +3304,8 @@ namespace StimTycoon.Runtime
             public string decisionChoiceId = string.Empty;
             public string studyTrack = string.Empty;
             public int minimumQualificationExperience = 0;
+            public int minimumHomeCondition = 0;
+            public int maximumHomeCondition = 100;
         }
 
         private static bool MeetsAuthoredRequirements(string json, StimGameState state)
@@ -2532,6 +3352,12 @@ namespace StimTycoon.Runtime
             }
             if (requirements.minimumQualificationExperience > 0 &&
                 (state.education?.qualificationExperience ?? 0) < requirements.minimumQualificationExperience)
+            {
+                return false;
+            }
+            var homeCondition = state.home?.condition ?? 100;
+            if (homeCondition < requirements.minimumHomeCondition ||
+                homeCondition > requirements.maximumHomeCondition)
             {
                 return false;
             }

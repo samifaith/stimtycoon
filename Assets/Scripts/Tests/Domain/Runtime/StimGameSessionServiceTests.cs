@@ -354,6 +354,160 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void AdvanceMonth_TwelveCreatesPersistedYearReviewWithAccumulatedChanges()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            var reviewEvent = RepresentativeStimEvents.CreateYearInReview();
+            Assert.That(StimEventValidator.ValidateEvent(reviewEvent).isValid, Is.True);
+            catalog.Upsert(reviewEvent);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.calendar.monthOfYear = 12;
+            save.state.character.age = 24;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
+
+            Assert.That(nextEvent?.id, Is.EqualTo(RepresentativeStimEvents.YearInReviewId));
+            Assert.That(service.ActiveSave.state.pendingEventId, Is.EqualTo(RepresentativeStimEvents.YearInReviewId));
+            Assert.That(service.ActiveSave.state.annualReview.completedAtAge, Is.EqualTo(25));
+            Assert.That(service.ActiveSave.state.annualReview.monthsAccumulated, Is.EqualTo(12));
+            Assert.That(StimGameSessionService.BuildAnnualReviewSummary(service.ActiveSave.state),
+                Does.Contain("Age 25 review").And.Contain("Cash"));
+        }
+
+        [Test]
+        public void YearInReviewReward_IsPersistedAndDuplicateSafe()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateYearInReview());
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(catalog, repository);
+            var save = CreateValidSave();
+            save.state.calendar.monthOfYear = 12;
+            save.state.character.age = 24;
+            service.Start(save);
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out _));
+            var cashBeforeReward = service.ActiveSave.state.finances.cashMinorUnits;
+
+            Assert.IsTrue(service.TryResolveChoice(
+                RepresentativeStimEvents.YearInReviewId, "build_security", out var firstSummary), firstSummary);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBeforeReward + 50000));
+            Assert.That(service.ActiveSave.state.annualReview.rewardedAtAge, Is.EqualTo(25));
+
+            Assert.IsFalse(service.TryResolveChoice(
+                RepresentativeStimEvents.YearInReviewId, "build_security", out var duplicateSummary));
+            Assert.That(duplicateSummary, Does.Contain("already claimed"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBeforeReward + 50000));
+            Assert.That(repository.CommitCount, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void AnnualAccumulator_CapturesSkillsSavingsAndDeterministicallyOrderedHighlights()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateYearInReview());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.calendar.monthOfYear = 1;
+            service.Start(save);
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out _));
+            service.ActiveSave.state.skills.Add(new StimSkillState { skillId = "learning", experience = 10 });
+            service.ActiveSave.state.finances.savingsMinorUnits = 25000;
+            service.ActiveSave.state.lifeFeed.Add(new StimLifeFeedEntry
+            {
+                entryId = "later", category = "career", text = "Career highlight", revision = 20
+            });
+            service.ActiveSave.state.lifeFeed.Add(new StimLifeFeedEntry
+            {
+                entryId = "earlier", category = "education", text = "Education highlight", revision = 10
+            });
+            service.ActiveSave.state.calendar.monthOfYear = 12;
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var reviewEvent, out var summary), summary);
+            var review = service.ActiveSave.state.annualReview;
+            Assert.That(reviewEvent?.id, Is.EqualTo(RepresentativeStimEvents.YearInReviewId));
+            Assert.That(review.skillExperienceDelta, Is.EqualTo(10));
+            Assert.That(review.savingsDeltaMinorUnits, Is.EqualTo(25073));
+            Assert.That(service.ActiveSave.state.finances.lastSavingsInterestMinorUnits, Is.EqualTo(73));
+            Assert.That(review.majorOutcomeSummaries, Does.Contain("Education highlight"));
+            Assert.That(review.majorOutcomeSummaries, Does.Contain("Career highlight"));
+            Assert.That(review.majorOutcomeSummaries.IndexOf("Education highlight"),
+                Is.LessThan(review.majorOutcomeSummaries.IndexOf("Career highlight")));
+            Assert.That(review.majorOutcomeSummaries, Has.Count.LessThanOrEqualTo(5));
+        }
+
+        [Test]
+        public void YearInReview_PersistenceFailureRollsBackRewardAndArchive()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateYearInReview());
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(catalog, repository);
+            var save = CreateValidSave();
+            save.state.calendar.monthOfYear = 12;
+            service.Start(save);
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out _));
+            var cashBefore = service.ActiveSave.state.finances.cashMinorUnits;
+            repository.ShouldCommit = false;
+
+            Assert.IsFalse(service.TryResolveChoice(
+                RepresentativeStimEvents.YearInReviewId, "build_security", out _));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore));
+            Assert.That(service.ActiveSave.state.annualReview.rewardedAtAge, Is.EqualTo(-1));
+            Assert.That(service.ActiveSave.state.annualReviewHistory, Is.Empty);
+            Assert.That(service.ActiveSave.state.pendingEventId, Is.EqualTo(RepresentativeStimEvents.YearInReviewId));
+        }
+
+        [Test]
+        public void YearInReview_ReloadPreservesPendingEntitlementAndSingleClaim()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateYearInReview());
+            var repository = new RecordingSaveRepository();
+            var firstSession = new StimGameSessionService(catalog, repository);
+            var save = CreateValidSave();
+            save.state.calendar.monthOfYear = 12;
+            firstSession.Start(save);
+            Assert.IsTrue(firstSession.TryAdvanceMonth(out _, out _));
+
+            var resumed = new StimGameSessionService(catalog, repository);
+            Assert.IsTrue(resumed.TryLoadLatest(out var loadSummary), loadSummary);
+            Assert.That(resumed.ActiveSave.state.pendingEventId,
+                Is.EqualTo(RepresentativeStimEvents.YearInReviewId));
+            Assert.IsTrue(resumed.TryResolveChoice(
+                RepresentativeStimEvents.YearInReviewId, "nurture_connections", out var claimSummary), claimSummary);
+            Assert.IsFalse(resumed.TryResolveChoice(
+                RepresentativeStimEvents.YearInReviewId, "nurture_connections", out _));
+            Assert.That(resumed.ActiveSave.state.annualReviewHistory, Has.Count.EqualTo(1));
+        }
+
+        [Test]
+        public void AnnualReviewArchive_RetainsNewestTenCompletedYears()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateYearInReview());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            service.Start(save);
+
+            for (var age = 25; age <= 35; age++)
+            {
+                service.ActiveSave.state.character.age = age;
+                service.ActiveSave.state.annualReview.completedAtAge = age;
+                service.ActiveSave.state.annualReview.rewardedAtAge = age - 1;
+                service.ActiveSave.state.pendingEventId = RepresentativeStimEvents.YearInReviewId;
+                Assert.IsTrue(service.TryResolveChoice(
+                    RepresentativeStimEvents.YearInReviewId, "invest_in_growth", out var summary), summary);
+            }
+
+            Assert.That(service.ActiveSave.state.annualReviewHistory, Has.Count.EqualTo(10));
+            Assert.That(service.ActiveSave.state.annualReviewHistory[0].completedAtAge, Is.EqualTo(26));
+            Assert.That(service.ActiveSave.state.annualReviewHistory[9].completedAtAge, Is.EqualTo(35));
+            Assert.That(StimSaveValidator.ValidateSave(service.ActiveSave).isValid, Is.True);
+        }
+
+        [Test]
         public void AdvanceYear_StopsForRequiredSchoolPathDecision()
         {
             var service = new StimGameSessionService(
@@ -456,6 +610,176 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(71));
             Assert.That(service.ActiveSave.state.skills.Find(skill => skill.skillId == "fitness").experience, Is.EqualTo(10));
             Assert.That(repository.CommitCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void HomeActions_ApplyCostsBenefitsFeedAndIndependentMonthlyCooldowns()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            var startingCash = save.state.finances.cashMinorUnits;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformHomeAction(StimHomeActionType.Read, out var readSummary), readSummary);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(startingCash - 500));
+            Assert.That(service.ActiveSave.state.character.smarts, Is.EqualTo(61));
+            Assert.That(service.ActiveSave.state.skills.Find(skill => skill.skillId == "learning").experience, Is.EqualTo(8));
+            Assert.That(service.ActiveSave.state.home.condition, Is.EqualTo(79));
+            Assert.That(service.ActiveSave.state.lifeFeed[^1].category, Is.EqualTo("home"));
+            Assert.IsFalse(service.TryPerformHomeAction(StimHomeActionType.Read, out var cooldownSummary));
+            Assert.That(cooldownSummary, Does.Contain("already completed"));
+
+            Assert.IsTrue(service.TryPerformHomeAction(StimHomeActionType.Rest, out var restSummary), restSummary);
+            Assert.That(service.ActiveSave.state.character.health, Is.EqualTo(83));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(72));
+            Assert.That(repository.CommitCount, Is.EqualTo(2));
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var advanceSummary), advanceSummary);
+            Assert.IsTrue(service.TryPerformHomeAction(StimHomeActionType.Read, out readSummary), readSummary);
+        }
+
+        [Test]
+        public void HomeAction_RejectsUnaffordableCostAndRollsBackFailedCommit()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.finances.cashMinorUnits = 499;
+            service.Start(save);
+
+            Assert.IsFalse(service.TryPerformHomeAction(StimHomeActionType.Read, out var fundsSummary));
+            Assert.That(fundsSummary, Does.Contain("costs"));
+            Assert.That(service.ActiveSave.state.character.smarts, Is.EqualTo(60));
+
+            service.ActiveSave.state.finances.cashMinorUnits = 5000;
+            repository.ShouldCommit = false;
+            Assert.IsFalse(service.TryPerformHomeAction(StimHomeActionType.Maintain, out var failedSummary));
+            Assert.That(failedSummary, Is.EqualTo("failed"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(5000));
+            Assert.That(service.ActiveSave.state.home.condition, Is.EqualTo(80));
+            Assert.That(service.ActiveSave.state.statuses.Exists(status => status.statusId == "home_maintain_used"), Is.False);
+        }
+
+        [Test]
+        public void HomeUpgrade_ConsumesCashAndProgressAndImprovesBenefits()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.finances.cashMinorUnits = 100000;
+            save.state.home.improvementProgress = 10;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryUpgradeHome(out var upgradeSummary), upgradeSummary);
+            Assert.That(service.ActiveSave.state.home.upgradeLevel, Is.EqualTo(1));
+            Assert.That(service.ActiveSave.state.home.improvementProgress, Is.Zero);
+            Assert.That(service.ActiveSave.state.home.condition, Is.EqualTo(100));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(50000));
+            Assert.That(service.ActiveSave.state.lifeFeed[^1].text, Does.Contain("level 1"));
+
+            Assert.IsTrue(service.TryPerformHomeAction(StimHomeActionType.Read, out var readSummary), readSummary);
+            Assert.That(service.ActiveSave.state.skills.Find(skill => skill.skillId == "learning").experience, Is.EqualTo(10));
+            Assert.That(readSummary, Does.Contain("Learning XP +10"));
+        }
+
+        [Test]
+        public void HomeInventory_IsConsumedBlockedAndRestoredByMaintenance()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.home.readingMaterialStock = 1;
+            save.state.home.trainingEquipmentCondition = 10;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformHomeAction(StimHomeActionType.Read, out var read), read);
+            Assert.That(service.ActiveSave.state.home.readingMaterialStock, Is.Zero);
+            service.ActiveSave.state.statuses.RemoveAll(status => status.statusId == "home_read_used");
+            Assert.IsFalse(service.TryPerformHomeAction(StimHomeActionType.Read, out var empty));
+            Assert.That(empty, Does.Contain("No reading materials"));
+
+            Assert.IsTrue(service.TryPerformHomeAction(StimHomeActionType.Train, out var train), train);
+            Assert.That(service.ActiveSave.state.home.trainingEquipmentCondition, Is.Zero);
+            service.ActiveSave.state.statuses.RemoveAll(status => status.statusId == "home_train_used");
+            Assert.IsFalse(service.TryPerformHomeAction(StimHomeActionType.Train, out var unsafeSummary));
+            Assert.That(unsafeSummary, Does.Contain("needs maintenance"));
+
+            Assert.IsTrue(service.TryPerformHomeAction(StimHomeActionType.Maintain, out var maintain), maintain);
+            Assert.That(service.ActiveSave.state.home.readingMaterialStock, Is.EqualTo(3));
+            Assert.That(service.ActiveSave.state.home.trainingEquipmentCondition, Is.EqualTo(30));
+        }
+
+        [Test]
+        public void HomeContentContract_HasStableUniqueRoomObjectActionsAndRejectsDuplicates()
+        {
+            var starter = StimHomeContentCatalog.Get("starter_home");
+            var valid = StimHomeContentCatalog.Validate(starter);
+
+            Assert.IsTrue(valid.isValid, string.Join("; ", valid.errors));
+            Assert.That(starter.actions, Has.Count.EqualTo(5));
+            Assert.That(starter.actions.ConvertAll(action => action.actionId), Is.Unique);
+            Assert.That(starter.actions.ConvertAll(action => action.roomObjectId),
+                Does.Contain("bookshelf").And.Contain("training_corner").And.Contain("bed"));
+            Assert.That(StimHomeContentCatalog.GetAction("starter_home", StimHomeActionType.Read).costMinorUnits,
+                Is.EqualTo(500));
+
+            var duplicate = new StimHomeDefinition
+            {
+                homeId = "duplicate_home",
+                displayName = "Duplicate Home",
+                startingCondition = 80,
+                maxUpgradeLevel = 1,
+                actions = new List<StimHomeActionDefinition>
+                {
+                    starter.actions[0],
+                    starter.actions[0]
+                }
+            };
+            Assert.IsFalse(StimHomeContentCatalog.Validate(duplicate).isValid);
+        }
+
+        [Test]
+        public void AdvanceMonth_LowHomeConditionAddsExpensesAndHouseholdConsequences()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.home.condition = 20;
+            save.state.finances.monthlyLivingExpensesMinorUnits = 100000;
+            save.state.finances.cashMinorUnits = 1000000;
+            save.state.character.happiness = 70;
+            save.state.household.cohesion = 50;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var summary), summary);
+
+            Assert.That(service.ActiveSave.state.finances.lastExpensesMinorUnits, Is.EqualTo(110000));
+            Assert.That(service.ActiveSave.state.home.condition, Is.EqualTo(19));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(69));
+            Assert.That(service.ActiveSave.state.household.cohesion, Is.EqualTo(49));
+        }
+
+        [Test]
+        public void LowHomeCondition_TriggersAuthoredRepairEventAndRepairRestoresCondition()
+        {
+            var evt = RepresentativeStimEvents.CreateHomeDeferredMaintenance();
+            Assert.IsTrue(StimEventValidator.ValidateEvent(evt).isValid);
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(evt);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.home.condition = 20;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var selected, out var advanceSummary), advanceSummary);
+            Assert.That(selected?.id, Is.EqualTo(RepresentativeStimEvents.HomeDeferredMaintenanceId));
+            Assert.That(service.ActiveSave.state.home.condition, Is.EqualTo(19));
+            var cashBeforeRepair = service.ActiveSave.state.finances.cashMinorUnits;
+
+            Assert.IsTrue(service.TryResolveChoice(evt.id, "repair_now", out var repairSummary), repairSummary);
+            Assert.That(service.ActiveSave.state.home.condition, Is.EqualTo(49));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBeforeRepair - 7500));
         }
 
         [Test]
@@ -2275,6 +2599,235 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(resumedSession.ActiveSave.state.calendar.monthOfYear, Is.EqualTo(3));
         }
 
+        [Test]
+        public void SavingsTransfers_AreAtomicAndWriteAuditableHistory()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            service.Start(save);
+
+            Assert.IsTrue(service.TryTransferSavings(
+                StimSavingsTransferType.Deposit, 25000, out var depositSummary), depositSummary);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(75000));
+            Assert.That(service.ActiveSave.state.finances.savingsMinorUnits, Is.EqualTo(25000));
+            Assert.IsTrue(service.TryTransferSavingsPercentage(
+                StimSavingsTransferType.Withdrawal, 50, out var withdrawalSummary), withdrawalSummary);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(87500));
+            Assert.That(service.ActiveSave.state.finances.savingsMinorUnits, Is.EqualTo(12500));
+            Assert.That(service.ActiveSave.state.moneyTransactions, Has.Count.EqualTo(2));
+            Assert.That(service.ActiveSave.state.moneyTransactions[0].type, Is.EqualTo("savings_deposit"));
+            Assert.That(service.ActiveSave.state.moneyTransactions[1].type, Is.EqualTo("savings_withdrawal"));
+            Assert.That(repository.CommitCount, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void SavingsTransfer_PersistenceFailureRollsBackBalancesAndHistory()
+        {
+            var repository = new RecordingSaveRepository { ShouldCommit = false };
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            service.Start(CreateValidSave());
+
+            Assert.IsFalse(service.TryTransferSavings(
+                StimSavingsTransferType.Deposit, 10000, out _));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(100000));
+            Assert.That(service.ActiveSave.state.finances.savingsMinorUnits, Is.Zero);
+            Assert.That(service.ActiveSave.state.moneyTransactions, Is.Empty);
+            Assert.That(service.ActiveSave.revision, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void SavingsHistory_RetainsNewestOneHundredEntries()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.finances.cashMinorUnits = 1000000;
+            service.Start(save);
+
+            for (var index = 0; index < 101; index++)
+                Assert.IsTrue(service.TryTransferSavings(
+                    StimSavingsTransferType.Deposit, 100, out var summary), summary);
+
+            Assert.That(service.ActiveSave.state.moneyTransactions, Has.Count.EqualTo(100));
+            Assert.That(service.ActiveSave.state.moneyTransactions[0].revision, Is.EqualTo(3));
+            Assert.That(StimSaveValidator.ValidateSave(service.ActiveSave).isValid, Is.True);
+        }
+
+        [Test]
+        public void AdvanceMonth_AccruesGroundedSavingsInterestAndPersistsCashFlowDetail()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.finances.savingsMinorUnits = 120000;
+            save.state.finances.savingsApyBasisPoints = 350;
+            save.state.finances.taxRateBasisPoints = 2000;
+            save.state.finances.monthlyLivingExpensesMinorUnits = 200000;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var summary), summary);
+
+            var finances = service.ActiveSave.state.finances;
+            Assert.That(finances.savingsMinorUnits, Is.EqualTo(120350));
+            Assert.That(finances.lastSavingsInterestMinorUnits, Is.EqualTo(350));
+            Assert.That(finances.lastGrossIncomeMinorUnits, Is.EqualTo(416667));
+            Assert.That(finances.lastTaxesMinorUnits, Is.EqualTo(83333));
+            Assert.That(finances.lastExpensesMinorUnits, Is.EqualTo(200000));
+            Assert.That(finances.lastNetCashFlowMinorUnits, Is.EqualTo(133684));
+            Assert.That(service.ActiveSave.state.moneyTransactions[^1].type, Is.EqualTo("savings_interest"));
+            Assert.That(StimGameSessionService.CalculateProjectedAnnualSavingsInterest(finances),
+                Is.EqualTo(4212));
+        }
+
+        [Test]
+        public void CreditRepayment_IsAtomicAndReducesRevolvingAndTotalDebt()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.finances.debtMinorUnits = 80000;
+            save.state.finances.householdCreditBalanceMinorUnits = 60000;
+            save.state.finances.householdCreditAprBasisPoints = 2000;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryRepayHouseholdCredit(25000, out var summary), summary);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(75000));
+            Assert.That(service.ActiveSave.state.finances.householdCreditBalanceMinorUnits, Is.EqualTo(35000));
+            Assert.That(service.ActiveSave.state.finances.debtMinorUnits, Is.EqualTo(55000));
+            Assert.That(service.ActiveSave.state.moneyTransactions[^1].type, Is.EqualTo("credit_repayment"));
+            Assert.That(service.ActiveSave.state.lifeFeed[^1].text, Does.Contain("Repaid $250"));
+        }
+
+        [Test]
+        public void CreditRepayment_RejectsOverpaymentWithoutMutation()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.finances.debtMinorUnits = 10000;
+            save.state.finances.householdCreditBalanceMinorUnits = 10000;
+            save.state.finances.householdCreditAprBasisPoints = 1800;
+            service.Start(save);
+
+            Assert.IsFalse(service.TryRepayHouseholdCredit(10001, out var summary));
+            Assert.That(summary, Does.Contain("exceeds the revolving credit balance"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(100000));
+            Assert.That(service.ActiveSave.state.finances.debtMinorUnits, Is.EqualTo(10000));
+            Assert.That(service.ActiveSave.state.moneyTransactions, Is.Empty);
+        }
+
+        [Test]
+        public void IndexInvestment_EnforcesEducationKnowledgeAndEmergencySavingsGates()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.smarts = 54;
+            save.state.education.graduatedSecondary = true;
+            save.state.finances.savingsMinorUnits = 50000;
+            service.Start(save);
+
+            Assert.IsFalse(service.TryInvestInIndexFund(1000, out var knowledgeSummary));
+            Assert.That(knowledgeSummary, Does.Contain("55 Smarts"));
+            service.ActiveSave.state.character.smarts = 60;
+            service.ActiveSave.state.education.graduatedSecondary = false;
+            Assert.IsFalse(service.TryInvestInIndexFund(1000, out var educationSummary));
+            Assert.That(educationSummary, Does.Contain("secondary school"));
+            service.ActiveSave.state.education.graduatedSecondary = true;
+            service.ActiveSave.state.finances.savingsMinorUnits = 49999;
+            Assert.IsFalse(service.TryInvestInIndexFund(1000, out var savingsSummary));
+            Assert.That(savingsSummary, Does.Contain("emergency savings"));
+        }
+
+        [Test]
+        public void IndexInvestment_IsAtomicAndIncludedInNetWorthLedger()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.smarts = 60;
+            save.state.education.graduatedSecondary = true;
+            save.state.finances.savingsMinorUnits = 50000;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryInvestInIndexFund(25000, out var summary), summary);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(75000));
+            Assert.That(service.ActiveSave.state.finances.indexFundMinorUnits, Is.EqualTo(25000));
+            Assert.That(service.ActiveSave.state.moneyTransactions[^1].type, Is.EqualTo("index_investment"));
+            Assert.That(service.ActiveSave.state.lifeFeed[^1].text, Does.Contain("not guaranteed"));
+        }
+
+        [Test]
+        public void AnnualIndexReturn_IsDeterministicBoundedAndPersisted()
+        {
+            var first = StimGameSessionService.CalculateAnnualIndexReturnBasisPoints(42, 30);
+            var second = StimGameSessionService.CalculateAnnualIndexReturnBasisPoints(42, 30);
+            Assert.That(second, Is.EqualTo(first));
+            Assert.That(first, Is.InRange(-1200, 1800));
+
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 29;
+            save.state.calendar.monthOfYear = 12;
+            save.state.finances.indexFundMinorUnits = 100000;
+            service.Start(save);
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var summary), summary);
+            var expectedChange = (long)Math.Round(100000 * (first / 10000m), MidpointRounding.AwayFromZero);
+            Assert.That(service.ActiveSave.state.finances.indexFundMinorUnits,
+                Is.EqualTo(100000 + expectedChange));
+            Assert.That(service.ActiveSave.state.moneyTransactions[^1].type,
+                Is.EqualTo(expectedChange >= 0 ? "index_gain" : "index_loss"));
+        }
+
+        [TestCase(101, 2400000L, 180000L, 10000L, 0L)]
+        [TestCase(202, 5000000L, 280000L, 100000L, 50000L)]
+        [TestCase(303, 12000000L, 550000L, 500000L, 250000L)]
+        public void SeededEconomySimulation_StaysWithinTwentyYearBalanceBudgets(
+            int seed,
+            long annualSalary,
+            long monthlyExpenses,
+            long startingSavings,
+            long startingIndex)
+        {
+            decimal cash = 100000;
+            decimal savings = startingSavings;
+            decimal index = startingIndex;
+            decimal debt = 0;
+            for (var month = 0; month < 240; month++)
+            {
+                var income = annualSalary / 12m * 0.8m;
+                var surplus = income - monthlyExpenses;
+                cash += surplus;
+                if (cash < 0)
+                {
+                    debt += -cash;
+                    cash = 0;
+                }
+                debt *= 1m + 0.08m / 12m;
+                savings *= 1m + 0.035m / 12m;
+                if (surplus > 0 && cash > surplus)
+                {
+                    var savingsContribution = surplus * 0.10m;
+                    var indexContribution = surplus * 0.05m;
+                    cash -= savingsContribution + indexContribution;
+                    savings += savingsContribution;
+                    index += indexContribution;
+                }
+                if ((month + 1) % 12 == 0 && index > 0)
+                {
+                    var age = 18 + (month + 1) / 12;
+                    index *= 1m + StimGameSessionService.CalculateAnnualIndexReturnBasisPoints(seed, age) / 10000m;
+                }
+            }
+            var netWorth = cash + savings + index - debt;
+            Assert.That(netWorth, Is.GreaterThan(-annualSalary * 6m));
+            Assert.That(netWorth, Is.LessThan(annualSalary * 25m));
+            Assert.That(savings, Is.GreaterThanOrEqualTo(0));
+            Assert.That(index, Is.GreaterThanOrEqualTo(0));
+        }
+
         private static StimSaveEnvelope CreateValidSave()
         {
             return new StimSaveEnvelope
@@ -2337,6 +2890,7 @@ namespace StimTycoon.Tests.Domain.Runtime
             catalog.Upsert(RepresentativeStimEvents.CreateProposal());
             catalog.Upsert(RepresentativeStimEvents.CreateWedding());
             catalog.Upsert(RepresentativeStimEvents.CreateMarriageCrossroads());
+            catalog.Upsert(RepresentativeStimEvents.CreateHomeDeferredMaintenance());
             return catalog;
         }
 

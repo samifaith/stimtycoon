@@ -112,15 +112,60 @@ namespace StimTycoon.Saves
                 save.state.calendar = new StimCalendarState();
                 Record(report, "state.calendar created");
             }
+            if (save.state.annualReview == null || !serializedSave.Contains("\"annualReview\""))
+            {
+                save.state.annualReview = new StimAnnualReviewState();
+                Record(report, "state.annualReview created");
+            }
+            if (save.state.annualReviewHistory == null || !serializedSave.Contains("\"annualReviewHistory\""))
+            {
+                save.state.annualReviewHistory = new List<StimAnnualReviewHistoryState>();
+                Record(report, "state.annualReviewHistory created");
+            }
+            if (save.state.annualReview != null && !serializedSave.Contains("\"majorOutcomeSummaries\""))
+            {
+                save.state.annualReview.majorOutcomeSummaries = new List<string>();
+                Record(report, "state.annualReview.majorOutcomeSummaries created");
+            }
             if (save.state.finances == null)
             {
                 save.state.finances = new StimFinancesState();
                 Record(report, "state.finances created");
             }
-            else if (!serializedSave.Contains("\"spouseAnnualIncomeMinorUnits\""))
+            if (save.state.finances != null && !serializedSave.Contains("\"spouseAnnualIncomeMinorUnits\""))
             {
                 save.state.finances.spouseAnnualIncomeMinorUnits = 0;
                 Record(report, "state.finances.spouseAnnualIncomeMinorUnits=0");
+            }
+            if (save.state.finances != null && !serializedSave.Contains("\"savingsMinorUnits\""))
+            {
+                save.state.finances.savingsMinorUnits = 0;
+                Record(report, "state.finances.savingsMinorUnits=0");
+            }
+            if (save.state.finances != null && !serializedSave.Contains("\"indexFundMinorUnits\""))
+            {
+                save.state.finances.indexFundMinorUnits = 0;
+                Record(report, "state.finances.indexFundMinorUnits=0");
+            }
+            if (save.state.finances != null && !serializedSave.Contains("\"savingsApyBasisPoints\""))
+            {
+                save.state.finances.savingsApyBasisPoints = 350;
+                Record(report, "state.finances.savingsApyBasisPoints=350");
+            }
+            if (save.state.finances != null && !serializedSave.Contains("\"lastNetCashFlowMinorUnits\""))
+            {
+                save.state.finances.lastGrossIncomeMinorUnits = 0;
+                save.state.finances.lastTaxesMinorUnits = 0;
+                save.state.finances.lastExpensesMinorUnits = 0;
+                save.state.finances.lastCreditInterestMinorUnits = 0;
+                save.state.finances.lastSavingsInterestMinorUnits = 0;
+                save.state.finances.lastNetCashFlowMinorUnits = 0;
+                Record(report, "state.finances last-month cash-flow fields created");
+            }
+            if (save.state.moneyTransactions == null || !serializedSave.Contains("\"moneyTransactions\""))
+            {
+                save.state.moneyTransactions = new List<StimMoneyTransactionState>();
+                Record(report, "state.moneyTransactions created");
             }
             if (save.state.finances != null && !serializedSave.Contains("\"householdCreditBalanceMinorUnits\""))
             {
@@ -142,6 +187,18 @@ namespace StimTycoon.Saves
             {
                 save.state.household = new StimHouseholdState();
                 Record(report, "state.household created");
+            }
+            if (save.state.home == null || !serializedSave.Contains("\"home\""))
+            {
+                save.state.home = new StimHomeState();
+                Record(report, "state.home created");
+            }
+            else if (!serializedSave.Contains("\"readingMaterialCapacity\""))
+            {
+                save.state.home.readingMaterialCapacity = 3;
+                save.state.home.readingMaterialStock = 3;
+                save.state.home.trainingEquipmentCondition = 100;
+                Record(report, "state.home inventory and capacity created");
             }
             if (save.state.skills == null)
             {

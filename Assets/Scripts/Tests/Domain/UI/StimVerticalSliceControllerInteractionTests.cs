@@ -442,6 +442,59 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(root.Q<Label>("manual-work-feedback").text, Does.Contain("Cash +$19.23"));
         }
 
+        [Test]
+        public void HomeCard_PreviewsAndRefreshesPersistedActionState()
+        {
+            var cashBefore = session.ActiveSave.state.finances.cashMinorUnits;
+            Invoke("RefreshHeader");
+
+            var read = root.Q<Button>("home-action-read");
+            Assert.That(root.Q<Label>("home-condition").text, Does.Contain("Condition 80 / 100"));
+            Assert.That(read.text, Does.Contain("$5"));
+            Assert.That(read.text, Does.Contain("Learning XP"));
+
+            Invoke("PerformHomeAction", StimHomeActionType.Read);
+
+            Assert.That(session.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore - 500));
+            Assert.That(root.Q<Label>("home-condition").text, Does.Contain("Condition 79 / 100"));
+            Assert.IsFalse(root.Q<Button>("home-action-read").enabledSelf);
+            Assert.That(root.Q<Button>("home-action-read").text, Does.Contain("Available next month"));
+            Assert.That(root.Q<Label>("home-upgrade-feedback").text, Does.Contain("Read at home"));
+        }
+
+        [Test]
+        public void MoneyDestination_SavingsTransferRefreshesBalancesAndHistory()
+        {
+            var cashBefore = session.ActiveSave.state.finances.cashMinorUnits;
+            Invoke("ShowMoneyDestination");
+            Invoke("PerformSavingsTransfer", 1000L);
+
+            Assert.That(session.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore - 1000));
+            Assert.That(session.ActiveSave.state.finances.savingsMinorUnits, Is.EqualTo(1000));
+            Assert.That(root.Q<Label>("savings-balance-value").text, Is.EqualTo("$10"));
+            Assert.That(root.Q<Label>("savings-transfer-feedback").text, Does.Contain("Deposited $10"));
+            Assert.That(root.Q("money-transaction-history")
+                .Query<VisualElement>(className: "st-money-history-row").ToList(), Has.Count.EqualTo(1));
+        }
+
+        [Test]
+        public void MoneyDestination_CreditRepaymentRefreshesDebtAndHistory()
+        {
+            session.ActiveSave.state.finances.debtMinorUnits = 1000;
+            session.ActiveSave.state.finances.householdCreditBalanceMinorUnits = 1000;
+            session.ActiveSave.state.finances.householdCreditAprBasisPoints = 1800;
+            var cashBefore = session.ActiveSave.state.finances.cashMinorUnits;
+            Invoke("ShowMoneyDestination");
+            Invoke("PerformCreditRepayment", 500L);
+
+            Assert.That(session.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore - 500));
+            Assert.That(session.ActiveSave.state.finances.debtMinorUnits, Is.EqualTo(500));
+            Assert.That(root.Q<Label>("credit-balance-value").text, Is.EqualTo("Balance: $5"));
+            Assert.That(root.Q<Label>("credit-repayment-feedback").text, Does.Contain("Repaid $5"));
+            Assert.That(root.Q("money-transaction-history")
+                .Q<Label>(className: "st-money-history-title").text, Does.Contain("Credit repayment"));
+        }
+
         private void BindControllerFields()
         {
             SetField("gameSession", session);
@@ -469,6 +522,8 @@ namespace StimTycoon.Tests.Domain.UI
                 { "focusStudyEffect", "focus-study-effect" }, { "focusWorkoutTitle", "focus-workout-title" },
                 { "focusWorkoutEffect", "focus-workout-effect" },
                 { "contextActivities", "context-activities" },
+                { "homeCondition", "home-condition" }, { "homeProgress", "home-progress" },
+                { "homeActions", "home-actions" }, { "homeUpgradeFeedback", "home-upgrade-feedback" },
                 { "lifeScroll", "life-scroll" }, { "socialView", "social-view" },
                 { "timeDock", "time-dock" }, { "navLife", "nav-life" }, { "navSocial", "nav-social" },
                 { "relationshipListView", "relationship-list-view" }, { "relationshipList", "relationship-list" },
@@ -491,7 +546,28 @@ namespace StimTycoon.Tests.Domain.UI
                 { "achievementsList", "achievements-list" }, { "navMoney", "nav-money" },
                 { "moneyView", "money-view" }, { "manualWorkRole", "manual-work-role" },
                 { "manualWorkRate", "manual-work-rate" }, { "moneyCashValue", "money-cash-value" },
-                { "manualWorkTap", "manual-work-tap" }, { "manualWorkFeedback", "manual-work-feedback" }
+                { "manualWorkTap", "manual-work-tap" }, { "manualWorkFeedback", "manual-work-feedback" },
+                { "savingsBalanceValue", "savings-balance-value" },
+                { "savingsAvailableValue", "savings-available-value" },
+                { "savingsDepositMode", "savings-deposit-mode" },
+                { "savingsWithdrawMode", "savings-withdraw-mode" },
+                { "savingsAmountInput", "savings-amount-input" },
+                { "savingsTransferFeedback", "savings-transfer-feedback" },
+                { "moneyTransactionHistory", "money-transaction-history" },
+                { "cashFlowGross", "cash-flow-gross" }, { "cashFlowTaxes", "cash-flow-taxes" },
+                { "cashFlowExpenses", "cash-flow-expenses" },
+                { "cashFlowCreditInterest", "cash-flow-credit-interest" },
+                { "cashFlowSavingsInterest", "cash-flow-savings-interest" },
+                { "cashFlowNet", "cash-flow-net" }, { "savingsProjection", "savings-projection" },
+                { "creditBalanceValue", "credit-balance-value" },
+                { "creditDetailValue", "credit-detail-value" },
+                { "availableCreditValue", "available-credit-value" },
+                { "creditRepaymentInput", "credit-repayment-input" },
+                { "creditRepaymentFeedback", "credit-repayment-feedback" },
+                { "indexFundValue", "index-fund-value" },
+                { "indexInvestmentRequirement", "index-investment-requirement" },
+                { "indexInvestmentInput", "index-investment-input" },
+                { "indexInvestmentFeedback", "index-investment-feedback" }
             };
 
             foreach (var binding in bindings)

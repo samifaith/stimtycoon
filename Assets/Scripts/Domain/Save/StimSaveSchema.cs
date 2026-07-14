@@ -54,10 +54,14 @@ namespace StimTycoon.Saves
     {
         public StimCharacterState character = new StimCharacterState();
         public StimCalendarState calendar = new StimCalendarState();
+        public StimAnnualReviewState annualReview = new StimAnnualReviewState();
+        public List<StimAnnualReviewHistoryState> annualReviewHistory = new List<StimAnnualReviewHistoryState>();
         public StimFinancesState finances = new StimFinancesState();
+        public List<StimMoneyTransactionState> moneyTransactions = new List<StimMoneyTransactionState>();
         public StimCareerState career = new StimCareerState();
         public StimEducationState education = new StimEducationState();
         public StimHouseholdState household = new StimHouseholdState();
+        public StimHomeState home = new StimHomeState();
         public List<StimSkillState> skills = new List<StimSkillState>();
         public List<StimRelationshipState> relationships = new List<StimRelationshipState>();
         public List<StimStatusState> statuses = new List<StimStatusState>();
@@ -102,9 +106,61 @@ namespace StimTycoon.Saves
     }
 
     [Serializable]
+    public class StimAnnualReviewState
+    {
+        public int cycleStartAge = -1;
+        public int monthsAccumulated;
+        public long startingCashMinorUnits;
+        public long startingSavingsMinorUnits;
+        public long startingIndexFundMinorUnits;
+        public long startingDebtMinorUnits;
+        public int startingHealth;
+        public int startingHappiness;
+        public int startingSmarts;
+        public int startingCareerProgress;
+        public int startingQualificationExperience;
+        public int startingRelationshipValue;
+        public int startingSkillExperience;
+        public int startingLifeFeedCount;
+        public int completedAtAge = -1;
+        public long cashDeltaMinorUnits;
+        public long savingsDeltaMinorUnits;
+        public long indexFundDeltaMinorUnits;
+        public long debtDeltaMinorUnits;
+        public int healthDelta;
+        public int happinessDelta;
+        public int smartsDelta;
+        public int careerProgressDelta;
+        public int qualificationExperienceDelta;
+        public int relationshipValueDelta;
+        public int skillExperienceDelta;
+        public List<string> majorOutcomeSummaries = new List<string>();
+        public int rewardedAtAge = -1;
+    }
+
+    [Serializable]
+    public class StimAnnualReviewHistoryState
+    {
+        public int completedAtAge;
+        public string rewardChoiceId;
+        public string summary;
+        public int revision;
+        public string timestampUtc;
+    }
+
+    [Serializable]
     public class StimFinancesState
     {
         public long cashMinorUnits;
+        public long savingsMinorUnits;
+        public long indexFundMinorUnits;
+        public int savingsApyBasisPoints = 350;
+        public long lastGrossIncomeMinorUnits;
+        public long lastTaxesMinorUnits;
+        public long lastExpensesMinorUnits;
+        public long lastCreditInterestMinorUnits;
+        public long lastSavingsInterestMinorUnits;
+        public long lastNetCashFlowMinorUnits;
         public long debtMinorUnits;
         public long monthlyLivingExpensesMinorUnits;
         public int taxRateBasisPoints;
@@ -114,10 +170,36 @@ namespace StimTycoon.Saves
     }
 
     [Serializable]
+    public class StimMoneyTransactionState
+    {
+        public string transactionId;
+        public string type;
+        public long amountMinorUnits;
+        public long cashBalanceMinorUnits;
+        public long savingsBalanceMinorUnits;
+        public int age;
+        public int monthOfYear;
+        public int revision;
+        public string timestampUtc;
+    }
+
+    [Serializable]
     public class StimHouseholdState
     {
         public int happiness = 50;
         public int cohesion = 50;
+    }
+
+    [Serializable]
+    public class StimHomeState
+    {
+        public string homeId = "starter_home";
+        public int condition = 80;
+        public int upgradeLevel;
+        public int improvementProgress;
+        public int readingMaterialStock = 3;
+        public int readingMaterialCapacity = 3;
+        public int trainingEquipmentCondition = 100;
     }
 
     [Serializable]
@@ -343,9 +425,13 @@ namespace StimTycoon.Saves
 
             ValidateCharacterState(result, save.state.character);
             ValidateCalendarState(result, save.state.calendar);
+            ValidateAnnualReviewState(result, save.state.annualReview);
+            ValidateAnnualReviewHistory(result, save.state.annualReviewHistory);
             ValidateFinancesState(result, save.state.finances);
+            ValidateMoneyTransactions(result, save.state.moneyTransactions);
             ValidateCareerState(result, save.state.career);
             ValidateHouseholdState(result, save.state.household);
+            ValidateHomeState(result, save.state.home);
             ValidateSkills(result, save.state.skills);
             ValidateRelationships(result, save.state.relationships);
             ValidateStatuses(result, save.state.statuses);
@@ -443,6 +529,28 @@ namespace StimTycoon.Saves
                 result.isValid = false;
                 result.errors.Add("state.finances.cashMinorUnits cannot be negative");
             }
+            if (finances.savingsMinorUnits < 0)
+            {
+                result.isValid = false;
+                result.errors.Add("state.finances.savingsMinorUnits cannot be negative");
+            }
+            if (finances.indexFundMinorUnits < 0)
+            {
+                result.isValid = false;
+                result.errors.Add("state.finances.indexFundMinorUnits cannot be negative");
+            }
+            if (finances.savingsApyBasisPoints < 0 || finances.savingsApyBasisPoints > 1000)
+            {
+                result.isValid = false;
+                result.errors.Add("state.finances.savingsApyBasisPoints must be within [0, 1000]");
+            }
+            if (finances.lastGrossIncomeMinorUnits < 0 || finances.lastTaxesMinorUnits < 0 ||
+                finances.lastExpensesMinorUnits < 0 || finances.lastCreditInterestMinorUnits < 0 ||
+                finances.lastSavingsInterestMinorUnits < 0)
+            {
+                result.isValid = false;
+                result.errors.Add("state.finances last-month components cannot be negative");
+            }
 
             if (finances.debtMinorUnits < 0)
             {
@@ -480,6 +588,42 @@ namespace StimTycoon.Saves
             }
         }
 
+        private static void ValidateMoneyTransactions(
+            StimSaveValidationResult result,
+            List<StimMoneyTransactionState> transactions)
+        {
+            if (transactions == null)
+            {
+                result.isValid = false;
+                result.errors.Add("state.moneyTransactions is null");
+                return;
+            }
+            if (transactions.Count > 100)
+            {
+                result.isValid = false;
+                result.errors.Add("state.moneyTransactions cannot contain more than 100 entries");
+            }
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            for (var index = 0; index < transactions.Count; index++)
+            {
+                var entry = transactions[index];
+                if (entry == null || string.IsNullOrWhiteSpace(entry.transactionId) ||
+                    !ids.Add(entry.transactionId) ||
+                    (entry.type != "savings_deposit" && entry.type != "savings_withdrawal" &&
+                     entry.type != "savings_interest" && entry.type != "credit_repayment" &&
+                     entry.type != "index_investment" && entry.type != "index_gain" &&
+                     entry.type != "index_loss") ||
+                    entry.amountMinorUnits <= 0 || entry.cashBalanceMinorUnits < 0 ||
+                    entry.savingsBalanceMinorUnits < 0 || entry.age < 0 ||
+                    entry.monthOfYear < 1 || entry.monthOfYear > 12 || entry.revision < 1 ||
+                    !TryParseUtcTimestamp(entry.timestampUtc, out _))
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.moneyTransactions[{index}] is invalid");
+                }
+            }
+        }
+
         private static void ValidateHouseholdState(StimSaveValidationResult result, StimHouseholdState household)
         {
             if (household == null)
@@ -490,6 +634,35 @@ namespace StimTycoon.Saves
             }
             ValidateStatRange(result, household.happiness, "state.household.happiness");
             ValidateStatRange(result, household.cohesion, "state.household.cohesion");
+        }
+
+        private static void ValidateHomeState(StimSaveValidationResult result, StimHomeState home)
+        {
+            if (home == null)
+            {
+                result.isValid = false;
+                result.errors.Add("state.home is null");
+                return;
+            }
+            ValidateRequiredString(result, home.homeId, "state.home.homeId");
+            ValidateStatRange(result, home.condition, "state.home.condition");
+            if (home.upgradeLevel < 0 || home.upgradeLevel > 3)
+            {
+                result.isValid = false;
+                result.errors.Add("state.home.upgradeLevel must be within [0, 3]");
+            }
+            if (home.improvementProgress < 0 || home.improvementProgress > 100)
+            {
+                result.isValid = false;
+                result.errors.Add("state.home.improvementProgress must be within [0, 100]");
+            }
+            if (home.readingMaterialCapacity < 1 || home.readingMaterialCapacity > 20 ||
+                home.readingMaterialStock < 0 || home.readingMaterialStock > home.readingMaterialCapacity)
+            {
+                result.isValid = false;
+                result.errors.Add("state.home reading-material stock/capacity is invalid");
+            }
+            ValidateStatRange(result, home.trainingEquipmentCondition, "state.home.trainingEquipmentCondition");
         }
 
         private static void ValidateCalendarState(StimSaveValidationResult result, StimCalendarState calendar)
@@ -512,6 +685,51 @@ namespace StimTycoon.Saves
             {
                 result.isValid = false;
                 result.errors.Add("state.calendar.quietMonthsSinceEvent cannot be negative");
+            }
+        }
+
+        private static void ValidateAnnualReviewState(StimSaveValidationResult result, StimAnnualReviewState annualReview)
+        {
+            if (annualReview == null)
+            {
+                result.isValid = false;
+                result.errors.Add("state.annualReview is null");
+                return;
+            }
+            if (annualReview.monthsAccumulated < 0 || annualReview.monthsAccumulated > 12)
+            {
+                result.isValid = false;
+                result.errors.Add("state.annualReview.monthsAccumulated must be within [0, 12]");
+            }
+            if (annualReview.startingLifeFeedCount < 0 || annualReview.majorOutcomeSummaries == null ||
+                annualReview.majorOutcomeSummaries.Count > 5)
+            {
+                result.isValid = false;
+                result.errors.Add("state.annualReview outcome tracking is invalid");
+            }
+        }
+
+        private static void ValidateAnnualReviewHistory(
+            StimSaveValidationResult result,
+            List<StimAnnualReviewHistoryState> history)
+        {
+            if (history == null || history.Count > 10)
+            {
+                result.isValid = false;
+                result.errors.Add("state.annualReviewHistory must contain at most 10 entries");
+                return;
+            }
+            var ages = new HashSet<int>();
+            for (var index = 0; index < history.Count; index++)
+            {
+                var entry = history[index];
+                if (entry == null || entry.completedAtAge < 0 || !ages.Add(entry.completedAtAge) ||
+                    string.IsNullOrWhiteSpace(entry.rewardChoiceId) || string.IsNullOrWhiteSpace(entry.summary) ||
+                    entry.revision < 1 || !TryParseUtcTimestamp(entry.timestampUtc, out _))
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.annualReviewHistory[{index}] is invalid");
+                }
             }
         }
 
