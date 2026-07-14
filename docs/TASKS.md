@@ -1,6 +1,6 @@
 # Stim Tycoon — Next Task List
 
-This is the active queue after the user-verified 229-test EditMode baseline on July 14, 2026. The master README remains the product definition.
+This is the active queue after the user-verified 232-test EditMode baseline on July 14, 2026. The master README remains the product definition.
 
 ## P0 — Keep the verified loop fast and shippable
 
@@ -38,11 +38,11 @@ This is the active queue after the user-verified 229-test EditMode baseline on J
 
 ### P1B — Interactive vertical slices
 
-- [ ] **Education:** choose a study track; show prerequisites and explicitly authored costs; select easy/medium/hard study sessions; trade time/resources for XP; advance visible qualification tiers; unlock careers and events.
+- [x] **Education:** choose a study track; show prerequisites and explicitly authored costs; select easy/medium/hard study sessions; trade time/resources for XP; advance visible qualification tiers; unlock careers and events.
   - [x] Choose a persisted General, Academic, or Vocational track at ages 14–17 with visible authored costs, affordability checks, atomic autosave, rollback, and Life Feed output.
   - [x] Add easy, medium, and hard study sessions with explicit resource tradeoffs, monthly cooldowns, and qualification XP previews.
   - [x] Advance through visible Foundation, Certificate, Diploma, and Advanced qualification tiers.
-  - [ ] Use track/tier prerequisites to unlock careers and authored events.
+  - [x] Use track/tier prerequisites to unlock careers and authored events while preserving compatibility for legacy saves without a selected track.
 - [ ] **Money:** deposit and withdraw exact or percentage amounts; show grounded interest and projected income; add credit repayment; retain cash-or-credit choices for eligible costs; gate investing, property, and casino-risk content.
 - [ ] **Home:** interact with room objects to read, train, rest, maintain the home, and perform household activities; show stock/capacity, house progress, costs, cooldowns, and benefits.
 - [ ] **Relationships:** discover compatible age-appropriate people, inspect persistent warmth/stage/history, and choose social or romantic actions while preserving friendship-threshold and adult casual-event rules.
@@ -159,6 +159,7 @@ This is the active queue after the user-verified 229-test EditMode baseline on J
 - [x] 220 passing EditMode tests, including Milestone 5 amount, payment, and UI-control coverage
 - [x] 226 passing EditMode tests, including Milestone 6 Study Track transaction, persistence, rollback, and UI coverage
 - [x] 229 passing EditMode tests, including difficulty-based study sessions, visible qualification tiers, and cooldown coverage
+- [x] 232 passing EditMode tests, including career qualification gates, visible locked reasons, and authored Education event requirements
 - [x] Deterministic seeded birth-to-ending simulation
 - [x] Transactional local saves, migration, integrity checks, backup recovery, and rollback safety
 - [x] Playable Life, Social, education, career, achievement, retirement/death, and final-summary flows

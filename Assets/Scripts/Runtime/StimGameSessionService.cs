@@ -1390,10 +1390,24 @@ namespace StimTycoon.Runtime
             switch (actionType)
             {
                 case StimCareerActionType.Apply:
-                    requirement = retired ? "This career ended at retirement." :
-                        employed ? "Quit your current role before applying." :
-                        interviewReady ? "Your interview is already ready." : string.Empty;
-                    return !retired && !employed && !interviewReady;
+                    if (retired)
+                    {
+                        requirement = "This career ended at retirement.";
+                        return false;
+                    }
+                    if (employed)
+                    {
+                        requirement = "Quit your current role before applying.";
+                        return false;
+                    }
+                    if (interviewReady)
+                    {
+                        requirement = "Your interview is already ready.";
+                        return false;
+                    }
+                    if (!TryGetEntryCareerQualificationRequirement(state, out requirement))
+                        return false;
+                    return true;
                 case StimCareerActionType.Interview:
                     requirement = retired ? "This career ended at retirement." :
                         interviewReady ? string.Empty : "Submit an application first.";
@@ -1442,6 +1456,27 @@ namespace StimTycoon.Runtime
                 case "Senior Associate": nextRole = "Manager"; nextSalaryMinorUnits = 10000000; progressRequired = 75; return true;
                 default: nextRole = null; nextSalaryMinorUnits = 0; progressRequired = 0; return false;
             }
+        }
+
+        private static bool TryGetEntryCareerQualificationRequirement(
+            StimGameState state,
+            out string requirement)
+        {
+            var education = state.education;
+            if (education == null || string.IsNullOrEmpty(education.studyTrack))
+            {
+                requirement = string.Empty;
+                return true;
+            }
+            var requiredExperience = education.studyTrack == "general" ? 125 : 50;
+            if (education.qualificationExperience >= requiredExperience)
+            {
+                requirement = string.Empty;
+                return true;
+            }
+            var tier = requiredExperience == 125 ? "Diploma" : "Certificate";
+            requirement = $"Requires a {tier} qualification ({requiredExperience} XP) for the selected track.";
+            return false;
         }
 
         private static void ApplyPromotion(
@@ -2379,6 +2414,8 @@ namespace StimTycoon.Runtime
             public int maximumRelationshipValue = 100;
             public string decisionId = string.Empty;
             public string decisionChoiceId = string.Empty;
+            public string studyTrack = string.Empty;
+            public int minimumQualificationExperience = 0;
         }
 
         private static bool MeetsAuthoredRequirements(string json, StimGameState state)
@@ -2417,6 +2454,16 @@ namespace StimTycoon.Runtime
                 if (decision == null) return false;
                 if (!string.IsNullOrEmpty(requirements.decisionChoiceId) &&
                     decision.choiceId != requirements.decisionChoiceId) return false;
+            }
+            if (!string.IsNullOrEmpty(requirements.studyTrack) &&
+                state.education?.studyTrack != requirements.studyTrack)
+            {
+                return false;
+            }
+            if (requirements.minimumQualificationExperience > 0 &&
+                (state.education?.qualificationExperience ?? 0) < requirements.minimumQualificationExperience)
+            {
+                return false;
             }
             return true;
         }

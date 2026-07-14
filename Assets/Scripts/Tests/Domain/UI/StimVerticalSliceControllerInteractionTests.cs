@@ -318,6 +318,24 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void CareerCard_ShowsQualificationRequirementForSelectedStudyTrack()
+        {
+            session.ActiveSave.state.career = new StimCareerState();
+            session.ActiveSave.state.education.studyTrack = "general";
+            session.ActiveSave.state.education.qualificationExperience = 124;
+
+            Invoke("RefreshHeader");
+
+            var apply = root.Q<Button>("career-action-apply");
+            Assert.That(apply.enabledSelf, Is.False);
+            Assert.That(apply.text, Does.Contain("Diploma qualification (125 XP)"));
+
+            session.ActiveSave.state.education.qualificationExperience = 125;
+            Invoke("RefreshHeader");
+            Assert.That(root.Q<Button>("career-action-apply").enabledSelf, Is.True);
+        }
+
+        [Test]
         public void ContextActivityDeck_ChangesForEmployedAdult()
         {
             session.ActiveSave.state.character.age = 30;

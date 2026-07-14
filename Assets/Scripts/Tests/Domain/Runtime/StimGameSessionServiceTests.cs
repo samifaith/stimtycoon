@@ -1382,6 +1382,66 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(repository.CommitCount, Is.EqualTo(3));
         }
 
+        [Test]
+        public void CareerApplication_UsesSelectedTrackQualificationAsVisiblePrerequisite()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.career = new StimCareerState();
+            save.state.education = new StimEducationState
+            {
+                stage = "completed_secondary",
+                studyTrack = "academic",
+                qualificationExperience = 49
+            };
+            service.Start(save);
+
+            Assert.IsFalse(StimGameSessionService.TryGetCareerActionRequirement(
+                service.ActiveSave.state, StimCareerActionType.Apply, out var requirement));
+            Assert.That(requirement, Does.Contain("Certificate qualification (50 XP)"));
+            Assert.IsFalse(service.TryPerformCareerAction(StimCareerActionType.Apply, out var lockedSummary));
+            Assert.That(lockedSummary, Is.EqualTo(requirement));
+
+            service.ActiveSave.state.education.qualificationExperience = 50;
+            Assert.IsTrue(service.TryPerformCareerAction(StimCareerActionType.Apply, out var summary), summary);
+        }
+
+        [Test]
+        public void AuthoredEventRequirements_CanGateByStudyTrackAndQualificationExperience()
+        {
+            var gatedEvent = RepresentativeStimEvents.CreateSalaryNegotiation();
+            gatedEvent.requirementsJson =
+                "{\"studyTrack\":\"academic\",\"minimumQualificationExperience\":50}";
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(gatedEvent);
+
+            var lockedService = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var lockedSave = CreateValidSave();
+            lockedSave.state.calendar.monthOfYear = 12;
+            lockedSave.state.education = new StimEducationState
+            {
+                studyTrack = "academic",
+                qualificationExperience = 49
+            };
+            lockedService.Start(lockedSave);
+            Assert.IsTrue(lockedService.TryAdvanceMonth(out var lockedEvent, out var lockedSummary), lockedSummary);
+            Assert.That(lockedEvent, Is.Null);
+
+            var eligibleService = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var eligibleSave = CreateValidSave();
+            eligibleSave.state.calendar.monthOfYear = 12;
+            eligibleSave.state.education = new StimEducationState
+            {
+                studyTrack = "academic",
+                qualificationExperience = 50
+            };
+            eligibleService.Start(eligibleSave);
+            Assert.IsTrue(eligibleService.TryAdvanceMonth(
+                out var eligibleEvent, out var eligibleSummary), eligibleSummary);
+            Assert.That(eligibleEvent?.id, Is.EqualTo(RepresentativeStimEvents.SalaryNegotiationId));
+        }
+
         [TestCase("Junior Associate", "Associate", 5500000, 25)]
         [TestCase("Associate", "Senior Associate", 7500000, 50)]
         [TestCase("Senior Associate", "Manager", 10000000, 75)]
