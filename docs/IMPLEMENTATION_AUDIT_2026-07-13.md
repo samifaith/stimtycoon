@@ -15,7 +15,7 @@ The repository has a reliable Phase 0 foundation and a user-verified Phase 1 off
 | Persistent effects | Implemented | Six player stats, household happiness/cohesion, skill XP, life decisions, relationships, statuses, career progress, cash, debt, salary, spouse income, and revolving credit |
 | Relationships | Implemented foundation | School peers, friendship stages, neglect, drama follow-ups, identity, dating, prom, first kiss, partnership, engagement, marriage, counseling, separation, and divorce |
 | Household economy | Implemented foundation | One-time spouse asset/debt merge, combined monthly income, fixed activity prices, cash-or-credit choices, risk-based APR, and monthly interest |
-| Automated baseline | Verification pending | 147 EditMode tests are the last user-verified baseline; substantial new focused coverage has been added and requires a new Unity Run All |
+| Automated baseline | Verified after this audit | 196 EditMode tests passed in the user-verified July 14, 2026 Run All, including the expanded focused coverage |
 | Playable presentation | In progress | Portrait Life dashboard, fixed navigation, event overlay, hidden visual scrollbar |
 | New-life generation | Implemented | One-button generation creates identity, location, background, parents/genetics, inherited stats, finances, and birth state |
 | Focus activities | Implemented | Play/Rest, Study/Play, and Study/Workout rotate by age; actions transact through the session service, autosave, enforce a monthly cooldown, and show signed feedback |
@@ -33,7 +33,6 @@ The repository has a reliable Phase 0 foundation and a user-verified Phase 1 off
 | P1 | Childhood/education breadth remains incomplete | Required school paths and contextual activities exist, but transfers, graduation/dropout consequences, and broader skill paths remain shallow |
 | P1 | Family simulation is not yet complete | Marriage and household finance exist, but family planning, pregnancy/adoption, children aging, custody, and inheritance do not |
 | P1 | Full-life breadth is still narrow | The verified loop reaches an ending, but health choices, career industries, partner drama, and branch-aware endings need expansion |
-| P1 | New test breadth needs full verification | Runtime/domain builds are clean, but the expanded EditMode suite has not yet received a user-confirmed Run All result |
 | P1 | No first iOS development build validation | Safe area, performance, signing, and device behavior remain unproven |
 | Later | Authentication, Game Center, Cloud Save, ads | Correctly deferred until the offline loop is stable |
 

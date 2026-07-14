@@ -49,6 +49,21 @@ namespace StimTycoon.Tests.Domain.Save
         }
 
         [Test]
+        public void Commit_PersistsCompactJsonEvenWhenInputIsPrettyPrinted()
+        {
+            var prettyPrintedSave = JsonUtility.ToJson(CreateValidSave(1, 250000), true);
+
+            var committed = repository.TryCommitAutosave(prettyPrintedSave, out var summary);
+            var loaded = repository.TryLoadLatestSave(out var serializedSave);
+
+            Assert.IsTrue(committed, summary);
+            Assert.IsTrue(loaded);
+            Assert.That(prettyPrintedSave, Does.Contain("\n"));
+            Assert.That(serializedSave, Does.Not.Contain("\n"));
+            Assert.That(serializedSave.Length, Is.LessThan(prettyPrintedSave.Length));
+        }
+
+        [Test]
         public void Commit_RejectsInvalidEnvelopeWithoutReplacingCurrentSave()
         {
             Assert.IsTrue(repository.TryCommitAutosave(JsonUtility.ToJson(CreateValidSave(1, 100)), out _));

@@ -27,7 +27,7 @@ The repository now contains:
 - persistent household happiness/cohesion, spouse-derived savings/debt/income, fixed-price family activities, and cash-or-credit payment selection with risk-based APR and monthly interest
 - a mobile UI Toolkit vertical slice with choices, outcomes, cash, life feed, autosave feedback, and a collapsible six-stat player overview
 - replaceable interfaces for dialogue, saves, accounts, cloud saves, ads, and event catalogs
-- a user-verified 147-test EditMode baseline plus newly added focused coverage for branching school, peers, romance, marriage, household finance, credit, and event-payment behavior awaiting the next full Unity Run All
+- a user-verified 196-test EditMode baseline covering the offline life loop, branching school, peers, romance, marriage, household finance, credit, and event-payment behavior
 
 Not yet implemented:
 
@@ -60,9 +60,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The current user-verified result is **147 passing EditMode tests**, including the seeded birth-to-ending harness. That harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
-
-The repository now contains additional tests beyond that verified baseline. Do not treat 147 as the current discovered-test count; it is the last complete run explicitly confirmed by the product owner. Run all EditMode tests after pulling this revision to establish the next verified baseline.
+The current user-verified result is **196 passing EditMode tests** as of July 14, 2026, including the seeded birth-to-ending harness. That harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
 
 The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. Transactional autosaves now use compact rather than pretty-printed JSON to avoid unnecessary formatting allocation and whitespace. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
 
@@ -126,7 +124,7 @@ docs/                      # Architecture and gameplay specifications
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 147-test verified baseline
+- [x] 196-test verified baseline
 - [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests

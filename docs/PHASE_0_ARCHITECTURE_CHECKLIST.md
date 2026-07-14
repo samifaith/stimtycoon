@@ -13,7 +13,7 @@
 - [x] Yarn Spinner package and isolated bridge
 - [x] Salary-negotiation Yarn script and representative event data
 - [x] Playable UI Toolkit scene for the first vertical slice
-- [x] 140 passing EditMode tests, including seeded birth-to-ending coverage
+- [x] 196 passing EditMode tests, including seeded birth-to-ending and expanded Phase 2 coverage (user-verified July 14, 2026)
 
 ## Remaining Phase 0 work
 

@@ -166,7 +166,10 @@ namespace StimTycoon.Runtime
             }
 
             save.integrity.payloadHash = CalculatePayloadHash(save);
-            normalizedSave = JsonUtility.ToJson(save, true);
+            // Persist compact JSON. The integrity hash already uses the same compact
+            // representation, and autosaves happen often enough that pretty-print
+            // whitespace creates measurable allocation and file-size overhead.
+            normalizedSave = JsonUtility.ToJson(save, false);
             return true;
         }
 

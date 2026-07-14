@@ -1,6 +1,6 @@
 # Stim Tycoon — Next Task List
 
-This is the active queue after the user-verified 147-test EditMode baseline and the subsequent unverified Phase 2 expansion. The master README remains the product definition. A new Unity Run All is required before recording a higher verified baseline.
+This is the active queue after the user-verified 196-test EditMode baseline on July 14, 2026. The master README remains the product definition.
 
 ## P0 — Keep the verified loop fast and shippable
 
@@ -111,7 +111,7 @@ This is the active queue after the user-verified 147-test EditMode baseline and 
 
 - [x] Implement the first playable Money destination using the existing four-tab shell.
 - [x] Add a transactional manual-work tap that pays one hour at annual salary ÷ 2,080, rounded to the nearest cent.
-- [x] Run and verify the 7 new Money/manual-work cases, bringing the suite to 147 passing tests.
+- [x] Run and verify the 7 new Money/manual-work cases, establishing the earlier 147-test intermediate baseline.
 - [ ] Show monthly gross income, taxes, expenses, debt pressure, net cash flow, net worth, and persisted transaction history.
 - [ ] Add fatigue/cooldown balance and accessibility feedback after the base tap economy is playtested.
 - [ ] Add debt repayment and emergency-expense decisions before investing.
@@ -136,8 +136,8 @@ This is the active queue after the user-verified 147-test EditMode baseline and 
 ## Verified baseline
 
 - [x] Phase 0 offline architecture and representative content
-- [x] 147 passing EditMode tests
+- [x] 196 passing EditMode tests, including the expanded Phase 2 coverage
 - [x] Deterministic seeded birth-to-ending simulation
 - [x] Transactional local saves, migration, integrity checks, backup recovery, and rollback safety
 - [x] Playable Life, Social, education, career, achievement, retirement/death, and final-summary flows
-- [ ] Run the expanded EditMode suite in Unity and record the new verified test count before additional high-risk feature work.
+- [x] Run the expanded EditMode suite in Unity and record the new verified test count before additional high-risk feature work (196 passing on July 14, 2026).
