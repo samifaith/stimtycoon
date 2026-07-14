@@ -13,6 +13,7 @@ namespace StimTycoon.Runtime
     {
         [SerializeField] private PanelSettings panelSettings;
         [SerializeField] private VisualTreeAsset visualTreeAsset;
+        [SerializeField, Range(1f, 1.3f)] private float accessibilityTextScale = 1f;
 
         private StimGameSessionService gameSession;
         private Label cashValue;
@@ -46,6 +47,7 @@ namespace StimTycoon.Runtime
         private VisualElement looksFill;
         private VisualElement luckFill;
         private Button advanceMonth;
+        private Button advanceYear;
         private Button toggleOverview;
         private Button eventContinue;
         private VisualElement newLifeSetup;
@@ -118,6 +120,7 @@ namespace StimTycoon.Runtime
             document.visualTreeAsset = visualTreeAsset;
             var root = document.rootVisualElement;
             rootElement = root;
+            ApplyAccessibilityTextLayout(root, accessibilityTextScale);
             root.RegisterCallback<GeometryChangedEvent>(HandleRootGeometryChanged);
             cashValue = root.Q<Label>("cash-value");
             lifeSummary = root.Q<Label>("life-summary");
@@ -234,11 +237,12 @@ namespace StimTycoon.Runtime
             var loadedExistingLife = gameSession.TryLoadLatest(out _);
 
             advanceMonth = root.Q<Button>("advance-month");
+            advanceYear = root.Q<Button>("advance-year");
             toggleOverview = root.Q<Button>("toggle-overview");
             eventContinue = root.Q<Button>("event-continue");
             if (cashValue == null || lifeSummary == null || eventCategory == null || eventTitle == null ||
                 eventBody == null || resultText == null || resultEffects == null || lifeFeedList == null || choices == null ||
-                resultCard == null || advanceMonth == null || toggleOverview == null || playerOverview == null ||
+                resultCard == null || advanceMonth == null || advanceYear == null || toggleOverview == null || playerOverview == null ||
                 overviewCareer == null || overviewCalendar == null || healthValue == null ||
                 happinessValue == null || smartsValue == null || looksValue == null || luckValue == null ||
                 careerProgressValue == null ||
@@ -269,6 +273,7 @@ namespace StimTycoon.Runtime
             }
 
             advanceMonth.clicked += AdvanceMonth;
+            advanceYear.clicked += AdvanceYear;
             toggleOverview.clicked += ToggleOverview;
             eventContinue.clicked += CloseEventSheet;
             focusStudy.clicked += () => PerformActivity(primaryFocusActivity);
@@ -335,6 +340,18 @@ namespace StimTycoon.Runtime
         {
             if (root == null) return;
             root.EnableInClassList("st-compact-width", width > 0f && width <= 360f);
+        }
+
+        public static void ApplyAccessibilityTextLayout(VisualElement root, float textScale)
+        {
+            if (root == null) return;
+            root.EnableInClassList("st-large-text", textScale >= 1.3f);
+        }
+
+        public void SetAccessibilityTextScale(float textScale)
+        {
+            accessibilityTextScale = Mathf.Clamp(textScale, 1f, 1.3f);
+            ApplyAccessibilityTextLayout(rootElement, accessibilityTextScale);
         }
 
         public void Configure(PanelSettings settings, VisualTreeAsset tree)
@@ -421,6 +438,51 @@ namespace StimTycoon.Runtime
             }
 
             PresentEvent(currentEvent);
+        }
+
+        private void AdvanceYear()
+        {
+            if (!gameSession.TryAdvanceYear(out var monthsProcessed, out var nextEvent, out var summary))
+            {
+                resultText.text = summary;
+                resultEffects.text = "No changes applied";
+                resultEffects.RemoveFromClassList("hidden");
+                resultCard.RemoveFromClassList("hidden");
+                eventSheet.RemoveFromClassList("hidden");
+                eventContinue.RemoveFromClassList("hidden");
+                return;
+            }
+
+            currentEvent = nextEvent;
+            resultText.text = summary;
+            resultEffects.text = $"{monthsProcessed} monthly transaction" +
+                                 (monthsProcessed == 1 ? string.Empty : "s") + " committed";
+            resultEffects.RemoveFromClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            RefreshHeader();
+            RefreshFeed();
+
+            if (gameSession.ActiveSave.state.character.lifeStatus != "active")
+            {
+                ShowFinalLifeSummary();
+                return;
+            }
+            if (currentEvent != null)
+            {
+                PresentEvent(currentEvent);
+                return;
+            }
+
+            choices.AddToClassList("hidden");
+            eventCategory.text = monthsProcessed == 12 ? "YEAR SUMMARY" : "TIME PAUSED";
+            eventTitle.text = monthsProcessed == 12
+                ? "A full year moved forward"
+                : $"Paused after {monthsProcessed} month{(monthsProcessed == 1 ? string.Empty : "s")}";
+            eventBody.text = monthsProcessed == 12
+                ? "Every normal monthly change was processed and autosaved in sequence."
+                : "Progress stopped because the next step requires your attention.";
+            eventSheet.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
         }
 
         private void PresentEvent(StimEvent evt)
@@ -849,6 +911,7 @@ namespace StimTycoon.Runtime
                 : $"Remembered at age {character.endedAtAge}";
             endingSummary.text = StimGameSessionService.BuildFinalLifeSummary(save);
             advanceMonth.SetEnabled(false);
+            advanceYear.SetEnabled(false);
             eventSheet.AddToClassList("hidden");
             finalLifeSummary.RemoveFromClassList("hidden");
         }
@@ -1293,6 +1356,7 @@ namespace StimTycoon.Runtime
                 currentEvent = null;
                 finalLifeSummary.AddToClassList("hidden");
                 advanceMonth.SetEnabled(true);
+                advanceYear.SetEnabled(true);
                 newLifeSetup.AddToClassList("hidden");
                 eventSheet.AddToClassList("hidden");
                 choices.AddToClassList("hidden");

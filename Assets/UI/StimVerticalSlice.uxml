@@ -173,7 +173,10 @@
                 <ui:Label text="NEXT MONTH" class="st-time-kicker" />
                 <ui:Label name="monthly-paycheck-value" text="Monthly life changes and pay" class="st-time-detail" />
             </ui:VisualElement>
-            <ui:Button name="advance-month" text="ADVANCE MONTH  ›" class="st-advance-month" tooltip="Advance time by one month" />
+            <ui:VisualElement class="st-time-actions">
+                <ui:Button name="advance-month" text="ADVANCE MONTH  ›" class="st-advance-month" tooltip="Advance time by one month" />
+                <ui:Button name="advance-year" text="ADVANCE YEAR  »" class="st-advance-year" tooltip="Advance up to twelve normal months, stopping for decisions" />
+            </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:Instance template="BottomNavigation" />

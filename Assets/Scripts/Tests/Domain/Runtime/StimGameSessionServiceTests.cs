@@ -313,6 +313,69 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void AdvanceYear_ReusesTwelveMonthlyTransactionsAndAutosavesEachMonth()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 24;
+            save.state.calendar.monthOfYear = 1;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceYear(
+                out var monthsProcessed, out var nextEvent, out var summary), summary);
+
+            Assert.That(monthsProcessed, Is.EqualTo(12));
+            Assert.That(nextEvent, Is.Null);
+            Assert.That(service.ActiveSave.state.character.age, Is.EqualTo(25));
+            Assert.That(service.ActiveSave.state.calendar.monthOfYear, Is.EqualTo(1));
+            Assert.That(repository.CommitCount, Is.EqualTo(12));
+            Assert.That(summary, Does.Contain("Advanced 12 months").And.Contain("Twelve months completed"));
+        }
+
+        [Test]
+        public void AdvanceYear_StopsAtFirstAuthoredEvent()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateSalaryNegotiation());
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.calendar.monthOfYear = 12;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceYear(
+                out var monthsProcessed, out var nextEvent, out var summary), summary);
+
+            Assert.That(monthsProcessed, Is.EqualTo(1));
+            Assert.That(nextEvent?.id, Is.EqualTo(RepresentativeStimEvents.SalaryNegotiationId));
+            Assert.That(service.ActiveSave.state.pendingEventId,
+                Is.EqualTo(RepresentativeStimEvents.SalaryNegotiationId));
+            Assert.That(summary, Does.Contain("Stopped for The annual review"));
+        }
+
+        [Test]
+        public void AdvanceYear_StopsForRequiredSchoolPathDecision()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 11;
+            save.state.character.lifeStage = StimGameSessionService.GetLifeStage(11);
+            save.state.education.stage = StimGameSessionService.GetEducationStage(11);
+            save.state.calendar.monthOfYear = 12;
+            save.state.career = new StimCareerState();
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceYear(
+                out var monthsProcessed, out var nextEvent, out var summary), summary);
+
+            Assert.That(monthsProcessed, Is.EqualTo(1));
+            Assert.That(nextEvent, Is.Null);
+            Assert.That(service.ActiveSave.state.education.awaitingDecisionId, Is.Not.Null.And.Not.Empty);
+            Assert.That(summary, Does.Contain("required school-path decision"));
+        }
+
+        [Test]
         public void ResolveChoice_AppliesSkillRelationshipAndTimedStatusEffects()
         {
             var evt = RepresentativeStimEvents.CreateSalaryNegotiation();

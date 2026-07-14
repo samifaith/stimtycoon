@@ -134,6 +134,21 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void AdvanceYear_ShowsBatchSummaryAfterTwelveCommittedMonths()
+        {
+            var ageBefore = session.ActiveSave.state.character.age;
+
+            Invoke("AdvanceYear");
+
+            Assert.That(session.ActiveSave.state.character.age, Is.EqualTo(ageBefore + 1));
+            Assert.That(root.Q<Label>("event-category").text, Is.EqualTo("YEAR SUMMARY"));
+            Assert.That(root.Q<Label>("result-text").text, Does.Contain("Advanced 12 months"));
+            Assert.That(root.Q<Label>("result-effects").text,
+                Is.EqualTo("12 monthly transactions committed"));
+            Assert.IsFalse(root.Q("event-sheet").ClassListContains("hidden"));
+        }
+
+        [Test]
         public void SocialDestination_RendersParentsAndAgeAppropriateDetailActions()
         {
             Invoke("ShowSocialDestination");
@@ -448,6 +463,7 @@ namespace StimTycoon.Tests.Domain.UI
                 { "healthFill", "health-fill" }, { "happinessFill", "happiness-fill" },
                 { "smartsFill", "smarts-fill" }, { "looksFill", "looks-fill" },
                 { "luckFill", "luck-fill" }, { "advanceMonth", "advance-month" },
+                { "advanceYear", "advance-year" },
                 { "eventContinue", "event-continue" }, { "focusStudy", "focus-study" },
                 { "focusWorkout", "focus-workout" }, { "focusStudyTitle", "focus-study-title" },
                 { "focusStudyEffect", "focus-study-effect" }, { "focusWorkoutTitle", "focus-workout-title" },

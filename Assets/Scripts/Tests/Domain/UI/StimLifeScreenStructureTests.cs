@@ -23,7 +23,7 @@ namespace StimTycoon.Tests.Domain.UI
                 "career-progress-value", "monthly-paycheck-value", "annual-salary-value", "net-worth-value",
                 "choices", "result-card", "player-overview", "skills-card", "skills-list", "career-progress-fill",
                 "event-sheet", "health-fill", "happiness-fill", "smarts-fill", "looks-fill", "luck-fill",
-                "advance-month", "toggle-overview", "event-continue", "focus-study", "focus-workout",
+                "advance-month", "advance-year", "toggle-overview", "event-continue", "focus-study", "focus-workout",
                 "focus-study-title", "focus-study-effect", "focus-workout-title", "focus-workout-effect",
                 "context-activities",
                 "open-new-life", "new-life-setup", "cancel-new-life", "continue-current-life",
@@ -77,6 +77,20 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(root.ClassListContains("st-compact-width"), Is.EqualTo(expectedCompact));
         }
 
+        [TestCase(1f, false)]
+        [TestCase(1.29f, false)]
+        [TestCase(1.3f, true)]
+        public void AccessibilityLayout_ReflowsAtSupportedLargeTextScale(
+            float textScale,
+            bool expectedLargeText)
+        {
+            var root = new VisualElement();
+
+            StimVerticalSliceController.ApplyAccessibilityTextLayout(root, textScale);
+
+            Assert.That(root.ClassListContains("st-large-text"), Is.EqualTo(expectedLargeText));
+        }
+
         [Test]
         public void SharedShell_ProvidesFourNamedDestinationsAndHeaderState()
         {
@@ -104,6 +118,7 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(eventSheet, Is.Not.Null);
             Assert.IsTrue(eventSheet.ClassListContains("hidden"));
             Assert.That(root.Q<Button>("advance-month"), Is.Not.Null);
+            Assert.That(root.Q<Button>("advance-year"), Is.Not.Null);
             Assert.IsTrue(root.Q("social-view").ClassListContains("hidden"));
             Assert.IsFalse(root.Q("life-scroll").ClassListContains("hidden"));
             Assert.IsTrue(root.Q("final-life-summary").ClassListContains("hidden"));

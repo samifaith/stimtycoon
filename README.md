@@ -33,7 +33,9 @@ The repository now contains:
 - easy, medium, and hard study sessions with explicit Smarts/Happiness tradeoffs, monthly cooldowns, qualification XP, and visible tier progress
 - qualification-aware career application gates and authored event requirements that support Study Track and minimum Qualification XP
 - visible Fitness and Professional skill paths with level/XP progress and downstream overtime and career-work benefits
-- a user-verified 235-test EditMode baseline covering Education and the first two expanded skill paths
+- a safe Advance Year control that reuses ordinary monthly transactions, autosaves every month, summarizes progress, and stops for events, decisions, failures, or endings
+- automated compact-width and 130% accessibility-text reflow rules with 44-point primary targets
+- a user-verified 242-test EditMode baseline covering Education, expanded skills, responsive reflow, and Advance Year batching
 
 Not yet implemented:
 
@@ -42,18 +44,23 @@ Not yet implemented:
 - production navigation, accessibility, localization, art, and audio
 - iOS device build and automated play-flow coverage
 - meaningful one-time achievement prizes, such as cash, durable resources, unlocks, or cosmetic/status rewards
-- an optional Advance Year control that safely batches monthly progression and stops for required player decisions
 - a major Year in Review event and single year-completion benefit that reward reaching month 12 through either monthly or annual pacing
 
 ## Current Focus
 
-Milestones 1–6 and the first expanded skill-path increment are complete with a verified 235-test baseline. Fitness and Professional progression now have visible levels and concrete simulation consequences.
+Milestones 1–6 and the first expanded skill-path increment are complete with a verified 242-test baseline. The next phase is **Playable Alpha Expansion (Milestones 7–13)**; M7 has begun with safe Advance Year batching.
 
-The next implementation sequence is:
+The milestone sequence is:
 
-1. Finish the shared framework states and controls: in-progress/claimable transitions, timers, cash-or-credit confirmation, and reusable percentage/exact-amount input.
-2. Validate all current screens at 320, 390, 430, and 768 widths, including 130% text scale.
-3. Produce the first iOS development build and profile persistence, memory, safe areas, and touch behavior on a supported iPhone.
+1. **M7 — Time and Year in Review:** ship safe Advance Year batching, annual summaries, meaningful choices, and one duplicate-safe annual benefit.
+2. **M8 — Money and banking:** savings transfers, transaction history, grounded interest, cash-flow detail, credit repayment, and investing gates.
+3. **M9 — Home and personal development:** persistent room-object actions, maintenance, household effects, cooldowns, and upgrades.
+4. **M10 — Relationships and family:** discovery, deeper consequence chains, family planning, children, and parenting.
+5. **M11 — Careers and business:** multiple industries and one complete operational business.
+6. **M12 — Goals, rewards, and transitions:** goal boards, valuable achievement prizes, and focused major-life presentations.
+7. **M13 — Alpha hardening and iOS:** responsive/accessibility completion, Settings, pseudo-localization, asset/licensing review, migration/recovery validation, privacy-safe diagnostics, internal-distribution readiness, physical-device profiling, and a clean device life playthrough.
+
+Every milestone also carries shared gates for save migration and rollback, bounded history growth, deterministic economy balance, authored-content validation, localization keys, accessibility, and offline-safe service boundaries.
 
 See [the active task list](docs/TASKS.md) for acceptance criteria and later Money, Home, Relationship, and Business slices.
 
@@ -81,7 +88,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The current user-verified result is **235 passing EditMode tests** as of July 14, 2026, including the seeded birth-to-ending harness. That harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
+The current user-verified result is **242 passing EditMode tests** as of July 14, 2026, including the seeded birth-to-ending harness. That harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
 
 The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. Transactional autosaves now use compact rather than pretty-printed JSON to avoid unnecessary formatting allocation and whitespace. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
 
@@ -146,7 +153,7 @@ docs/                      # Architecture and gameplay specifications
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 235-test verified baseline
+- [x] 242-test verified baseline
 - [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests

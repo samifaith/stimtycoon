@@ -471,6 +471,67 @@ namespace StimTycoon.Runtime
             return true;
         }
 
+        public bool TryAdvanceYear(
+            out int monthsProcessed,
+            out StimEvent nextEvent,
+            out string summary)
+        {
+            monthsProcessed = 0;
+            nextEvent = null;
+            if (ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+
+            var startingAge = ActiveSave.state.character.age;
+            var startingCash = ActiveSave.state.finances?.cashMinorUnits ?? 0L;
+            for (var month = 0; month < 12; month++)
+            {
+                if (!TryAdvanceMonth(out nextEvent, out var monthlySummary))
+                {
+                    summary = monthsProcessed == 0
+                        ? monthlySummary
+                        : BuildAdvanceYearSummary(
+                            monthsProcessed, startingAge, startingCash,
+                            $"Stopped: {monthlySummary}");
+                    return monthsProcessed > 0;
+                }
+
+                monthsProcessed++;
+                if (nextEvent != null || IsLifeEnded(ActiveSave.state.character) ||
+                    !string.IsNullOrEmpty(ActiveSave.state.education?.awaitingDecisionId))
+                {
+                    var stopReason = nextEvent != null
+                        ? $"Stopped for {nextEvent.titleKey}."
+                        : IsLifeEnded(ActiveSave.state.character)
+                            ? "Stopped because this life ended."
+                            : "Stopped for a required school-path decision.";
+                    summary = BuildAdvanceYearSummary(
+                        monthsProcessed, startingAge, startingCash, stopReason);
+                    return true;
+                }
+            }
+
+            summary = BuildAdvanceYearSummary(
+                monthsProcessed, startingAge, startingCash, "Twelve months completed.");
+            return true;
+        }
+
+        private string BuildAdvanceYearSummary(
+            int monthsProcessed,
+            int startingAge,
+            long startingCash,
+            string outcome)
+        {
+            var ageDelta = ActiveSave.state.character.age - startingAge;
+            var currentCash = ActiveSave.state.finances?.cashMinorUnits ?? 0L;
+            var cashDelta = currentCash - startingCash;
+            return $"Advanced {monthsProcessed} month{(monthsProcessed == 1 ? string.Empty : "s")}" +
+                   $" · Age {(ageDelta >= 0 ? "+" : string.Empty)}{ageDelta}" +
+                   $" · Cash {FormatSignedMoney(cashDelta)} · {outcome}";
+        }
+
         public static string GetLifeStage(int age)
         {
             if (age < 3) return "infant";

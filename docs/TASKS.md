@@ -1,6 +1,99 @@
 # Stim Tycoon — Next Task List
 
-This is the active queue after the user-verified 235-test EditMode baseline on July 14, 2026. The master README remains the product definition.
+This is the active queue after the user-verified 242-test EditMode baseline on July 14, 2026. The master README remains the product definition.
+
+## Next Phase — Playable Alpha Expansion (Milestones 7–13)
+
+**Phase objective:** turn the verified life-loop and Education foundation into a cohesive, replayable alpha where time, money, home, relationships, work, goals, and major transitions all offer meaningful player decisions.
+
+### M7 — Time, Year in Review, and annual rewards
+
+- [x] Verify and ship Advance Year as up to twelve ordinary monthly transactions with per-month autosave and immediate stops for required input, failures, events, or endings.
+- [ ] Add an annual-change accumulator covering money, stats, relationships, Education, skills, career, and major Life Feed outcomes.
+- [ ] Present a Year in Review event after every completed twelve-month cycle, whether reached month-by-month or through Advance Year.
+- [ ] Offer meaningful next-year choices and grant one previewed, path-appropriate annual benefit exactly once.
+- [ ] Persist annual-event and reward claim state so tap spam, reload, interruption, and offline reconciliation cannot duplicate it.
+- [ ] Add the save-schema migration, validation, rollback, and old-save fixtures required by annual accumulators and reward-claim records.
+- [ ] Define deterministic annual-summary ordering and bounded history retention so Year in Review remains stable and saves do not grow without limit.
+
+### M8 — Money and banking vertical slice
+
+- [ ] Add transactional deposits, withdrawals, exact amounts, percentage amounts, and savings balance/history.
+- [ ] Show grounded interest, projected returns, monthly cash flow, taxes, expenses, debt, and available credit without exaggerated rates.
+- [ ] Add revolving-credit repayment and cash-or-credit confirmation using integer minor units and atomic rollback.
+- [ ] Gate investing behind age, knowledge, qualification, and available-funds requirements; keep gambling/casino risk out until banking is stable.
+- [ ] Add seeded economy simulations and balance budgets for income, expenses, debt, interest, investing risk, and wealth growth across starting backgrounds.
+- [ ] Cap or archive transaction history without losing balances, auditability, or recovery correctness.
+
+### M9 — Home and personal-development vertical slice
+
+- [ ] Add one persistent home with room-object actions for reading, training, rest, maintenance, and household time.
+- [ ] Show each action's cost, stock/capacity, cooldown, progress, and benefit before commitment.
+- [ ] Connect home condition and household cohesion to expenses, Happiness, relationships, and authored events.
+- [ ] Add at least one meaningful upgrade path without introducing premium currency or artificial countdown pressure.
+- [ ] Persist ownership, condition, inventory/capacity, and upgrade state through migration and reload fixtures.
+- [ ] Establish the reusable asset/content contract for later homes and room objects before adding breadth.
+
+### M10 — Relationships, dating, and family expansion
+
+- [ ] Add compatible-person discovery with persistent identity, history, warmth, stage, and introduction context.
+- [ ] Expand friendship, rivalry, dating, partnership, marriage, separation, and recovery into multi-step consequence chains.
+- [ ] Add consent-aware family planning, pregnancy/adoption, childbirth, child records, parenting choices, and household consequences.
+- [ ] Preserve friendship thresholds, adult-only romantic rules, opt-outs, and authored exceptions.
+- [ ] Add editorial and automated safety checks for age, consent, family roles, identity, relationship eligibility, and sensitive-event exclusions.
+- [ ] Test household/child relationship history across reload, aging, separation, custody, death, and new-life boundaries.
+
+### M11 — Careers and first complete business
+
+- [ ] Add multiple career industries with Education/skill gates, uncertain interviews, firing, unemployment, retraining, and distinct ladders.
+- [ ] Make Professional and other relevant skills affect visible career requirements and outcomes.
+- [ ] Build one complete business with work actions, action points, revenue, expenses, staffing, upgrades, locations, risks, valuation, failure, and sale.
+- [ ] Validate the economy before adding more industries, business types, property, or portfolio breadth.
+- [ ] Add deterministic multi-year career/business simulations covering startup, growth, payroll, debt, failure, sale, unemployment, and re-entry.
+- [ ] Define bounded business ledgers and migration fixtures before expanding business count.
+
+### M12 — Goals, achievement rewards, and major transitions
+
+- [ ] Add Main, Daily, and Life goals with visible progress, direct navigation, and claimable non-premium rewards.
+- [ ] Add meaningful one-time achievement prizes such as cash, durable resources, unlocks, or cosmetic/status rewards.
+- [ ] Give graduation, marriage, parenthood, retirement, death, and new-life transitions focused presentations and persisted consequences.
+- [ ] Ensure every reward is once-only and never requires an advertisement as the baseline completion path.
+- [ ] Define launch-alpha content minimums by life stage and destination, including event-chain starts, follow-ups, endings, cooldowns, and anti-repetition coverage.
+- [ ] Run every new event through schema, risk/reward, editorial-tone, localization-key, eligibility, and unreachable-branch validation.
+- [ ] Add a lightweight first-life orientation that explains the Life Feed, time controls, locked requirements, and saving without trapping childhood in a long tutorial.
+
+### M13 — Playable-alpha hardening and iOS gate
+
+- [ ] Complete the 320/390/430/768 layout matrix at 100% and 130% text scale, including overlays and persistent controls.
+- [ ] Produce and install the first iOS development build on a supported physical iPhone.
+- [ ] Profile save/load latency, save size, memory, safe areas, touch behavior, and full-life stability.
+- [ ] Resolve critical/high defects and complete one clean birth-to-ending device playthrough.
+- [ ] Evaluate save-format or service integrations only from measured device evidence; keep JSON and offline-first play unless profiling justifies change.
+- [ ] Add Settings for text scale, reduced motion, sound/music levels, captions/text alternatives, haptics, and destructive-action confirmation.
+- [ ] Complete keyboard/focus-order, contrast, readable-chart, VoiceOver-label, dynamic-text, and reduced-motion checks for all alpha screens.
+- [ ] Establish localization readiness with no hard-coded player-facing strings in new milestone content, fallback-font coverage, and a pseudo-localized overflow pass.
+- [ ] Audit placeholder logo, avatar, icon, font, animation, sound, and music assets; replace launch-blocking placeholders and record licenses/attribution.
+- [ ] Add privacy-safe local diagnostics and performance markers for crashes, save failures, event frequency, economy balance, and funnel testing without requiring an online SDK.
+- [ ] Verify content/save versioning, forward migrations, corruption recovery, backup restore, downgrade behavior, and bounded save growth from a Milestone 6 fixture through the current build.
+- [ ] Prepare the internal-alpha checklist: build/version numbers, signing, entitlements, privacy manifest/disclosures, third-party licenses, known issues, rollback build, and tester instructions.
+
+### Phase exit criteria
+
+- [ ] Milestones 7–12 are playable through the shared UI and transactional save path, not only through domain tests.
+- [ ] Every action previews requirements/tradeoffs, every completion is duplicate-safe, and every outcome reaches the Life Feed.
+- [ ] The complete EditMode suite, seeded full-life harness, responsive checks, and physical-device smoke pass are clean.
+- [ ] A new player can start a life, make meaningful choices in every major destination, complete annual reviews, and reach a stable ending without developer intervention.
+- [ ] Representative old saves migrate safely, corrupt saves recover, history remains bounded, and no milestone can duplicate money, rewards, relationships, businesses, or annual claims.
+- [ ] Alpha content meets its life-stage/destination minimums, passes automated/editorial validation, and avoids unreachable or immediately repetitive branches.
+- [ ] First-life orientation, Settings, accessibility, pseudo-localization, asset licensing, diagnostics, privacy, and internal-distribution checklists are complete.
+
+### Phase-wide engineering and content rules
+
+- [ ] Every stored model change ships with validation, an additive idempotent migration, old/current round-trip fixtures, rollback coverage, and a documented content/save version decision.
+- [ ] Every authored action/event ships with stable IDs, localization keys, analytics/diagnostic tags, eligibility tests, risk/reward validation, Life Feed output, and anti-repetition behavior.
+- [ ] Every economy-producing feature has deterministic long-run simulations and explicit balance targets before content breadth is added.
+- [ ] Every persistent list has a retention/archive policy and a test proving save growth remains bounded over a complete long life.
+- [ ] External accounts, cloud, ads, and analytics SDKs remain optional adapters and cannot block offline play; their consent, privacy, child-directed-treatment, and failure behavior must be documented before integration.
 
 ## P0 — Keep the verified loop fast and shippable
 
@@ -13,6 +106,7 @@ This is the active queue after the user-verified 235-test EditMode baseline on J
 - [ ] Repeat the layout pass at 100% and 130% text scale; fix clipping, wrapping, scroll reachability, and persistent-action overlap.
   - [x] Add automatic compact layout rules at 360 points and below for the header, navigation, cards, action dock, forms, and overlays.
   - [x] Replace fixed shell heights with scalable minimum heights and preserve 44-point-or-larger primary touch targets.
+  - [x] Add an explicit 130% accessibility-text reflow mode for dense cards, time controls, forms, headings, and overlays.
   - [ ] Complete the visual Unity/Game View matrix and record any remaining screen-specific defects.
 - [ ] Produce the first iOS development build.
 - [ ] Profile save/load latency, save size, memory, safe areas, and touch targets on a physical supported iPhone.
@@ -60,7 +154,7 @@ This is the active queue after the user-verified 235-test EditMode baseline on J
 
 ### Time controls
 
-- [ ] Add Advance Year as a safe batch of up to twelve normal Advance Month transactions, stopping for pending events, required school/life decisions, claimable work, failures, endings, or other player input.
+- [x] Add Advance Year as a safe batch of up to twelve normal Advance Month transactions, stopping for pending events, required school/life decisions, claimable work, failures, endings, or other player input.
 - [ ] Show a batch summary covering elapsed months and important money, stat, relationship, education, and career changes.
 - [ ] End every completed twelve-month cycle—whether reached month-by-month or through Advance Year—with an authored Year in Review event that condenses major outcomes and offers meaningful next-year options.
 - [ ] Grant one clearly previewed, path-appropriate year-completion benefit and persist its claim so it cannot duplicate across taps, reloads, interruption, or offline reconciliation.
@@ -161,6 +255,7 @@ This is the active queue after the user-verified 235-test EditMode baseline on J
 - [x] 229 passing EditMode tests, including difficulty-based study sessions, visible qualification tiers, and cooldown coverage
 - [x] 232 passing EditMode tests, including career qualification gates, visible locked reasons, and authored Education event requirements
 - [x] 235 passing EditMode tests, including visible Fitness/Professional progress and their gameplay consequences
+- [x] 242 passing EditMode tests, including responsive accessibility reflow and safe Advance Year batching/stops
 - [x] Deterministic seeded birth-to-ending simulation
 - [x] Transactional local saves, migration, integrity checks, backup recovery, and rollback safety
 - [x] Playable Life, Social, education, career, achievement, retirement/death, and final-summary flows
