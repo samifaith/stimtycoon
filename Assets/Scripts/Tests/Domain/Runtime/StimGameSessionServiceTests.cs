@@ -1140,6 +1140,77 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void ChooseStudyTrack_DeductsAuthoredCostPersistsAndWritesFeed()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 15;
+            save.state.education = new StimEducationState { stage = "high_school" };
+            save.state.finances.cashMinorUnits = 10000;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryChooseStudyTrack(StimStudyTrack.Vocational, out var summary), summary);
+
+            Assert.That(service.ActiveSave.state.education.studyTrack, Is.EqualTo("vocational"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(2500));
+            Assert.That(service.ActiveSave.state.lifeFeed, Has.Some.Matches<StimLifeFeedEntry>(entry =>
+                entry.category == "education" && entry.text.Contains("Vocational study track selected")));
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+
+            var reloaded = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            Assert.IsTrue(reloaded.TryLoadLatest(out var loadSummary), loadSummary);
+            Assert.That(reloaded.ActiveSave.state.education.studyTrack, Is.EqualTo("vocational"));
+            Assert.That(reloaded.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(2500));
+        }
+
+        [Test]
+        public void ChooseStudyTrack_RejectsAgeFundsAndDuplicateWithoutMutation()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 13;
+            save.state.education = new StimEducationState { stage = "middle_school" };
+            save.state.finances.cashMinorUnits = 1000;
+            service.Start(save);
+
+            Assert.IsFalse(service.TryChooseStudyTrack(StimStudyTrack.General, out var ageSummary));
+            Assert.That(ageSummary, Does.Contain("ages 14 through 17"));
+
+            service.ActiveSave.state.character.age = 15;
+            Assert.IsFalse(service.TryChooseStudyTrack(StimStudyTrack.Academic, out var fundsSummary));
+            Assert.That(fundsSummary, Does.Contain("Not enough cash"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(1000));
+
+            Assert.IsTrue(service.TryChooseStudyTrack(StimStudyTrack.General, out var firstSummary), firstSummary);
+            Assert.IsFalse(service.TryChooseStudyTrack(StimStudyTrack.Vocational, out var duplicateSummary));
+            Assert.That(duplicateSummary, Does.Contain("already been selected"));
+            Assert.That(service.ActiveSave.state.education.studyTrack, Is.EqualTo("general"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(1000));
+        }
+
+        [Test]
+        public void ChooseStudyTrack_WhenAutosaveFails_RollsBackCostAndSelection()
+        {
+            var repository = new RecordingSaveRepository { ShouldCommit = false };
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 15;
+            save.state.education = new StimEducationState { stage = "high_school" };
+            save.state.finances.cashMinorUnits = 10000;
+            service.Start(save);
+
+            Assert.IsFalse(service.TryChooseStudyTrack(StimStudyTrack.Academic, out var summary));
+
+            Assert.That(summary, Is.EqualTo("failed"));
+            Assert.That(service.ActiveSave, Is.SameAs(save));
+            Assert.That(service.ActiveSave.state.education.studyTrack, Is.Null.Or.Empty);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(10000));
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+        }
+
+        [Test]
         public void EducationActionRequest_IsIdempotentAcrossRepeatedSubmission()
         {
             var repository = new RecordingSaveRepository();

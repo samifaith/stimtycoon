@@ -223,6 +223,51 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void EducationCard_PreviewsAndCommitsAffordableStudyTrack()
+        {
+            session.ActiveSave.state.character.age = 15;
+            session.ActiveSave.state.character.lifeStage = StimGameSessionService.GetLifeStage(15);
+            session.ActiveSave.state.education.stage = "high_school";
+            session.ActiveSave.state.education.awaitingDecisionId = null;
+            session.ActiveSave.state.education.studyTrack = null;
+            session.ActiveSave.state.finances.cashMinorUnits = 10000;
+
+            Invoke("RefreshHeader");
+
+            Assert.That(root.Q<Label>("education-stage").text, Is.EqualTo("Choose a study track"));
+            Assert.That(root.Q<Button>("study-track-general").enabledSelf, Is.True);
+            Assert.That(root.Q<Button>("study-track-academic").enabledSelf, Is.True);
+            Assert.That(root.Q<Button>("study-track-vocational").enabledSelf, Is.True);
+            Assert.That(root.Q("study-track-card-academic")
+                .Q<Label>(className: "st-action-card-preview").text, Is.EqualTo("Materials: −$50.00"));
+
+            Invoke("PerformStudyTrackChoice", StimStudyTrack.Academic);
+
+            Assert.That(session.ActiveSave.state.education.studyTrack, Is.EqualTo("academic"));
+            Assert.That(session.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(5000));
+            Assert.That(root.Q<Label>("result-text").text, Does.Contain("Academic study track selected"));
+            Assert.That(root.Q<Button>("study-track-academic"), Is.Null);
+        }
+
+        [Test]
+        public void EducationCard_DisablesUnaffordableStudyTracks()
+        {
+            session.ActiveSave.state.character.age = 15;
+            session.ActiveSave.state.education.stage = "high_school";
+            session.ActiveSave.state.education.studyTrack = null;
+            session.ActiveSave.state.finances.cashMinorUnits = 0;
+
+            Invoke("RefreshHeader");
+
+            Assert.That(root.Q<Button>("study-track-general").enabledSelf, Is.True);
+            Assert.That(root.Q<Button>("study-track-academic").enabledSelf, Is.False);
+            Assert.That(root.Q<Button>("study-track-vocational").enabledSelf, Is.False);
+            Assert.That(root.Q("study-track-card-vocational")
+                .Q<Label>(className: "st-action-requirement-chip").text,
+                Is.EqualTo("Requires $75.00 cash"));
+        }
+
+        [Test]
         public void CareerCard_DrivesApplicationInterviewAndHiringFlow()
         {
             session.ActiveSave.state.career = new StimCareerState();

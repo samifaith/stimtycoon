@@ -601,6 +601,18 @@ namespace StimTycoon.Runtime
                 }
                 return;
             }
+            if (state.character.age >= 14 && state.character.age < 18 &&
+                string.IsNullOrEmpty(state.education.studyTrack))
+            {
+                educationStage.text = "Choose a study track";
+                AddStudyTrackCard(StimStudyTrack.General, 0L,
+                    "A flexible curriculum with no material fee.");
+                AddStudyTrackCard(StimStudyTrack.Academic, 5000L,
+                    "A theory-focused path preparing for advanced study.");
+                AddStudyTrackCard(StimStudyTrack.Vocational, 7500L,
+                    "A practical path preparing for skilled work.");
+                return;
+            }
             foreach (var definition in gameSession.GetEducationActionDefinitions())
             {
                 var suffix = definition.id.Substring("education.".Length);
@@ -613,6 +625,68 @@ namespace StimTycoon.Runtime
                     definition,
                     () => PerformEducationAction(capturedAction)));
             }
+        }
+
+        private void AddStudyTrackCard(StimStudyTrack track, long costMinorUnits, string description)
+        {
+            var affordable = gameSession.ActiveSave.state.finances != null &&
+                             gameSession.ActiveSave.state.finances.cashMinorUnits >= costMinorUnits;
+            var card = new VisualElement { name = $"study-track-card-{track.ToString().ToLowerInvariant()}" };
+            card.AddToClassList("st-action-card");
+            card.EnableInClassList("locked", !affordable);
+
+            var title = new Label($"{track} Track");
+            title.AddToClassList("st-action-card-title");
+            card.Add(title);
+
+            var preview = new Label(costMinorUnits == 0
+                ? "Materials: Free"
+                : $"Materials: −${costMinorUnits / 100m:0.00}");
+            preview.AddToClassList("st-action-card-preview");
+            card.Add(preview);
+
+            var detail = new Label(description);
+            detail.AddToClassList("st-action-card-progress");
+            card.Add(detail);
+
+            if (!affordable)
+            {
+                var requirement = new Label($"Requires ${costMinorUnits / 100m:0.00} cash");
+                requirement.AddToClassList("st-action-requirement-chip");
+                card.Add(requirement);
+            }
+
+            var capturedTrack = track;
+            var button = new Button(() => PerformStudyTrackChoice(capturedTrack))
+            {
+                name = $"study-track-{track.ToString().ToLowerInvariant()}",
+                text = $"Choose {track}",
+                tooltip = affordable ? description : "Not enough cash for these materials."
+            };
+            button.AddToClassList("st-action-commit");
+            button.SetEnabled(affordable);
+            card.Add(button);
+            educationActions.Add(card);
+        }
+
+        private void PerformStudyTrackChoice(StimStudyTrack track)
+        {
+            var succeeded = gameSession.TryChooseStudyTrack(track, out var summary);
+            eventCategory.text = succeeded ? "STUDY TRACK" : "TRACK LOCKED";
+            eventTitle.text = $"{track} Track";
+            eventBody.text = succeeded
+                ? "This track shapes the qualifications, careers, and events available later."
+                : "Review the age, cash, and previous-selection requirements.";
+            resultText.text = summary;
+            resultEffects.text = string.Empty;
+            resultEffects.AddToClassList("hidden");
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
         }
 
         private void PerformSchoolPathChoice(StimSchoolPathChoice choice)

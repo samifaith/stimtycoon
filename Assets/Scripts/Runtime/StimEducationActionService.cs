@@ -19,6 +19,10 @@ namespace StimTycoon.Runtime
             if (save?.state?.character == null || save.state.character.age < 14 ||
                 save.state.character.age >= 18)
                 return StimTransactionMutationResult.Failure("Study tracks are available from ages 14 through 17.");
+            if (!Enum.IsDefined(typeof(StimStudyTrack), track))
+                return StimTransactionMutationResult.Failure("That study track is not available.");
+            if (save.state.finances == null)
+                return StimTransactionMutationResult.Failure("Financial information is unavailable.");
             save.state.education ??= new StimEducationState();
             if (!string.IsNullOrEmpty(save.state.education.studyTrack))
                 return StimTransactionMutationResult.Failure("A study track has already been selected.");
