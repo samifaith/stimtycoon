@@ -38,6 +38,8 @@ Not yet implemented:
 - production navigation, accessibility, localization, art, and audio
 - iOS device build and automated play-flow coverage
 - meaningful one-time achievement prizes, such as cash, durable resources, unlocks, or cosmetic/status rewards
+- an optional Advance Year control that safely batches monthly progression and stops for required player decisions
+- a major Year in Review event and single year-completion benefit that reward reaching month 12 through either monthly or annual pacing
 
 ## Current Focus
 

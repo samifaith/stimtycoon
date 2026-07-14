@@ -134,6 +134,8 @@ namespace StimTycoon.Saves
     {
         public string stage = "not_started";
         public string schoolPath;
+        public string studyTrack;
+        public int qualificationExperience;
         public string awaitingDecisionId;
         public bool graduatedSecondary;
     }

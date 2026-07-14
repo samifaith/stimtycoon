@@ -12,6 +12,28 @@ namespace StimTycoon.Runtime
     {
         public const string MonthlyCooldownStatusId = "monthly_education_action_used";
 
+        public StimTransactionMutationResult ChooseStudyTrack(
+            StimSaveEnvelope save,
+            StimStudyTrack track)
+        {
+            if (save?.state?.character == null || save.state.character.age < 14 ||
+                save.state.character.age >= 18)
+                return StimTransactionMutationResult.Failure("Study tracks are available from ages 14 through 17.");
+            save.state.education ??= new StimEducationState();
+            if (!string.IsNullOrEmpty(save.state.education.studyTrack))
+                return StimTransactionMutationResult.Failure("A study track has already been selected.");
+            var cost = track == StimStudyTrack.Academic ? 5000L :
+                track == StimStudyTrack.Vocational ? 7500L : 0L;
+            if (save.state.finances.cashMinorUnits < cost)
+                return StimTransactionMutationResult.Failure("Not enough cash for the selected study track materials.");
+            save.state.finances.cashMinorUnits -= cost;
+            save.state.education.studyTrack = track.ToString().ToLowerInvariant();
+            var summary = $"{track} study track selected" +
+                          (cost > 0 ? $" · Materials −${cost / 100m:0.00}" : string.Empty);
+            AddLifeFeedEntry(save, summary);
+            return StimTransactionMutationResult.Success(summary);
+        }
+
         public static string GetActionId(StimEducationActionType actionType) =>
             $"education.{actionType.ToString().ToLowerInvariant()}";
 

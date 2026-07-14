@@ -1254,10 +1254,27 @@ namespace StimTycoon.Runtime
                 return;
             }
 
+            VisualElement currentGroup = null;
+            var currentAge = -1;
+            var currentMonth = -1;
             for (var index = entries.Count - 1; index >= 0; index--)
             {
                 var entry = entries[index];
                 if (entry == null) continue;
+                if (currentGroup == null || entry.age != currentAge || entry.monthOfYear != currentMonth)
+                {
+                    currentAge = entry.age;
+                    currentMonth = entry.monthOfYear;
+                    currentGroup = new VisualElement
+                    {
+                        name = $"feed-month-{currentAge}-{currentMonth}"
+                    };
+                    currentGroup.AddToClassList("st-feed-month-group");
+                    var header = new Label($"AGE {currentAge}  ·  {GetMonthName(currentMonth).ToUpperInvariant()}");
+                    header.AddToClassList("st-feed-month-header");
+                    currentGroup.Add(header);
+                    lifeFeedList.Add(currentGroup);
+                }
                 var row = new VisualElement();
                 row.AddToClassList("st-feed-entry");
                 if (!string.IsNullOrEmpty(entry.category))
@@ -1265,14 +1282,18 @@ namespace StimTycoon.Runtime
                     row.AddToClassList("category-" + entry.category.ToLowerInvariant());
                 }
 
-                var timing = new Label($"AGE {entry.age}  ·  MONTH {entry.monthOfYear}");
-                timing.AddToClassList("st-feed-timing");
                 var text = new Label(entry.text);
                 text.AddToClassList("st-feed-text");
-                row.Add(timing);
                 row.Add(text);
-                lifeFeedList.Add(row);
+                currentGroup.Add(row);
             }
+        }
+
+        private static string GetMonthName(int month)
+        {
+            return month >= 1 && month <= 12
+                ? new DateTime(2000, month, 1).ToString("MMMM")
+                : $"Month {month}";
         }
 
     }

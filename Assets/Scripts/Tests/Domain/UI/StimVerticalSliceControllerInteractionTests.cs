@@ -79,6 +79,32 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void LifeFeed_GroupsEntriesByMonthWithNewestMonthFirst()
+        {
+            session.ActiveSave.state.lifeFeed.Clear();
+            session.ActiveSave.state.lifeFeed.Add(new StimLifeFeedEntry
+                { age = 17, monthOfYear = 12, category = "milestone", text = "Older month" });
+            session.ActiveSave.state.lifeFeed.Add(new StimLifeFeedEntry
+                { age = 18, monthOfYear = 1, category = "activity", text = "Worked out" });
+            session.ActiveSave.state.lifeFeed.Add(new StimLifeFeedEntry
+                { age = 18, monthOfYear = 1, category = "event", text = "Met a friend" });
+
+            Invoke("RefreshFeed");
+
+            var groups = root.Q("life-feed-list")
+                .Query<VisualElement>(className: "st-feed-month-group").ToList();
+            Assert.That(groups, Has.Count.EqualTo(2));
+            Assert.That(groups[0].Q<Label>(className: "st-feed-month-header").text,
+                Is.EqualTo("AGE 18  ·  JANUARY"));
+            Assert.That(groups[0].Query<VisualElement>(className: "st-feed-entry").ToList(),
+                Has.Count.EqualTo(2));
+            Assert.That(groups[0].Query<Label>(className: "st-feed-text").ToList()[0].text,
+                Is.EqualTo("Met a friend"));
+            Assert.That(groups[1].Q<Label>(className: "st-feed-month-header").text,
+                Is.EqualTo("AGE 17  ·  DECEMBER"));
+        }
+
+        [Test]
         public void PerformActivity_ShowsSignedFeedbackAndRefreshesVisibleState()
         {
             var smartsBefore = session.ActiveSave.state.character.smarts;

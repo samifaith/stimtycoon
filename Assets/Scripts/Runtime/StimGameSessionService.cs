@@ -64,6 +64,13 @@ namespace StimTycoon.Runtime
         LeaveSchool
     }
 
+    public enum StimStudyTrack
+    {
+        General,
+        Academic,
+        Vocational
+    }
+
     public enum StimCareerActionType
     {
         Apply,
@@ -1110,6 +1117,17 @@ namespace StimTycoon.Runtime
         public IReadOnlyList<StimActionDefinition> GetEducationActionDefinitions()
         {
             return StimEducationActionService.GetDefinitions(ActiveSave?.state);
+        }
+
+        public bool TryChooseStudyTrack(StimStudyTrack track, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate => educationActionService.ChooseStudyTrack(candidate, track),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
         }
 
         public bool TryStartAction(

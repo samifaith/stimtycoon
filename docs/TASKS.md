@@ -54,6 +54,14 @@ This is the active queue after the user-verified 220-test EditMode baseline on J
 - [ ] Every slice works at 320, 390, 430, and 768 widths and at 100% and 130% text scale with 44-point-or-larger primary targets.
 - [ ] Stim-specific content, pacing, visuals, and economy remain original; reference products supply interaction patterns only.
 
+### Time controls
+
+- [ ] Add Advance Year as a safe batch of up to twelve normal Advance Month transactions, stopping for pending events, required school/life decisions, claimable work, failures, endings, or other player input.
+- [ ] Show a batch summary covering elapsed months and important money, stat, relationship, education, and career changes.
+- [ ] End every completed twelve-month cycle—whether reached month-by-month or through Advance Year—with an authored Year in Review event that condenses major outcomes and offers meaningful next-year options.
+- [ ] Grant one clearly previewed, path-appropriate year-completion benefit and persist its claim so it cannot duplicate across taps, reloads, interruption, or offline reconciliation.
+- [ ] Keep Advance Month free and always available. If Advance Year is monetized later, treat it only as optional convenience with an earned/free path; never let it bypass consequences or improve hidden odds.
+
 ## P2 — Branching life simulation
 
 ### P2A — School, work, and persistent paths

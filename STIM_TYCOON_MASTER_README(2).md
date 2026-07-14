@@ -230,6 +230,14 @@ Possible effects:
 
 The primary progression action is **Advance Month**. Twelve monthly turns complete a year and advance the character's age.
 
+A future **Advance Year** control may process up to twelve consecutive Advance Month operations for players who want faster pacing. It must use the exact monthly simulation path rather than applying a shortcut calculation, autosave safely, and stop immediately when an event, school-path choice, claimable action, affordability failure, life ending, or other required player decision needs attention. The result should summarize how many months were processed and the important financial, stat, relationship, education, and career changes.
+
+When all twelve months complete, Advance Year should culminate in one authored **Year in Review** event. This major event condenses the year's accumulated benefits, setbacks, and unresolved themes into a short presentation with meaningful options—for example, choosing the next year's focus, responding to a relationship or career turning point, allocating an earned annual bonus, or accepting a tradeoff that shapes future eligibility. It should feel more consequential than an ordinary monthly event without erasing the monthly outcomes that produced it.
+
+Completing a full year should grant a clearly previewed year-completion benefit so players have a positive pacing incentive. The benefit may be modest cash, qualification or skill progress, relationship/family value, recovery, a new opportunity, or another authored reward appropriate to the life path. It must be balanced against twelve months of normal simulation, granted exactly once, persisted transactionally, and never duplicate through tap spam, reload, interruption, or offline reconciliation. Advance Month players receive the same Year in Review event and completion benefit when they naturally finish month 12; Advance Year changes pacing, not the underlying reward entitlement.
+
+Advance Month remains free and permanently available. Advance Year may later support optional monetization as a convenience feature, but monetization must never block ordinary progression, bypass consequences, guarantee favorable outcomes, or require payment to resolve a pending event. An earned or free-use path should be evaluated alongside any premium or rewarded-ad version.
+
 Pressing it moves the life forward and may trigger:
 
 - birthday changes
@@ -266,6 +274,8 @@ Examples:
 ### Final time model
 
 - one Advance Month action processes monthly income, applies visible player-stat feedback, advances career progress, and moves the calendar forward
+- one Advance Year action reuses Advance Month sequentially for at most twelve months and stops at the first required interaction or terminal state
+- completing month 12 through either control opens one major Year in Review event with condensed outcomes, meaningful options, and a single persisted year-completion benefit
 - every month selects one event when at least one authored event passes age, location, eligibility, and cooldown rules
 - fixed-month and annual events take priority when their timing requirement is due
 - otherwise the event is selected deterministically from the ordinary pool using authored frequency weight, Luck modifiers, and immediate-repeat protection
@@ -2402,6 +2412,7 @@ Stim Tycoon launches with an ad-based monetization model. Monetization must not 
 - limited interstitial ads at natural session breaks
 - frequency caps and cooldowns
 - no ad required to perform the core Age action
+- no ad or purchase required to use Advance Month; any monetized Advance Year option is convenience-only and cannot bypass required choices or consequences
 - no ad required to access basic saves or essential gameplay
 
 ### Design rules
