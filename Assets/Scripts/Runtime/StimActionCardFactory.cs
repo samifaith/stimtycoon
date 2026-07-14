@@ -31,23 +31,43 @@ namespace StimTycoon.Runtime
                 card.Add(requirement);
             }
 
+            if (definition.progressRequired > 1 || definition.state == StimActionState.InProgress)
+            {
+                var progress = new Label(
+                    $"Progress {definition.progress} / {Math.Max(1, definition.progressRequired)}" +
+                    (definition.durationSeconds > 0 ? $" · {definition.durationSeconds}s" : string.Empty));
+                progress.AddToClassList("st-action-card-progress");
+                card.Add(progress);
+            }
+
             var suffix = definition.id.StartsWith("education.", StringComparison.Ordinal)
                 ? definition.id.Substring("education.".Length)
                 : definition.id.Replace('.', '-');
             var button = new Button(onCommit)
             {
                 name = $"education-action-{suffix}",
-                text = definition.state == StimActionState.Locked
-                    ? $"{definition.title}\n{definition.lockedReason}"
-                    : definition.title,
+                text = GetButtonText(definition),
                 tooltip = string.IsNullOrEmpty(definition.lockedReason)
                     ? definition.description
                     : definition.lockedReason
             };
             button.AddToClassList("st-action-commit");
-            button.SetEnabled(definition.state == StimActionState.Ready);
+            button.SetEnabled(definition.state == StimActionState.Ready ||
+                              definition.state == StimActionState.Claimable);
             card.Add(button);
             return card;
+        }
+
+        private static string GetButtonText(StimActionDefinition definition)
+        {
+            switch (definition.state)
+            {
+                case StimActionState.Locked: return $"{definition.title}\n{definition.lockedReason}";
+                case StimActionState.InProgress: return "In progress";
+                case StimActionState.Claimable: return "Claim";
+                case StimActionState.Complete: return "Complete";
+                default: return definition.title;
+            }
         }
     }
 }

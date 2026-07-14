@@ -204,8 +204,11 @@ namespace StimTycoon.Saves
         public int progressRequired = 1;
         public string resultSummary;
         public int revision;
+        public int durationSeconds;
         public string startedAtUtc;
+        public string completesAtUtc;
         public string completedAtUtc;
+        public string claimedAtUtc;
     }
 
     [Serializable]
@@ -617,8 +620,9 @@ namespace StimTycoon.Saves
                           validStates.Contains(action.state) &&
                           action.progressRequired > 0 &&
                           action.progress >= 0 && action.progress <= action.progressRequired &&
+                          action.durationSeconds >= 0 &&
                           action.revision >= 0,
-                "actionId/state must be valid; progress must be within range; revision cannot be negative");
+                "actionId/state must be valid; progress/duration must be within range; revision cannot be negative");
         }
 
         private static void ValidateProgressRecords<T>(

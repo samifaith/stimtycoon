@@ -34,6 +34,7 @@ namespace StimTycoon.Runtime
         public List<StimActionDeltaPreview> previews = new List<StimActionDeltaPreview>();
         public int progress;
         public int progressRequired = 1;
+        public int durationSeconds;
         public int cooldownMonths;
         public bool hasRisk;
     }

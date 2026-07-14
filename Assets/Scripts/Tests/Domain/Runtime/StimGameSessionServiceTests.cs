@@ -1171,6 +1171,63 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void TimedAction_StartsInProgressAndCannotBeClaimedEarly()
+        {
+            var repository = new RecordingSaveRepository();
+            var now = DateTimeOffset.Parse("2026-07-14T20:00:00Z");
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), repository, utcNow: () => now);
+            service.Start(CreateValidSave());
+            var definition = new StimActionDefinition
+            {
+                id = "education.timed-study",
+                title = "Timed Study",
+                state = StimActionState.Ready,
+                durationSeconds = 60,
+                progressRequired = 1
+            };
+
+            Assert.IsTrue(service.TryStartAction(
+                definition, new StimActionRequest(definition.id, "timed-1"), out var startSummary), startSummary);
+            Assert.That(service.ActiveSave.state.actionProgress[0].state, Is.EqualTo("InProgress"));
+            Assert.That(service.ActiveSave.state.actionProgress[0].completesAtUtc, Is.Not.Empty);
+            Assert.IsFalse(service.TryClaimAction("timed-1", out var earlySummary));
+            Assert.That(earlySummary, Does.Contain("not ready"));
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void TimedAction_ReconcilesAfterReloadAndCanOnlyBeClaimedOnce()
+        {
+            var repository = new RecordingSaveRepository();
+            var now = DateTimeOffset.Parse("2026-07-14T20:00:00Z");
+            var firstSession = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), repository, utcNow: () => now);
+            firstSession.Start(CreateValidSave());
+            var definition = new StimActionDefinition
+            {
+                id = "education.timed-study",
+                title = "Timed Study",
+                state = StimActionState.Ready,
+                durationSeconds = 60
+            };
+            Assert.IsTrue(firstSession.TryStartAction(
+                definition, new StimActionRequest(definition.id, "timed-2"), out var startSummary), startSummary);
+
+            now = now.AddSeconds(61);
+            var reloadedSession = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), repository, utcNow: () => now);
+            Assert.IsTrue(reloadedSession.TryLoadLatest(out var loadSummary), loadSummary);
+            Assert.IsTrue(reloadedSession.TryReconcileActionProgress(out var reconcileSummary), reconcileSummary);
+            Assert.That(reloadedSession.ActiveSave.state.actionProgress[0].state, Is.EqualTo("Claimable"));
+            Assert.IsTrue(reloadedSession.TryClaimAction("timed-2", out var claimSummary), claimSummary);
+            Assert.That(reloadedSession.ActiveSave.state.actionProgress[0].state, Is.EqualTo("Complete"));
+            Assert.IsFalse(reloadedSession.TryClaimAction("timed-2", out var duplicateSummary));
+            Assert.That(duplicateSummary, Does.Contain("already claimed"));
+            Assert.That(repository.CommitCount, Is.EqualTo(3));
+        }
+
+        [Test]
         public void CareerApplication_UnlocksNextMonthInterviewAndEntryRole()
         {
             var repository = new RecordingSaveRepository();

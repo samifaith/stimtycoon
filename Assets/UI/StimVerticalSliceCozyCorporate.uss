@@ -82,6 +82,7 @@
 .st-action-card.locked { opacity: 0.68; }
 .st-action-card-title { color: var(--st-text-primary); font-size: 14px; -unity-font-style: bold; white-space: normal; }
 .st-action-card-preview { margin-top: 4px; color: var(--st-success-500); font-size: 11px; -unity-font-style: bold; white-space: normal; }
+.st-action-card-progress { margin-top: 5px; color: var(--st-cyan-600); font-size: 11px; -unity-font-style: bold; white-space: normal; }
 .st-action-requirement-chip { margin-top: 5px; padding: 3px 6px; background-color: var(--st-surface-2); border-radius: 7px; color: var(--st-text-secondary); font-size: 10px; white-space: normal; }
 .st-action-commit { min-height: 44px; margin-top: 7px; background-color: var(--st-purple-500); border-width: 0; border-radius: 11px; color: var(--st-text-inverse); font-size: 12px; -unity-font-style: bold; }
 .st-action-commit:disabled { opacity: 0.55; }

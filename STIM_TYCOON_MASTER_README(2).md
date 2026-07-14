@@ -10,12 +10,12 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 ### Implementation snapshot — July 14, 2026
 
-The repository currently runs on Unity `6000.3.19f1` and has a user-verified 203-test EditMode baseline as of July 14, 2026. The offline loop begins with randomized birth and now includes required school paths, contextual activities, persistent peers and drama, identity choices, friendship-gated romance, marriage and divorce, household stats, spouse-derived finances, and revolving credit before continuing through careers, achievements, health decline, and a persistent ending summary. Manual work pays one hour at annual salary divided by 2,080. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, compact native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. A reusable transaction runner and migration-safe shared-action contract now provide stable action instances, reload-safe idempotency, availability states, signed previews, persisted completion, and reusable UI Toolkit cards; Education is the first reference consumer. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
+The repository currently runs on Unity `6000.3.19f1` and has a user-verified 205-test EditMode baseline as of July 14, 2026. The offline loop begins with randomized birth and now includes required school paths, contextual activities, persistent peers and drama, identity choices, friendship-gated romance, marriage and divorce, household stats, spouse-derived finances, and revolving credit before continuing through careers, achievements, health decline, and a persistent ending summary. Manual work pays one hour at annual salary divided by 2,080. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, compact native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. A reusable transaction runner and migration-safe shared-action contract now provide stable action instances, reload-safe idempotency, availability states, signed previews, persisted completion, reusable UI Toolkit cards, and interruption-safe timed-action reconciliation; Education is the first reference consumer. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
 
 ### Current phase assessment — July 14, 2026
 
 - **Phase 0 — Product Foundation:** offline foundation delivered. The five representative events, schemas, deterministic resolver, local-save recovery, migration boundary, and product decisions are implemented. Authentication, cloud-conflict validation, Game Center, and ads remain intentionally deferred behind offline-loop stability.
-- **Phase 1 — Simulation Skeleton:** verified complete for the offline implementation. The 203-test run includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
+- **Phase 1 — Simulation Skeleton:** verified complete for the offline implementation. The 205-test run includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
 - **Phase 2 — Skills, Education, and Relationships:** materially underway but incomplete. Required enrollment/path decisions, contextual school/work activities, peers, friendship/drama history, identity, romance, marriage maintenance, household stats, and spouse finances exist. Broader skills, family planning, children, custody, inheritance, and additional relationship arcs remain.
 - **Phase 3 and later:** partial foundations exist. A career ladder, monthly cash flow, manual work, household income, fixed costs, debt, credit limits, variable APR, and interest are playable, but full career industries, transaction history, repayment controls, investing, and business systems remain incomplete.
 
@@ -2887,7 +2887,7 @@ Completed foundation work:
 - [x] Add transactional Study and Workout actions with monthly cooldowns, autosave, skill XP, and signed feedback.
 - [x] Consolidate the playable Life shell onto reusable header and bottom-navigation templates.
 - [x] Add structural UI Toolkit tests for required bindings, navigation, and event-sheet defaults.
-- [x] Establish a user-verified 203-test EditMode baseline, including seeded birth-to-ending, Money/manual-work, expanded Phase 2, and shared-action coverage.
+- [x] Establish a user-verified 205-test EditMode baseline, including seeded birth-to-ending, Money/manual-work, expanded Phase 2, shared-action, and timed-lifecycle coverage.
 - [x] Keep Advance Month persistent outside the Life ScrollView and clamp all visual progress fills.
 - [x] Add controller interaction coverage for event presentation, activity feedback, and persistent month advancement.
 - [x] Add transactional parent interactions with age gates, per-parent monthly limits, signed feedback, Life Feed entries, autosave, and rollback safety.
@@ -2904,6 +2904,7 @@ Completed foundation work:
 - [x] Introduce a reusable candidate-save transaction runner and extract Education action rules without breaking the existing session API.
 - [x] Define migration-safe shared action instances with availability states, signed previews, persisted completion, and duplicate-award protection across reload.
 - [x] Render Education through reusable UI Toolkit action cards and establish a user-verified 203-test baseline.
+- [x] Persist timed actions through reload, reconcile elapsed UTC time, enforce single-claim completion, and establish a user-verified 205-test baseline.
 
 Next milestone — complete the interactive framework and first deep Education slice:
 

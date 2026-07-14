@@ -85,6 +85,7 @@ namespace StimTycoon.Runtime
         private readonly Func<DateTimeOffset> utcNow;
         private readonly StimSaveTransactionRunner transactionRunner;
         private readonly StimEducationActionService educationActionService;
+        private readonly StimActionLifecycleService actionLifecycleService;
 
         public StimSaveEnvelope ActiveSave { get; private set; }
         public StimChoiceResolution LastResolution { get; private set; }
@@ -102,6 +103,7 @@ namespace StimTycoon.Runtime
             this.utcNow = utcNow ?? (() => DateTimeOffset.UtcNow);
             transactionRunner = new StimSaveTransactionRunner(this.saveRepository, this.utcNow);
             educationActionService = new StimEducationActionService();
+            actionLifecycleService = new StimActionLifecycleService();
         }
 
         public void Start(StimSaveEnvelope save)
@@ -1108,6 +1110,48 @@ namespace StimTycoon.Runtime
         public IReadOnlyList<StimActionDefinition> GetEducationActionDefinitions()
         {
             return StimEducationActionService.GetDefinitions(ActiveSave?.state);
+        }
+
+        public bool TryStartAction(
+            StimActionDefinition definition,
+            StimActionRequest request,
+            out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate => actionLifecycleService.Start(candidate, definition, request, utcNow()),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TryReconcileActionProgress(out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate =>
+                {
+                    var count = actionLifecycleService.Reconcile(candidate, utcNow());
+                    return count > 0
+                        ? StimTransactionMutationResult.Success($"{count} action(s) are ready to claim.")
+                        : StimTransactionMutationResult.Failure("No action progress changed.");
+                },
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TryClaimAction(string instanceId, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate => actionLifecycleService.Claim(candidate, instanceId, utcNow()),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
         }
 
         public static bool TryGetEducationActionRequirement(

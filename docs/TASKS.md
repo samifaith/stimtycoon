@@ -1,6 +1,6 @@
 # Stim Tycoon — Next Task List
 
-This is the active queue after the user-verified 203-test EditMode baseline on July 14, 2026. The master README remains the product definition.
+This is the active queue after the user-verified 205-test EditMode baseline on July 14, 2026. The master README remains the product definition.
 
 ## P0 — Keep the verified loop fast and shippable
 
@@ -28,11 +28,11 @@ This is the active queue after the user-verified 203-test EditMode baseline on J
 - [x] Define a reusable activity/action model with stable ID, destination, prerequisites, locked reason, costs, payment methods, resource/stat deltas, progress, duration/cooldown, risk, outcome, and feed metadata.
 - [x] Persist migration-safe action instances and reject duplicate completion requests across repeated submission and reload.
 - [x] Render Education through reusable UI Toolkit action cards with requirement chips, signed previews, accessible tooltips, and 44-point commit controls.
-- [ ] Support `Ready`, `In Progress`, `Complete`, `Claimable`, and `Locked` states without tying completion to premium currency or advertising.
+- [x] Support persisted `Ready`, `In Progress`, `Complete`, `Claimable`, and `Locked` states without tying completion to premium currency or advertising.
 - [ ] Build reusable UI Toolkit action cards with requirement chips, signed previews, progress, timers/cooldowns, cash-or-credit selection, confirmation, and accessible feedback.
 - [ ] Build a reusable `5% / 10% / 25% / 50% / 100%` amount selector plus exact-amount validation for transfers, repayments, and later investments.
 - [ ] Resolve each action as one deterministic transaction: validate, apply, autosave, roll back on failure, and write every completed outcome to the Life Feed.
-- [ ] Persist in-progress activities and reconcile elapsed offline time without granting duplicate completion or rewards.
+- [x] Persist in-progress activities, reconcile elapsed UTC time after reload, and enforce single-claim completion.
 - [ ] Add focused model, controller, rollback, reload, and UI structure tests before expanding activity content.
 
 ### P1B — Interactive vertical slices
@@ -141,8 +141,8 @@ This is the active queue after the user-verified 203-test EditMode baseline on J
 ## Verified baseline
 
 - [x] Phase 0 offline architecture and representative content
-- [x] 203 passing EditMode tests, including expanded Phase 2 and Milestone 3 shared-action coverage
+- [x] 205 passing EditMode tests, including expanded Phase 2 and Milestone 4 timed-lifecycle coverage
 - [x] Deterministic seeded birth-to-ending simulation
 - [x] Transactional local saves, migration, integrity checks, backup recovery, and rollback safety
 - [x] Playable Life, Social, education, career, achievement, retirement/death, and final-summary flows
-- [x] Run the expanded EditMode suite in Unity and record the new verified test count before additional high-risk feature work (203 passing on July 14, 2026).
+- [x] Run the expanded EditMode suite in Unity and record the new verified test count before additional high-risk feature work (205 passing on July 14, 2026).
