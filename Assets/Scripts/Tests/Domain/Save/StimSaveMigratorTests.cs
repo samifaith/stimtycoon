@@ -13,6 +13,7 @@ namespace StimTycoon.Tests.Domain.Save
             var save = CreateValidSave();
             save.state.skills = null;
             save.state.lifeDecisions = null;
+            save.state.actionProgress = null;
             save.state.relationships = null;
             save.state.statuses = null;
             save.state.achievements = null;
@@ -33,6 +34,7 @@ namespace StimTycoon.Tests.Domain.Save
             Assert.That(result.state.character.endedAtAge, Is.EqualTo(-1));
             Assert.That(result.state.skills, Is.Not.Null);
             Assert.That(result.state.lifeDecisions, Is.Not.Null);
+            Assert.That(result.state.actionProgress, Is.Not.Null);
             Assert.That(result.state.relationships, Is.Not.Null);
             Assert.That(result.state.statuses, Is.Not.Null);
             Assert.That(result.state.achievements, Is.Not.Null);

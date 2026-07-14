@@ -180,6 +180,36 @@ namespace StimTycoon.Tests.Domain.Save
         }
 
         [Test]
+        public void ValidateSave_AcceptsActionProgressAndRejectsDuplicateInstances()
+        {
+            var save = CreateValidSave();
+            save.state.actionProgress.Add(new StimActionProgressState
+            {
+                instanceId = "life:education:10:1:Read",
+                actionId = "education.read",
+                state = "Complete",
+                progress = 1,
+                progressRequired = 1,
+                revision = 2
+            });
+
+            var valid = StimSaveValidator.ValidateSave(save);
+            Assert.IsTrue(valid.isValid, StimSaveValidator.GetValidationSummary(valid, save.saveId));
+
+            save.state.actionProgress.Add(new StimActionProgressState
+            {
+                instanceId = "life:education:10:1:Read",
+                actionId = "education.read",
+                state = "Ready",
+                progressRequired = 1
+            });
+            var duplicate = StimSaveValidator.ValidateSave(save);
+            Assert.IsFalse(duplicate.isValid);
+            Assert.That(duplicate.errors, Has.Some.Matches<string>(error =>
+                error.Contains("state.actionProgress contains duplicate id")));
+        }
+
+        [Test]
         public void ValidateSave_RejectsExpiredPersistedStatus()
         {
             var save = CreateValidSave();

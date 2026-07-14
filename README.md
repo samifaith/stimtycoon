@@ -18,6 +18,7 @@ The repository now contains:
 - deterministic, save-backed weighted outcome resolution
 - a transactional game-session service that applies effects, history, follow-ups, and autosaves
 - a reusable candidate-save transaction runner, with Education action rules extracted behind the existing session API
+- a migration-safe shared action contract with stable instances, availability states, signed previews, persisted completion, idempotency, and reusable UI Toolkit cards
 - a versioned save envelope with validation, SHA-256 integrity checks, atomic replacement, and backup recovery
 - an idempotent additive v1 save migrator with structured migration reports
 - Yarn Spinner dialogue authoring behind a Stim-owned bridge
@@ -28,7 +29,7 @@ The repository now contains:
 - persistent household happiness/cohesion, spouse-derived savings/debt/income, fixed-price family activities, and cash-or-credit payment selection with risk-based APR and monthly interest
 - a mobile UI Toolkit vertical slice with choices, outcomes, cash, life feed, autosave feedback, and a collapsible six-stat player overview
 - replaceable interfaces for dialogue, saves, accounts, cloud saves, ads, and event catalogs
-- a user-verified 200-test EditMode baseline covering the offline life loop, branching school, peers, romance, marriage, household finance, credit, event-payment behavior, and Milestone 2 transaction boundaries
+- a user-verified 203-test EditMode baseline including the shared-action schema, reload-safe idempotency, definitions, and UI-card coverage
 
 Not yet implemented:
 
@@ -61,7 +62,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The current user-verified result is **200 passing EditMode tests** as of July 14, 2026, including the seeded birth-to-ending harness. That harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
+The current user-verified result is **203 passing EditMode tests** as of July 14, 2026, including the seeded birth-to-ending harness. That harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
 
 The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. Transactional autosaves now use compact rather than pretty-printed JSON to avoid unnecessary formatting allocation and whitespace. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
 
@@ -125,7 +126,7 @@ docs/                      # Architecture and gameplay specifications
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 200-test verified baseline
+- [x] 203-test verified baseline
 - [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests

@@ -1071,11 +1071,25 @@ namespace StimTycoon.Runtime
 
         public bool TryPerformEducationAction(StimEducationActionType actionType, out string summary)
         {
+            var request = ActiveSave == null
+                ? new StimActionRequest(StimEducationActionService.GetActionId(actionType), string.Empty)
+                : new StimActionRequest(
+                    StimEducationActionService.GetActionId(actionType),
+                    $"{ActiveSave.lifeId}:education:{ActiveSave.state.character.age}:" +
+                    $"{ActiveSave.state.calendar.monthOfYear}:{actionType}");
+            return TryPerformEducationAction(actionType, request, out summary);
+        }
+
+        public bool TryPerformEducationAction(
+            StimEducationActionType actionType,
+            StimActionRequest request,
+            out string summary)
+        {
             var succeeded = transactionRunner.TryExecute(
                 ActiveSave,
                 candidateSave =>
                 {
-                    var result = educationActionService.Apply(candidateSave, actionType);
+                    var result = educationActionService.Apply(candidateSave, actionType, request);
                     if (result.Succeeded)
                     {
                         EvaluateAchievements(candidateSave);
@@ -1089,6 +1103,11 @@ namespace StimTycoon.Runtime
                 ActiveSave = committedSave;
             }
             return succeeded;
+        }
+
+        public IReadOnlyList<StimActionDefinition> GetEducationActionDefinitions()
+        {
+            return StimEducationActionService.GetDefinitions(ActiveSave?.state);
         }
 
         public static bool TryGetEducationActionRequirement(

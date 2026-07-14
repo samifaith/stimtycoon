@@ -63,6 +63,7 @@ namespace StimTycoon.Saves
         public List<StimStatusState> statuses = new List<StimStatusState>();
         public List<StimAchievementState> achievements = new List<StimAchievementState>();
         public List<StimLifeDecisionState> lifeDecisions = new List<StimLifeDecisionState>();
+        public List<StimActionProgressState> actionProgress = new List<StimActionProgressState>();
         public List<StimLifeFeedEntry> lifeFeed = new List<StimLifeFeedEntry>();
         public string pendingEventId;
         public List<StimEventHistoryEntry> eventHistory = new List<StimEventHistoryEntry>();
@@ -191,6 +192,20 @@ namespace StimTycoon.Saves
         public int monthOfYear = 1;
         public int revision;
         public string timestampUtc;
+    }
+
+    [Serializable]
+    public class StimActionProgressState
+    {
+        public string instanceId;
+        public string actionId;
+        public string state = "Ready";
+        public int progress;
+        public int progressRequired = 1;
+        public string resultSummary;
+        public int revision;
+        public string startedAtUtc;
+        public string completedAtUtc;
     }
 
     [Serializable]
@@ -331,6 +346,7 @@ namespace StimTycoon.Saves
             ValidateStatuses(result, save.state.statuses);
             ValidateAchievements(result, save.state.achievements);
             ValidateLifeDecisions(result, save.state.lifeDecisions);
+            ValidateActionProgress(result, save.state.actionProgress);
             ValidateEventHistory(result, save.state.eventHistory);
             ValidateScheduledEvents(result, save.state.scheduledEvents);
 
@@ -583,6 +599,26 @@ namespace StimTycoon.Saves
                             decision.monthOfYear >= 1 && decision.monthOfYear <= 12 &&
                             decision.revision >= 0,
                 "choiceId is required; age/revision cannot be negative; monthOfYear must be within [1, 12]");
+        }
+
+        private static void ValidateActionProgress(
+            StimSaveValidationResult result,
+            List<StimActionProgressState> actions)
+        {
+            var validStates = new HashSet<string>(StringComparer.Ordinal)
+                { "Ready", "InProgress", "Complete", "Claimable", "Locked" };
+            ValidateProgressRecords(
+                result,
+                actions,
+                "state.actionProgress",
+                action => action?.instanceId,
+                action => action == null ||
+                          !string.IsNullOrWhiteSpace(action.actionId) &&
+                          validStates.Contains(action.state) &&
+                          action.progressRequired > 0 &&
+                          action.progress >= 0 && action.progress <= action.progressRequired &&
+                          action.revision >= 0,
+                "actionId/state must be valid; progress must be within range; revision cannot be negative");
         }
 
         private static void ValidateProgressRecords<T>(

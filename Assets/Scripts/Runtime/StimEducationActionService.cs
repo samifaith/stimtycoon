@@ -12,9 +12,59 @@ namespace StimTycoon.Runtime
     {
         public const string MonthlyCooldownStatusId = "monthly_education_action_used";
 
+        public static string GetActionId(StimEducationActionType actionType) =>
+            $"education.{actionType.ToString().ToLowerInvariant()}";
+
+        public static List<StimActionDefinition> GetDefinitions(StimGameState state)
+        {
+            var definitions = new List<StimActionDefinition>();
+            foreach (StimEducationActionType actionType in Enum.GetValues(typeof(StimEducationActionType)))
+            {
+                var unlocked = TryGetRequirement(state, actionType, out var requirement);
+                TryGetDeltas(actionType, out var xp, out var smarts, out var happiness);
+                var coolingDown = state?.statuses?.Exists(
+                    status => status != null && status.statusId == MonthlyCooldownStatusId) == true;
+                definitions.Add(new StimActionDefinition
+                {
+                    id = GetActionId(actionType),
+                    title = ToDisplayName(actionType.ToString()),
+                    description = "Build Learning experience through focused school work.",
+                    destination = StimActionDestination.Education,
+                    state = unlocked && !coolingDown ? StimActionState.Ready : StimActionState.Locked,
+                    lockedReason = !unlocked ? requirement : coolingDown
+                        ? "School action already completed this month."
+                        : string.Empty,
+                    cooldownMonths = 1,
+                    previews = new List<StimActionDeltaPreview>
+                    {
+                        new StimActionDeltaPreview("Learning XP", xp),
+                        new StimActionDeltaPreview("Smarts", smarts)
+                    }
+                });
+                if (happiness != 0)
+                {
+                    definitions[definitions.Count - 1].previews.Add(
+                        new StimActionDeltaPreview("Happiness", happiness));
+                }
+            }
+            return definitions;
+        }
+
         public StimTransactionMutationResult Apply(
             StimSaveEnvelope candidateSave,
             StimEducationActionType actionType)
+        {
+            var instanceId = candidateSave == null
+                ? string.Empty
+                : $"{candidateSave.lifeId}:education:{candidateSave.state.character.age}:" +
+                  $"{candidateSave.state.calendar.monthOfYear}:{actionType}";
+            return Apply(candidateSave, actionType, new StimActionRequest(GetActionId(actionType), instanceId));
+        }
+
+        public StimTransactionMutationResult Apply(
+            StimSaveEnvelope candidateSave,
+            StimEducationActionType actionType,
+            StimActionRequest request)
         {
             if (candidateSave?.state?.character == null)
             {
@@ -32,6 +82,19 @@ namespace StimTycoon.Runtime
             }
 
             NormalizeCollections(candidateSave.state);
+            if (string.IsNullOrWhiteSpace(request.InstanceId) || request.ActionId != GetActionId(actionType))
+            {
+                return StimTransactionMutationResult.Failure("A valid action instance is required.");
+            }
+            var previousAction = candidateSave.state.actionProgress.Find(
+                action => action != null && action.instanceId == request.InstanceId);
+            if (previousAction != null)
+            {
+                return StimTransactionMutationResult.Failure(
+                    string.IsNullOrEmpty(previousAction.resultSummary)
+                        ? "This action was already completed."
+                        : previousAction.resultSummary);
+            }
             if (!TryGetRequirement(candidateSave.state, actionType, out var requirement))
             {
                 return StimTransactionMutationResult.Failure(requirement);
@@ -72,6 +135,18 @@ namespace StimTycoon.Runtime
                               ? $" · Learning Level +{newLevel - previousLevel}"
                               : string.Empty);
             AddLifeFeedEntry(candidateSave, summary);
+            candidateSave.state.actionProgress.Add(new StimActionProgressState
+            {
+                instanceId = request.InstanceId,
+                actionId = request.ActionId,
+                state = StimActionState.Complete.ToString(),
+                progress = 1,
+                progressRequired = 1,
+                resultSummary = summary,
+                revision = candidateSave.revision,
+                startedAtUtc = candidateSave.updatedAtUtc,
+                completedAtUtc = candidateSave.updatedAtUtc
+            });
             return StimTransactionMutationResult.Success(summary);
         }
 
@@ -155,6 +230,7 @@ namespace StimTycoon.Runtime
             state.skills ??= new List<StimSkillState>();
             state.statuses ??= new List<StimStatusState>();
             state.lifeFeed ??= new List<StimLifeFeedEntry>();
+            state.actionProgress ??= new List<StimActionProgressState>();
         }
 
         private static void ApplySkillXp(List<StimSkillState> skills, string skillId, int value)

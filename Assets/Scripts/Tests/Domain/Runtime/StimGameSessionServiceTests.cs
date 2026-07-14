@@ -1067,6 +1067,29 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void EducationActionDefinitions_ExposeStableIdsStatesAndSignedPreviews()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 10;
+            service.Start(save);
+
+            var definitions = service.GetEducationActionDefinitions();
+
+            Assert.That(definitions, Has.Count.EqualTo(4));
+            Assert.That(definitions, Has.Some.Matches<StimActionDefinition>(definition =>
+                definition.id == "education.read" &&
+                definition.destination == StimActionDestination.Education &&
+                definition.state == StimActionState.Ready &&
+                definition.previews.Exists(delta => delta.targetId == "Learning XP" && delta.amount == 12)));
+            Assert.That(definitions, Has.Some.Matches<StimActionDefinition>(definition =>
+                definition.id == "education.studygroup" &&
+                definition.state == StimActionState.Locked &&
+                definition.lockedReason.Contains("Learning Level 2")));
+        }
+
+        [Test]
         public void PerformEducationAction_AppliesXpStatsFeedCooldownAndAutosave()
         {
             var repository = new RecordingSaveRepository();
@@ -1113,6 +1136,37 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(service.ActiveSave.state.character.smarts, Is.EqualTo(originalSmarts));
             Assert.That(service.ActiveSave.state.statuses.Exists(
                 status => status.statusId == StimEducationActionService.MonthlyCooldownStatusId), Is.False);
+            Assert.That(repository.CommitCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void EducationActionRequest_IsIdempotentAcrossRepeatedSubmission()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 10;
+            save.state.education.stage = "primary_school";
+            service.Start(save);
+            var request = new StimActionRequest(
+                StimEducationActionService.GetActionId(StimEducationActionType.Read),
+                "education-request-1");
+
+            Assert.IsTrue(service.TryPerformEducationAction(
+                StimEducationActionType.Read, request, out var firstSummary), firstSummary);
+            var experience = StimGameSessionService.GetSkillExperience(
+                service.ActiveSave.state.skills, "learning");
+            Assert.That(service.ActiveSave.state.actionProgress, Has.Count.EqualTo(1));
+
+            var reloadedService = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), repository);
+            Assert.IsTrue(reloadedService.TryLoadLatest(out var loadSummary), loadSummary);
+            Assert.IsFalse(reloadedService.TryPerformEducationAction(
+                StimEducationActionType.Read, request, out var repeatedSummary));
+            Assert.That(repeatedSummary, Is.EqualTo(firstSummary));
+            Assert.That(StimGameSessionService.GetSkillExperience(
+                reloadedService.ActiveSave.state.skills, "learning"), Is.EqualTo(experience));
+            Assert.That(reloadedService.ActiveSave.state.actionProgress, Has.Count.EqualTo(1));
             Assert.That(repository.CommitCount, Is.EqualTo(1));
         }
 

@@ -601,27 +601,17 @@ namespace StimTycoon.Runtime
                 }
                 return;
             }
-            var actions = new[]
+            foreach (var definition in gameSession.GetEducationActionDefinitions())
             {
-                StimEducationActionType.Read,
-                StimEducationActionType.Homework,
-                StimEducationActionType.StudyGroup,
-                StimEducationActionType.AdvancedProject
-            };
-            var usedThisMonth = state.statuses.Exists(status => status.statusId == "monthly_education_action_used");
-            foreach (var action in actions)
-            {
-                var unlocked = StimGameSessionService.TryGetEducationActionRequirement(state, action, out var requirement);
-                var button = new Button
+                var suffix = definition.id.Substring("education.".Length);
+                if (!Enum.TryParse(suffix, true, out StimEducationActionType action))
                 {
-                    name = $"education-action-{action.ToString().ToLowerInvariant()}",
-                    text = unlocked ? ToDisplayName(action.ToString()) : $"{ToDisplayName(action.ToString())}\n{requirement}"
-                };
-                button.AddToClassList("st-education-action");
-                button.SetEnabled(unlocked && !usedThisMonth);
+                    continue;
+                }
                 var capturedAction = action;
-                button.clicked += () => PerformEducationAction(capturedAction);
-                educationActions.Add(button);
+                educationActions.Add(StimActionCardFactory.Create(
+                    definition,
+                    () => PerformEducationAction(capturedAction)));
             }
         }
 

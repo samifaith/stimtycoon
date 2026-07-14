@@ -159,6 +159,9 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.IsTrue(root.Q<Button>("education-action-read").enabledSelf);
             Assert.IsFalse(root.Q<Button>("education-action-studygroup").enabledSelf);
             Assert.That(root.Q<Button>("education-action-studygroup").text, Does.Contain("Learning Level 2"));
+            Assert.That(root.Query<VisualElement>(className: "st-action-card").ToList(), Has.Count.EqualTo(4));
+            Assert.That(root.Query<Label>(className: "st-action-card-preview").ToList(), Has.Count.EqualTo(4));
+            Assert.That(root.Query<Label>(className: "st-action-requirement-chip").ToList(), Is.Not.Empty);
 
             Invoke("PerformEducationAction", StimEducationActionType.Read);
 

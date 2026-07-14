@@ -10,12 +10,12 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 ### Implementation snapshot — July 13, 2026
 
-The repository currently runs on Unity `6000.3.19f1` and has a user-verified 200-test EditMode baseline as of July 14, 2026. The offline loop begins with randomized birth and now includes required school paths, contextual activities, persistent peers and drama, identity choices, friendship-gated romance, marriage and divorce, household stats, spouse-derived finances, and revolving credit before continuing through careers, achievements, health decline, and a persistent ending summary. Manual work pays one hour at annual salary divided by 2,080. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
+The repository currently runs on Unity `6000.3.19f1` and has a user-verified 203-test EditMode baseline as of July 14, 2026. The offline loop begins with randomized birth and now includes required school paths, contextual activities, persistent peers and drama, identity choices, friendship-gated romance, marriage and divorce, household stats, spouse-derived finances, and revolving credit before continuing through careers, achievements, health decline, and a persistent ending summary. Manual work pays one hour at annual salary divided by 2,080. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
 
 ### Current phase assessment — July 13, 2026
 
 - **Phase 0 — Product Foundation:** offline foundation delivered. The five representative events, schemas, deterministic resolver, local-save recovery, migration boundary, and product decisions are implemented. Authentication, cloud-conflict validation, Game Center, and ads remain intentionally deferred behind offline-loop stability.
-- **Phase 1 — Simulation Skeleton:** verified complete for the offline implementation. The 200-test run includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
+- **Phase 1 — Simulation Skeleton:** verified complete for the offline implementation. The 203-test run includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
 - **Phase 2 — Skills, Education, and Relationships:** materially underway but incomplete. Required enrollment/path decisions, contextual school/work activities, peers, friendship/drama history, identity, romance, marriage maintenance, household stats, and spouse finances exist. Broader skills, family planning, children, custody, inheritance, and additional relationship arcs remain.
 - **Phase 3 and later:** partial foundations exist. A career ladder, monthly cash flow, manual work, household income, fixed costs, debt, credit limits, variable APR, and interest are playable, but full career industries, transaction history, repayment controls, investing, and business systems remain incomplete.
 
@@ -2887,7 +2887,7 @@ Completed foundation work:
 - [x] Add transactional Study and Workout actions with monthly cooldowns, autosave, skill XP, and signed feedback.
 - [x] Consolidate the playable Life shell onto reusable header and bottom-navigation templates.
 - [x] Add structural UI Toolkit tests for required bindings, navigation, and event-sheet defaults.
-- [x] Establish a user-verified 200-test EditMode baseline, including seeded birth-to-ending, Money/manual-work, expanded Phase 2, and transaction-boundary coverage.
+- [x] Establish a user-verified 203-test EditMode baseline, including seeded birth-to-ending, Money/manual-work, expanded Phase 2, and shared-action coverage.
 - [x] Keep Advance Month persistent outside the Life ScrollView and clamp all visual progress fills.
 - [x] Add controller interaction coverage for event presentation, activity feedback, and persistent month advancement.
 - [x] Add transactional parent interactions with age gates, per-parent monthly limits, signed feedback, Life Feed entries, autosave, and rollback safety.

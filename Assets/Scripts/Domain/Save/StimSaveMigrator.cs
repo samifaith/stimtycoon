@@ -168,6 +168,11 @@ namespace StimTycoon.Saves
                 save.state.lifeDecisions = new List<StimLifeDecisionState>();
                 Record(report, "state.lifeDecisions created");
             }
+            if (save.state.actionProgress == null || !serializedSave.Contains("\"actionProgress\""))
+            {
+                save.state.actionProgress = new List<StimActionProgressState>();
+                Record(report, "state.actionProgress created");
+            }
             if (save.state.lifeFeed == null)
             {
                 save.state.lifeFeed = new List<StimLifeFeedEntry>();
