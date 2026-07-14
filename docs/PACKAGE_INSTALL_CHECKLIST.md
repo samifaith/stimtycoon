@@ -5,7 +5,7 @@ Install vendors only when the related feature is ready. After each package chang
 ## Baseline — complete
 
 - [x] Open with Unity `6000.3.19f1` and install iOS Build Support through Unity Hub.
-- [x] Confirm a clean compile and 205 passing EditMode tests (user-verified July 14, 2026).
+- [x] Confirm a clean compile and 220 passing EditMode tests (user-verified July 14, 2026).
 - [x] Run `Tools → Stim Tycoon → Run Setup Check` with no project-level failures.
 - [x] Use the native atomic JSON repository for required local saves.
 - [x] Install Yarn Spinner from its official Git repository and isolate it behind the Stim dialogue bridge.

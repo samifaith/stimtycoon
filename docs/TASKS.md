@@ -1,6 +1,6 @@
 # Stim Tycoon — Next Task List
 
-This is the active queue after the user-verified 205-test EditMode baseline on July 14, 2026. The master README remains the product definition.
+This is the active queue after the user-verified 220-test EditMode baseline on July 14, 2026. The master README remains the product definition.
 
 ## P0 — Keep the verified loop fast and shippable
 
@@ -30,7 +30,8 @@ This is the active queue after the user-verified 205-test EditMode baseline on J
 - [x] Render Education through reusable UI Toolkit action cards with requirement chips, signed previews, accessible tooltips, and 44-point commit controls.
 - [x] Support persisted `Ready`, `In Progress`, `Complete`, `Claimable`, and `Locked` states without tying completion to premium currency or advertising.
 - [ ] Build reusable UI Toolkit action cards with requirement chips, signed previews, progress, timers/cooldowns, cash-or-credit selection, confirmation, and accessible feedback.
-- [ ] Build a reusable `5% / 10% / 25% / 50% / 100%` amount selector plus exact-amount validation for transfers, repayments, and later investments.
+- [x] Build a reusable `5% / 10% / 25% / 50% / 100%` amount selector plus exact-amount validation for transfers, repayments, and later investments.
+- [x] Validate authored cash/credit options and available balances in integer minor units before monetary action commitment.
 - [ ] Resolve each action as one deterministic transaction: validate, apply, autosave, roll back on failure, and write every completed outcome to the Life Feed.
 - [x] Persist in-progress activities, reconcile elapsed UTC time after reload, and enforce single-claim completion.
 - [ ] Add focused model, controller, rollback, reload, and UI structure tests before expanding activity content.
@@ -104,6 +105,8 @@ This is the active queue after the user-verified 205-test EditMode baseline on J
 - [ ] Add cause-specific death, relationship grief, funeral, estate/debt settlement, inheritance, and surviving-family consequences.
 - [ ] Add branch-aware life summaries and alternate endings based on education, career, wealth, relationships, family, health, and major decisions.
 - [ ] Expand achievements across education, relationships, careers, wealth, health, family, drama arcs, and alternate endings.
+  - [ ] Give every achievement a meaningful one-time prize: cash, debt relief, durable resources, content/action unlocks, or cosmetic/status value proportional to difficulty.
+  - [ ] Preview achievement prizes and claim them transactionally with persisted duplicate-award protection; never require an advertisement or premium currency.
 
 ### Branching-content quality gates
 
@@ -141,8 +144,8 @@ This is the active queue after the user-verified 205-test EditMode baseline on J
 ## Verified baseline
 
 - [x] Phase 0 offline architecture and representative content
-- [x] 205 passing EditMode tests, including expanded Phase 2 and Milestone 4 timed-lifecycle coverage
+- [x] 220 passing EditMode tests, including Milestone 5 amount, payment, and UI-control coverage
 - [x] Deterministic seeded birth-to-ending simulation
 - [x] Transactional local saves, migration, integrity checks, backup recovery, and rollback safety
 - [x] Playable Life, Social, education, career, achievement, retirement/death, and final-summary flows
-- [x] Run the expanded EditMode suite in Unity and record the new verified test count before additional high-risk feature work (205 passing on July 14, 2026).
+- [x] Run the expanded EditMode suite in Unity and record the new verified test count before additional high-risk feature work (220 passing on July 14, 2026).

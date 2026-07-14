@@ -86,6 +86,12 @@
 .st-action-requirement-chip { margin-top: 5px; padding: 3px 6px; background-color: var(--st-surface-2); border-radius: 7px; color: var(--st-text-secondary); font-size: 10px; white-space: normal; }
 .st-action-commit { min-height: 44px; margin-top: 7px; background-color: var(--st-purple-500); border-width: 0; border-radius: 11px; color: var(--st-text-inverse); font-size: 12px; -unity-font-style: bold; }
 .st-action-commit:disabled { opacity: 0.55; }
+.st-amount-selector, .st-payment-selector { margin-top: 10px; }
+.st-percentage-options, .st-payment-selector { flex-direction: row; flex-wrap: wrap; }
+.st-percentage-button, .st-payment-option { min-width: 52px; min-height: 44px; margin-right: 5px; margin-bottom: 6px; border-radius: 11px; }
+.st-exact-amount { margin-top: 5px; }
+.st-amount-apply { min-height: 44px; margin-top: 6px; background-color: var(--st-cyan-600); color: var(--st-text-inverse); border-width: 0; border-radius: 11px; }
+.st-amount-feedback { min-height: 18px; color: var(--st-danger-500); font-size: 11px; white-space: normal; }
 .st-career-role { color: var(--st-text-primary); font-size: 22px; -unity-font-style: bold; }
 .st-career-salary { margin-top: 4px; color: var(--st-success-500); font-size: 15px; -unity-font-style: bold; }
 .st-career-next-step { margin-top: 10px; color: var(--st-text-secondary); font-size: 13px; white-space: normal; }

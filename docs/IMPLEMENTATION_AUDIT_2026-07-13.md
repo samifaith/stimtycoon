@@ -15,7 +15,7 @@ The repository has a reliable Phase 0 foundation and a user-verified Phase 1 off
 | Persistent effects | Implemented | Six player stats, household happiness/cohesion, skill XP, life decisions, relationships, statuses, career progress, cash, debt, salary, spouse income, and revolving credit |
 | Relationships | Implemented foundation | School peers, friendship stages, neglect, drama follow-ups, identity, dating, prom, first kiss, partnership, engagement, marriage, counseling, separation, and divorce |
 | Household economy | Implemented foundation | One-time spouse asset/debt merge, combined monthly income, fixed activity prices, cash-or-credit choices, risk-based APR, and monthly interest |
-| Automated baseline | Verified after this audit | 205 EditMode tests passed in the user-verified July 14, 2026 Run All, including expanded Phase 2 and timed-action lifecycle coverage |
+| Automated baseline | Verified after this audit | 220 EditMode tests passed in the user-verified July 14, 2026 Run All, including timed lifecycle and reusable monetary-input coverage |
 | Playable presentation | In progress | Portrait Life dashboard, fixed navigation, event overlay, hidden visual scrollbar |
 | New-life generation | Implemented | One-button generation creates identity, location, background, parents/genetics, inherited stats, finances, and birth state |
 | Focus activities | Implemented | Play/Rest, Study/Play, and Study/Workout rotate by age; actions transact through the session service, autosave, enforce a monthly cooldown, and show signed feedback |
@@ -43,6 +43,7 @@ The repository has a reliable Phase 0 foundation and a user-verified Phase 1 off
 - Route newly extracted action paths through `StimSaveTransactionRunner`; Education is the first migrated compatibility slice.
 - Use the persisted shared action contract and `StimActionCardFactory` for new interactive slices; Education is the reference implementation.
 - Use `StimActionLifecycleService` for timed work so UTC reconciliation and claiming remain persisted, interruption-safe, and single-award.
+- Use `StimActionAmountService` and `StimActionInputFactory` for percentage/exact monetary input and authored payment-method selection.
 - Keep event risk labels hidden during normal play.
 - Every visible action must produce explicit signed feedback such as `Smarts +2` or `Health −1`.
 - The free Sinanata design-system package is not retained because all published tags use an API signature that fails with the pinned Unity editor. Stim-owned `ds-` structural classes remain replaceable.
