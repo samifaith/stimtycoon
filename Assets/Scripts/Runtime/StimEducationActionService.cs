@@ -41,6 +41,141 @@ namespace StimTycoon.Runtime
         public static string GetActionId(StimEducationActionType actionType) =>
             $"education.{actionType.ToString().ToLowerInvariant()}";
 
+        public static string GetStudySessionActionId(StimStudyDifficulty difficulty) =>
+            $"education.study.{difficulty.ToString().ToLowerInvariant()}";
+
+        public static List<StimActionDefinition> GetStudySessionDefinitions(StimGameState state)
+        {
+            var definitions = new List<StimActionDefinition>();
+            foreach (StimStudyDifficulty difficulty in Enum.GetValues(typeof(StimStudyDifficulty)))
+            {
+                TryGetStudySessionDeltas(difficulty, out var qualificationXp, out var smarts, out var happiness);
+                var available = TryGetStudySessionRequirement(state, difficulty, out var requirement);
+                var coolingDown = state?.statuses?.Exists(
+                    status => status != null && status.statusId == MonthlyCooldownStatusId) == true;
+                definitions.Add(new StimActionDefinition
+                {
+                    id = GetStudySessionActionId(difficulty),
+                    title = $"{difficulty} Study Session",
+                    description = "Advance your selected qualification through one month of focused study.",
+                    destination = StimActionDestination.Education,
+                    state = available && !coolingDown ? StimActionState.Ready : StimActionState.Locked,
+                    lockedReason = !available ? requirement : coolingDown
+                        ? "School action already completed this month."
+                        : string.Empty,
+                    cooldownMonths = 1,
+                    previews = new List<StimActionDeltaPreview>
+                    {
+                        new StimActionDeltaPreview("Qualification XP", qualificationXp),
+                        new StimActionDeltaPreview("Smarts", smarts),
+                        new StimActionDeltaPreview("Happiness", happiness)
+                    }
+                });
+            }
+            return definitions;
+        }
+
+        public StimTransactionMutationResult ApplyStudySession(
+            StimSaveEnvelope candidateSave,
+            StimStudyDifficulty difficulty)
+        {
+            if (candidateSave?.state?.character == null)
+                return StimTransactionMutationResult.Failure("No active save is loaded.");
+            if (!string.IsNullOrEmpty(candidateSave.state.pendingEventId))
+                return StimTransactionMutationResult.Failure(
+                    $"Resolve pending event {candidateSave.state.pendingEventId} before studying.");
+            NormalizeCollections(candidateSave.state);
+            if (!TryGetStudySessionRequirement(candidateSave.state, difficulty, out var requirement))
+                return StimTransactionMutationResult.Failure(requirement);
+            if (candidateSave.state.statuses.Exists(
+                    status => status != null && status.statusId == MonthlyCooldownStatusId))
+                return StimTransactionMutationResult.Failure(
+                    "You already completed a school action this month. Advance the month to study again.");
+            if (!TryGetStudySessionDeltas(difficulty, out var xpDelta, out var smartsDelta,
+                    out var happinessDelta))
+                return StimTransactionMutationResult.Failure("That study difficulty is not available.");
+
+            candidateSave.state.education.qualificationExperience = Math.Max(0,
+                candidateSave.state.education.qualificationExperience + xpDelta);
+            candidateSave.state.character.smarts = ClampStat(
+                candidateSave.state.character.smarts + smartsDelta);
+            candidateSave.state.character.happiness = ClampStat(
+                candidateSave.state.character.happiness + happinessDelta);
+            candidateSave.state.statuses.Add(new StimStatusState
+            {
+                statusId = MonthlyCooldownStatusId,
+                remainingMonths = 1
+            });
+            var tier = GetQualificationTier(candidateSave.state.education.qualificationExperience);
+            var summary = $"{difficulty} study session complete · Qualification XP +{xpDelta}" +
+                          $" · Smarts {FormatSignedValue(smartsDelta)}" +
+                          $" · Happiness {FormatSignedValue(happinessDelta)}" +
+                          $" · {tier}";
+            AddLifeFeedEntry(candidateSave, summary);
+            return StimTransactionMutationResult.Success(summary);
+        }
+
+        public static bool TryGetStudySessionRequirement(
+            StimGameState state,
+            StimStudyDifficulty difficulty,
+            out string requirement)
+        {
+            if (state?.character == null || state.character.lifeStatus != "active" ||
+                state.character.age < 14 || state.character.age >= 18 ||
+                state.education == null || string.IsNullOrEmpty(state.education.studyTrack))
+            {
+                requirement = "Choose a study track while enrolled at ages 14 through 17.";
+                return false;
+            }
+            if (!Enum.IsDefined(typeof(StimStudyDifficulty), difficulty))
+            {
+                requirement = "Unsupported study difficulty.";
+                return false;
+            }
+            if (difficulty == StimStudyDifficulty.Hard && state.character.smarts < 60)
+            {
+                requirement = "Requires 60 Smarts.";
+                return false;
+            }
+            requirement = string.Empty;
+            return true;
+        }
+
+        public static string GetQualificationTier(int experience)
+        {
+            if (experience >= 250) return "Advanced Qualification";
+            if (experience >= 125) return "Diploma Qualification";
+            if (experience >= 50) return "Certificate Qualification";
+            return "Foundation Qualification";
+        }
+
+        public static int GetNextQualificationTierAt(int experience)
+        {
+            if (experience < 50) return 50;
+            if (experience < 125) return 125;
+            if (experience < 250) return 250;
+            return 250;
+        }
+
+        private static bool TryGetStudySessionDeltas(
+            StimStudyDifficulty difficulty,
+            out int qualificationXp,
+            out int smarts,
+            out int happiness)
+        {
+            switch (difficulty)
+            {
+                case StimStudyDifficulty.Easy:
+                    qualificationXp = 10; smarts = 1; happiness = 0; return true;
+                case StimStudyDifficulty.Medium:
+                    qualificationXp = 20; smarts = 1; happiness = -1; return true;
+                case StimStudyDifficulty.Hard:
+                    qualificationXp = 35; smarts = 2; happiness = -3; return true;
+                default:
+                    qualificationXp = 0; smarts = 0; happiness = 0; return false;
+            }
+        }
+
         public static List<StimActionDefinition> GetDefinitions(StimGameState state)
         {
             var definitions = new List<StimActionDefinition>();

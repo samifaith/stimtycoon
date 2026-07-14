@@ -1211,6 +1211,65 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void StudySession_AppliesDifficultyTradeoffQualificationTierAndCooldown()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.character.age = 15;
+            save.state.character.smarts = 60;
+            save.state.character.happiness = 70;
+            save.state.education = new StimEducationState
+            {
+                stage = "high_school",
+                studyTrack = "academic",
+                qualificationExperience = 30
+            };
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformStudySession(StimStudyDifficulty.Hard, out var summary), summary);
+
+            Assert.That(service.ActiveSave.state.education.qualificationExperience, Is.EqualTo(65));
+            Assert.That(service.ActiveSave.state.character.smarts, Is.EqualTo(62));
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(67));
+            Assert.That(summary, Does.Contain("Qualification XP +35")
+                .And.Contain("Certificate Qualification"));
+            Assert.That(service.ActiveSave.state.statuses, Has.Some.Matches<StimStatusState>(status =>
+                status.statusId == StimEducationActionService.MonthlyCooldownStatusId));
+            Assert.IsFalse(service.TryPerformStudySession(StimStudyDifficulty.Easy, out var cooldown));
+            Assert.That(cooldown, Does.Contain("already completed a school action"));
+        }
+
+        [Test]
+        public void StudySession_DefinitionsPreviewTradeoffsAndLockHardBelowSmartsRequirement()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 15;
+            save.state.character.smarts = 59;
+            save.state.education = new StimEducationState
+            {
+                stage = "high_school",
+                studyTrack = "vocational"
+            };
+            service.Start(save);
+
+            var definitions = service.GetStudySessionDefinitions();
+
+            Assert.That(definitions, Has.Count.EqualTo(3));
+            Assert.That(definitions, Has.Some.Matches<StimActionDefinition>(definition =>
+                definition.id == "education.study.medium" &&
+                definition.state == StimActionState.Ready &&
+                definition.previews.Exists(delta => delta.targetId == "Qualification XP" && delta.amount == 20) &&
+                definition.previews.Exists(delta => delta.targetId == "Happiness" && delta.amount == -1)));
+            Assert.That(definitions, Has.Some.Matches<StimActionDefinition>(definition =>
+                definition.id == "education.study.hard" &&
+                definition.state == StimActionState.Locked &&
+                definition.lockedReason.Contains("60 Smarts")));
+        }
+
+        [Test]
         public void EducationActionRequest_IsIdempotentAcrossRepeatedSubmission()
         {
             var repository = new RecordingSaveRepository();

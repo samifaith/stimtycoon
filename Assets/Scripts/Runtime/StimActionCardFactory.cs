@@ -41,7 +41,7 @@ namespace StimTycoon.Runtime
             }
 
             var suffix = definition.id.StartsWith("education.", StringComparison.Ordinal)
-                ? definition.id.Substring("education.".Length)
+                ? definition.id.Substring("education.".Length).Replace('.', '-')
                 : definition.id.Replace('.', '-');
             var button = new Button(onCommit)
             {

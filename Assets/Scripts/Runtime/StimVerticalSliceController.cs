@@ -613,6 +613,21 @@ namespace StimTycoon.Runtime
                     "A practical path preparing for skilled work.");
                 return;
             }
+            if (state.character.age >= 14 && state.character.age < 18 &&
+                !string.IsNullOrEmpty(state.education.studyTrack))
+            {
+                AddQualificationSummary();
+                foreach (var definition in gameSession.GetStudySessionDefinitions())
+                {
+                    var suffix = definition.id.Substring("education.study.".Length);
+                    if (!Enum.TryParse(suffix, true, out StimStudyDifficulty difficulty)) continue;
+                    var capturedDifficulty = difficulty;
+                    educationActions.Add(StimActionCardFactory.Create(
+                        definition,
+                        () => PerformStudySession(capturedDifficulty)));
+                }
+                return;
+            }
             foreach (var definition in gameSession.GetEducationActionDefinitions())
             {
                 var suffix = definition.id.Substring("education.".Length);
@@ -667,6 +682,48 @@ namespace StimTycoon.Runtime
             button.SetEnabled(affordable);
             card.Add(button);
             educationActions.Add(card);
+        }
+
+        private void AddQualificationSummary()
+        {
+            var education = gameSession.ActiveSave.state.education;
+            var experience = Math.Max(0, education.qualificationExperience);
+            var nextTierAt = StimEducationActionService.GetNextQualificationTierAt(experience);
+            var summary = new VisualElement { name = "qualification-summary" };
+            summary.AddToClassList("st-qualification-summary");
+            var track = new Label($"{ToDisplayName(education.studyTrack)} Track");
+            track.AddToClassList("st-action-card-title");
+            var tier = new Label(StimEducationActionService.GetQualificationTier(experience));
+            tier.AddToClassList("st-education-level");
+            var progress = new Label(experience >= 250
+                ? $"{experience} XP · Highest tier reached"
+                : $"{experience} / {nextTierAt} Qualification XP");
+            progress.name = "qualification-progress";
+            progress.AddToClassList("st-education-progress");
+            summary.Add(track);
+            summary.Add(tier);
+            summary.Add(progress);
+            educationActions.Add(summary);
+        }
+
+        private void PerformStudySession(StimStudyDifficulty difficulty)
+        {
+            var succeeded = gameSession.TryPerformStudySession(difficulty, out var summary);
+            eventCategory.text = succeeded ? "QUALIFICATION PROGRESS" : "SESSION LOCKED";
+            eventTitle.text = $"{difficulty} Study Session";
+            eventBody.text = succeeded
+                ? "Your focused study advanced your selected qualification."
+                : "Review the study-track, Smarts, and monthly-action requirements.";
+            resultText.text = summary;
+            resultEffects.text = string.Empty;
+            resultEffects.AddToClassList("hidden");
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
         }
 
         private void PerformStudyTrackChoice(StimStudyTrack track)

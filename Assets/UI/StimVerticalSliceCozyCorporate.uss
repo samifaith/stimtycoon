@@ -76,6 +76,7 @@
 .st-education-fill { height: 100%; width: 0%; background-color: var(--st-purple-500); border-radius: 6px; }
 .st-education-progress { margin-top: 5px; color: var(--st-text-secondary); font-size: 12px; -unity-text-align: middle-right; }
 .st-education-actions { margin-top: 12px; flex-direction: row; flex-wrap: wrap; }
+.st-qualification-summary { width: 100%; margin-bottom: 10px; padding: 11px; background-color: var(--st-surface-blue); border-width: 1px; border-color: var(--st-border-blue); border-radius: 14px; }
 .st-education-action { width: 48%; min-height: 58px; margin-right: 2%; margin-bottom: 8px; padding: 9px; background-color: var(--st-surface-purple); border-width: 1px; border-color: var(--st-border-purple); border-radius: 14px; color: var(--st-text-primary); font-size: 13px; -unity-font-style: bold; white-space: normal; }
 .st-education-action:disabled { opacity: 0.5; }
 .st-action-card { width: 48%; min-height: 112px; margin-right: 2%; margin-bottom: 9px; padding: 10px; background-color: var(--st-surface-purple); border-width: 1px; border-color: var(--st-border-purple); border-radius: 14px; }

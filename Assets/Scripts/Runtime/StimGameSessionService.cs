@@ -71,6 +71,13 @@ namespace StimTycoon.Runtime
         Vocational
     }
 
+    public enum StimStudyDifficulty
+    {
+        Easy,
+        Medium,
+        Hard
+    }
+
     public enum StimCareerActionType
     {
         Apply,
@@ -1124,6 +1131,27 @@ namespace StimTycoon.Runtime
             var succeeded = transactionRunner.TryExecute(
                 ActiveSave,
                 candidate => educationActionService.ChooseStudyTrack(candidate, track),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public IReadOnlyList<StimActionDefinition> GetStudySessionDefinitions()
+        {
+            return StimEducationActionService.GetStudySessionDefinitions(ActiveSave?.state);
+        }
+
+        public bool TryPerformStudySession(StimStudyDifficulty difficulty, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate =>
+                {
+                    var result = educationActionService.ApplyStudySession(candidate, difficulty);
+                    if (result.Succeeded) EvaluateAchievements(candidate);
+                    return result;
+                },
                 out var committedSave,
                 out summary);
             if (succeeded) ActiveSave = committedSave;

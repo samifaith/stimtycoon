@@ -30,7 +30,8 @@ The repository now contains:
 - a mobile UI Toolkit vertical slice with choices, outcomes, cash, life feed, autosave feedback, and a collapsible six-stat player overview
 - replaceable interfaces for dialogue, saves, accounts, cloud saves, ads, and event catalogs
 - age-gated General, Academic, and Vocational study-track selection with authored material costs, affordability previews, transactional persistence, and Life Feed outcomes
-- a user-verified 226-test EditMode baseline including Study Track model, rollback, persistence, and UI coverage
+- easy, medium, and hard study sessions with explicit Smarts/Happiness tradeoffs, monthly cooldowns, qualification XP, and visible tier progress
+- a user-verified 229-test EditMode baseline including Study Track and qualification-session coverage
 
 Not yet implemented:
 
@@ -44,12 +45,12 @@ Not yet implemented:
 
 ## Current Focus
 
-Milestones 1–5 are complete. Milestone 6 now includes the first Education decision: three persisted study tracks with authored costs and a verified 226-test baseline.
+Milestones 1–5 are complete. Milestone 6 now includes persisted study tracks, difficulty-based study sessions, and visible qualification tiers with a verified 229-test baseline.
 
 The next implementation sequence is:
 
 1. Finish the shared framework states and controls: in-progress/claimable transitions, timers, cash-or-credit confirmation, and reusable percentage/exact-amount input.
-2. Continue the Education vertical slice with difficulty-based sessions, qualification progress, and career/event unlocks.
+2. Complete the Education vertical slice by connecting study tracks and qualification tiers to career and event unlocks.
 3. Add at least two skill paths beyond Learning and connect them to visible prerequisites and later consequences.
 4. Validate all current screens at 320, 390, 430, and 768 widths, including 130% text scale.
 5. Produce the first iOS development build and profile persistence, memory, safe areas, and touch behavior on a supported iPhone.
@@ -80,7 +81,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The current user-verified result is **226 passing EditMode tests** as of July 14, 2026, including the seeded birth-to-ending harness. That harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
+The current user-verified result is **229 passing EditMode tests** as of July 14, 2026, including the seeded birth-to-ending harness. That harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
 
 The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. Transactional autosaves now use compact rather than pretty-printed JSON to avoid unnecessary formatting allocation and whitespace. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
 
@@ -145,7 +146,7 @@ docs/                      # Architecture and gameplay specifications
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 226-test verified baseline
+- [x] 229-test verified baseline
 - [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests

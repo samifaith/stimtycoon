@@ -268,6 +268,33 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void EducationCard_ShowsQualificationProgressAndCommitsStudyDifficulty()
+        {
+            session.ActiveSave.state.character.age = 15;
+            session.ActiveSave.state.character.smarts = 60;
+            session.ActiveSave.state.education.stage = "high_school";
+            session.ActiveSave.state.education.studyTrack = "academic";
+            session.ActiveSave.state.education.qualificationExperience = 45;
+
+            Invoke("RefreshHeader");
+
+            Assert.That(root.Q<Label>("qualification-progress").text,
+                Is.EqualTo("45 / 50 Qualification XP"));
+            Assert.That(root.Q<Button>("education-action-study-easy").enabledSelf, Is.True);
+            Assert.That(root.Q<Button>("education-action-study-medium").enabledSelf, Is.True);
+            Assert.That(root.Q<Button>("education-action-study-hard").enabledSelf, Is.True);
+
+            Invoke("PerformStudySession", StimStudyDifficulty.Medium);
+
+            Assert.That(session.ActiveSave.state.education.qualificationExperience, Is.EqualTo(65));
+            Assert.That(root.Q<Label>("qualification-progress").text,
+                Is.EqualTo("65 / 125 Qualification XP"));
+            Assert.That(root.Q<Label>("result-text").text,
+                Does.Contain("Certificate Qualification"));
+            Assert.That(root.Q<Button>("education-action-study-easy").enabledSelf, Is.False);
+        }
+
+        [Test]
         public void CareerCard_DrivesApplicationInterviewAndHiringFlow()
         {
             session.ActiveSave.state.career = new StimCareerState();
