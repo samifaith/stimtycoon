@@ -70,6 +70,14 @@
 .st-focus-tile.study .st-focus-cta { background-color: var(--st-cyan-600); }.st-focus-tile.workout .st-focus-cta { background-color: var(--st-pink-500); }.st-focus-tile.work .st-focus-cta { background-color: var(--st-yellow-400); color: rgb(96, 61, 0); }
 .st-context-activities { margin-top: 12px; flex-direction: row; flex-wrap: wrap; }
 .st-context-activity { width: 48%; min-height: 52px; margin-right: 2%; margin-bottom: 8px; padding: 9px; background-color: var(--st-surface-blue); border-width: 1px; border-color: var(--st-border-blue); border-radius: 14px; color: var(--st-text-primary); font-size: 13px; -unity-font-style: bold; white-space: normal; }
+.st-skills-subtitle { margin-bottom: 9px; color: var(--st-text-secondary); font-size: 13px; }
+.st-skill-row { margin-bottom: 9px; padding: 10px; background-color: var(--st-surface-2); border-radius: 12px; }
+.st-skill-heading { flex-direction: row; justify-content: space-between; }
+.st-skill-name { color: var(--st-text-primary); font-size: 14px; -unity-font-style: bold; }
+.st-skill-level { color: var(--st-purple-600); font-size: 12px; -unity-font-style: bold; }
+.st-skill-track { height: 9px; margin-top: 7px; background-color: rgb(224, 231, 242); border-radius: 5px; overflow: hidden; }
+.st-skill-fill { height: 100%; background-color: var(--st-cyan-600); border-radius: 5px; }
+.st-skill-progress { margin-top: 4px; color: var(--st-text-secondary); font-size: 11px; -unity-text-align: middle-right; }
 .st-education-stage { color: var(--st-text-primary); font-size: 18px; -unity-font-style: bold; }
 .st-education-level { margin-top: 7px; color: var(--st-purple-600); font-size: 14px; -unity-font-style: bold; }
 .st-education-track { height: 11px; margin-top: 7px; background-color: rgb(224, 231, 242); border-radius: 6px; overflow: hidden; }

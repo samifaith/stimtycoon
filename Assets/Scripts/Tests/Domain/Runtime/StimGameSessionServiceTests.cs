@@ -1800,6 +1800,44 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void FitnessLevel_ReducesOvertimeHealthStrain()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 30;
+            save.state.career.roleTitle = "Junior Associate";
+            save.state.career.annualSalaryMinorUnits = 4000000;
+            save.state.skills.Add(new StimSkillState { skillId = "fitness", experience = 50 });
+            service.Start(save);
+            var healthBefore = service.ActiveSave.state.character.health;
+
+            Assert.IsTrue(service.TryPerformActivity(StimActivityType.Overtime, out var summary), summary);
+
+            Assert.That(service.ActiveSave.state.character.health, Is.EqualTo(healthBefore - 1));
+            Assert.That(summary, Does.Contain("Health −1").And.Contain("Fitness reduced strain"));
+        }
+
+        [Test]
+        public void ProfessionalLevel_IncreasesCareerProgressFromWorkingHard()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.career.roleTitle = "Junior Associate";
+            save.state.career.careerProgress = 0;
+            save.state.skills.Add(new StimSkillState { skillId = "professional", experience = 50 });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformCareerAction(
+                StimCareerActionType.WorkHard, out var summary), summary);
+
+            Assert.That(service.ActiveSave.state.career.careerProgress, Is.EqualTo(12));
+            Assert.That(summary, Does.Contain("Career +12")
+                .And.Contain("Professional Level 2 bonus"));
+        }
+
+        [Test]
         public void PeerRelationship_CanBecomeARivalAndReconcileLater()
         {
             var service = new StimGameSessionService(

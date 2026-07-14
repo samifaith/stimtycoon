@@ -21,7 +21,7 @@ namespace StimTycoon.Tests.Domain.UI
                 "result-text", "result-effects", "life-feed-card", "life-feed-scroll", "life-feed-list", "overview-career", "overview-calendar",
                 "health-value", "happiness-value", "smarts-value", "looks-value", "luck-value",
                 "career-progress-value", "monthly-paycheck-value", "annual-salary-value", "net-worth-value",
-                "choices", "result-card", "player-overview", "career-progress-fill",
+                "choices", "result-card", "player-overview", "skills-card", "skills-list", "career-progress-fill",
                 "event-sheet", "health-fill", "happiness-fill", "smarts-fill", "looks-fill", "luck-fill",
                 "advance-month", "toggle-overview", "event-continue", "focus-study", "focus-workout",
                 "focus-study-title", "focus-study-effect", "focus-workout-title", "focus-workout-effect",

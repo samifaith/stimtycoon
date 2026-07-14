@@ -91,6 +91,7 @@ namespace StimTycoon.Runtime
         private VisualElement learningFill;
         private Label learningProgress;
         private VisualElement educationActions;
+        private VisualElement skillsList;
         private VisualElement careerCard;
         private Label careerRole;
         private Label careerSalary;
@@ -190,6 +191,7 @@ namespace StimTycoon.Runtime
             learningFill = root.Q<VisualElement>("learning-fill");
             learningProgress = root.Q<Label>("learning-progress");
             educationActions = root.Q<VisualElement>("education-actions");
+            skillsList = root.Q<VisualElement>("skills-list");
             careerCard = root.Q<VisualElement>("career-card");
             careerRole = root.Q<Label>("career-role");
             careerSalary = root.Q<Label>("career-salary");
@@ -256,7 +258,7 @@ namespace StimTycoon.Runtime
                 relationshipStrength == null || relationshipFill == null || relationshipGenetics == null ||
                 relationshipActions == null || educationCard == null || educationStage == null ||
                 learningLevel == null || learningFill == null || learningProgress == null ||
-                educationActions == null || careerCard == null || careerRole == null || careerSalary == null ||
+                educationActions == null || skillsList == null || careerCard == null || careerRole == null || careerSalary == null ||
                 careerNextStep == null || careerActionFill == null || careerActionProgress == null ||
                 careerActions == null || finalLifeSummary == null || endingName == null || endingStatus == null ||
                 endingSummary == null || endingNewLife == null || achievementsCount == null ||
@@ -503,9 +505,54 @@ namespace StimTycoon.Runtime
             annualSalaryValue.text = $"{FormatMoney(career.annualSalaryMinorUnits)} gross · {state.finances.taxRateBasisPoints / 100m:0.#}% tax";
             ConfigureAgeAppropriateActivities(state.character.age);
             RefreshEducation();
+            RefreshSkills();
             RefreshCareer();
             RefreshAchievements();
             RefreshMoney();
+        }
+
+        private void RefreshSkills()
+        {
+            skillsList.Clear();
+            AddSkillProgress("fitness", "Fitness", "Reduces overtime strain from demanding work.");
+            AddSkillProgress("professional", "Professional", "Improves progress earned from focused career work.");
+        }
+
+        private void AddSkillProgress(string skillId, string displayName, string tooltip)
+        {
+            var experience = StimGameSessionService.GetSkillExperience(
+                gameSession.ActiveSave.state.skills, skillId);
+            var level = StimGameSessionService.GetSkillLevel(experience);
+            var levelStart = StimGameSessionService.GetExperienceForSkillLevel(level);
+            var nextLevelAt = StimGameSessionService.GetExperienceForSkillLevel(level + 1);
+            var levelSpan = Math.Max(1, nextLevelAt - levelStart);
+            var levelProgress = experience - levelStart;
+            var row = new VisualElement { name = $"skill-{skillId}" };
+            row.AddToClassList("st-skill-row");
+            row.tooltip = tooltip;
+            var heading = new VisualElement();
+            heading.AddToClassList("st-skill-heading");
+            var name = new Label(displayName);
+            name.AddToClassList("st-skill-name");
+            var levelLabel = new Label($"Level {level}") { name = $"skill-{skillId}-level" };
+            levelLabel.AddToClassList("st-skill-level");
+            heading.Add(name);
+            heading.Add(levelLabel);
+            var track = new VisualElement();
+            track.AddToClassList("st-skill-track");
+            var fill = new VisualElement { name = $"skill-{skillId}-fill" };
+            fill.AddToClassList("st-skill-fill");
+            fill.style.width = Length.Percent(ClampFillPercent(levelProgress * 100f / levelSpan));
+            track.Add(fill);
+            var progress = new Label($"{levelProgress} / {levelSpan} XP to Level {level + 1}")
+            {
+                name = $"skill-{skillId}-progress"
+            };
+            progress.AddToClassList("st-skill-progress");
+            row.Add(heading);
+            row.Add(track);
+            row.Add(progress);
+            skillsList.Add(row);
         }
 
         private void RefreshMoney()

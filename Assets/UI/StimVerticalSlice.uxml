@@ -51,6 +51,15 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
 
+                <ui:VisualElement name="skills-card" class="st-polished-card st-skills-card">
+                    <ui:VisualElement class="st-section-heading">
+                        <ui:Label text="◆" class="st-section-heading-icon" />
+                        <ui:Label text="SKILLS" class="st-section-heading-title" />
+                    </ui:VisualElement>
+                    <ui:Label text="Practice unlocks stronger outcomes." class="st-skills-subtitle" />
+                    <ui:VisualElement name="skills-list" class="st-skills-list" />
+                </ui:VisualElement>
+
                 <ui:VisualElement class="st-polished-card st-focus-card">
                     <ui:VisualElement class="st-section-heading">
                         <ui:Label text="◎" class="st-section-heading-icon" />

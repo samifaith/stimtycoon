@@ -1,6 +1,6 @@
 # Stim Tycoon — Next Task List
 
-This is the active queue after the user-verified 232-test EditMode baseline on July 14, 2026. The master README remains the product definition.
+This is the active queue after the user-verified 235-test EditMode baseline on July 14, 2026. The master README remains the product definition.
 
 ## P0 — Keep the verified loop fast and shippable
 
@@ -79,7 +79,7 @@ This is the active queue after the user-verified 232-test EditMode baseline on J
   - working age: job search, work shift, overtime, training, socialize, rest;
   - unemployed/retired: retraining or retirement-specific health, family, hobby, and social actions.
 - [ ] Make education, skills, reputation, relationships, health, and prior decisions unlock or block later activities and event choices.
-- [ ] Add at least two skill paths beyond Learning, with XP thresholds and visible action/event unlocks.
+- [x] Add at least two skill paths beyond Learning, with XP thresholds and visible downstream benefits: Fitness reduces overtime strain and Professional increases focused career progress.
 - [ ] Add multiple career industries, education requirements, authored interview uncertainty, firing, unemployment, career changes, and distinct promotion ladders.
 
 ### P2B — Relationships and family
@@ -160,6 +160,7 @@ This is the active queue after the user-verified 232-test EditMode baseline on J
 - [x] 226 passing EditMode tests, including Milestone 6 Study Track transaction, persistence, rollback, and UI coverage
 - [x] 229 passing EditMode tests, including difficulty-based study sessions, visible qualification tiers, and cooldown coverage
 - [x] 232 passing EditMode tests, including career qualification gates, visible locked reasons, and authored Education event requirements
+- [x] 235 passing EditMode tests, including visible Fitness/Professional progress and their gameplay consequences
 - [x] Deterministic seeded birth-to-ending simulation
 - [x] Transactional local saves, migration, integrity checks, backup recovery, and rollback safety
 - [x] Playable Life, Social, education, career, achievement, retirement/death, and final-summary flows

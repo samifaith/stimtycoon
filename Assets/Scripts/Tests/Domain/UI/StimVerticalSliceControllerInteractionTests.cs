@@ -352,6 +352,23 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void SkillsCard_ShowsFitnessAndProfessionalLevelProgress()
+        {
+            session.ActiveSave.state.skills.Add(new StimSkillState
+                { skillId = "fitness", experience = 50 });
+            session.ActiveSave.state.skills.Add(new StimSkillState
+                { skillId = "professional", experience = 25 });
+
+            Invoke("RefreshHeader");
+
+            Assert.That(root.Q<Label>("skill-fitness-level").text, Is.EqualTo("Level 2"));
+            Assert.That(root.Q<Label>("skill-fitness-progress").text,
+                Is.EqualTo("0 / 100 XP to Level 3"));
+            Assert.That(root.Q<Label>("skill-professional-level").text, Is.EqualTo("Level 1"));
+            Assert.That(root.Q("skill-fitness").tooltip, Does.Contain("overtime strain"));
+        }
+
+        [Test]
         public void FinalLifeSummary_AppearsWhenAnnualHealthDeclineEndsLife()
         {
             session.ActiveSave.state.character.age = 79;
@@ -447,6 +464,7 @@ namespace StimTycoon.Tests.Domain.UI
                 { "educationCard", "education-card" }, { "educationStage", "education-stage" },
                 { "learningLevel", "learning-level" }, { "learningFill", "learning-fill" },
                 { "learningProgress", "learning-progress" }, { "educationActions", "education-actions" },
+                { "skillsList", "skills-list" },
                 { "careerCard", "career-card" }, { "careerRole", "career-role" },
                 { "careerSalary", "career-salary" }, { "careerNextStep", "career-next-step" },
                 { "careerActionFill", "career-action-fill" },

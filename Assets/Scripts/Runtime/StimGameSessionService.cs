@@ -838,10 +838,15 @@ namespace StimTycoon.Runtime
                     break;
                 case StimActivityType.Overtime:
                     var overtimePay = CalculateHourlyRateMinorUnits(candidateSave.state.career.annualSalaryMinorUnits) * 4;
+                    var fitnessLevel = GetSkillLevel(GetSkillExperience(candidateSave.state.skills, "fitness"));
+                    var overtimeHealthCost = fitnessLevel >= 2 ? 1 : 2;
                     candidateSave.state.finances.cashMinorUnits += overtimePay;
-                    candidateSave.state.character.health = ClampStat(candidateSave.state.character.health - 2);
+                    candidateSave.state.character.health = ClampStat(
+                        candidateSave.state.character.health - overtimeHealthCost);
                     candidateSave.state.career.careerProgress = ClampStat(candidateSave.state.career.careerProgress + 6);
-                    summary = $"Worked overtime · Cash +{FormatPreciseMoney(overtimePay)} · Career progress +6 · Health −2";
+                    summary = $"Worked overtime · Cash +{FormatPreciseMoney(overtimePay)} · Career progress +6" +
+                              $" · Health −{overtimeHealthCost}" +
+                              (fitnessLevel >= 2 ? " · Fitness reduced strain" : string.Empty);
                     break;
                 case StimActivityType.Training:
                     candidateSave.state.character.smarts = ClampStat(candidateSave.state.character.smarts + 1);
@@ -1274,11 +1279,15 @@ namespace StimTycoon.Runtime
                     summary = "Interview complete · Hired as Junior Associate · Salary +$40,000";
                     break;
                 case StimCareerActionType.WorkHard:
+                    var professionalLevel = GetSkillLevel(
+                        GetSkillExperience(candidateSave.state.skills, "professional"));
+                    var careerGain = 10 + Math.Min(6, (professionalLevel - 1) * 2);
                     candidateSave.state.career.careerProgress = ClampStat(
-                        candidateSave.state.career.careerProgress + 10);
+                        candidateSave.state.career.careerProgress + careerGain);
                     candidateSave.state.character.happiness = ClampStat(
                         candidateSave.state.character.happiness - 1);
-                    summary = "Worked hard · Career +10 · Happiness −1";
+                    summary = $"Worked hard · Career +{careerGain} · Happiness −1" +
+                              (professionalLevel > 1 ? $" · Professional Level {professionalLevel} bonus" : string.Empty);
                     break;
                 case StimCareerActionType.AskForPromotion:
                     ApplyPromotion(candidateSave.state.career, out var previousRole, out var newRole, out var salaryDelta);
