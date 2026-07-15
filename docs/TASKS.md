@@ -21,9 +21,76 @@ This is the operational roadmap after the July 15, 2026 code/documentation audit
 
 > **Approved asset direction:** Free Casual GUI is the visual foundation, Space Exploration GUI Kit guides layout and information hierarchy, and Jelly UI Pack supplies reward interaction accents. Vendor folders stay untouched; Stim-owned UXML and the `StimTheme.uss`/`Components.uss` adapter layer own composition and styling. See `Assets/UI/Art/ASSET_MANIFEST.md`.
 
-- [ ] Implement a safe-area-aware persistent status header for age/calendar, cash/net worth, and Stim's actual stats/resources.
+**Required implementation workflow:** GUI work is source-controlled UI Toolkit work and should be completed primarily in VS Code. UXML owns layout, USS owns presentation and vendor-sprite references, and C# owns binding, data, and behavior. Unity UI Builder is an optional preview/layout-adjustment tool for the same UXML/USS assets, not a separate source of truth.
+
+#### Immediate execution checklist
+
+**Course-corrected visual target:** compact card-based mobile UI matching the approved reference hierarchy: an 88–96 point player/cash header, 24–28 point wrapped page titles, dense 44–64 point action rows, restrained white surfaces on a pale-blue canvas, and six icon-over-label navigation items. Large display typography, oversized dashboard cards, stretched source sprites, and horizontal content overflow are out of scope for the live shell.
+
+Specification execution phases:
+
+- [x] Phase 1A — centralize the supplied color, spacing, radius, and compatibility tokens in `StimTheme.uss`.
+- [x] Phase 1B — establish the reusable compact player/cash header without changing its controller bindings.
+- [x] Phase 1C — rebuild six-destination navigation with licensed Lucide SVGs, icon-over-label composition, active capsules, and 44-point targets.
+- [ ] Phase 1D — complete Play Mode overlap, truncation, safe-area, and 320/390/430/768-width verification.
+- [x] Add Unity Device Simulator profiles for iPhone 17, iPhone 17 Pro, and iPhone 17 Pro Max using native pixel dimensions and conservative Dynamic Island/home-indicator safe areas.
+- [ ] Phase 2 — extract and adopt reusable `SectionHeader`, `FeedRow`, `StatTile`, `AchievementRow`, `ActionCard`, and `InfoBanner` components.
+- [x] Replace temporary content-art glyphs with emoji imagery across live feed, life actions, education, career previews, goals, avatars, and reusable visual slots; retain Lucide SVGs for functional navigation.
+- [x] Add the compact four-stage age progression strip required by the Life wireframe and bind its active/completed/locked state to player age.
+- [ ] Phase 3 — add normalized original illustrations, one reusable mini-game framework with Study Match, and disabled/configurable Stim+ and sponsored placeholders.
+- [ ] Phase 4 — add Shift Match, Legacy Gems, animation, haptic/audio hooks, and final presentation polish.
+
+**Phase 2 wireframe contract:** the approved six-screen grayscale wireframe defines composition and density. Life uses an age strip, 4–6 compact timeline feed rows, compact stat tiles, and one aging-action row. Study and Work use progress/path modules plus one mini-game slot. Bank uses balance, quick actions, and compact accounts. Social uses compact relationship rows. Goals uses pinned goals and 48–58 point achievement rows. Monetization and mini-game areas remain labeled placeholders until their systems are implemented; they must not imply working purchases, ads, or rewards.
+
+**Commerce wireframe boundary:** Store, Stim+, rewarded-ad, and season-pass wireframes are approved as future composition references only. Do not add Stim Coins, energy, purchasable progression, subscriptions, ad rewards, prices, or purchase buttons until M18 service/product configuration and a separate economy approval define their real behavior. Before then, only disabled, explicitly labeled placeholders with stable slot IDs are allowed, and baseline progression/recovery must remain unaffected.
+
+### Unity Device Simulator targets
+
+The editor installs these definitions into `Assets/DeviceSimulatorDevices` after script reload. They then appear in the Device Simulator device dropdown; if the window was already open, close and reopen it. The manual command is `Tools → Stim Tycoon → Install iPhone 17 Simulator Profiles`.
+
+| Profile | Native portrait pixels | Logical points at 3× | Safe-area baseline |
+|---|---:|---:|---:|
+| Apple iPhone 17 | 1206 × 2622 | 402 × 874 | 62 pt top, 34 pt bottom |
+| Apple iPhone 17 Pro | 1206 × 2622 | 402 × 874 | 62 pt top, 34 pt bottom |
+| Apple iPhone 17 Pro Max | 1320 × 2868 | 440 × 956 | 62 pt top, 34 pt bottom |
+
+The native display sizes come from Apple’s published technical specifications. Safe-area values are conservative simulator baselines for layout testing, not a substitute for validation on physical hardware and the current iOS SDK.
+
+- [x] Confirm the live scene uses `Assets/UI/StimVerticalSlice.uxml` and preserve its stable controller bindings.
+- [x] Treat `Assets/UI/Styles/StimTheme.uss` and `Assets/UI/Styles/Components.uss` as the only stylesheets referenced directly by the playable root.
+- [x] Explicitly map the retained legacy layout rules through `Components.uss` until they are migrated component by component.
+- [x] Apply bounded Stim-owned theme-adapter surfaces to representative primary/secondary actions and reward/claim feedback without stretching large source sprites onto layout containers.
+- [x] Add structural tests that reject direct legacy stylesheet references and require the representative live vendor classes.
+- [ ] Verify the live scene in Play Mode at 320/390/430/768 widths and record results.
+- [ ] Repeat the width checks at 130% text scale and correct any clipping, overlap, or sub-44-point primary target.
+- [ ] Replace the retained legacy layout import with destination/component-owned rules as each screen is extracted under `Assets/UI/Screens`.
+
+1. Keep the imported vendor packs in their existing vendor-owned folders; place only Stim-owned derivatives, mappings, and manifest records in `Assets/UI/Art` and `Assets/UI/Icons`.
+2. Build destination screens as `.uxml` files under `Assets/UI/Screens` and reusable UI elements under the designated Stim-owned component directory.
+3. Use `Assets/UI/Styles/StimTheme.uss` as the canonical shared theme and `Components.uss` for reusable component rules; eliminate or explicitly map overlapping legacy theme files so the live scene cannot silently use the wrong stylesheet.
+4. Reference the approved pack sprites from USS backgrounds and component classes. A sprite being imported but never referenced by a live UXML/USS asset is not implementation.
+5. Preview and adjust the UXML with Unity UI Builder as useful, then verify the actual `StimVerticalSlice` scene in Play Mode.
+6. Give interactive UXML elements stable names and connect them to C# controllers/binders without moving gameplay rules out of the existing domain/runtime services.
+
+```text
+Assets/UI/
+├── Art/                   # Stim-owned derivatives, mappings, and asset manifest
+├── Icons/                 # Stim-owned icon selections/derivatives
+├── Screens/               # HomeScreen.uxml, BankScreen.uxml, and other destinations
+├── Components/            # Reusable headers, cards, tabs, sheets, and navigation
+├── Styles/
+│   ├── StimTheme.uss      # Canonical colors, spacing, typography, buttons, and cards
+│   └── Components.uss     # Reusable component and vendor-sprite styling
+└── Scripts/               # UI-only controllers/binders where needed
+```
+
+- [x] Implement a safe-area-aware persistent status header for age/calendar, cash/net worth, and Stim's actual stats/resources.
 - [x] Establish six destinations with exclusive active states: Life/Home, Education, Career/Business, Bank, Social/Family, and Goals/Legacy.
 - [x] Establish the approved three-pack UI direction through a replaceable Stim-owned USS adapter and an asset/license manifest, without reorganizing vendor imports.
+- [ ] Apply the imported GUI packs visibly to the live `StimVerticalSlice` UI through Stim-owned UXML/USS: use Free Casual GUI for the primary panel/button/control surfaces, Space Exploration GUI Kit to reshape headers, status clusters, navigation, and information-dense layouts, and Jelly UI Pack for reward, claim, achievement, and celebratory interaction accents.
+- [ ] Replace the current plain/default/placeholder presentation across the six-destination shell with the selected vendor sprites and Stim-owned themed derivatives; importing assets, listing them in the manifest, or defining unused USS tokens does not satisfy this task.
+- [ ] Audit the overlapping `Assets/UI` and `Assets/StimTycoon/UI` UXML/USS trees, choose and document the canonical live paths, and consolidate or explicitly map the remaining files without breaking Unity `.meta` references. The scene, UI tests, and future destination work must all consume the same canonical theme and component set.
+- [ ] Complete and document a live Play Mode visual verification at 320/390/430/768 widths showing that the approved assets are actually rendered in the status header, navigation, representative destination panels, primary/secondary actions, and at least one reward/claim flow.
 - [ ] Add reusable destination headers, segmented tabs, modal sheets, requirement chips, action states, progress bars, timer/cooldown rows, and selected-navigation styling.
 - [ ] Replace default/placeholder scrollbars throughout the application with one polished Stim scrollbar and scroll-affordance system for page, list, sheet, tab, and nested-scroll contexts; do not solve visual quality by hiding required position feedback.
 - [ ] Complete the shared UI-detail pass for spacing, dividers, shadows, borders, pressed/hover/focus/disabled states, empty/loading/locked states, truncation/wrapping, and consistent icon/text alignment.
@@ -34,7 +101,7 @@ This is the operational roadmap after the July 15, 2026 code/documentation audit
 - [x] Add a reusable Stim-owned visual-placeholder definition/factory with stable IDs, roles, aspect ratios, accessibility/decorative metadata, fallbacks, theme tokens, and development labeling.
 - [ ] Place the reusable visual slots into destination heroes, event art, avatars, icons, objects, badges, and backgrounds; add bounded Life Feed archival behavior.
 
-**Exit gate:** the shell passes 320/390/430/768 widths at 100% and 130% text, maintains 44-point primary targets, respects safe areas, has no navigation dead ends, and uses the approved scrollbar/scroll-affordance and shared UI-detail system in every implemented destination and overlay.
+**Exit gate:** the live playable shell—not only mockups, manifests, imported folders, or unused style definitions—visibly renders the approved three-pack asset direction across its header, navigation, destination surfaces, controls, and reward feedback. It also passes 320/390/430/768 widths at 100% and 130% text, maintains 44-point primary targets, respects safe areas, has no navigation dead ends, and uses the approved scrollbar/scroll-affordance and shared UI-detail system in every implemented destination and overlay.
 
 ### M14 — Bank and Education convergence
 

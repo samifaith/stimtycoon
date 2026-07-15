@@ -1,3 +1,4 @@
+using System.IO;
 using NUnit.Framework;
 using StimTycoon.Runtime;
 using UnityEditor;
@@ -12,6 +13,91 @@ namespace StimTycoon.Tests.Domain.UI
         private const string NavigationPath = "Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml";
         private const string ThemePath = "Assets/UI/Styles/StimTheme.uss";
         private const string ComponentsPath = "Assets/UI/Styles/Components.uss";
+
+        [Test]
+        public void PlayableRoot_UsesOnlyCanonicalStylesheetEntryPoints()
+        {
+            var source = File.ReadAllText(PlayableLifePath);
+
+            StringAssert.Contains("<Style src=\"Styles/StimTheme.uss\" />", source);
+            StringAssert.Contains("<Style src=\"Styles/Components.uss\" />", source);
+            StringAssert.DoesNotContain("StimTycoonTheme.uss", source);
+            StringAssert.DoesNotContain("StimVerticalSliceCozyCorporate.uss", source);
+            Assert.That(CountOccurrences(source, "<Style src="), Is.EqualTo(2));
+
+            var componentSource = File.ReadAllText(ComponentsPath);
+            StringAssert.Contains("@import url(\"../StimVerticalSliceCozyCorporate.uss\")", componentSource);
+        }
+
+        [Test]
+        public void PlayableShell_AppliesBoundedThemeAdapterSurfaces()
+        {
+            var root = Clone(PlayableLifePath);
+            var header = Clone(HeaderPath);
+
+            Assert.That(root.Q("life-feed-card").ClassListContains("stim-pack-panel"), Is.True);
+            Assert.That(root.Q<Button>("advance-month").ClassListContains("stim-pack-foundation-button"), Is.True);
+            Assert.That(root.Q<Button>("advance-year").ClassListContains("stim-pack-secondary-button"), Is.True);
+            Assert.That(root.Q<Button>("manual-work-tap").ClassListContains("stim-pack-foundation-button"), Is.True);
+            Assert.That(header.Q("app-header").ClassListContains("stim-pack-status-cluster"), Is.True);
+            Assert.That(header.Q<Button>("add-cash").ClassListContains("stim-pack-secondary-button"), Is.True);
+
+            var themeSource = File.ReadAllText(ThemePath);
+            StringAssert.Contains("Assets/Jelly_UI_Pack", themeSource);
+        }
+
+        [Test]
+        public void BottomNavigation_UsesLicensedFunctionalSvgIcons()
+        {
+            var iconNames = new[]
+            {
+                "house.svg", "graduation-cap.svg", "briefcase-business.svg",
+                "landmark.svg", "users.svg", "star.svg"
+            };
+
+            foreach (var iconName in iconNames)
+                Assert.That(File.Exists($"Assets/UI/Icons/Lucide/{iconName}"), Is.True, iconName);
+
+            Assert.That(File.Exists("Assets/UI/Icons/Lucide/LICENSE.txt"), Is.True);
+            var components = File.ReadAllText(ComponentsPath);
+            foreach (var iconName in iconNames)
+                StringAssert.Contains($"Assets/UI/Icons/Lucide/{iconName}", components);
+        }
+
+        [Test]
+        public void FeedRowFactory_CreatesCompactSemanticRow()
+        {
+            var entry = new StimTycoon.Saves.StimLifeFeedEntry
+            {
+                category = "education",
+                text = "Studied hard. Smarts +8.",
+                age = 16,
+                monthOfYear = 5
+            };
+
+            var row = StimUiComponentFactory.CreateFeedRow(entry, 0, 4);
+
+            Assert.That(row.ClassListContains("st-feed-entry"), Is.True);
+            Assert.That(row.Q(className: "st-feed-dot"), Is.Not.Null);
+            Assert.That(row.Q<Label>(className: "st-feed-title").text, Is.EqualTo("Studied hard."));
+            Assert.That(row.Q<Label>(className: "st-feed-icon").text, Is.EqualTo("📚"));
+            Assert.That(row.Q<Label>(className: "st-feed-result-chip").text, Is.EqualTo("Education"));
+            Assert.That(row.tooltip, Does.Contain("Item 1 of 4").And.Contain("Age 16"));
+        }
+
+        [Test]
+        public void AchievementRowFactory_CreatesWireframeDensityAndAction()
+        {
+            var row = StimUiComponentFactory.CreateAchievementRow(
+                "first-paycheck", "★", "First Paycheck", "Career", "0 / 1", "$250", "GO", true,
+                () => { });
+
+            Assert.That(row.ClassListContains("st-achievement-row"), Is.True);
+            Assert.That(row.Q<Label>(className: "st-achievement-name").text, Is.EqualTo("First Paycheck"));
+            Assert.That(row.Q<Label>(className: "st-achievement-category").text, Is.EqualTo("Career"));
+            Assert.That(row.Q<Label>(className: "st-achievement-reward").text, Is.EqualTo("$250"));
+            Assert.That(row.Q<Button>().enabledSelf, Is.True);
+        }
 
         [Test]
         public void VisualPlaceholder_RequiresStableAccessibleMetadataAndRendersFallback()
@@ -45,6 +131,7 @@ namespace StimTycoon.Tests.Domain.UI
             var requiredNames = new[]
             {
                 "cash-value", "life-summary", "calendar-summary", "header-net-worth-value", "avatar-glyph",
+                "age-progression", "age-stage-summary", "age-stage-0", "age-stage-1", "age-stage-2", "age-stage-3",
                 "event-category", "event-title", "event-body",
                 "result-text", "result-effects", "life-feed-card", "life-feed-scroll", "life-feed-list", "overview-career", "overview-calendar",
                 "health-value", "happiness-value", "smarts-value", "looks-value", "luck-value",
@@ -57,7 +144,7 @@ namespace StimTycoon.Tests.Domain.UI
                 "event-visual-slot", "home-visual-slot", "education-visual-slot", "relationship-visual-slot",
                 "open-new-life", "new-life-setup", "cancel-new-life", "continue-current-life",
                 "create-new-life", "new-life-error", "social-view", "time-dock",
-                "education-view", "career-view", "goals-view",
+                "education-view", "career-view", "goals-view", "education-empty-state", "career-empty-state",
                 "education-destination-content", "career-destination-content", "goals-destination-content",
                 "relationship-list-view", "relationship-list", "discover-compatible-person", "relationship-discovery-feedback",
                 "relationship-detail-view", "relationship-back", "relationship-avatar", "relationship-name",
@@ -108,6 +195,8 @@ namespace StimTycoon.Tests.Domain.UI
         [TestCase(390f, false)]
         [TestCase(430f, false)]
         [TestCase(768f, false)]
+        [TestCase(402f, false)]
+        [TestCase(440f, false)]
         public void ResponsiveLayout_UsesCompactRulesAtNarrowWidths(float width, bool expectedCompact)
         {
             var root = new VisualElement();
@@ -118,6 +207,22 @@ namespace StimTycoon.Tests.Domain.UI
             var insets = StimVerticalSliceController.CalculateSafeAreaInsets(
                 390f, 844f, new UnityEngine.Rect(0f, 34f, 390f, 763f), 390f, 844f);
             Assert.That(insets, Is.EqualTo(new UnityEngine.Vector4(0f, 47f, 0f, 34f)));
+        }
+
+        [TestCase(1206f, 2622f, 402f, 874f)]
+        [TestCase(1320f, 2868f, 440f, 956f)]
+        public void IPhone17Profiles_UseConservativeDynamicIslandSafeArea(
+            float physicalWidth, float physicalHeight, float panelWidth, float panelHeight)
+        {
+            var safeArea = new UnityEngine.Rect(0f, 102f, physicalWidth, physicalHeight - 288f);
+
+            var insets = StimVerticalSliceController.CalculateSafeAreaInsets(
+                physicalWidth, physicalHeight, safeArea, panelWidth, panelHeight);
+
+            Assert.That(insets.x, Is.EqualTo(0f).Within(0.01f));
+            Assert.That(insets.y, Is.EqualTo(62f).Within(0.01f));
+            Assert.That(insets.z, Is.EqualTo(0f).Within(0.01f));
+            Assert.That(insets.w, Is.EqualTo(34f).Within(0.01f));
         }
 
         [TestCase(1f, false)]
@@ -160,6 +265,10 @@ namespace StimTycoon.Tests.Domain.UI
             {
                 Assert.That(button.ClassListContains("stim-pack-interaction-pop"), Is.True,
                     $"{button.name} must retain shared pressed interaction feedback.");
+                Assert.That(button.Q<VisualElement>(className: "st-nav-icon"), Is.Not.Null,
+                    $"{button.name} must use the compact icon-over-label navigation pattern.");
+                Assert.That(button.Q<Label>(className: "st-nav-label"), Is.Not.Null,
+                    $"{button.name} must expose a readable navigation label.");
             }
         }
 
@@ -223,6 +332,19 @@ namespace StimTycoon.Tests.Domain.UI
             var asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path);
             Assert.That(asset, Is.Not.Null, $"Could not load UI asset at {path}.");
             return asset.CloneTree();
+        }
+
+        private static int CountOccurrences(string value, string token)
+        {
+            var count = 0;
+            var offset = 0;
+            while ((offset = value.IndexOf(token, offset, System.StringComparison.Ordinal)) >= 0)
+            {
+                count++;
+                offset += token.Length;
+            }
+
+            return count;
         }
     }
 }

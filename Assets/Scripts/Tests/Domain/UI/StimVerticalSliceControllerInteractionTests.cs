@@ -118,12 +118,11 @@ namespace StimTycoon.Tests.Domain.UI
                 Is.EqualTo("AGE 18  ·  JANUARY"));
             Assert.That(groups[0].Query<VisualElement>(className: "st-feed-entry").ToList(),
                 Has.Count.EqualTo(2));
-            Assert.That(groups[0].Query<Label>(className: "st-feed-text").ToList()[0].text,
+            Assert.That(groups[0].Query<Label>(className: "st-feed-title").ToList()[0].text,
                 Is.EqualTo("Met a friend"));
             Assert.That(groups[1].Q<Label>(className: "st-feed-month-header").text,
                 Is.EqualTo("AGE 17  ·  DECEMBER"));
-            Assert.That(groups[0].Query<Label>(className: "st-feed-ordinal").ToList()[0].text,
-                Is.EqualTo("1."));
+            Assert.That(groups[0].Query<VisualElement>(className: "st-feed-dot").ToList(), Is.Not.Empty);
             Assert.That(groups[0].Q<VisualElement>("feed-item-1").tooltip,
                 Does.Contain("Item 1 of 3").And.Contain("Event"));
         }
@@ -151,7 +150,7 @@ namespace StimTycoon.Tests.Domain.UI
 
             Invoke("RefreshFeed");
 
-            var rendered = root.Q("life-feed-list").Query<Label>(className: "st-feed-text").ToList();
+            var rendered = root.Q("life-feed-list").Query<Label>(className: "st-feed-title").ToList();
             Assert.That(rendered[0].text, Is.EqualTo("Major transition"));
             Assert.That(rendered[1].text, Is.EqualTo("Event outcome"));
             Assert.That(rendered[2].text, Is.EqualTo("Stored first"));
@@ -202,8 +201,8 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(root.Q("life-feed-list").Query<VisualElement>(className: "category-year").ToList(),
                 Has.Count.EqualTo(1));
             Assert.That(root.Q("life-feed-list").Q<VisualElement>(className: "category-year")
-                .Q<Label>(className: "st-feed-text").text,
-                Does.Contain("Advanced 12 months").And.Contain("Twelve months completed"));
+                .Q<Label>(className: "st-feed-title").text,
+                Does.Contain("Advanced 12 months"));
             Assert.IsFalse(root.Q("event-sheet").ClassListContains("hidden"));
         }
 
@@ -688,6 +687,8 @@ namespace StimTycoon.Tests.Domain.UI
                 { "educationDestinationContent", "education-destination-content" },
                 { "careerDestinationContent", "career-destination-content" },
                 { "goalsDestinationContent", "goals-destination-content" },
+                { "educationEmptyState", "education-empty-state" },
+                { "careerEmptyState", "career-empty-state" },
                 { "relationshipListView", "relationship-list-view" }, { "relationshipList", "relationship-list" },
                 { "discoverCompatiblePerson", "discover-compatible-person" },
                 { "relationshipDiscoveryFeedback", "relationship-discovery-feedback" },

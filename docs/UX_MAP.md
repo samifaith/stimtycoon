@@ -13,7 +13,9 @@ The locked direction is **cozy corporate**: structured and financially literate,
 - Cards use thick outlines, rounded corners, clear headings, and short blocks of copy.
 - Normal tap targets are at least 44 points tall; primary actions target 48 points or more.
 
-The first implementation lives in `Assets/UI/StimCozyCorporate.uss`. It is deliberately Stim-owned. A free third-party design-system package was evaluated, but its runtime did not compile against the pinned Unity `6000.3.19f1` API and was not retained.
+The live implementation is rooted at `Assets/UI/StimVerticalSlice.uxml` and references only the canonical Stim-owned `Assets/UI/Styles/StimTheme.uss` and `Assets/UI/Styles/Components.uss` entry points. `Components.uss` temporarily maps retained legacy layout rules while they are extracted screen by screen. Imported GUI packs remain vendor-owned and are consumed only through Stim-owned composition and style adapters.
+
+The approved presentation is compact and wireframe-led: restrained white cards on a pale-blue canvas, an 88–96 point player/cash header, wrapped 24–28 point page headings, dense 44–64 point rows, and six icon-over-label navigation targets. Lucide SVGs identify functional navigation and controls. Emoji are the temporary imagery system for avatars, feed categories, destination illustrations, objects, and badges until original production art replaces them.
 
 ## Persistent shell
 
@@ -24,7 +26,8 @@ Player header
 └── expandable player overview
 
 Active screen content
-└── one dominant action
+├── compact destination-specific modules
+└── one clearly prioritized action group
 
 Bottom navigation
 ├── Life / Home
@@ -35,7 +38,7 @@ Bottom navigation
 └── Goals / Legacy
 ```
 
-The six destinations use exclusive active states and remain the Phase 5 navigation contract. Investing belongs within Bank; career and business share a destination; health and ordinary activities remain reachable from Life/Home unless playtesting justifies a separately approved navigation change.
+The six destinations use exclusive active states and remain the Phase 5 navigation contract. Investing belongs within Bank; career and business share a destination; health and ordinary activities remain reachable from Life/Home unless playtesting justifies a separately approved navigation change. Life follows the approved age-strip → timeline feed → stat tiles → aging actions hierarchy. Study and Work use progress/path modules with reserved mini-game slots; Bank, Social, and Goals use compact scannable rows rather than oversized dashboard cards.
 
 ## Primary flows
 

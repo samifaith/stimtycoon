@@ -1,52 +1,59 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <ui:Template name="AppHeader" src="project://database/Assets/StimTycoon/UI/Components/AppHeader/AppHeader.uxml" />
     <ui:Template name="BottomNavigation" src="project://database/Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml" />
-    <Style src="project://database/Assets/StimTycoon/UI/Styles/StimTycoonTheme.uss" />
-    <Style src="StimVerticalSliceCozyCorporate.uss" />
     <Style src="Styles/StimTheme.uss" />
     <Style src="Styles/Components.uss" />
 
     <ui:VisualElement name="screen" class="screen st-life-screen">
         <ui:Instance template="AppHeader" />
 
-        <ui:ScrollView name="life-scroll" mode="Vertical" class="st-life-scroll">
+        <ui:ScrollView name="life-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-life-scroll">
             <ui:VisualElement class="st-life-content">
-                <ui:VisualElement name="life-feed-card" class="st-polished-card st-feed-card">
+                <ui:VisualElement name="age-progression" class="st-polished-card st-age-progression">
+                    <ui:VisualElement class="st-age-strip-heading"><ui:Label text="AGE PROGRESSION" class="st-section-kicker" /><ui:Label name="age-stage-summary" text="Current life stage" class="st-age-strip-summary" /></ui:VisualElement>
+                    <ui:VisualElement class="st-age-stage-track">
+                        <ui:VisualElement name="age-stage-0" class="st-age-stage"><ui:Label text="👶" class="st-age-stage-icon" /><ui:Label text="0–12" class="st-age-stage-range" /><ui:Label text="Childhood" class="st-age-stage-name" /></ui:VisualElement>
+                        <ui:VisualElement name="age-stage-1" class="st-age-stage"><ui:Label text="🧒" class="st-age-stage-icon" /><ui:Label text="13–18" class="st-age-stage-range" /><ui:Label text="Teen" class="st-age-stage-name" /></ui:VisualElement>
+                        <ui:VisualElement name="age-stage-2" class="st-age-stage"><ui:Label text="🧑" class="st-age-stage-icon" /><ui:Label text="19–26" class="st-age-stage-range" /><ui:Label text="Young Adult" class="st-age-stage-name" /></ui:VisualElement>
+                        <ui:VisualElement name="age-stage-3" class="st-age-stage"><ui:Label text="🧑‍💼" class="st-age-stage-icon" /><ui:Label text="27+" class="st-age-stage-range" /><ui:Label text="Adult" class="st-age-stage-name" /></ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="life-feed-card" class="st-polished-card st-feed-card stim-pack-panel">
                     <ui:Label text="LIFE FEED" class="st-section-kicker" />
-                    <ui:ScrollView name="life-feed-scroll" mode="Vertical" class="st-feed-scroll">
+                    <ui:ScrollView name="life-feed-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-feed-scroll">
                         <ui:VisualElement name="life-feed-list" class="st-feed-list">
                             <ui:Label text="Your next decision will appear here." class="st-feed-empty" />
                         </ui:VisualElement>
                     </ui:ScrollView>
                 </ui:VisualElement>
 
-                <ui:VisualElement name="player-overview" class="st-polished-card st-stats-card">
+                <ui:VisualElement name="player-overview" class="st-polished-card st-stats-card stim-pack-panel">
                     <ui:VisualElement class="st-section-heading">
                         <ui:Label text="♥" class="st-section-heading-icon" />
                         <ui:Label text="CORE STATS" class="st-section-heading-title" />
                     </ui:VisualElement>
 
-                    <ui:VisualElement class="st-stat-row health">
+                    <ui:VisualElement class="st-stat-row st-stat-tile health">
                         <ui:Label text="♥" class="st-stat-icon" />
                         <ui:VisualElement class="st-stat-main"><ui:Label text="Health" class="st-stat-name" /><ui:VisualElement class="st-stat-track"><ui:VisualElement name="health-fill" class="st-stat-fill" /></ui:VisualElement></ui:VisualElement>
                         <ui:Label name="health-value" text="78 / 100" class="st-stat-number" />
                     </ui:VisualElement>
-                    <ui:VisualElement class="st-stat-row looks">
+                    <ui:VisualElement class="st-stat-row st-stat-tile looks">
                         <ui:Label text="☺" class="st-stat-icon" />
                         <ui:VisualElement class="st-stat-main"><ui:Label text="Looks" class="st-stat-name" /><ui:VisualElement class="st-stat-track"><ui:VisualElement name="looks-fill" class="st-stat-fill" /></ui:VisualElement></ui:VisualElement>
                         <ui:Label name="looks-value" text="64 / 100" class="st-stat-number" />
                     </ui:VisualElement>
-                    <ui:VisualElement class="st-stat-row smarts">
+                    <ui:VisualElement class="st-stat-row st-stat-tile smarts">
                         <ui:Label text="✦" class="st-stat-icon" />
                         <ui:VisualElement class="st-stat-main"><ui:Label text="Smarts" class="st-stat-name" /><ui:VisualElement class="st-stat-track"><ui:VisualElement name="smarts-fill" class="st-stat-fill" /></ui:VisualElement></ui:VisualElement>
                         <ui:Label name="smarts-value" text="72 / 100" class="st-stat-number" />
                     </ui:VisualElement>
-                    <ui:VisualElement class="st-stat-row happiness">
+                    <ui:VisualElement class="st-stat-row st-stat-tile happiness">
                         <ui:Label text="☀" class="st-stat-icon" />
                         <ui:VisualElement class="st-stat-main"><ui:Label text="Happiness" class="st-stat-name" /><ui:VisualElement class="st-stat-track"><ui:VisualElement name="happiness-fill" class="st-stat-fill" /></ui:VisualElement></ui:VisualElement>
                         <ui:Label name="happiness-value" text="66 / 100" class="st-stat-number" />
                     </ui:VisualElement>
-                    <ui:VisualElement class="st-stat-row luck last">
+                    <ui:VisualElement class="st-stat-row st-stat-tile luck last">
                         <ui:Label text="♣" class="st-stat-icon" />
                         <ui:VisualElement class="st-stat-main"><ui:Label text="Luck" class="st-stat-name" /><ui:VisualElement class="st-stat-track"><ui:VisualElement name="luck-fill" class="st-stat-fill" /></ui:VisualElement></ui:VisualElement>
                         <ui:Label name="luck-value" text="41 / 100" class="st-stat-number" />
@@ -55,7 +62,7 @@
 
                 <ui:VisualElement name="skills-card" class="st-polished-card st-skills-card">
                     <ui:VisualElement class="st-section-heading">
-                        <ui:Label text="◆" class="st-section-heading-icon" />
+                        <ui:Label text="🧩" class="st-section-heading-icon" />
                         <ui:Label text="SKILLS" class="st-section-heading-title" />
                     </ui:VisualElement>
                     <ui:Label text="Practice unlocks stronger outcomes." class="st-skills-subtitle" />
@@ -64,15 +71,15 @@
 
                 <ui:VisualElement class="st-polished-card st-focus-card">
                     <ui:VisualElement class="st-section-heading">
-                        <ui:Label text="◎" class="st-section-heading-icon" />
+                        <ui:Label text="🎯" class="st-section-heading-icon" />
                         <ui:Label text="TODAY’S FOCUS" class="st-section-heading-title" />
                     </ui:VisualElement>
                     <ui:VisualElement class="st-focus-grid">
-                        <ui:Button name="focus-study" class="st-focus-tile study" tooltip="Study to improve Smarts">
-                            <ui:Label text="A+" class="st-focus-icon" /><ui:Label name="focus-study-title" text="Study" class="st-focus-title" /><ui:Label name="focus-study-effect" text="+ Smarts" class="st-focus-effect" /><ui:Label text="START" class="st-focus-cta" />
+                        <ui:Button name="focus-study" class="st-focus-tile study stim-pack-secondary-button stim-pack-interaction-pop" tooltip="Study to improve Smarts">
+                            <ui:Label text="📚" class="st-focus-icon" /><ui:Label name="focus-study-title" text="Study" class="st-focus-title" /><ui:Label name="focus-study-effect" text="+ Smarts" class="st-focus-effect" /><ui:Label text="START" class="st-focus-cta" />
                         </ui:Button>
-                        <ui:Button name="focus-workout" class="st-focus-tile workout" tooltip="Workout to improve Health">
-                            <ui:Label text="♥" class="st-focus-icon" /><ui:Label name="focus-workout-title" text="Workout" class="st-focus-title" /><ui:Label name="focus-workout-effect" text="+ Health" class="st-focus-effect" /><ui:Label text="START" class="st-focus-cta" />
+                        <ui:Button name="focus-workout" class="st-focus-tile workout stim-pack-secondary-button stim-pack-interaction-pop" tooltip="Workout to improve Health">
+                            <ui:Label text="🏃" class="st-focus-icon" /><ui:Label name="focus-workout-title" text="Workout" class="st-focus-title" /><ui:Label name="focus-workout-effect" text="+ Health" class="st-focus-effect" /><ui:Label text="START" class="st-focus-cta" />
                         </ui:Button>
                     </ui:VisualElement>
                     <ui:VisualElement name="context-activities" class="st-context-activities" />
@@ -80,7 +87,7 @@
 
                 <ui:VisualElement name="home-card" class="st-polished-card st-home-card">
                     <ui:VisualElement class="st-section-heading">
-                        <ui:Label text="⌂" class="st-section-heading-icon" />
+                        <ui:Label text="🏠" class="st-section-heading-icon" />
                         <ui:Label text="HOME" class="st-section-heading-title" />
                     </ui:VisualElement>
                     <ui:VisualElement name="home-visual-slot" class="st-visual-slot st-visual-slot-card" />
@@ -92,7 +99,7 @@
 
                 <ui:VisualElement name="education-card" class="st-polished-card st-education-card hidden">
                     <ui:VisualElement class="st-section-heading">
-                        <ui:Label text="A+" class="st-section-heading-icon" />
+                        <ui:Label text="📚" class="st-section-heading-icon" />
                         <ui:Label text="EDUCATION" class="st-section-heading-title" />
                     </ui:VisualElement>
                     <ui:VisualElement name="education-visual-slot" class="st-visual-slot st-visual-slot-card" />
@@ -105,7 +112,7 @@
 
                 <ui:VisualElement name="career-card" class="st-polished-card st-career-card hidden">
                     <ui:VisualElement class="st-section-heading">
-                        <ui:Label text="▣" class="st-section-heading-icon" />
+                        <ui:Label text="💼" class="st-section-heading-icon" />
                         <ui:Label text="CAREER" class="st-section-heading-title" />
                     </ui:VisualElement>
                     <ui:Label name="career-role" text="Unemployed" class="st-career-role" />
@@ -118,7 +125,7 @@
 
                 <ui:VisualElement name="achievements-card" class="st-polished-card st-achievements-card">
                     <ui:VisualElement class="st-section-heading">
-                        <ui:Label text="★" class="st-section-heading-icon" />
+                        <ui:Label text="🏆" class="st-section-heading-icon" />
                         <ui:Label text="ACHIEVEMENTS" class="st-section-heading-title" />
                     </ui:VisualElement>
                     <ui:Label name="achievements-count" text="0 unlocked" class="st-achievements-count" />
@@ -134,11 +141,9 @@
             </ui:VisualElement>
         </ui:ScrollView>
 
-        <ui:ScrollView name="money-view" mode="Vertical" class="st-money-view hidden">
+        <ui:ScrollView name="money-view" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-money-view hidden">
             <ui:VisualElement class="st-money-content">
-                <ui:Label text="MONEY" class="st-section-kicker" />
-                <ui:Label text="Earn and manage" class="st-social-title" />
-                <ui:Label text="Work a paid hour using your current job's calculated hourly rate." class="st-social-subtitle" />
+                <ui:VisualElement class="st-destination-heading"><ui:Label text="💵" class="st-destination-icon" /><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Earn and manage" class="st-social-title" /><ui:Label text="Work, save, repay credit, and invest for the long term." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
                 <ui:VisualElement name="net-worth-card" class="st-polished-card st-worth-card">
                     <ui:VisualElement class="st-worth-copy">
                         <ui:Label text="TOTAL NET WORTH" class="st-section-kicker" />
@@ -151,7 +156,7 @@
                     <ui:Label name="manual-work-rate" text="$0.00 per hour" class="st-manual-work-rate" />
                     <ui:Label name="money-cash-value" text="$0" class="st-money-cash" />
                     <ui:Label text="CURRENT CASH" class="st-money-cash-label" />
-                    <ui:Button name="manual-work-tap" text="WORK 1 HOUR" class="st-manual-work-button" />
+                    <ui:Button name="manual-work-tap" text="WORK 1 HOUR" class="st-manual-work-button stim-pack-foundation-button stim-pack-interaction-pop" />
                     <ui:Label name="manual-work-feedback" text="" class="st-manual-work-feedback" />
                 </ui:VisualElement>
                 <ui:VisualElement name="savings-card" class="st-polished-card st-savings-card">
@@ -199,13 +204,11 @@
             </ui:VisualElement>
         </ui:ScrollView>
 
-        <ui:ScrollView name="social-view" mode="Vertical" class="st-social-view hidden">
+        <ui:ScrollView name="social-view" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-social-view hidden">
             <ui:VisualElement class="st-social-content">
                 <ui:VisualElement name="relationship-list-view">
-                    <ui:Label text="SOCIAL" class="st-section-kicker" />
-                    <ui:Label text="Your people" class="st-social-title" />
-                    <ui:Label text="Relationships grow through the time and choices you share." class="st-social-subtitle" />
-                    <ui:Button name="discover-compatible-person" text="DISCOVER SOMEONE COMPATIBLE" class="st-social-discover" />
+                    <ui:VisualElement class="st-destination-heading"><ui:Label text="👥" class="st-destination-icon" /><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Your people" class="st-social-title" /><ui:Label text="Relationships grow through the time and choices you share." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
+                    <ui:Button name="discover-compatible-person" text="DISCOVER SOMEONE COMPATIBLE" class="st-social-discover stim-pack-secondary-button stim-pack-interaction-pop" />
                     <ui:Label name="relationship-discovery-feedback" text="" class="st-manual-work-feedback" />
                     <ui:VisualElement name="relationship-list" class="st-relationship-list" />
                 </ui:VisualElement>
@@ -227,29 +230,37 @@
             </ui:VisualElement>
         </ui:ScrollView>
 
-        <ui:ScrollView name="education-view" mode="Vertical" class="st-destination-view hidden">
+        <ui:ScrollView name="education-view" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-destination-view hidden">
             <ui:VisualElement class="st-destination-content">
-                <ui:Label text="EDUCATION" class="st-section-kicker" />
-                <ui:Label text="Learn and qualify" class="st-social-title" />
-                <ui:Label text="Build skills, complete qualifications, and unlock future paths." class="st-social-subtitle" />
+                <ui:VisualElement class="st-destination-heading"><ui:Label text="🎓" class="st-destination-icon" /><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Learn and qualify" class="st-social-title" /><ui:Label text="Build skills, complete qualifications, and unlock future paths." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
+                <ui:VisualElement name="education-empty-state" class="st-preview-panel hidden">
+                    <ui:VisualElement class="st-preview-heading"><ui:Label text="📚" class="st-preview-heading-icon" /><ui:Label text="EDUCATION" class="st-preview-heading-title" /></ui:VisualElement>
+                    <ui:VisualElement class="st-education-preview-hero"><ui:Label text="🎒" class="st-preview-hero-icon" /><ui:Label text="Formal education begins at age 6." class="st-preview-hero-title" /><ui:Label text="Keep growing to open school paths, study sessions, and qualifications." class="st-preview-hero-body" /></ui:VisualElement>
+                    <ui:Label text="School path progress" class="st-preview-label" />
+                    <ui:VisualElement class="st-preview-progress"><ui:VisualElement class="st-preview-progress-fill" /></ui:VisualElement>
+                    <ui:Label text="Unlocks at age 6" class="st-preview-footnote" />
+                </ui:VisualElement>
                 <ui:VisualElement name="education-destination-content" />
             </ui:VisualElement>
         </ui:ScrollView>
 
-        <ui:ScrollView name="career-view" mode="Vertical" class="st-destination-view hidden">
+        <ui:ScrollView name="career-view" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-destination-view hidden">
             <ui:VisualElement class="st-destination-content">
-                <ui:Label text="CAREER &amp; BUSINESS" class="st-section-kicker" />
-                <ui:Label text="Build your working life" class="st-social-title" />
-                <ui:Label text="Develop a career or operate your own business." class="st-social-subtitle" />
+                <ui:VisualElement class="st-destination-heading"><ui:Label text="💼" class="st-destination-icon" /><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Build your working life" class="st-social-title" /><ui:Label text="Develop a career or operate your own business." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
+                <ui:VisualElement name="career-empty-state" class="st-career-preview hidden">
+                    <ui:VisualElement class="st-info-callout"><ui:Label text="ℹ️" class="st-info-icon" /><ui:Label text="Career and business actions unlock in adulthood. Childhood choices will shape the available paths." class="st-info-copy" /></ui:VisualElement>
+                    <ui:Label text="PATH PREVIEW" class="st-preview-label" />
+                    <ui:VisualElement class="st-path-row"><ui:Label text="☕" class="st-path-icon" /><ui:VisualElement class="st-path-copy"><ui:Label text="Part-time Job" class="st-path-title" /><ui:Label text="Earn money and gain experience." class="st-path-body" /></ui:VisualElement><ui:Label text="$120\nMoney" class="st-path-reward" /></ui:VisualElement>
+                    <ui:VisualElement class="st-path-row"><ui:Label text="💼" class="st-path-icon" /><ui:VisualElement class="st-path-copy"><ui:Label text="Full-time Career" class="st-path-title" /><ui:Label text="Build your career and increase income." class="st-path-body" /></ui:VisualElement><ui:Label text="🔒\nAge 18+" class="st-path-lock" /></ui:VisualElement>
+                    <ui:VisualElement class="st-path-row"><ui:Label text="🏢" class="st-path-icon" /><ui:VisualElement class="st-path-copy"><ui:Label text="Start a Business" class="st-path-title" /><ui:Label text="Run your own business and grow your brand." class="st-path-body" /></ui:VisualElement><ui:Label text="🔒\nAge 18+" class="st-path-lock" /></ui:VisualElement>
+                </ui:VisualElement>
                 <ui:VisualElement name="career-destination-content" />
             </ui:VisualElement>
         </ui:ScrollView>
 
-        <ui:ScrollView name="goals-view" mode="Vertical" class="st-destination-view hidden">
+        <ui:ScrollView name="goals-view" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-destination-view hidden">
             <ui:VisualElement class="st-destination-content">
-                <ui:Label text="GOALS &amp; LEGACY" class="st-section-kicker" />
-                <ui:Label text="Shape this life" class="st-social-title" />
-                <ui:Label text="Track immediate priorities, long-term goals, achievements, and legacy." class="st-social-subtitle" />
+                <ui:VisualElement class="st-destination-heading"><ui:Label text="⭐" class="st-destination-icon" /><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Shape this life" class="st-social-title" /><ui:Label text="Track immediate priorities, long-term goals, achievements, and legacy." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
                 <ui:VisualElement name="goals-destination-content" />
             </ui:VisualElement>
         </ui:ScrollView>
@@ -261,8 +272,8 @@
                 <ui:Label name="monthly-paycheck-value" text="Monthly life changes and pay" class="st-time-detail" />
             </ui:VisualElement>
             <ui:VisualElement class="st-time-actions">
-                <ui:Button name="advance-month" text="ADVANCE MONTH  ›" class="st-advance-month" tooltip="Advance time by one month" />
-                <ui:Button name="advance-year" text="ADVANCE YEAR  »" class="st-advance-year" tooltip="Advance up to twelve normal months, stopping for decisions" />
+                <ui:Button name="advance-month" text="ADVANCE MONTH  ›" class="st-advance-month stim-pack-foundation-button stim-pack-interaction-pop" tooltip="Advance time by one month" />
+                <ui:Button name="advance-year" text="YEAR  »" class="st-advance-year stim-pack-secondary-button stim-pack-interaction-pop" tooltip="Advance up to twelve normal months, stopping for decisions" />
             </ui:VisualElement>
         </ui:VisualElement>
 
@@ -270,7 +281,7 @@
 
         <ui:VisualElement name="event-sheet" class="st-event-scrim hidden">
             <ui:VisualElement class="st-event-sheet">
-                    <ui:ScrollView class="st-event-scroll" mode="Vertical">
+                    <ui:ScrollView class="st-event-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden">
                     <ui:VisualElement class="st-event-content">
                         <ui:Label name="event-category" text="LIFE EVENT" class="st-event-kicker" />
                         <ui:VisualElement name="event-visual-slot" class="st-visual-slot st-visual-slot-hero" />
@@ -290,7 +301,7 @@
 
         <ui:VisualElement name="new-life-setup" class="st-setup-scrim hidden">
             <ui:VisualElement class="st-setup-sheet">
-                <ui:ScrollView class="st-setup-scroll" mode="Vertical">
+                <ui:ScrollView class="st-setup-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden">
                     <ui:VisualElement class="st-setup-content">
                         <ui:Label text="BEGIN A NEW STORY" class="st-event-kicker" />
                         <ui:Label text="Start a new life" class="st-setup-title" />

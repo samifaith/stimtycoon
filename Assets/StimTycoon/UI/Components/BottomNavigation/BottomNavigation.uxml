@@ -1,10 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <ui:VisualElement name="bottom-navigation" class="st-life-bottom-nav">
-        <ui:Button name="nav-life" text="⌂  Life" class="st-life-nav-item stim-pack-interaction-pop active" tooltip="Life and Home" />
-        <ui:Button name="nav-education" text="A+  Study" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Education" />
-        <ui:Button name="nav-career" text="▣  Work" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Career and Business" />
-        <ui:Button name="nav-money" text="$  Bank" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Money and Banking" />
-        <ui:Button name="nav-social" text="●  Social" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Social and Family" />
-        <ui:Button name="nav-goals" text="★  Goals" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Goals and Legacy" />
+        <ui:Button name="nav-life" class="st-life-nav-item stim-pack-interaction-pop active" tooltip="Life and Home"><ui:VisualElement class="st-nav-icon icon-home" /><ui:Label text="Life" class="st-nav-label" /></ui:Button>
+        <ui:Button name="nav-education" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Education"><ui:VisualElement class="st-nav-icon icon-study" /><ui:Label text="Study" class="st-nav-label" /></ui:Button>
+        <ui:Button name="nav-career" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Career and Business"><ui:VisualElement class="st-nav-icon icon-work" /><ui:Label text="Work" class="st-nav-label" /></ui:Button>
+        <ui:Button name="nav-money" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Money and Banking"><ui:VisualElement class="st-nav-icon icon-bank" /><ui:Label text="Bank" class="st-nav-label" /></ui:Button>
+        <ui:Button name="nav-social" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Social and Family"><ui:VisualElement class="st-nav-icon icon-social" /><ui:Label text="Social" class="st-nav-label" /></ui:Button>
+        <ui:Button name="nav-goals" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Goals and Legacy"><ui:VisualElement class="st-nav-icon icon-goals" /><ui:Label text="Goals" class="st-nav-label" /></ui:Button>
     </ui:VisualElement>
 </ui:UXML>

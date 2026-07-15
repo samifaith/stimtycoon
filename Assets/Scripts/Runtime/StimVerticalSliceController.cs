@@ -87,6 +87,8 @@ namespace StimTycoon.Runtime
         private VisualElement educationDestinationContent;
         private VisualElement careerDestinationContent;
         private VisualElement goalsDestinationContent;
+        private VisualElement educationEmptyState;
+        private VisualElement careerEmptyState;
         private Label manualWorkRole;
         private Label manualWorkRate;
         private Label moneyCashValue;
@@ -230,6 +232,8 @@ namespace StimTycoon.Runtime
             educationDestinationContent = root.Q<VisualElement>("education-destination-content");
             careerDestinationContent = root.Q<VisualElement>("career-destination-content");
             goalsDestinationContent = root.Q<VisualElement>("goals-destination-content");
+            educationEmptyState = root.Q<VisualElement>("education-empty-state");
+            careerEmptyState = root.Q<VisualElement>("career-empty-state");
             manualWorkRole = root.Q<Label>("manual-work-role");
             manualWorkRate = root.Q<Label>("manual-work-rate");
             moneyCashValue = root.Q<Label>("money-cash-value");
@@ -344,7 +348,7 @@ namespace StimTycoon.Runtime
                 navMoney == null || navSocial == null || navGoals == null || moneyView == null ||
                 educationView == null || careerView == null || goalsView == null ||
                 educationDestinationContent == null || careerDestinationContent == null ||
-                goalsDestinationContent == null ||
+                goalsDestinationContent == null || educationEmptyState == null || careerEmptyState == null ||
                 manualWorkRole == null || manualWorkRate == null || moneyCashValue == null ||
                 manualWorkTap == null || manualWorkFeedback == null || savingsBalanceValue == null ||
                 savingsAvailableValue == null || savingsDepositMode == null || savingsWithdrawMode == null ||
@@ -449,22 +453,22 @@ namespace StimTycoon.Runtime
             AddVisualPlaceholder(root, "event-visual-slot", new StimVisualPlaceholderDefinition
             {
                 visualId = "event.generic.hero", role = StimVisualRole.Hero, aspectRatio = "16:9",
-                accessibilityLabelKey = "visual.event.generic", fallbackGlyph = "✦", themeToken = "event"
+                accessibilityLabelKey = "visual.event.generic", fallbackGlyph = "✨", themeToken = "event"
             });
             AddVisualPlaceholder(root, "home-visual-slot", new StimVisualPlaceholderDefinition
             {
                 visualId = "home.starter.thumbnail", role = StimVisualRole.Thumbnail, aspectRatio = "4:3",
-                accessibilityLabelKey = "visual.home.starter", fallbackGlyph = "⌂", themeToken = "home"
+                accessibilityLabelKey = "visual.home.starter", fallbackGlyph = "🏠", themeToken = "home"
             });
             AddVisualPlaceholder(root, "education-visual-slot", new StimVisualPlaceholderDefinition
             {
                 visualId = "education.current.thumbnail", role = StimVisualRole.Thumbnail, aspectRatio = "4:3",
-                accessibilityLabelKey = "visual.education.current", fallbackGlyph = "A+", themeToken = "education"
+                accessibilityLabelKey = "visual.education.current", fallbackGlyph = "🎒", themeToken = "education"
             });
             AddVisualPlaceholder(root, "relationship-visual-slot", new StimVisualPlaceholderDefinition
             {
                 visualId = "relationship.selected.avatar", role = StimVisualRole.Avatar, aspectRatio = "1:1",
-                accessibilityLabelKey = "visual.relationship.selected", fallbackGlyph = "●", themeToken = "social"
+                accessibilityLabelKey = "visual.relationship.selected", fallbackGlyph = "👤", themeToken = "social"
             });
         }
 
@@ -754,9 +758,9 @@ namespace StimTycoon.Runtime
                 ? $"Age {state.character.age}"
                 : $"{state.character.firstName} · {state.character.age}";
             calendarSummary.text = $"Month {state.calendar.monthOfYear} of 12";
-            avatarGlyph.text = string.IsNullOrEmpty(state.character.firstName)
-                ? "☺"
-                : state.character.firstName.Substring(0, 1).ToUpperInvariant();
+            avatarGlyph.text = state.character.age < 6 ? "👶" : state.character.age < 18 ? "🧒" :
+                state.character.age < 65 ? "🧑" : "🧓";
+            RefreshAgeProgress(state.character.age);
             overviewCareer.text = string.IsNullOrEmpty(career.roleTitle)
                 ? ToDisplayName(state.character.lifeStage)
                 : $"{career.roleTitle} · Stim Financial Group";
@@ -787,6 +791,23 @@ namespace StimTycoon.Runtime
             RefreshAchievements();
             RefreshHome();
             RefreshMoney();
+        }
+
+        private void RefreshAgeProgress(int age)
+        {
+            if (rootElement == null) return;
+            var activeIndex = age <= 12 ? 0 : age <= 18 ? 1 : age <= 26 ? 2 : 3;
+            var summary = rootElement.Q<Label>("age-stage-summary");
+            if (summary != null)
+                summary.text = activeIndex == 0 ? "Childhood" : activeIndex == 1 ? "Teen" :
+                    activeIndex == 2 ? "Young Adult" : "Adult";
+            for (var index = 0; index < 4; index++)
+            {
+                var node = rootElement.Q<VisualElement>($"age-stage-{index}");
+                node?.EnableInClassList("complete", index < activeIndex);
+                node?.EnableInClassList("active", index == activeIndex);
+                node?.EnableInClassList("locked", index > activeIndex);
+            }
         }
 
         private void RefreshHome()
@@ -1052,27 +1073,18 @@ namespace StimTycoon.Runtime
             foreach (var goal in goals)
             {
                 if (goal == null || goal.status == "expired") continue;
-                var row = new VisualElement();
-                row.AddToClassList("st-achievement-row");
-                var icon = new Label(goal.category == "daily" ? "D" : goal.category == "main" ? "M" : "L");
-                icon.AddToClassList("st-achievement-icon");
-                var copy = new VisualElement();
-                copy.AddToClassList("st-achievement-copy");
-                var name = new Label($"{goal.title} · {ToDisplayName(goal.category)}");
-                name.AddToClassList("st-achievement-name");
-                var description = new Label(
-                    $"{goal.description} · {goal.progress} / {goal.progressRequired} · Reward {FormatMoney(goal.rewardMinorUnits)}");
-                description.AddToClassList("st-achievement-description");
-                copy.Add(name);
-                copy.Add(description);
                 var capturedGoalId = goal.goalId;
-                var action = new Button
-                {
-                    name = $"goal-action-{goal.goalId}",
-                    text = goal.status == "claimable" ? "CLAIM" : goal.status == "claimed" ? "CLAIMED" : "GO"
-                };
-                action.SetEnabled(goal.status != "claimed");
-                action.clicked += () =>
+                var actionText = goal.status == "claimable" ? "CLAIM" : goal.status == "claimed" ? "DONE" : "GO";
+                var row = StimUiComponentFactory.CreateAchievementRow(
+                    goal.goalId,
+                    goal.category == "daily" ? "📅" : goal.category == "main" ? "🎯" : "🏆",
+                    goal.title,
+                    ToDisplayName(goal.category),
+                    $"{goal.progress} / {goal.progressRequired}",
+                    FormatMoney(goal.rewardMinorUnits),
+                    actionText,
+                    goal.status != "claimed",
+                    () =>
                 {
                     if (goal.status == "claimable")
                     {
@@ -1087,10 +1099,8 @@ namespace StimTycoon.Runtime
                     else if (goal.destination == "career" || goal.destination == "business") ShowCareerDestination();
                     else if (goal.destination == "social" || goal.destination == "family") ShowSocialDestination();
                     else ShowLifeDestination();
-                };
-                row.Add(icon);
-                row.Add(copy);
-                row.Add(action);
+                });
+                row.Q<Button>().name = $"goal-action-{goal.goalId}";
                 achievementsList.Add(row);
             }
             if (achievements.Count == 0 && goals.Count == 0)
@@ -1104,38 +1114,26 @@ namespace StimTycoon.Runtime
             {
                 var achievement = achievements[index];
                 if (achievement == null) continue;
-                var row = new VisualElement();
-                row.AddToClassList("st-achievement-row");
-                var icon = new Label("★");
-                icon.AddToClassList("st-achievement-icon");
-                var copy = new VisualElement();
-                copy.AddToClassList("st-achievement-copy");
-                var name = new Label(StimGameSessionService.GetAchievementDisplayName(achievement.achievementId));
-                name.AddToClassList("st-achievement-name");
-                var description = new Label(
-                    $"{StimGameSessionService.GetAchievementDescription(achievement.achievementId)} · Age {achievement.unlockedAtAge} · Prize {FormatMoney(StimGameSessionService.GetAchievementRewardMinorUnits(achievement.achievementId))}");
-                description.AddToClassList("st-achievement-description");
-                copy.Add(name);
-                copy.Add(description);
-                row.Add(icon);
-                row.Add(copy);
                 var capturedAchievementId = achievement.achievementId;
-                var claim = new Button
-                {
-                    name = $"achievement-claim-{achievement.achievementId}",
-                    text = achievement.rewardClaimed ? "CLAIMED" : "CLAIM"
-                };
-                claim.SetEnabled(!achievement.rewardClaimed &&
-                    StimGameSessionService.GetAchievementRewardMinorUnits(achievement.achievementId) > 0);
-                claim.clicked += () =>
+                var reward = StimGameSessionService.GetAchievementRewardMinorUnits(achievement.achievementId);
+                var row = StimUiComponentFactory.CreateAchievementRow(
+                    achievement.achievementId,
+                    "🏆",
+                    StimGameSessionService.GetAchievementDisplayName(achievement.achievementId),
+                    "Achievement",
+                    $"Age {achievement.unlockedAtAge}",
+                    FormatMoney(reward),
+                    achievement.rewardClaimed ? "DONE" : "CLAIM",
+                    !achievement.rewardClaimed && reward > 0,
+                    () =>
                 {
                     gameSession.TryClaimAchievementReward(capturedAchievementId, out _);
                     RefreshHeader();
                     RefreshFeed();
                     RefreshMoney();
                     RefreshAchievements();
-                };
-                row.Add(claim);
+                });
+                row.Q<Button>().name = $"achievement-claim-{achievement.achievementId}";
                 achievementsList.Add(row);
             }
         }
@@ -1144,6 +1142,7 @@ namespace StimTycoon.Runtime
         {
             var state = gameSession.ActiveSave.state;
             var enrolled = state.character.age >= 6 && state.character.age < 18;
+            educationEmptyState.EnableInClassList("hidden", enrolled);
             educationCard.EnableInClassList("hidden", !enrolled);
             if (!enrolled) return;
 
@@ -1397,6 +1396,7 @@ namespace StimTycoon.Runtime
         {
             var state = gameSession.ActiveSave.state;
             var adult = state.character.age >= 18;
+            careerEmptyState.EnableInClassList("hidden", adult);
             careerCard.EnableInClassList("hidden", !adult);
             if (!adult) return;
 
@@ -2255,25 +2255,7 @@ namespace StimTycoon.Runtime
                     currentGroup.Add(header);
                     lifeFeedList.Add(currentGroup);
                 }
-                var row = new VisualElement
-                {
-                    name = $"feed-item-{index + 1}",
-                    tooltip = $"Item {index + 1} of {entries.Count}. {ToDisplayName(entry.category)}. Age {entry.age}, month {entry.monthOfYear}. {entry.text}"
-                };
-                row.AddToClassList("st-feed-entry");
-                if (!string.IsNullOrEmpty(entry.category))
-                {
-                    row.AddToClassList("category-" + entry.category.ToLowerInvariant());
-                }
-
-                var ordinal = new Label($"{index + 1}.");
-                ordinal.AddToClassList("st-feed-ordinal");
-                row.Add(ordinal);
-
-                var text = new Label(entry.text);
-                text.AddToClassList("st-feed-text");
-                row.Add(text);
-                currentGroup.Add(row);
+                currentGroup.Add(StimUiComponentFactory.CreateFeedRow(entry, index, entries.Count));
             }
         }
 

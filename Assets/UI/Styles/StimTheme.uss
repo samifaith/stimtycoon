@@ -1,4 +1,66 @@
 :root {
+    --color-bg-page: rgb(238, 248, 255);
+    --color-bg-header: rgb(255, 249, 237);
+    --color-surface: rgb(255, 255, 255);
+    --color-surface-warm: rgb(255, 248, 232);
+    --color-surface-lilac: rgb(244, 238, 255);
+    --color-surface-blue: rgb(238, 246, 255);
+    --color-text-primary: rgb(16, 42, 94);
+    --color-text-secondary: rgb(102, 112, 133);
+    --color-text-muted: rgb(139, 147, 166);
+    --color-primary: rgb(139, 63, 232);
+    --color-primary-soft: rgb(232, 216, 255);
+    --color-secondary: rgb(11, 151, 227);
+    --color-coral: rgb(255, 113, 80);
+    --color-yellow: rgb(255, 189, 24);
+    --color-green: rgb(66, 184, 90);
+    --color-pink: rgb(247, 56, 156);
+    --color-teal: rgb(37, 183, 176);
+    --color-border: rgb(220, 230, 242);
+    --color-border-warm: rgb(240, 223, 192);
+    --color-disabled: rgb(215, 220, 229);
+    --color-danger: rgb(232, 83, 97);
+    --st-cyan-500: rgb(18, 185, 238);
+    --st-cyan-600: rgb(0, 145, 225);
+    --st-purple-500: var(--color-primary);
+    --st-purple-600: rgb(111, 41, 201);
+    --st-pink-500: rgb(247, 48, 153);
+    --st-pink-600: rgb(214, 28, 126);
+    --st-yellow-400: rgb(255, 207, 46);
+    --st-yellow-500: rgb(247, 181, 12);
+    --st-success-500: rgb(35, 177, 74);
+    --st-warning-500: rgb(243, 158, 23);
+    --st-danger-500: rgb(224, 66, 66);
+    --st-info-500: rgb(0, 145, 225);
+    --st-bg-app: var(--color-bg-page);
+    --st-bg-header: rgb(18, 185, 238);
+    --st-surface-1: var(--color-surface);
+    --st-surface-2: rgb(248, 250, 253);
+    --st-surface-blue: var(--color-surface-blue);
+    --st-surface-purple: var(--color-surface-lilac);
+    --st-surface-pink: rgb(255, 240, 248);
+    --st-surface-yellow: rgb(255, 249, 226);
+    --st-text-primary: var(--color-text-primary);
+    --st-text-secondary: var(--color-text-secondary);
+    --st-text-muted: var(--color-text-muted);
+    --st-text-inverse: rgb(255, 255, 255);
+    --st-border-soft: var(--color-border);
+    --st-border-blue: rgb(152, 218, 250);
+    --st-border-purple: rgb(207, 181, 247);
+    --st-border-pink: rgb(250, 177, 215);
+    --st-border-yellow: rgb(250, 211, 98);
+    --st-space-1: 4px;
+    --st-space-2: 8px;
+    --st-space-3: 12px;
+    --st-space-4: 16px;
+    --st-space-5: 20px;
+    --st-space-6: 24px;
+    --st-space-8: 32px;
+    --st-radius-sm: 8px;
+    --st-radius-md: 12px;
+    --st-radius-lg: 18px;
+    --st-radius-xl: 24px;
+    --st-radius-pill: 999px;
     --stim-pack-foundation: rgb(56, 173, 190);
     --stim-pack-foundation-dark: rgb(27, 130, 220);
     --stim-pack-reward: rgb(255, 111, 160);
@@ -13,27 +75,21 @@
  * Reward interactions: Jelly UI Pack.
  */
 .stim-pack-foundation-button {
-    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Buttons/button_plain_blugreen.svg");
-    -unity-background-scale-mode: stretch-to-fill;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: var(--st-cyan-600);
     border-width: 0;
     color: white;
 }
 
 .stim-pack-secondary-button {
-    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Buttons/button_soft_blue.svg");
-    -unity-background-scale-mode: stretch-to-fill;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: var(--st-purple-500);
     border-width: 0;
     color: white;
 }
 
 .stim-pack-reward-button {
-    background-image: url("project://database/Assets/Jelly_UI_Pack/Sprites/Button/Primary_Btn/btnBlue_round.png");
-    -unity-background-scale-mode: stretch-to-fill;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: var(--st-yellow-500);
     border-width: 0;
-    color: white;
+    color: rgb(70, 42, 0);
 }
 
 .stim-pack-reward-button:hover,
@@ -48,4 +104,10 @@
 .stim-pack-reward-icon {
     background-image: url("project://database/Assets/Jelly_UI_Pack/Sprites/Icons/star_icon.png");
     -unity-background-scale-mode: scale-to-fit;
+}
+
+.stim-pack-status-cluster {
+    background-color: rgba(197, 237, 255, 0.94);
+    border-bottom-width: 2px;
+    border-bottom-color: var(--st-cyan-500);
 }

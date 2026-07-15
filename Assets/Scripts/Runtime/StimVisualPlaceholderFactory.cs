@@ -38,13 +38,26 @@ namespace StimTycoon.Runtime
             root.AddToClassList("role-" + definition.role.ToString().ToLowerInvariant());
             root.AddToClassList("theme-" + Sanitize(definition.themeToken));
 
-            var glyph = new Label(string.IsNullOrEmpty(definition.fallbackGlyph) ? "◆" : definition.fallbackGlyph);
+            var glyph = new Label(string.IsNullOrEmpty(definition.fallbackGlyph)
+                ? GetDefaultEmoji(definition.role)
+                : definition.fallbackGlyph);
             glyph.AddToClassList("st-visual-placeholder-glyph");
             root.Add(glyph);
-            var label = new Label("ART PLACEHOLDER");
-            label.AddToClassList("st-visual-placeholder-label");
-            root.Add(label);
             return root;
+        }
+
+        private static string GetDefaultEmoji(StimVisualRole role)
+        {
+            switch (role)
+            {
+                case StimVisualRole.Hero: return "✨";
+                case StimVisualRole.Avatar: return "👤";
+                case StimVisualRole.Thumbnail: return "🖼️";
+                case StimVisualRole.Object: return "📦";
+                case StimVisualRole.Badge: return "🏅";
+                case StimVisualRole.Background: return "🌤️";
+                default: return "🔹";
+            }
         }
 
         private static string Sanitize(string value)

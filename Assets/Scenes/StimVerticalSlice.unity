@@ -234,6 +234,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: StimTycoon.Runtime::StimTycoon.Runtime.StimVerticalSliceController
   panelSettings: {fileID: 11400000, guid: adbaf83e66d7245679a064370738825b, type: 2}
   visualTreeAsset: {fileID: 9197481963319205126, guid: f641ab0d59e8742ae89034011f4c59fc, type: 3}
+  accessibilityTextScale: 1
 --- !u!114 &1998228014
 MonoBehaviour:
   m_ObjectHideFlags: 0

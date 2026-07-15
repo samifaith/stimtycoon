@@ -27,7 +27,9 @@ The repository now contains:
 - required school-path decisions, context-sensitive childhood/school/work activities, persistent peers, relationship drift, authored drama, and scheduled consequences
 - a coming-of-age identity chain followed by friendship-gated dating, prom, first-kiss, partnership, engagement, marriage, strain, counseling, separation, and divorce branches
 - persistent household happiness/cohesion, spouse-derived savings/debt/income, fixed-price family activities, and cash-or-credit payment selection with risk-based APR and monthly interest
-- a mobile UI Toolkit vertical slice with choices, outcomes, cash, life feed, autosave feedback, and a collapsible six-stat player overview
+- a mobile UI Toolkit vertical slice with a compact player/cash header, six persistent destinations, age progression, timeline-style life feed, stat tiles, choices, outcomes, and autosave feedback
+- Stim-owned theme/component boundaries in `StimTheme.uss` and `Components.uss`, licensed Lucide functional navigation icons, and emoji fallbacks for unfinished content imagery
+- Unity Device Simulator definitions for iPhone 17, iPhone 17 Pro, and iPhone 17 Pro Max, including conservative Dynamic Island and home-indicator safe-area baselines
 - replaceable interfaces for dialogue, saves, accounts, cloud saves, ads, and event catalogs
 - age-gated General, Academic, and Vocational study-track selection with authored material costs, affordability previews, transactional persistence, and Life Feed outcomes
 - easy, medium, and hard study sessions with explicit Smarts/Happiness tradeoffs, monthly cooldowns, qualification XP, and visible tier progress
@@ -64,7 +66,7 @@ Every milestone also carries shared gates for save migration and rollback, bound
 
 See [the active task list](docs/TASKS.md) for milestone acceptance criteria and shared completion gates.
 
-The approved M13 UI direction uses Free Casual GUI as the control foundation, Space Exploration GUI Kit as layout inspiration, and Jelly UI Pack for rewarding interaction accents. Stim-owned UXML and USS remain the integration boundary; imported vendor folders are not edited or reorganized. The selected dependencies and release checks are recorded in [the UI asset manifest](Assets/UI/Art/ASSET_MANIFEST.md).
+The approved M13 UI direction is a compact, light mobile interface based on the supplied wireframes: restrained white cards on a pale-blue canvas, an 88–96 point status header, dense list rows, and six icon-over-label navigation items. Free Casual GUI is the control foundation, Space Exploration GUI Kit informs information hierarchy, and Jelly UI Pack is reserved for rewarding interaction accents. Stim-owned UXML and USS remain the integration boundary; imported vendor folders are not edited or reorganized. Licensed Lucide SVGs are used for functional navigation, while emoji stand in for unfinished content illustrations. The selected dependencies and release checks are recorded in [the UI asset manifest](Assets/UI/Art/ASSET_MANIFEST.md).
 
 ## Open and Run
 
@@ -73,6 +75,8 @@ The approved M13 UI direction uses Free Casual GUI as the control foundation, Sp
 3. Confirm the Console has no compilation errors.
 4. Open `Assets/Scenes/StimVerticalSlice.unity`.
 5. Press Play, resolve events, advance months, and use **View Player Overview** to inspect the current life state.
+
+For mobile layout checks, open Device Simulator and select **Apple iPhone 17**, **Apple iPhone 17 Pro**, or **Apple iPhone 17 Pro Max**. If those profiles are missing after import, run `Tools → Stim Tycoon → Install iPhone 17 Simulator Profiles`, then reopen Device Simulator.
 
 If the scene ever needs to be rebuilt, use:
 
@@ -127,7 +131,8 @@ Assets/
 │   ├── Editor/            # Setup checks and scene tooling
 │   ├── Vendors/           # Isolated vendor integrations
 │   └── Tests/             # EditMode test suite
-└── UI/                    # UXML, USS, and panel settings
+├── DeviceSimulatorDevices/ # Stim-owned iPhone 17 simulation definitions
+└── UI/                    # Canonical UXML, USS, icons, and panel settings
 
 Packages/                  # Pinned Unity dependencies
 ProjectSettings/           # Unity project configuration
