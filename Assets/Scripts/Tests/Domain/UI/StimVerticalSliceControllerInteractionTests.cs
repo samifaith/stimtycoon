@@ -257,6 +257,27 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void LifeSummary_OpensFromHeaderAndReturnsToPreviousDestination()
+        {
+            Invoke("ShowMoneyDestination");
+
+            Invoke("ShowLifeSummary");
+
+            Assert.IsFalse(root.Q("life-summary-view").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q("money-view").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q("time-dock").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q<Button>("nav-money").ClassListContains("active"));
+            Assert.That(root.Q<Label>("summary-career-detail").text, Is.Not.Empty);
+
+            Invoke("CloseLifeSummary");
+
+            Assert.IsTrue(root.Q("life-summary-view").ClassListContains("hidden"));
+            Assert.IsFalse(root.Q("money-view").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q<Button>("nav-money").ClassListContains("active"));
+            Assert.IsTrue(root.Q("time-dock").ClassListContains("hidden"));
+        }
+
+        [Test]
         public void SocialInteraction_UpdatesProfileAndShowsOutcomeOverlay()
         {
             var parent = session.ActiveSave.state.relationships[0];
@@ -573,6 +594,42 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void AgeGatedOptions_DoNotAppearBeforeTheyAreAgeAppropriate()
+        {
+            session.ActiveSave.state.character.age = 5;
+            session.ActiveSave.state.character.lifeStage = StimGameSessionService.GetLifeStage(5);
+
+            Invoke("RefreshEducation");
+            Invoke("RefreshCareer");
+            Invoke("RefreshMoney");
+            Invoke("RefreshSocial");
+
+            Assert.That(root.Q("education-empty-state").Q(className: "st-path-row"), Is.Null);
+            Assert.IsTrue(root.Q("career-empty-state").ClassListContains("hidden"));
+            Assert.That(root.Q("career-path-preview").childCount, Is.EqualTo(0));
+            Assert.IsTrue(root.Q("index-investment-card").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q("manual-work-card").ClassListContains("hidden"));
+            Assert.That(root.Q("money-accounts-list").Q("account-row-index-fund"), Is.Null);
+            Assert.IsTrue(root.Q<Button>("discover-compatible-person").ClassListContains("hidden"));
+            Assert.That(root.Q<Button>("career-action-retire"), Is.Null);
+
+            session.ActiveSave.state.character.age = 18;
+            Invoke("RefreshCareer");
+            Invoke("RefreshMoney");
+            Invoke("RefreshSocial");
+
+            Assert.IsFalse(root.Q("career-empty-state").ClassListContains("hidden"));
+            Assert.That(root.Q("career-path-preview").childCount, Is.GreaterThan(0));
+            Assert.IsFalse(root.Q("index-investment-card").ClassListContains("hidden"));
+            Assert.IsFalse(root.Q<Button>("discover-compatible-person").ClassListContains("hidden"));
+            Assert.That(root.Q<Button>("career-action-retire"), Is.Null);
+
+            session.ActiveSave.state.character.age = 65;
+            Invoke("RefreshCareer");
+            Assert.That(root.Q<Button>("career-action-retire"), Is.Not.Null);
+        }
+
+        [Test]
         public void MoneyDestination_ManualTapPaysCurrentJobsHourlyRate()
         {
             session.ActiveSave.state.career = new StimCareerState
@@ -678,7 +735,23 @@ namespace StimTycoon.Tests.Domain.UI
                 { "contextActivities", "context-activities" },
                 { "homeCondition", "home-condition" }, { "homeProgress", "home-progress" },
                 { "homeActions", "home-actions" }, { "homeUpgradeFeedback", "home-upgrade-feedback" },
-                { "lifeScroll", "life-scroll" }, { "socialView", "social-view" },
+                { "lifeScroll", "life-scroll" }, { "lifeSummaryView", "life-summary-view" },
+                { "openLifeSummary", "open-life-summary" }, { "closeLifeSummary", "close-life-summary" },
+                { "addCash", "add-cash" },
+                { "summaryStageDetail", "summary-stage-detail" },
+                { "summaryCalendarDetail", "summary-calendar-detail" },
+                { "summaryCareerDetail", "summary-career-detail" },
+                { "summaryHealthValue", "summary-health-value" },
+                { "summaryHappinessValue", "summary-happiness-value" },
+                { "summarySmartsValue", "summary-smarts-value" },
+                { "summaryLooksValue", "summary-looks-value" },
+                { "summaryLuckValue", "summary-luck-value" },
+                { "summaryHealthFill", "summary-health-fill" },
+                { "summaryHappinessFill", "summary-happiness-fill" },
+                { "summarySmartsFill", "summary-smarts-fill" },
+                { "summaryLooksFill", "summary-looks-fill" },
+                { "summaryLuckFill", "summary-luck-fill" },
+                { "socialView", "social-view" },
                 { "timeDock", "time-dock" }, { "navLife", "nav-life" },
                 { "navEducation", "nav-education" }, { "navCareer", "nav-career" },
                 { "navSocial", "nav-social" }, { "navGoals", "nav-goals" },
@@ -688,7 +761,10 @@ namespace StimTycoon.Tests.Domain.UI
                 { "careerDestinationContent", "career-destination-content" },
                 { "goalsDestinationContent", "goals-destination-content" },
                 { "educationEmptyState", "education-empty-state" },
+                { "educationUnavailableCopy", "education-unavailable-copy" },
                 { "careerEmptyState", "career-empty-state" },
+                { "careerContextCopy", "career-context-copy" },
+                { "careerPathPreview", "career-path-preview" },
                 { "relationshipListView", "relationship-list-view" }, { "relationshipList", "relationship-list" },
                 { "discoverCompatiblePerson", "discover-compatible-person" },
                 { "relationshipDiscoveryFeedback", "relationship-discovery-feedback" },
@@ -705,6 +781,7 @@ namespace StimTycoon.Tests.Domain.UI
                 { "careerSalary", "career-salary" }, { "careerNextStep", "career-next-step" },
                 { "careerActionFill", "career-action-fill" },
                 { "careerActionProgress", "career-action-progress" }, { "careerActions", "career-actions" },
+                { "careerActionsCard", "career-actions-card" },
                 { "finalLifeSummary", "final-life-summary" }, { "endingName", "ending-name" },
                 { "endingStatus", "ending-status" }, { "endingSummary", "ending-summary" },
                 { "endingNewLife", "ending-new-life" }, { "achievementsCount", "achievements-count" },
@@ -719,6 +796,7 @@ namespace StimTycoon.Tests.Domain.UI
                 { "savingsAmountInput", "savings-amount-input" },
                 { "savingsTransferFeedback", "savings-transfer-feedback" },
                 { "moneyTransactionHistory", "money-transaction-history" },
+                { "moneyAccountsList", "money-accounts-list" },
                 { "cashFlowGross", "cash-flow-gross" }, { "cashFlowTaxes", "cash-flow-taxes" },
                 { "cashFlowExpenses", "cash-flow-expenses" },
                 { "cashFlowCreditInterest", "cash-flow-credit-interest" },

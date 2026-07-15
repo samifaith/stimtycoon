@@ -3462,6 +3462,7 @@ namespace StimTycoon.Tests.Domain.Runtime
             var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
             var save = CreateValidSave();
             service.Start(save);
+            var lifeFeedCountBefore = service.ActiveSave.state.lifeFeed.Count;
 
             Assert.IsTrue(service.TryTransferSavings(
                 StimSavingsTransferType.Deposit, 25000, out var depositSummary), depositSummary);
@@ -3474,6 +3475,7 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(service.ActiveSave.state.moneyTransactions, Has.Count.EqualTo(2));
             Assert.That(service.ActiveSave.state.moneyTransactions[0].type, Is.EqualTo("savings_deposit"));
             Assert.That(service.ActiveSave.state.moneyTransactions[1].type, Is.EqualTo("savings_withdrawal"));
+            Assert.That(service.ActiveSave.state.lifeFeed, Has.Count.EqualTo(lifeFeedCountBefore + 2));
             Assert.That(repository.CommitCount, Is.EqualTo(2));
         }
 

@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="stat-tile" class="st-stat-row st-stat-tile st-component-stat-row">
+        <ui:Label name="stat-tile-icon" text="•" class="st-stat-icon" />
+        <ui:VisualElement class="st-stat-main">
+            <ui:Label name="stat-tile-title" text="Stat" class="st-stat-name" />
+            <ui:VisualElement class="st-stat-track"><ui:VisualElement name="stat-tile-fill" class="st-stat-fill" /></ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Label name="stat-tile-value" text="0 / 100" class="st-stat-number" />
+    </ui:VisualElement>
+</ui:UXML>

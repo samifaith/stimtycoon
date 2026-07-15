@@ -1,0 +1,58 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="project://database/Assets/UI/Styles/StimTheme.uss" />
+    <Style src="project://database/Assets/UI/Styles/Shell.uss" />
+    <Style src="project://database/Assets/UI/Styles/Components.uss" />
+    <Style src="project://database/Assets/UI/Styles/Destinations.uss" />
+    <Style src="ComponentGallery.uss" />
+
+    <ui:ScrollView name="component-gallery" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-gallery">
+        <ui:VisualElement class="st-gallery-content">
+            <ui:Label text="STIM TYCOON" class="st-gallery-eyebrow" />
+            <ui:Label text="Brand Component Gallery" class="st-gallery-title" />
+            <ui:Label text="Skyden is the language · Space is the organization · Jelly is the delight" class="st-gallery-intro" />
+
+            <ui:VisualElement name="skyden-section" class="st-gallery-section">
+                <ui:Label text="SKYDEN · EVERYDAY ACTIONS" class="st-gallery-section-title" />
+                <ui:Label text="Vector-backed controls at their validated wide aspect ratio." class="st-gallery-caption" />
+                <ui:VisualElement class="st-gallery-row">
+                    <ui:Button name="skyden-primary" text="ADVANCE MONTH  ›" class="st-gallery-wide-button st-brand-skyden-button stim-pack-interaction-pop" />
+                    <ui:Button name="skyden-disabled" text="LOCKED" enabled="false" class="st-gallery-wide-button st-brand-skyden-button stim-pack-interaction-pop" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="space-section" class="st-gallery-section">
+                <ui:Label text="SPACE · INFORMATION HIERARCHY" class="st-gallery-section-title" />
+                <ui:Label text="Standalone pictograms scale safely; unsliced container sheets remain excluded." class="st-gallery-caption" />
+                <ui:VisualElement class="st-gallery-icon-row">
+                    <ui:VisualElement class="st-gallery-icon-sample"><ui:VisualElement class="st-gallery-icon st-brand-space-icon icon-home" /><ui:Label text="Home" /></ui:VisualElement>
+                    <ui:VisualElement class="st-gallery-icon-sample"><ui:VisualElement class="st-gallery-icon st-brand-space-icon icon-book" /><ui:Label text="Study" /></ui:VisualElement>
+                    <ui:VisualElement class="st-gallery-icon-sample"><ui:VisualElement class="st-gallery-icon st-brand-space-icon icon-heart" /><ui:Label text="Social" /></ui:VisualElement>
+                    <ui:VisualElement class="st-gallery-icon-sample"><ui:VisualElement class="st-gallery-icon st-brand-space-icon icon-badge" /><ui:Label text="Goals" /></ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="st-gallery-dashboard-card">
+                    <ui:VisualElement class="st-gallery-card-heading"><ui:VisualElement class="st-gallery-heading-icon st-brand-space-icon icon-badge" /><ui:VisualElement><ui:Label text="Life progress" class="st-gallery-card-title" /><ui:Label text="Structured like a management dashboard, without sci-fi scenery." class="st-gallery-caption" /></ui:VisualElement></ui:VisualElement>
+                    <ui:VisualElement class="st-gallery-stat-row"><ui:Label text="Career" /><ui:VisualElement class="st-gallery-progress"><ui:VisualElement class="st-gallery-progress-fill" /></ui:VisualElement><ui:Label text="68%" /></ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="jelly-section" class="st-gallery-section st-gallery-section-reward">
+                <ui:Label text="JELLY · REWARDS AND MILESTONES" class="st-gallery-section-title" />
+                <ui:Label text="High-energy artwork is reserved for moments that deserve attention." class="st-gallery-caption" />
+                <ui:VisualElement class="st-gallery-reward-card">
+                    <ui:VisualElement class="st-gallery-reward-icon stim-pack-reward-icon" />
+                    <ui:VisualElement class="st-gallery-reward-copy"><ui:Label text="Milestone reached!" class="st-gallery-card-title" /><ui:Label text="First year completed · +250 XP" class="st-gallery-caption" /></ui:VisualElement>
+                    <ui:Button name="jelly-claim" text="CLAIM" class="st-gallery-reward-button st-brand-jelly-reward stim-pack-interaction-pop" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="mixed-section" class="st-gallery-section">
+                <ui:Label text="COMBINED COMPONENT CONTRACT" class="st-gallery-section-title" />
+                <ui:VisualElement class="st-gallery-dashboard-card">
+                    <ui:VisualElement class="st-gallery-card-heading"><ui:VisualElement class="st-gallery-heading-icon st-brand-space-icon icon-home" /><ui:Label text="Monthly summary" class="st-gallery-card-title" /></ui:VisualElement>
+                    <ui:Label text="Space identifies the information, neutral Stim surfaces carry the content, and Jelly appears only when a reward is available." class="st-gallery-intro" />
+                    <ui:VisualElement class="st-gallery-row"><ui:Button text="VIEW DETAILS" class="st-gallery-wide-button st-brand-skyden-button stim-pack-interaction-pop" /><ui:Button text="CLAIM REWARD" class="st-gallery-wide-button st-brand-jelly-reward stim-pack-interaction-pop" /></ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:ScrollView>
+</ui:UXML>

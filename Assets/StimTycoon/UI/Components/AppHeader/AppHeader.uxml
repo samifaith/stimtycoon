@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <ui:VisualElement name="app-header" class="st-life-header stim-pack-status-cluster">
-        <ui:VisualElement class="st-profile-cluster">
+    <ui:VisualElement name="app-header" class="st-life-header st-component-app-header stim-pack-status-cluster">
+        <ui:Button name="open-life-summary" class="st-profile-cluster" tooltip="Open Life Summary">
             <ui:VisualElement class="st-profile-avatar"><ui:Label name="avatar-glyph" text="🧑" class="st-profile-avatar-glyph" /></ui:VisualElement>
             <ui:VisualElement class="st-profile-meta">
                 <ui:Label name="life-summary" text="Age 19" class="st-age-pill" />
@@ -10,7 +10,7 @@
                     <ui:Label name="career-progress-value" text="0 / 100 XP" class="st-xp-label" />
                 </ui:VisualElement>
             </ui:VisualElement>
-        </ui:VisualElement>
+        </ui:Button>
 
         <ui:VisualElement name="balance-pill" class="st-balance-pill">
             <ui:Label text="$" class="st-balance-icon" />

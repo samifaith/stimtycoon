@@ -28,7 +28,9 @@ The repository now contains:
 - a coming-of-age identity chain followed by friendship-gated dating, prom, first-kiss, partnership, engagement, marriage, strain, counseling, separation, and divorce branches
 - persistent household happiness/cohesion, spouse-derived savings/debt/income, fixed-price family activities, and cash-or-credit payment selection with risk-based APR and monthly interest
 - a mobile UI Toolkit vertical slice with a compact player/cash header, six persistent destinations, age progression, timeline-style life feed, stat tiles, choices, outcomes, and autosave feedback
+- age-appropriate destination presentation that omits school, adult career/business, investing, dating-discovery, and retirement options until their relevant life stage, while retaining actionable non-age lock reasons once an option is relevant
 - Stim-owned theme/component boundaries in `StimTheme.uss` and `Components.uss`, licensed Lucide functional navigation icons, and emoji fallbacks for unfinished content imagery
+- canonical reusable UXML contracts for section headers, feed rows, stat tiles, achievement rows, action cards, and information banners, plus a non-production brand component gallery
 - Unity Device Simulator definitions for iPhone 17, iPhone 17 Pro, and iPhone 17 Pro Max, including conservative Dynamic Island and home-indicator safe-area baselines
 - replaceable interfaces for dialogue, saves, accounts, cloud saves, ads, and event catalogs
 - age-gated General, Academic, and Vocational study-track selection with authored material costs, affordability previews, transactional persistence, and Life Feed outcomes
@@ -66,7 +68,7 @@ Every milestone also carries shared gates for save migration and rollback, bound
 
 See [the active task list](docs/TASKS.md) for milestone acceptance criteria and shared completion gates.
 
-The approved M13 UI direction is a compact, light mobile interface based on the supplied wireframes: restrained white cards on a pale-blue canvas, an 88–96 point status header, dense list rows, and six icon-over-label navigation items. Free Casual GUI is the control foundation, Space Exploration GUI Kit informs information hierarchy, and Jelly UI Pack is reserved for rewarding interaction accents. Stim-owned UXML and USS remain the integration boundary; imported vendor folders are not edited or reorganized. Licensed Lucide SVGs are used for functional navigation, while emoji stand in for unfinished content illustrations. The selected dependencies and release checks are recorded in [the UI asset manifest](Assets/UI/Art/ASSET_MANIFEST.md).
+The approved M13 UI direction is a compact, light mobile interface based on the supplied wireframes: restrained white cards on a pale-blue canvas, an 88–96 point status header, dense list rows, and six icon-over-label navigation items. Free Casual GUI is the control foundation, Space Exploration GUI Kit informs information hierarchy, and Jelly UI Pack is reserved for rewarding interaction accents. Stim-owned UXML and USS remain the integration boundary; imported vendor folders are not edited or reorganized. Licensed Lucide SVGs are used for functional navigation, while emoji stand in for unfinished content illustrations. Canonical component contracts and the review gallery now support the migration, but M13 remains open pending runtime width/text-scale verification, state restoration, and interaction-detail completion. The selected dependencies and release checks are recorded in [the UI asset manifest](Assets/UI/Art/ASSET_MANIFEST.md).
 
 ## Open and Run
 

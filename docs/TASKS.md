@@ -34,7 +34,7 @@ Specification execution phases:
 - [x] Phase 1C — rebuild six-destination navigation with licensed Lucide SVGs, icon-over-label composition, active capsules, and 44-point targets.
 - [ ] Phase 1D — complete Play Mode overlap, truncation, safe-area, and 320/390/430/768-width verification.
 - [x] Add Unity Device Simulator profiles for iPhone 17, iPhone 17 Pro, and iPhone 17 Pro Max using native pixel dimensions and conservative Dynamic Island/home-indicator safe areas.
-- [ ] Phase 2 — extract and adopt reusable `SectionHeader`, `FeedRow`, `StatTile`, `AchievementRow`, `ActionCard`, and `InfoBanner` components.
+- [ ] Phase 2 — extract and adopt reusable `SectionHeader`, `FeedRow`, `StatTile`, `AchievementRow`, `ActionCard`, and `InfoBanner` components. Canonical UXML contracts, shared USS hooks, runtime row factories, gallery coverage, and stable-root tests are implemented; full live-shell adoption remains.
 - [x] Replace temporary content-art glyphs with emoji imagery across live feed, life actions, education, career previews, goals, avatars, and reusable visual slots; retain Lucide SVGs for functional navigation.
 - [x] Add the compact four-stage age progression strip required by the Life wireframe and bind its active/completed/locked state to player age.
 - [ ] Phase 3 — add normalized original illustrations, one reusable mini-game framework with Study Match, and disabled/configurable Stim+ and sponsored placeholders.
@@ -57,13 +57,13 @@ The editor installs these definitions into `Assets/DeviceSimulatorDevices` after
 The native display sizes come from Apple’s published technical specifications. Safe-area values are conservative simulator baselines for layout testing, not a substitute for validation on physical hardware and the current iOS SDK.
 
 - [x] Confirm the live scene uses `Assets/UI/StimVerticalSlice.uxml` and preserve its stable controller bindings.
-- [x] Treat `Assets/UI/Styles/StimTheme.uss` and `Assets/UI/Styles/Components.uss` as the only stylesheets referenced directly by the playable root.
-- [x] Explicitly map the retained legacy layout rules through `Components.uss` until they are migrated component by component.
+- [x] Treat `StimTheme.uss`, `Shell.uss`, `Components.uss`, and `Destinations.uss` as the four exclusive stylesheets referenced directly by the playable root.
+- [x] Remove the retained legacy layout imports after assigning shell, component, and destination rules to their canonical owners.
 - [x] Apply bounded Stim-owned theme-adapter surfaces to representative primary/secondary actions and reward/claim feedback without stretching large source sprites onto layout containers.
 - [x] Add structural tests that reject direct legacy stylesheet references and require the representative live vendor classes.
 - [ ] Verify the live scene in Play Mode at 320/390/430/768 widths and record results.
 - [ ] Repeat the width checks at 130% text scale and correct any clipping, overlap, or sub-44-point primary target.
-- [ ] Replace the retained legacy layout import with destination/component-owned rules as each screen is extracted under `Assets/UI/Screens`.
+- [x] Replace the retained legacy layout import with shell-, destination-, and component-owned production rules.
 
 1. Keep the imported vendor packs in their existing vendor-owned folders; place only Stim-owned derivatives, mappings, and manifest records in `Assets/UI/Art` and `Assets/UI/Icons`.
 2. Build destination screens as `.uxml` files under `Assets/UI/Screens` and reusable UI elements under the designated Stim-owned component directory.
@@ -89,12 +89,13 @@ Assets/UI/
 - [x] Establish the approved three-pack UI direction through a replaceable Stim-owned USS adapter and an asset/license manifest, without reorganizing vendor imports.
 - [ ] Apply the imported GUI packs visibly to the live `StimVerticalSlice` UI through Stim-owned UXML/USS: use Free Casual GUI for the primary panel/button/control surfaces, Space Exploration GUI Kit to reshape headers, status clusters, navigation, and information-dense layouts, and Jelly UI Pack for reward, claim, achievement, and celebratory interaction accents.
 - [ ] Replace the current plain/default/placeholder presentation across the six-destination shell with the selected vendor sprites and Stim-owned themed derivatives; importing assets, listing them in the manifest, or defining unused USS tokens does not satisfy this task.
-- [ ] Audit the overlapping `Assets/UI` and `Assets/StimTycoon/UI` UXML/USS trees, choose and document the canonical live paths, and consolidate or explicitly map the remaining files without breaking Unity `.meta` references. The scene, UI tests, and future destination work must all consume the same canonical theme and component set.
+- [x] Audit the overlapping `Assets/UI` and `Assets/StimTycoon/UI` UXML/USS trees, retain `Assets/UI/StimVerticalSlice.uxml` plus the four `Assets/UI/Styles` owners as production paths, and keep extracted templates under `Assets/StimTycoon/UI/Components`; structural tests protect these boundaries.
 - [ ] Complete and document a live Play Mode visual verification at 320/390/430/768 widths showing that the approved assets are actually rendered in the status header, navigation, representative destination panels, primary/secondary actions, and at least one reward/claim flow.
 - [ ] Add reusable destination headers, segmented tabs, modal sheets, requirement chips, action states, progress bars, timer/cooldown rows, and selected-navigation styling.
 - [ ] Replace default/placeholder scrollbars throughout the application with one polished Stim scrollbar and scroll-affordance system for page, list, sheet, tab, and nested-scroll contexts; do not solve visual quality by hiding required position feedback.
 - [ ] Complete the shared UI-detail pass for spacing, dividers, shadows, borders, pressed/hover/focus/disabled states, empty/loading/locked states, truncation/wrapping, and consistent icon/text alignment.
 - [ ] Restore destination, tab, scroll position, and selected object/person after sheets and action resolution.
+- [x] Omit options that are not yet age-appropriate from destination UI; once relevant by age, show other unmet requirements as explicit locks rather than leaking future-life actions early.
 - [ ] Keep Advance Month/Year, pending decisions, transition presentations, and endings reachable and unobscured.
 - [ ] Add structural and interaction coverage for navigation, overlays, back/close behavior, focus order, and state restoration.
 - [x] Render Life Feed updates as a deterministic semantic ordered list with age/month/revision ordering, category context, numbered accessible item context, and no in-place save reordering.

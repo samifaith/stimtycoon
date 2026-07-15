@@ -62,8 +62,11 @@ namespace StimTycoon.Tests.Domain.Runtime
         {
             var root = StimActionInputFactory.CreateAmountSelector(10000, _ => { });
             Assert.That(root.Query<Button>(className: "st-percentage-button").ToList(), Has.Count.EqualTo(5));
+            Assert.That(root.Q<Label>("amount-quick-label").text, Is.EqualTo("Quick amounts"));
+            Assert.That(root.Q<Label>("amount-exact-label").text, Is.EqualTo("Or enter a custom amount"));
             Assert.That(root.Q<TextField>("amount-exact-input"), Is.Not.Null);
             Assert.That(root.Q<Button>("amount-apply").enabledSelf, Is.True);
+            Assert.That(root.Q<Button>("amount-apply").text, Is.EqualTo("Continue"));
         }
 
         [Test]

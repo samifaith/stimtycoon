@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="achievement-row" class="st-achievement-row st-component-achievement-row">
+        <ui:Label name="achievement-row-icon" text="🏆" class="st-achievement-icon" />
+        <ui:VisualElement class="st-achievement-copy">
+            <ui:Label name="achievement-row-title" text="Achievement" class="st-achievement-name" />
+            <ui:Label name="achievement-row-category" text="Milestone" class="st-achievement-category" />
+            <ui:Label name="achievement-row-progress" text="0 / 1" class="st-achievement-progress" />
+        </ui:VisualElement>
+        <ui:Label name="achievement-row-reward" text="Reward" class="st-achievement-reward" />
+        <ui:Button name="achievement-row-action" text="GO" class="st-achievement-action stim-pack-interaction-pop" />
+    </ui:VisualElement>
+</ui:UXML>

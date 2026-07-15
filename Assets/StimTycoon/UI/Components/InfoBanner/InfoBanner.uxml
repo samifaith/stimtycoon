@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="info-banner" class="st-info-callout st-component-info-banner">
+        <ui:Label name="info-banner-icon" text="i" class="st-info-icon" />
+        <ui:VisualElement class="st-row-copy">
+            <ui:Label name="info-banner-title" text="Good to know" class="st-component-info-title" />
+            <ui:Label name="info-banner-body" text="Helpful context appears here." class="st-info-copy" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

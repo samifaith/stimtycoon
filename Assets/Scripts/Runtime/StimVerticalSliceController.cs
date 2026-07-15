@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using StimTycoon.Events;
 using StimTycoon.Saves;
@@ -8,6 +9,16 @@ using UnityEngine.UIElements;
 
 namespace StimTycoon.Runtime
 {
+    internal enum StimDestination
+    {
+        Life,
+        Study,
+        Work,
+        Bank,
+        Social,
+        Goals
+    }
+
     [RequireComponent(typeof(UIDocument))]
     public sealed class StimVerticalSliceController : MonoBehaviour
     {
@@ -72,8 +83,12 @@ namespace StimTycoon.Runtime
         private VisualElement homeActions;
         private Label homeUpgradeFeedback;
         private ScrollView lifeScroll;
+        private ScrollView lifeSummaryView;
         private ScrollView socialView;
         private VisualElement timeDock;
+        private Button openLifeSummary;
+        private Button closeLifeSummary;
+        private Button addCash;
         private Button navLife;
         private Button navEducation;
         private Button navCareer;
@@ -84,11 +99,27 @@ namespace StimTycoon.Runtime
         private ScrollView educationView;
         private ScrollView careerView;
         private ScrollView goalsView;
+        private Label summaryStageDetail;
+        private Label summaryCalendarDetail;
+        private Label summaryCareerDetail;
+        private Label summaryHealthValue;
+        private Label summaryHappinessValue;
+        private Label summarySmartsValue;
+        private Label summaryLooksValue;
+        private Label summaryLuckValue;
+        private VisualElement summaryHealthFill;
+        private VisualElement summaryHappinessFill;
+        private VisualElement summarySmartsFill;
+        private VisualElement summaryLooksFill;
+        private VisualElement summaryLuckFill;
         private VisualElement educationDestinationContent;
         private VisualElement careerDestinationContent;
         private VisualElement goalsDestinationContent;
         private VisualElement educationEmptyState;
+        private Label educationUnavailableCopy;
         private VisualElement careerEmptyState;
+        private Label careerContextCopy;
+        private VisualElement careerPathPreview;
         private Label manualWorkRole;
         private Label manualWorkRate;
         private Label moneyCashValue;
@@ -101,6 +132,7 @@ namespace StimTycoon.Runtime
         private VisualElement savingsAmountInput;
         private Label savingsTransferFeedback;
         private VisualElement moneyTransactionHistory;
+        private VisualElement moneyAccountsList;
         private Label cashFlowGross;
         private Label cashFlowTaxes;
         private Label cashFlowExpenses;
@@ -146,6 +178,7 @@ namespace StimTycoon.Runtime
         private VisualElement careerActionFill;
         private Label careerActionProgress;
         private VisualElement careerActions;
+        private VisualElement careerActionsCard;
         private VisualElement finalLifeSummary;
         private Label endingName;
         private Label endingStatus;
@@ -157,6 +190,8 @@ namespace StimTycoon.Runtime
         private StimActivityType primaryFocusActivity;
         private StimActivityType secondaryFocusActivity;
         private StimEvent currentEvent;
+        private StimDestination activeDestination = StimDestination.Life;
+        private Vector2 scrollOffsetBeforeLifeSummary;
 
         private void OnEnable()
         {
@@ -217,8 +252,12 @@ namespace StimTycoon.Runtime
             homeActions = root.Q<VisualElement>("home-actions");
             homeUpgradeFeedback = root.Q<Label>("home-upgrade-feedback");
             lifeScroll = root.Q<ScrollView>("life-scroll");
+            lifeSummaryView = root.Q<ScrollView>("life-summary-view");
             socialView = root.Q<ScrollView>("social-view");
             timeDock = root.Q<VisualElement>("time-dock");
+            openLifeSummary = root.Q<Button>("open-life-summary");
+            closeLifeSummary = root.Q<Button>("close-life-summary");
+            addCash = root.Q<Button>("add-cash");
             navLife = root.Q<Button>("nav-life");
             navEducation = root.Q<Button>("nav-education");
             navCareer = root.Q<Button>("nav-career");
@@ -229,11 +268,27 @@ namespace StimTycoon.Runtime
             educationView = root.Q<ScrollView>("education-view");
             careerView = root.Q<ScrollView>("career-view");
             goalsView = root.Q<ScrollView>("goals-view");
+            summaryStageDetail = root.Q<Label>("summary-stage-detail");
+            summaryCalendarDetail = root.Q<Label>("summary-calendar-detail");
+            summaryCareerDetail = root.Q<Label>("summary-career-detail");
+            summaryHealthValue = root.Q<Label>("summary-health-value");
+            summaryHappinessValue = root.Q<Label>("summary-happiness-value");
+            summarySmartsValue = root.Q<Label>("summary-smarts-value");
+            summaryLooksValue = root.Q<Label>("summary-looks-value");
+            summaryLuckValue = root.Q<Label>("summary-luck-value");
+            summaryHealthFill = root.Q<VisualElement>("summary-health-fill");
+            summaryHappinessFill = root.Q<VisualElement>("summary-happiness-fill");
+            summarySmartsFill = root.Q<VisualElement>("summary-smarts-fill");
+            summaryLooksFill = root.Q<VisualElement>("summary-looks-fill");
+            summaryLuckFill = root.Q<VisualElement>("summary-luck-fill");
             educationDestinationContent = root.Q<VisualElement>("education-destination-content");
             careerDestinationContent = root.Q<VisualElement>("career-destination-content");
             goalsDestinationContent = root.Q<VisualElement>("goals-destination-content");
             educationEmptyState = root.Q<VisualElement>("education-empty-state");
+            educationUnavailableCopy = root.Q<Label>("education-unavailable-copy");
             careerEmptyState = root.Q<VisualElement>("career-empty-state");
+            careerContextCopy = root.Q<Label>("career-context-copy");
+            careerPathPreview = root.Q<VisualElement>("career-path-preview");
             manualWorkRole = root.Q<Label>("manual-work-role");
             manualWorkRate = root.Q<Label>("manual-work-rate");
             moneyCashValue = root.Q<Label>("money-cash-value");
@@ -246,6 +301,7 @@ namespace StimTycoon.Runtime
             savingsAmountInput = root.Q<VisualElement>("savings-amount-input");
             savingsTransferFeedback = root.Q<Label>("savings-transfer-feedback");
             moneyTransactionHistory = root.Q<VisualElement>("money-transaction-history");
+            moneyAccountsList = root.Q<VisualElement>("money-accounts-list");
             cashFlowGross = root.Q<Label>("cash-flow-gross");
             cashFlowTaxes = root.Q<Label>("cash-flow-taxes");
             cashFlowExpenses = root.Q<Label>("cash-flow-expenses");
@@ -289,6 +345,7 @@ namespace StimTycoon.Runtime
             careerActionFill = root.Q<VisualElement>("career-action-fill");
             careerActionProgress = root.Q<Label>("career-action-progress");
             careerActions = root.Q<VisualElement>("career-actions");
+            careerActionsCard = root.Q<VisualElement>("career-actions-card");
             finalLifeSummary = root.Q<VisualElement>("final-life-summary");
             endingName = root.Q<Label>("ending-name");
             endingStatus = root.Q<Label>("ending-status");
@@ -341,18 +398,27 @@ namespace StimTycoon.Runtime
                 luckFill == null || newLifeSetup == null || newLifeError == null ||
                 cancelNewLife == null || continueCurrentLife == null || createNewLife == null || openNewLife == null ||
                 focusStudy == null || focusWorkout == null || focusStudyTitle == null || focusStudyEffect == null ||
-                focusWorkoutTitle == null || focusWorkoutEffect == null || lifeScroll == null || socialView == null ||
+                focusWorkoutTitle == null || focusWorkoutEffect == null || lifeScroll == null || lifeSummaryView == null ||
+                openLifeSummary == null || closeLifeSummary == null || addCash == null || socialView == null ||
                 contextActivities == null || homeCondition == null || homeProgress == null ||
                 homeActions == null || homeUpgradeFeedback == null ||
                 timeDock == null || navLife == null || navEducation == null || navCareer == null ||
                 navMoney == null || navSocial == null || navGoals == null || moneyView == null ||
                 educationView == null || careerView == null || goalsView == null ||
+                summaryStageDetail == null || summaryCalendarDetail == null || summaryCareerDetail == null ||
+                summaryHealthValue == null || summaryHappinessValue == null || summarySmartsValue == null ||
+                summaryLooksValue == null || summaryLuckValue == null || summaryHealthFill == null ||
+                summaryHappinessFill == null || summarySmartsFill == null || summaryLooksFill == null ||
+                summaryLuckFill == null ||
                 educationDestinationContent == null || careerDestinationContent == null ||
                 goalsDestinationContent == null || educationEmptyState == null || careerEmptyState == null ||
+                educationUnavailableCopy == null ||
+                careerContextCopy == null || careerPathPreview == null ||
                 manualWorkRole == null || manualWorkRate == null || moneyCashValue == null ||
                 manualWorkTap == null || manualWorkFeedback == null || savingsBalanceValue == null ||
                 savingsAvailableValue == null || savingsDepositMode == null || savingsWithdrawMode == null ||
                 savingsAmountInput == null || savingsTransferFeedback == null || moneyTransactionHistory == null ||
+                moneyAccountsList == null ||
                 cashFlowGross == null || cashFlowTaxes == null || cashFlowExpenses == null ||
                 cashFlowCreditInterest == null || cashFlowSavingsInterest == null || cashFlowNet == null ||
                 savingsProjection == null ||
@@ -369,16 +435,17 @@ namespace StimTycoon.Runtime
                 learningLevel == null || learningFill == null || learningProgress == null ||
                 educationActions == null || skillsList == null || careerCard == null || careerRole == null || careerSalary == null ||
                 careerNextStep == null || careerActionFill == null || careerActionProgress == null ||
-                careerActions == null || finalLifeSummary == null || endingName == null || endingStatus == null ||
+                careerActions == null || careerActionsCard == null || finalLifeSummary == null || endingName == null || endingStatus == null ||
                 endingSummary == null || endingNewLife == null || achievementsCount == null ||
                 achievementsList == null)
             {
-                Debug.LogError("Vertical slice UXML is missing one or more required named elements.", this);
+                LogMissingUiBindings();
                 return;
             }
 
             PopulateVisualPlaceholders(root);
             ConfigureDestinationContent();
+            NavigateTo(StimDestination.Life);
 
             advanceMonth.clicked += AdvanceMonth;
             advanceYear.clicked += AdvanceYear;
@@ -392,6 +459,9 @@ namespace StimTycoon.Runtime
             navMoney.clicked += ShowMoneyDestination;
             navSocial.clicked += ShowSocialDestination;
             navGoals.clicked += ShowGoalsDestination;
+            openLifeSummary.clicked += ShowLifeSummary;
+            closeLifeSummary.clicked += CloseLifeSummary;
+            addCash.clicked += ShowMoneyDestination;
             manualWorkTap.clicked += PerformManualWorkTap;
             savingsDepositMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Deposit);
             savingsWithdrawMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Withdrawal);
@@ -754,10 +824,16 @@ namespace StimTycoon.Runtime
             cashValue.text = FormatMoney(state.finances.cashMinorUnits);
             netWorthValue.text = FormatMoney(netWorth);
             headerNetWorthValue.text = $"Net {FormatMoney(netWorth)}";
+            netWorthValue.tooltip = $"Total net worth {FormatMoney(netWorth)}";
+            moneyCashValue.tooltip = $"Current cash {FormatMoney(state.finances.cashMinorUnits)}";
             lifeSummary.text = string.IsNullOrEmpty(state.character.firstName)
                 ? $"Age {state.character.age}"
                 : $"{state.character.firstName} · {state.character.age}";
-            calendarSummary.text = $"Month {state.calendar.monthOfYear} of 12";
+            lifeSummary.tooltip = $"{lifeSummary.text}. {ToDisplayName(state.character.lifeStage)} life stage.";
+            calendarSummary.text = $"{ToDisplayName(state.character.lifeStage)} · Month {state.calendar.monthOfYear}";
+            calendarSummary.tooltip = $"{ToDisplayName(state.character.lifeStage)}. Month {state.calendar.monthOfYear} of 12.";
+            cashValue.tooltip = $"Current cash {FormatMoney(state.finances.cashMinorUnits)}";
+            headerNetWorthValue.tooltip = $"Net worth {FormatMoney(netWorth)}";
             avatarGlyph.text = state.character.age < 6 ? "👶" : state.character.age < 18 ? "🧒" :
                 state.character.age < 65 ? "🧑" : "🧓";
             RefreshAgeProgress(state.character.age);
@@ -765,16 +841,31 @@ namespace StimTycoon.Runtime
                 ? ToDisplayName(state.character.lifeStage)
                 : $"{career.roleTitle} · Stim Financial Group";
             overviewCalendar.text = $"Age {state.character.age} · Month {state.calendar.monthOfYear} of 12";
+            summaryStageDetail.text = ToDisplayName(state.character.lifeStage);
+            summaryCalendarDetail.text = $"Age {state.character.age} · Month {state.calendar.monthOfYear} of 12";
+            summaryCareerDetail.text = string.IsNullOrEmpty(career.roleTitle)
+                ? "Not started"
+                : $"{career.roleTitle} · {FormatMoney(career.annualSalaryMinorUnits)} gross";
             healthValue.text = $"{state.character.health} / 100";
             happinessValue.text = $"{state.character.happiness} / 100";
             smartsValue.text = $"{state.character.smarts} / 100";
             looksValue.text = $"{state.character.looks} / 100";
             luckValue.text = $"{state.character.luck} / 100";
+            summaryHealthValue.text = healthValue.text;
+            summaryHappinessValue.text = happinessValue.text;
+            summarySmartsValue.text = smartsValue.text;
+            summaryLooksValue.text = looksValue.text;
+            summaryLuckValue.text = luckValue.text;
             healthFill.style.width = Length.Percent(ClampFillPercent(state.character.health));
             happinessFill.style.width = Length.Percent(ClampFillPercent(state.character.happiness));
             smartsFill.style.width = Length.Percent(ClampFillPercent(state.character.smarts));
             looksFill.style.width = Length.Percent(ClampFillPercent(state.character.looks));
             luckFill.style.width = Length.Percent(ClampFillPercent(state.character.luck));
+            summaryHealthFill.style.width = healthFill.style.width;
+            summaryHappinessFill.style.width = happinessFill.style.width;
+            summarySmartsFill.style.width = smartsFill.style.width;
+            summaryLooksFill.style.width = looksFill.style.width;
+            summaryLuckFill.style.width = luckFill.style.width;
             careerProgressValue.text = $"{career.careerProgress} / 100";
             careerProgressFill.style.width = Length.Percent(ClampFillPercent(career.careerProgress));
             var grossMonthlyPay = career.annualSalaryMinorUnits / 12;
@@ -932,6 +1023,7 @@ namespace StimTycoon.Runtime
         private void RefreshMoney()
         {
             var state = gameSession.ActiveSave.state;
+            var adult = state.character.age >= 18;
             var career = state.career ?? new StimCareerState();
             var employed = !string.IsNullOrEmpty(career.roleTitle) && career.roleTitle != "Retired" &&
                            career.annualSalaryMinorUnits > 0 && state.character.lifeStatus == "active";
@@ -940,6 +1032,23 @@ namespace StimTycoon.Runtime
             manualWorkRate.text = employed ? $"{FormatPreciseMoney(hourlyRate)} per hour" : "$0.00 per hour";
             moneyCashValue.text = FormatMoney(state.finances.cashMinorUnits);
             savingsBalanceValue.text = FormatMoney(state.finances.savingsMinorUnits);
+            moneyAccountsList.Clear();
+            moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow(
+                "cash-wallet", "💵", "Cash Wallet", FormatMoney(state.finances.cashMinorUnits),
+                "Available for actions and purchases"));
+            moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow(
+                "savings", "🏦", "Savings", FormatMoney(state.finances.savingsMinorUnits),
+                $"{state.finances.savingsApyBasisPoints / 100m:0.00}% APY"));
+            moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow(
+                "revolving-credit", "▣", "Revolving Credit",
+                FormatMoney(state.finances.householdCreditBalanceMinorUnits),
+                $"{state.finances.householdCreditAprBasisPoints / 100m:0.00}% APR"));
+            if (adult)
+                moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow(
+                    "index-fund", "↗", "Index Fund", FormatMoney(state.finances.indexFundMinorUnits),
+                    "Long-term investment value"));
+            indexInvestmentInput.parent?.EnableInClassList("hidden", !adult);
+            manualWorkTap.parent?.EnableInClassList("hidden", !adult);
             manualWorkTap.text = employed
                 ? $"WORK 1 HOUR  ·  +{FormatPreciseMoney(hourlyRate)}"
                 : "WORK 1 HOUR";
@@ -953,8 +1062,16 @@ namespace StimTycoon.Runtime
             savingsDepositMode.EnableInClassList("active", savingsTransferType == StimSavingsTransferType.Deposit);
             savingsWithdrawMode.EnableInClassList("active", savingsTransferType == StimSavingsTransferType.Withdrawal);
             savingsAmountInput.Clear();
+            var depositing = savingsTransferType == StimSavingsTransferType.Deposit;
             savingsAmountInput.Add(StimActionInputFactory.CreateAmountSelector(
-                available, amount => PerformSavingsTransfer(amount)));
+                available,
+                amount => PerformSavingsTransfer(amount),
+                () => savingsTransferFeedback.text = string.Empty,
+                depositing
+                    ? "Quick deposit · percentage of available cash"
+                    : "Quick withdrawal · percentage of savings",
+                "Or enter a custom amount",
+                depositing ? "Deposit" : "Withdraw"));
             RefreshMoneyTransactionHistory(state);
             cashFlowGross.text = $"Gross income: {FormatMoney(state.finances.lastGrossIncomeMinorUnits)}";
             cashFlowTaxes.text = $"Taxes: −{FormatMoney(state.finances.lastTaxesMinorUnits)}";
@@ -1080,7 +1197,7 @@ namespace StimTycoon.Runtime
                     goal.category == "daily" ? "📅" : goal.category == "main" ? "🎯" : "🏆",
                     goal.title,
                     ToDisplayName(goal.category),
-                    $"{goal.progress} / {goal.progressRequired}",
+                    FormatCompactProgress(goal.progress, goal.progressRequired),
                     FormatMoney(goal.rewardMinorUnits),
                     actionText,
                     goal.status != "claimed",
@@ -1099,7 +1216,8 @@ namespace StimTycoon.Runtime
                     else if (goal.destination == "career" || goal.destination == "business") ShowCareerDestination();
                     else if (goal.destination == "social" || goal.destination == "family") ShowSocialDestination();
                     else ShowLifeDestination();
-                });
+                },
+                    accessibleProgress: $"{goal.progress:N0} / {goal.progressRequired:N0}");
                 row.Q<Button>().name = $"goal-action-{goal.goalId}";
                 achievementsList.Add(row);
             }
@@ -1144,7 +1262,13 @@ namespace StimTycoon.Runtime
             var enrolled = state.character.age >= 6 && state.character.age < 18;
             educationEmptyState.EnableInClassList("hidden", enrolled);
             educationCard.EnableInClassList("hidden", !enrolled);
-            if (!enrolled) return;
+            if (!enrolled)
+            {
+                educationUnavailableCopy.text = state.character.age < 6
+                    ? "Formal school actions begin at age 6. Childhood choices still shape future learning."
+                    : "This life has no active school enrollment. Completed education remains part of the saved life state.";
+                return;
+            }
 
             var experience = StimGameSessionService.GetSkillExperience(state.skills, "learning");
             var level = StimGameSessionService.GetSkillLevel(experience);
@@ -1396,8 +1520,10 @@ namespace StimTycoon.Runtime
         {
             var state = gameSession.ActiveSave.state;
             var adult = state.character.age >= 18;
-            careerEmptyState.EnableInClassList("hidden", adult);
+            careerEmptyState.EnableInClassList("hidden", !adult);
             careerCard.EnableInClassList("hidden", !adult);
+            careerActionsCard.EnableInClassList("hidden", !adult);
+            RefreshCareerPathPreview(state, adult);
             if (!adult) return;
 
             var career = state.career ?? new StimCareerState();
@@ -1444,6 +1570,7 @@ namespace StimTycoon.Runtime
             var usedThisMonth = state.statuses.Exists(status => status.statusId == "monthly_career_action_used");
             foreach (var action in actions)
             {
+                if (action == StimCareerActionType.Retire && state.character.age < 65) continue;
                 var unlocked = StimGameSessionService.TryGetCareerActionRequirement(state, action, out var requirement);
                 var button = new Button
                 {
@@ -1464,27 +1591,127 @@ namespace StimTycoon.Runtime
                          StimBusinessActionType.ExpandLocation, StimBusinessActionType.Sell
                      })
             {
+                var available = TryGetBusinessActionRequirement(state, business, action, out var requirement);
+                var actionLabel = action == StimBusinessActionType.Start
+                    ? "Start Local Services\n$1,000 · Professional Level 2"
+                    : action == StimBusinessActionType.Work
+                        ? $"Work Business\nProgress {business.operatingProgress} / 100"
+                        : action == StimBusinessActionType.Upgrade
+                            ? $"Upgrade Business\nLevel {business.level} / 3"
+                            : action == StimBusinessActionType.HireStaff
+                                ? $"Hire Staff\n{business.staffCount} / {business.level * 2} · $750"
+                                : action == StimBusinessActionType.ExpandLocation
+                                    ? $"Expand Location\nTier {business.locationLevel} / 3"
+                                    : $"Sell Business\nValuation {FormatMoney(business.valuationMinorUnits)}";
                 var button = new Button
                 {
                     name = $"business-action-{action.ToString().ToLowerInvariant()}",
-                    text = action == StimBusinessActionType.Start
-                        ? "Start Local Services\n$1,000 · Professional Level 2"
-                        : action == StimBusinessActionType.Work
-                            ? $"Work Business\nProgress {business.operatingProgress} / 100"
-                            : action == StimBusinessActionType.Upgrade
-                                ? $"Upgrade Business\nLevel {business.level} / 3"
-                                : action == StimBusinessActionType.HireStaff
-                                    ? $"Hire Staff\n{business.staffCount} / {business.level * 2} · $750"
-                                    : action == StimBusinessActionType.ExpandLocation
-                                        ? $"Expand Location\nTier {business.locationLevel} / 3"
-                                        : $"Sell Business\nValuation {FormatMoney(business.valuationMinorUnits)}"
+                    text = available ? actionLabel : $"{actionLabel}\n{requirement}",
+                    tooltip = available ? actionLabel.Replace('\n', ' ') : requirement
                 };
                 button.AddToClassList("st-career-action");
-                button.SetEnabled(true);
+                button.SetEnabled(available);
                 var capturedAction = action;
                 button.clicked += () => PerformBusinessAction(capturedAction);
                 careerActions.Add(button);
             }
+        }
+
+        private static bool TryGetBusinessActionRequirement(
+            StimGameState state,
+            StimBusinessState business,
+            StimBusinessActionType action,
+            out string requirement)
+        {
+            requirement = string.Empty;
+            if (state.character.age < 18) return Fail("Unlocks at age 18", out requirement);
+            if (state.character.lifeStatus != "active") return Fail("This life has ended", out requirement);
+            if (!string.IsNullOrEmpty(state.pendingEventId)) return Fail("Resolve the pending event", out requirement);
+
+            switch (action)
+            {
+                case StimBusinessActionType.Start:
+                    if (business.status != "none") return Fail("A business path already exists", out requirement);
+                    var professionalLevel = StimGameSessionService.GetSkillLevel(
+                        StimGameSessionService.GetSkillExperience(state.skills, "professional"));
+                    if (professionalLevel < 2) return Fail("Requires Professional Level 2", out requirement);
+                    if (state.finances.cashMinorUnits < 100000) return Fail("Requires $1,000 cash", out requirement);
+                    return true;
+                case StimBusinessActionType.Work:
+                    if (business.status != "operating") return Fail("Start a business first", out requirement);
+                    if (business.actionPoints < 1) return Fail("No action points remain this month", out requirement);
+                    return true;
+                case StimBusinessActionType.Upgrade:
+                    if (business.status != "operating") return Fail("Start a business first", out requirement);
+                    if (business.level >= 3) return Fail("Maximum business level reached", out requirement);
+                    if (business.actionPoints < 1) return Fail("No action points remain this month", out requirement);
+                    if (business.operatingProgress < business.level * 25)
+                        return Fail($"Requires {business.level * 25} operating progress", out requirement);
+                    if (state.finances.cashMinorUnits < business.level * 150000L)
+                        return Fail($"Requires {FormatMoney(business.level * 150000L)} cash", out requirement);
+                    return true;
+                case StimBusinessActionType.HireStaff:
+                    if (business.status != "operating") return Fail("Start a business first", out requirement);
+                    if (business.staffCount >= business.level * 2) return Fail("Upgrade before hiring more staff", out requirement);
+                    if (business.actionPoints < 1) return Fail("No action points remain this month", out requirement);
+                    if (state.finances.cashMinorUnits < 75000) return Fail("Requires $750 cash", out requirement);
+                    return true;
+                case StimBusinessActionType.ExpandLocation:
+                    if (business.status != "operating") return Fail("Start a business first", out requirement);
+                    if (business.level < 2) return Fail("Requires business Level 2", out requirement);
+                    if (business.locationLevel >= 3) return Fail("Maximum location tier reached", out requirement);
+                    if (business.actionPoints < 1) return Fail("No action points remain this month", out requirement);
+                    if (state.finances.cashMinorUnits < business.locationLevel * 300000L)
+                        return Fail($"Requires {FormatMoney(business.locationLevel * 300000L)} cash", out requirement);
+                    return true;
+                case StimBusinessActionType.Sell:
+                    return business.status == "operating" || Fail("Start a business first", out requirement);
+                default:
+                    return Fail("Action unavailable", out requirement);
+            }
+        }
+
+        private static bool Fail(string message, out string requirement)
+        {
+            requirement = message;
+            return false;
+        }
+
+        private void RefreshCareerPathPreview(StimGameState state, bool adult)
+        {
+            careerPathPreview.Clear();
+            careerContextCopy.text = adult
+                ? "Career and business actions use the current life state. Requirements remain visible before an action is available."
+                : "Childhood choices, education, and skills shape the paths that will become relevant later.";
+
+            if (!adult) return;
+
+            var career = state.career ?? new StimCareerState();
+            var employed = !string.IsNullOrEmpty(career.roleTitle) && career.roleTitle != "Retired";
+            careerPathPreview.Add(StimUiComponentFactory.CreatePathRow(
+                "entry-career", "💼", "Entry-level Career",
+                "Apply, interview, and grow through the supported career catalog.",
+                employed ? career.roleTitle : "Available", true));
+            careerPathPreview.Add(StimUiComponentFactory.CreatePathRow(
+                "career-ladder", "↗", "Career Ladder",
+                "Build career progress to qualify for the next role.",
+                employed ? $"{career.careerProgress} progress" : "Apply first", employed));
+
+            var business = state.business ?? new StimBusinessState();
+            var professionalLevel = StimGameSessionService.GetSkillLevel(
+                StimGameSessionService.GetSkillExperience(state.skills, "professional"));
+            var canStartBusiness = business.status == "none" && professionalLevel >= 2 &&
+                                   state.finances.cashMinorUnits >= 100000;
+            var businessStatus = business.status == "operating"
+                ? $"Level {business.level}"
+                : business.status != "none" ? ToDisplayName(business.status)
+                : professionalLevel < 2 ? "Professional 2"
+                : state.finances.cashMinorUnits < 100000 ? "$1,000 needed"
+                : "Available";
+            careerPathPreview.Add(StimUiComponentFactory.CreatePathRow(
+                "local-services", "🏢", "Local Services Business",
+                "Requires age 18, Professional Level 2, and $1,000 startup cash.",
+                businessStatus, canStartBusiness || business.status == "operating"));
         }
 
         private void PerformCareerAction(StimCareerActionType actionType)
@@ -1701,52 +1928,126 @@ namespace StimTycoon.Runtime
 
         private void ShowLifeDestination()
         {
-            ShowDestination(lifeScroll, navLife, true);
+            NavigateTo(StimDestination.Life);
         }
 
         private void ShowEducationDestination()
         {
             RefreshEducation();
             RefreshSkills();
-            ShowDestination(educationView, navEducation, false);
+            NavigateTo(StimDestination.Study);
         }
 
         private void ShowCareerDestination()
         {
             RefreshCareer();
-            ShowDestination(careerView, navCareer, false);
+            NavigateTo(StimDestination.Work);
         }
 
         private void ShowMoneyDestination()
         {
             RefreshMoney();
-            ShowDestination(moneyView, navMoney, false);
+            NavigateTo(StimDestination.Bank);
         }
 
         private void ShowSocialDestination()
         {
             RefreshSocial();
-            ShowDestination(socialView, navSocial, false);
+            NavigateTo(StimDestination.Social);
             if (string.IsNullOrEmpty(selectedRelationshipId)) ShowRelationshipList();
         }
 
         private void ShowGoalsDestination()
         {
             RefreshAchievements();
-            ShowDestination(goalsView, navGoals, false);
+            NavigateTo(StimDestination.Goals);
         }
 
-        private void ShowDestination(VisualElement selectedView, Button selectedButton, bool showTimeDock)
+        private void NavigateTo(StimDestination destination, bool resetScroll = true)
         {
+            activeDestination = destination;
+            VisualElement selectedView;
+            Button selectedButton;
+            switch (destination)
+            {
+                case StimDestination.Study:
+                    selectedView = educationView;
+                    selectedButton = navEducation;
+                    break;
+                case StimDestination.Work:
+                    selectedView = careerView;
+                    selectedButton = navCareer;
+                    break;
+                case StimDestination.Bank:
+                    selectedView = moneyView;
+                    selectedButton = navMoney;
+                    break;
+                case StimDestination.Social:
+                    selectedView = socialView;
+                    selectedButton = navSocial;
+                    break;
+                case StimDestination.Goals:
+                    selectedView = goalsView;
+                    selectedButton = navGoals;
+                    break;
+                default:
+                    selectedView = lifeScroll;
+                    selectedButton = navLife;
+                    break;
+            }
+
             foreach (var view in new VisualElement[]
-                     { lifeScroll, educationView, careerView, moneyView, socialView, goalsView })
+                     { lifeScroll, educationView, careerView, moneyView, socialView, goalsView, lifeSummaryView })
                 view.EnableInClassList("hidden", view != selectedView);
 
             foreach (var button in new[]
                      { navLife, navEducation, navCareer, navMoney, navSocial, navGoals })
                 button.EnableInClassList("active", button == selectedButton);
 
-            timeDock.EnableInClassList("hidden", !showTimeDock);
+            timeDock.EnableInClassList("hidden", destination != StimDestination.Life);
+
+            if (resetScroll && selectedView is ScrollView selectedScroll)
+            {
+                // Hidden ScrollViews can retain a stale offset while their content is rebuilt.
+                // Reset after the display change so destination headings never slide beneath the header.
+                selectedScroll.schedule.Execute(() => selectedScroll.scrollOffset = Vector2.zero);
+            }
+        }
+
+        private void ShowLifeSummary()
+        {
+            if (!lifeSummaryView.ClassListContains("hidden")) return;
+            var previousView = GetDestinationView(activeDestination);
+            scrollOffsetBeforeLifeSummary = previousView.scrollOffset;
+            RefreshHeader();
+
+            foreach (var view in new VisualElement[]
+                     { lifeScroll, educationView, careerView, moneyView, socialView, goalsView })
+                view.AddToClassList("hidden");
+
+            lifeSummaryView.RemoveFromClassList("hidden");
+            timeDock.AddToClassList("hidden");
+            lifeSummaryView.schedule.Execute(() => lifeSummaryView.scrollOffset = Vector2.zero);
+        }
+
+        private void CloseLifeSummary()
+        {
+            NavigateTo(activeDestination, false);
+            var restoredView = GetDestinationView(activeDestination);
+            restoredView.schedule.Execute(() => restoredView.scrollOffset = scrollOffsetBeforeLifeSummary);
+        }
+
+        private ScrollView GetDestinationView(StimDestination destination)
+        {
+            switch (destination)
+            {
+                case StimDestination.Study: return educationView;
+                case StimDestination.Work: return careerView;
+                case StimDestination.Bank: return moneyView;
+                case StimDestination.Social: return socialView;
+                case StimDestination.Goals: return goalsView;
+                default: return lifeScroll;
+            }
         }
 
         private void PerformManualWorkTap()
@@ -1775,10 +2076,12 @@ namespace StimTycoon.Runtime
         private void RefreshSocial()
         {
             relationshipList.Clear();
+            var adult = (gameSession.ActiveSave?.state?.character?.age ?? 0) >= 18;
             var discoveryUsed = gameSession.ActiveSave?.state?.statuses?.Exists(
                 status => status.statusId == "relationship_discovery_used") == true;
+            discoverCompatiblePerson.EnableInClassList("hidden", !adult);
             discoverCompatiblePerson.SetEnabled(
-                gameSession.ActiveSave?.state?.character?.age >= 18 && !discoveryUsed &&
+                adult && !discoveryUsed &&
                 string.IsNullOrEmpty(gameSession.ActiveSave?.state?.pendingEventId));
             var relationships = gameSession.ActiveSave?.state?.relationships;
             if (relationships == null || relationships.Count == 0)
@@ -1792,31 +2095,13 @@ namespace StimTycoon.Runtime
             foreach (var relationship in relationships)
             {
                 if (relationship == null) continue;
-                var card = new Button { name = $"relationship-{relationship.relationshipId}" };
-                card.AddToClassList("st-relationship-card");
-                var initial = string.IsNullOrEmpty(relationship.displayName)
-                    ? "?"
-                    : relationship.displayName.Substring(0, 1).ToUpperInvariant();
-                var avatar = new Label(initial);
-                avatar.AddToClassList("st-relationship-card-avatar");
-                var copy = new VisualElement();
-                copy.AddToClassList("st-relationship-card-copy");
-                var name = new Label(string.IsNullOrEmpty(relationship.displayName)
-                    ? ToDisplayName(relationship.relationshipId)
-                    : relationship.displayName);
-                name.AddToClassList("st-relationship-card-name");
-                var meta = new Label($"{ToDisplayName(relationship.relationshipType)} · Relationship {relationship.value} / 100");
-                meta.AddToClassList("st-relationship-card-meta");
-                copy.Add(name);
-                copy.Add(meta);
-                var arrow = new Label("›");
-                arrow.AddToClassList("st-relationship-card-arrow");
-                card.Add(avatar);
-                card.Add(copy);
-                card.Add(arrow);
                 var relationshipId = relationship.relationshipId;
-                card.clicked += () => ShowRelationshipDetail(relationshipId);
-                relationshipList.Add(card);
+                relationshipList.Add(StimUiComponentFactory.CreateRelationshipRow(
+                    relationship.relationshipId,
+                    relationship.displayName,
+                    relationship.relationshipType,
+                    relationship.value,
+                    () => ShowRelationshipDetail(relationshipId)));
             }
         }
 
@@ -2126,6 +2411,20 @@ namespace StimTycoon.Runtime
             return (minorUnits / 100m).ToString("C2");
         }
 
+        private static string FormatCompactProgress(long value, long maximum)
+        {
+            return $"{FormatCompactNumber(value)} / {FormatCompactNumber(maximum)}";
+        }
+
+        private static string FormatCompactNumber(long value)
+        {
+            var absolute = Math.Abs(value);
+            if (absolute >= 1000000000) return $"{value / 1000000000m:0.#}B";
+            if (absolute >= 1000000) return $"{value / 1000000m:0.#}M";
+            if (absolute >= 1000) return $"{value / 1000m:0.#}K";
+            return value.ToString("N0");
+        }
+
         public static float ClampFillPercent(float value)
         {
             return Math.Max(0f, Math.Min(100f, value));
@@ -2237,7 +2536,9 @@ namespace StimTycoon.Runtime
             VisualElement currentGroup = null;
             var currentAge = -1;
             var currentMonth = -1;
-            for (var index = 0; index < entries.Count; index++)
+            const int maximumVisibleEntries = 8;
+            var visibleEntries = Math.Min(maximumVisibleEntries, entries.Count);
+            for (var index = 0; index < visibleEntries; index++)
             {
                 var entry = entries[index];
                 if (entry == null) continue;
@@ -2257,6 +2558,13 @@ namespace StimTycoon.Runtime
                 }
                 currentGroup.Add(StimUiComponentFactory.CreateFeedRow(entry, index, entries.Count));
             }
+
+            if (entries.Count > visibleEntries)
+            {
+                var remaining = new Label($"Showing the latest {visibleEntries} of {entries.Count} life updates.");
+                remaining.AddToClassList("st-feed-more");
+                lifeFeedList.Add(remaining);
+            }
         }
 
         private static string GetMonthName(int month)
@@ -2264,6 +2572,23 @@ namespace StimTycoon.Runtime
             return month >= 1 && month <= 12
                 ? new DateTime(2000, month, 1).ToString("MMMM")
                 : $"Month {month}";
+        }
+
+        private void LogMissingUiBindings()
+        {
+            var missing = new List<string>();
+            var fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+            foreach (var field in fields)
+            {
+                if (!typeof(VisualElement).IsAssignableFrom(field.FieldType)) continue;
+                if (field.GetValue(this) == null) missing.Add(field.Name);
+            }
+
+            Debug.LogError(
+                missing.Count == 0
+                    ? "Vertical slice UXML binding validation failed, but no null UI field was identified. Reimport Assets/UI/StimVerticalSlice.uxml."
+                    : $"Vertical slice UXML is missing required named elements for: {string.Join(", ", missing)}.",
+                this);
         }
 
     }

@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <ui:VisualElement name="bottom-navigation" class="st-life-bottom-nav">
+    <ui:VisualElement name="bottom-navigation" class="st-life-bottom-nav st-component-bottom-nav">
         <ui:Button name="nav-life" class="st-life-nav-item stim-pack-interaction-pop active" tooltip="Life and Home"><ui:VisualElement class="st-nav-icon icon-home" /><ui:Label text="Life" class="st-nav-label" /></ui:Button>
         <ui:Button name="nav-education" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Education"><ui:VisualElement class="st-nav-icon icon-study" /><ui:Label text="Study" class="st-nav-label" /></ui:Button>
         <ui:Button name="nav-career" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Career and Business"><ui:VisualElement class="st-nav-icon icon-work" /><ui:Label text="Work" class="st-nav-label" /></ui:Button>

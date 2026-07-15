@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="feed-row" class="st-feed-entry st-component-feed-row">
+        <ui:VisualElement class="st-feed-timeline"><ui:VisualElement class="st-feed-dot" /></ui:VisualElement>
+        <ui:Label name="feed-row-icon" text="•" class="st-feed-icon" />
+        <ui:VisualElement class="st-feed-copy">
+            <ui:Label name="feed-row-title" text="Life update" class="st-feed-title" />
+            <ui:Label name="feed-row-timestamp" text="Month 1" class="st-feed-timestamp" />
+        </ui:VisualElement>
+        <ui:Label name="feed-row-result" text="Update" class="st-feed-result-chip" />
+    </ui:VisualElement>
+</ui:UXML>

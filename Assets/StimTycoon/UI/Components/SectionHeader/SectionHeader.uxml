@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="section-header" class="st-section-heading st-component-section-header">
+        <ui:Label name="section-header-icon" text="•" class="st-section-heading-icon" />
+        <ui:VisualElement class="st-row-copy">
+            <ui:Label name="section-header-title" text="SECTION" class="st-section-heading-title" />
+            <ui:Label name="section-header-subtitle" text="" class="st-component-section-subtitle" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

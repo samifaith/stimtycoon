@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using StimTycoon.Runtime;
 using UnityEditor;
@@ -12,7 +14,10 @@ namespace StimTycoon.Tests.Domain.UI
         private const string HeaderPath = "Assets/StimTycoon/UI/Components/AppHeader/AppHeader.uxml";
         private const string NavigationPath = "Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml";
         private const string ThemePath = "Assets/UI/Styles/StimTheme.uss";
+        private const string ShellPath = "Assets/UI/Styles/Shell.uss";
         private const string ComponentsPath = "Assets/UI/Styles/Components.uss";
+        private const string DestinationsPath = "Assets/UI/Styles/Destinations.uss";
+        private const string ControllerPath = "Assets/Scripts/Runtime/StimVerticalSliceController.cs";
 
         [Test]
         public void PlayableRoot_UsesOnlyCanonicalStylesheetEntryPoints()
@@ -20,13 +25,30 @@ namespace StimTycoon.Tests.Domain.UI
             var source = File.ReadAllText(PlayableLifePath);
 
             StringAssert.Contains("<Style src=\"Styles/StimTheme.uss\" />", source);
+            StringAssert.Contains("<Style src=\"Styles/Shell.uss\" />", source);
             StringAssert.Contains("<Style src=\"Styles/Components.uss\" />", source);
+            StringAssert.Contains("<Style src=\"Styles/Destinations.uss\" />", source);
             StringAssert.DoesNotContain("StimTycoonTheme.uss", source);
             StringAssert.DoesNotContain("StimVerticalSliceCozyCorporate.uss", source);
-            Assert.That(CountOccurrences(source, "<Style src="), Is.EqualTo(2));
+            Assert.That(CountOccurrences(source, "<Style src="), Is.EqualTo(4));
+            Assert.That(File.Exists("Assets/UI/StimVerticalSlice.uss"), Is.False);
+            Assert.That(File.Exists("Assets/UI/StimVerticalSliceCozyCorporate.uss"), Is.False);
+            Assert.That(!Directory.Exists("Assets/StimTycoon/UI/Styles") ||
+                        Directory.GetFiles("Assets/StimTycoon/UI/Styles").Length == 0, Is.True,
+                "The unused prototype style system must not remain in the production migration path.");
 
-            var componentSource = File.ReadAllText(ComponentsPath);
-            StringAssert.Contains("@import url(\"../StimVerticalSliceCozyCorporate.uss\")", componentSource);
+            foreach (var stylesheetPath in new[] { ThemePath, ShellPath, ComponentsPath, DestinationsPath })
+            {
+                var stylesheet = File.ReadAllText(stylesheetPath);
+                StringAssert.DoesNotContain("@import", stylesheet,
+                    $"{stylesheetPath} must be referenced directly and cannot restore an overlapping cascade.");
+                StringAssert.DoesNotContain("StimVerticalSliceCozyCorporate.uss", stylesheet);
+            }
+
+            var shellSource = File.ReadAllText(ShellPath);
+            Assert.That(CountSelectorOccurrences(shellSource, ".st-life-header"), Is.EqualTo(1));
+            Assert.That(CountSelectorOccurrences(shellSource, ".st-time-dock"), Is.EqualTo(1));
+            Assert.That(CountSelectorOccurrences(shellSource, ".st-life-bottom-nav"), Is.EqualTo(1));
         }
 
         [Test]
@@ -47,6 +69,27 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void LiveBenchmark_UsesProductionComponentContracts()
+        {
+            var root = Clone(PlayableLifePath);
+            var header = Clone(HeaderPath);
+            var navigation = Clone(NavigationPath);
+
+            Assert.That(header.Q("app-header").ClassListContains("st-component-app-header"), Is.True);
+            Assert.That(navigation.Q("bottom-navigation").ClassListContains("st-component-bottom-nav"), Is.True);
+            Assert.That(root.Q("age-progression").ClassListContains("st-component-card"), Is.True);
+            Assert.That(root.Q("life-feed-card").ClassListContains("st-component-card"), Is.True);
+            Assert.That(root.Q("player-overview").ClassListContains("st-component-card"), Is.True);
+            Assert.That(root.Query(className: "st-component-page-heading").ToList(), Has.Count.EqualTo(6));
+
+            var source = File.ReadAllText(PlayableLifePath);
+            StringAssert.Contains("template=\"AppHeader\" class=\"st-shell-header-slot\"", source);
+            StringAssert.Contains("template=\"BottomNavigation\" class=\"st-shell-nav-slot\"", source);
+            StringAssert.DoesNotContain("\\nMoney", source);
+            StringAssert.DoesNotContain("\\nAge", source);
+        }
+
+        [Test]
         public void BottomNavigation_UsesLicensedFunctionalSvgIcons()
         {
             var iconNames = new[]
@@ -59,7 +102,7 @@ namespace StimTycoon.Tests.Domain.UI
                 Assert.That(File.Exists($"Assets/UI/Icons/Lucide/{iconName}"), Is.True, iconName);
 
             Assert.That(File.Exists("Assets/UI/Icons/Lucide/LICENSE.txt"), Is.True);
-            var components = File.ReadAllText(ComponentsPath);
+            var components = File.ReadAllText(ShellPath);
             foreach (var iconName in iconNames)
                 StringAssert.Contains($"Assets/UI/Icons/Lucide/{iconName}", components);
         }
@@ -81,7 +124,8 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(row.Q(className: "st-feed-dot"), Is.Not.Null);
             Assert.That(row.Q<Label>(className: "st-feed-title").text, Is.EqualTo("Studied hard."));
             Assert.That(row.Q<Label>(className: "st-feed-icon").text, Is.EqualTo("📚"));
-            Assert.That(row.Q<Label>(className: "st-feed-result-chip").text, Is.EqualTo("Education"));
+            Assert.That(row.Q<Label>(className: "st-feed-result-chip").text, Is.EqualTo("Smarts +8"));
+            Assert.That(row.Q<Label>(className: "st-feed-timestamp").text, Is.EqualTo("Month 5"));
             Assert.That(row.tooltip, Does.Contain("Item 1 of 4").And.Contain("Age 16"));
         }
 
@@ -131,6 +175,11 @@ namespace StimTycoon.Tests.Domain.UI
             var requiredNames = new[]
             {
                 "cash-value", "life-summary", "calendar-summary", "header-net-worth-value", "avatar-glyph",
+                "open-life-summary", "close-life-summary", "life-summary-view",
+                "summary-stage-detail", "summary-calendar-detail", "summary-career-detail",
+                "summary-health-value", "summary-happiness-value", "summary-smarts-value",
+                "summary-looks-value", "summary-luck-value", "summary-health-fill",
+                "summary-happiness-fill", "summary-smarts-fill", "summary-looks-fill", "summary-luck-fill",
                 "age-progression", "age-stage-summary", "age-stage-0", "age-stage-1", "age-stage-2", "age-stage-3",
                 "event-category", "event-title", "event-body",
                 "result-text", "result-effects", "life-feed-card", "life-feed-scroll", "life-feed-list", "overview-career", "overview-calendar",
@@ -145,20 +194,21 @@ namespace StimTycoon.Tests.Domain.UI
                 "open-new-life", "new-life-setup", "cancel-new-life", "continue-current-life",
                 "create-new-life", "new-life-error", "social-view", "time-dock",
                 "education-view", "career-view", "goals-view", "education-empty-state", "career-empty-state",
+                "education-unavailable-copy", "career-context-copy", "career-path-preview",
                 "education-destination-content", "career-destination-content", "goals-destination-content",
                 "relationship-list-view", "relationship-list", "discover-compatible-person", "relationship-discovery-feedback",
                 "relationship-detail-view", "relationship-back", "relationship-avatar", "relationship-name",
                 "relationship-type", "relationship-strength", "relationship-fill", "relationship-genetics",
                 "relationship-actions", "education-card", "education-stage", "learning-level", "learning-fill",
                 "learning-progress", "education-actions", "career-card", "career-role", "career-salary",
-                "career-next-step", "career-action-fill", "career-action-progress", "career-actions",
+                "career-next-step", "career-action-fill", "career-action-progress", "career-actions", "career-actions-card",
                 "final-life-summary", "ending-name", "ending-status", "ending-summary", "ending-new-life",
                 "achievements-card", "achievements-count", "achievements-list", "money-view", "net-worth-card",
-                "manual-work-role", "manual-work-rate", "money-cash-value",
+                "manual-work-card", "manual-work-role", "manual-work-rate", "money-cash-value",
                 "manual-work-tap", "manual-work-feedback", "savings-card", "savings-balance-value",
                 "savings-available-value", "savings-deposit-mode", "savings-withdraw-mode",
                 "savings-amount-input", "savings-transfer-feedback", "money-history-card",
-                "money-transaction-history", "cash-flow-card", "cash-flow-gross", "cash-flow-taxes",
+                "money-transaction-history", "money-accounts-list", "cash-flow-card", "cash-flow-gross", "cash-flow-taxes",
                 "cash-flow-expenses", "cash-flow-credit-interest", "cash-flow-savings-interest",
                 "cash-flow-net", "savings-projection", "credit-repayment-card", "credit-balance-value",
                 "credit-detail-value", "available-credit-value", "credit-repayment-input",
@@ -174,7 +224,7 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
-        public void PlayableLifeScreen_PutsAgeProgressionThenFeedAndNetWorthInMoney()
+        public void PlayableLifeScreen_LeadsWithFeedAndKeepsAgeProgressionInSummary()
         {
             var root = Clone(PlayableLifePath);
             var lifeContent = root.Q(className: "st-life-content");
@@ -183,14 +233,118 @@ namespace StimTycoon.Tests.Domain.UI
             var feedCard = root.Q("life-feed-card");
             var netWorthCard = root.Q("net-worth-card");
 
-            Assert.That(lifeContent.ElementAt(0), Is.SameAs(ageProgression));
-            Assert.That(lifeContent.ElementAt(1), Is.SameAs(feedCard));
-            Assert.IsTrue(lifeContent.Contains(ageProgression));
+            var summaryContent = root.Q("life-summary-view").Q(className: "st-life-summary-content");
+
+            Assert.That(lifeContent.ElementAt(0), Is.SameAs(feedCard));
+            Assert.IsFalse(lifeContent.Contains(ageProgression));
             Assert.IsTrue(lifeContent.Contains(feedCard));
+            Assert.IsTrue(summaryContent.Contains(ageProgression));
             Assert.IsFalse(lifeContent.Contains(netWorthCard));
             Assert.IsTrue(moneyContent.Contains(netWorthCard));
             Assert.That(root.Q("net-worth-trend"), Is.Null, "Net Worth must not show an uncomputed trend.");
             Assert.That(root.Q(className: "st-worth-chart"), Is.Null, "Net Worth must not show a decorative chart without history data.");
+        }
+
+        [Test]
+        public void LifeFeed_UsesThePageScrollerInsteadOfACompetingNestedScroller()
+        {
+            var root = Clone(PlayableLifePath);
+            var pageScroll = root.Q<ScrollView>("life-scroll");
+            var feedViewport = root.Q("life-feed-scroll");
+
+            Assert.That(pageScroll, Is.Not.Null);
+            Assert.That(feedViewport, Is.Not.Null);
+            Assert.That(feedViewport, Is.Not.InstanceOf<ScrollView>(),
+                "The feed must flow inside the page scroller so mobile does not render two competing scrollbars.");
+            Assert.That(pageScroll.Contains(feedViewport), Is.True);
+        }
+
+        [Test]
+        public void CoreDestinations_FollowReferenceModuleOrder()
+        {
+            var source = File.ReadAllText(PlayableLifePath);
+            AssertTokensInOrder(source,
+                "name=\"life-feed-card\"", "name=\"player-overview\"", "name=\"focus-study\"");
+            AssertTokensInOrder(source,
+                "text=\"Learn and qualify\"", "name=\"education-empty-state\"", "name=\"education-destination-content\"");
+            AssertTokensInOrder(source,
+                "text=\"Build your working life\"", "name=\"career-context-copy\"",
+                "name=\"career-destination-content\"", "name=\"career-path-preview\"", "name=\"career-actions-card\"");
+            AssertTokensInOrder(source,
+                "text=\"Earn and manage\"", "name=\"net-worth-card\"", "name=\"savings-card\"",
+                "name=\"money-accounts-list\"", "name=\"money-history-card\"",
+                "name=\"credit-repayment-card\"", "name=\"index-investment-card\"");
+            AssertTokensInOrder(source,
+                "text=\"Your people\"", "name=\"discover-compatible-person\"", "name=\"relationship-list\"");
+            AssertTokensInOrder(source,
+                "text=\"Shape this life\"", "name=\"goals-destination-content\"");
+        }
+
+        [Test]
+        public void ProductionStylesheets_HaveExclusiveExactSelectorOwnership()
+        {
+            var ownerBySelector = new Dictionary<string, string>();
+            foreach (var path in new[] { ThemePath, ShellPath, ComponentsPath, DestinationsPath })
+            {
+                var source = Regex.Replace(File.ReadAllText(path), @"/\*[\s\S]*?\*/", string.Empty);
+                foreach (Match match in Regex.Matches(source, @"([^{}]+)\{"))
+                {
+                    var selector = match.Groups[1].Value.Trim();
+                    if (string.IsNullOrEmpty(selector)) continue;
+                    Assert.That(ownerBySelector.ContainsKey(selector), Is.False,
+                        $"Exact selector '{selector}' is owned by both {ownerBySelector.GetValueOrDefault(selector)} and {path}.");
+                    ownerBySelector[selector] = path;
+                }
+            }
+
+            Assert.That(ownerBySelector.Count, Is.GreaterThan(100));
+        }
+
+        [Test]
+        public void Typography_UsesBalooOnlyOnOptInDisplayAndBrandSelectors()
+        {
+            var theme = File.ReadAllText(ThemePath);
+            var rootRule = Regex.Match(theme, @":root\s*\{([^}]*)\}", RegexOptions.Singleline).Groups[1].Value;
+            StringAssert.DoesNotContain("-unity-font-definition", rootRule);
+
+            var allStyles = string.Join("\n", new[]
+            {
+                File.ReadAllText(ShellPath), File.ReadAllText(ComponentsPath), File.ReadAllText(DestinationsPath)
+            });
+            StringAssert.Contains(".st-section-heading-title", allStyles);
+            StringAssert.Contains(".st-component-page-heading .st-social-title", allStyles);
+            StringAssert.DoesNotContain(".screen.st-life-screen {\n    -unity-font-definition", allStyles);
+        }
+
+        [Test]
+        public void RelationshipAndAccountFactories_HandleLongAndMissingMetadata()
+        {
+            var relationship = StimUiComponentFactory.CreateRelationshipRow(
+                "very-long-person-id", "Alexandria A Very Long Dynamic Name", "best_friend", 125, () => { });
+            Assert.That(relationship.Q<Label>(className: "st-relationship-card-meta").text,
+                Is.EqualTo("Best friend · Relationship 100 / 100"));
+            Assert.That(relationship.Q(className: "st-relationship-card-track"), Is.Not.Null);
+            Assert.That(relationship.tooltip, Does.Contain("100 out of 100"));
+
+            var account = StimUiComponentFactory.CreateAccountRow(
+                "cash", "", "Cash Wallet", "$1,234,567,890", null);
+            Assert.That(account.name, Is.EqualTo("account-row-cash"));
+            Assert.That(account.Q<Label>(className: "st-account-row-value").text, Is.EqualTo("$1,234,567,890"));
+            Assert.That(account.tooltip, Does.Contain("Cash Wallet"));
+        }
+
+        [Test]
+        public void PathAndStatFactories_ExposeRequirementsAndClampProgress()
+        {
+            var path = StimUiComponentFactory.CreatePathRow(
+                "business", "B", "Start a Business", "Build a supported company.",
+                "Professional 2", false);
+            Assert.That(path.ClassListContains("locked"), Is.True);
+            Assert.That(path.Q<Label>(className: "st-path-lock").text, Is.EqualTo("Professional 2"));
+
+            var stat = StimUiComponentFactory.CreateStatRow("health", "H", "Health", 140);
+            Assert.That(stat.Q<Label>(className: "st-stat-number").text, Is.EqualTo("100 / 100"));
+            Assert.That(stat.tooltip, Does.Contain("100 out of 100"));
         }
 
         [TestCase(320f, true)]
@@ -255,6 +409,8 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(header.Q<Label>("career-progress-value"), Is.Not.Null);
             Assert.That(header.Q<Label>("cash-value"), Is.Not.Null);
             Assert.That(header.Q<Label>("header-net-worth-value"), Is.Not.Null);
+            Assert.That(header.Q<Button>("open-life-summary"), Is.Not.Null);
+            Assert.That(header.Q<Button>("add-cash"), Is.Not.Null);
             Assert.That(theme, Is.Not.Null, "The Stim-owned vendor adapter theme must remain importable.");
             Assert.That(components, Is.Not.Null, "Shared Stim UI component styling must remain importable.");
             Assert.That(navigation.Query<Button>().ToList(), Has.Count.EqualTo(6));
@@ -264,6 +420,9 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(navigation.Q<Button>("nav-money"), Is.Not.Null);
             Assert.That(navigation.Q<Button>("nav-social"), Is.Not.Null);
             Assert.That(navigation.Q<Button>("nav-goals"), Is.Not.Null);
+            var controllerSource = File.ReadAllText(ControllerPath);
+            StringAssert.Contains("openLifeSummary.clicked += ShowLifeSummary;", controllerSource);
+            StringAssert.Contains("addCash.clicked += ShowMoneyDestination;", controllerSource);
             foreach (var button in navigation.Query<Button>().ToList())
             {
                 Assert.That(button.ClassListContains("stim-pack-interaction-pop"), Is.True,
@@ -348,6 +507,28 @@ namespace StimTycoon.Tests.Domain.UI
             }
 
             return count;
+        }
+
+        private static int CountSelectorOccurrences(string stylesheet, string selector)
+        {
+            var count = 0;
+            foreach (var line in stylesheet.Split('\n'))
+            {
+                if (line.Trim() == selector + " {") count++;
+            }
+
+            return count;
+        }
+
+        private static void AssertTokensInOrder(string source, params string[] tokens)
+        {
+            var previous = -1;
+            foreach (var token in tokens)
+            {
+                var current = source.IndexOf(token, System.StringComparison.Ordinal);
+                Assert.That(current, Is.GreaterThan(previous), $"Expected '{token}' after the prior module token.");
+                previous = current;
+            }
         }
     }
 }

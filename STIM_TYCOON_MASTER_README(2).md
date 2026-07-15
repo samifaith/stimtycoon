@@ -21,7 +21,7 @@ The repository currently runs on Unity `6000.3.19f1` and has a verified clean 34
 - **Phase 4 — Complete-Life Alpha:** complete in automated coverage. Annual reviews, transitions, goals, achievements, retirement/death, replay, bounded histories, and seeded complete-life simulations are present.
 - **Phase 5 — Experience Convergence:** active. The broad feature set must be reorganized into focused destination workspaces, deepened with original content, and validated at production mobile quality.
 
-The active UI shell now establishes the compact six-destination hierarchy, persistent player/cash header, Life age strip, semantic timeline feed, reusable dense rows, licensed Lucide navigation icons, emoji content-art fallbacks, and iPhone 17/17 Pro/17 Pro Max Device Simulator profiles. This is an implementation checkpoint, not the Phase 5 exit: visual verification at supported widths, legacy stylesheet extraction, reusable screen/component extraction, and reference-level Study, Work, Bank, Social, and Goals composition remain open.
+The active UI shell now establishes the compact six-destination hierarchy, persistent player/cash header, Life age strip, semantic timeline feed, reusable dense rows and canonical component contracts, licensed Lucide navigation icons, emoji content-art fallbacks, age-appropriate option visibility, and iPhone 17/17 Pro/17 Pro Max Device Simulator profiles. This is an implementation checkpoint, not the Phase 5 exit: visual verification at supported widths, full reusable-component adoption, state restoration, and reference-level Study, Work, Bank, Social, and Goals composition remain open.
 
 ### Deferred Phase 0 online-validation gate
 

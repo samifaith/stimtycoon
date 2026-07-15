@@ -1,8 +1,8 @@
 :root {
-    --color-bg-page: rgb(238, 248, 255);
+    --color-bg-page: rgb(244, 249, 255);
     --color-bg-header: rgb(255, 249, 237);
     --color-surface: rgb(255, 255, 255);
-    --color-surface-warm: rgb(255, 248, 232);
+    --color-surface-warm: rgb(255, 252, 246);
     --color-surface-lilac: rgb(244, 238, 255);
     --color-surface-blue: rgb(238, 246, 255);
     --color-text-primary: rgb(16, 42, 94);
@@ -16,7 +16,7 @@
     --color-green: rgb(66, 184, 90);
     --color-pink: rgb(247, 56, 156);
     --color-teal: rgb(37, 183, 176);
-    --color-border: rgb(220, 230, 242);
+    --color-border: rgb(215, 227, 241);
     --color-border-warm: rgb(240, 223, 192);
     --color-disabled: rgb(215, 220, 229);
     --color-danger: rgb(232, 83, 97);
@@ -78,6 +78,51 @@
     background-color: var(--st-cyan-600);
     border-width: 0;
     color: white;
+}
+
+/*
+ * Production-safe vendor asset bindings.
+ * These classes are deliberately opt-in: the source art has been checked at
+ * the dimensions used here, while unsliced raster panels remain quarantined.
+ */
+.st-brand-skyden-button {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Buttons/button_plain_blugreen.svg");
+    -unity-background-scale-mode: stretch-to-fill;
+    border-width: 0;
+    color: white;
+    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+}
+
+.st-brand-jelly-reward {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Jelly_UI_Pack/Sprites/Button/Primary_Btn/btnPink_wide.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    border-width: 0;
+    color: white;
+    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+}
+
+.st-brand-space-icon {
+    background-color: rgba(0, 0, 0, 0);
+    -unity-background-scale-mode: scale-to-fit;
+    color: rgba(0, 0, 0, 0);
+}
+
+.st-brand-space-icon.icon-book {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/book-64.png");
+}
+
+.st-brand-space-icon.icon-home {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/home-64.png");
+}
+
+.st-brand-space-icon.icon-heart {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/heart-64.png");
+}
+
+.st-brand-space-icon.icon-badge {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/badge-64.png");
 }
 
 .stim-pack-secondary-button {

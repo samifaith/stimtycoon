@@ -36,9 +36,12 @@ namespace StimTycoon.Runtime
             var title = new Label(ToCompactTitle(entry.text));
             title.AddToClassList("st-feed-title");
             copy.Add(title);
+            var timestamp = new Label(ToCompactTimestamp(entry));
+            timestamp.AddToClassList("st-feed-timestamp");
+            copy.Add(timestamp);
             row.Add(copy);
 
-            var chip = new Label(ToDisplayName(category));
+            var chip = new Label(ToResultChip(entry.text, category));
             chip.AddToClassList("st-feed-result-chip");
             chip.AddToClassList("result-" + category);
             row.Add(chip);
@@ -73,13 +76,20 @@ namespace StimTycoon.Runtime
             string reward,
             string actionText,
             bool actionEnabled,
-            Action onAction)
+            Action onAction,
+            string accessibleProgress = null)
         {
-            var row = new VisualElement { name = "achievement-row-" + Sanitize(stableId) };
+            var row = new VisualElement
+            {
+                name = "achievement-row-" + Sanitize(stableId),
+                tooltip = $"{title}. {category}. Progress {accessibleProgress ?? progress}. Reward {reward}."
+            };
             row.AddToClassList("st-achievement-row");
 
             var icon = new Label(string.IsNullOrEmpty(badge) ? "🏆" : badge);
             icon.AddToClassList("st-achievement-icon");
+            if (actionText == "CLAIM" || string.Equals(category, "Achievement", StringComparison.OrdinalIgnoreCase))
+                icon.AddToClassList("stim-pack-reward-icon");
             row.Add(icon);
 
             var copy = new VisualElement();
@@ -114,6 +124,172 @@ namespace StimTycoon.Runtime
             return row;
         }
 
+        public static Button CreateRelationshipRow(
+            string stableId,
+            string displayName,
+            string relationshipType,
+            int strength,
+            Action onOpen)
+        {
+            var safeName = string.IsNullOrWhiteSpace(displayName) ? ToDisplayName(stableId) : displayName.Trim();
+            var safeType = ToDisplayName(relationshipType);
+            var safeStrength = Math.Max(0, Math.Min(100, strength));
+            var row = new Button(onOpen)
+            {
+                name = "relationship-" + Sanitize(stableId),
+                tooltip = $"{safeName}. {safeType}. Relationship strength {safeStrength} out of 100."
+            };
+            row.AddToClassList("st-relationship-card");
+
+            var avatar = new Label(safeName.Length == 0 ? "?" : safeName.Substring(0, 1).ToUpperInvariant());
+            avatar.AddToClassList("st-relationship-card-avatar");
+            row.Add(avatar);
+
+            var copy = new VisualElement();
+            copy.AddToClassList("st-relationship-card-copy");
+            var name = new Label(safeName);
+            name.AddToClassList("st-relationship-card-name");
+            var meta = new Label($"{safeType} · Relationship {safeStrength} / 100");
+            meta.AddToClassList("st-relationship-card-meta");
+            var track = new VisualElement();
+            track.AddToClassList("st-relationship-card-track");
+            var fill = new VisualElement();
+            fill.AddToClassList("st-relationship-card-fill");
+            fill.style.width = Length.Percent(safeStrength);
+            track.Add(fill);
+            copy.Add(name);
+            copy.Add(meta);
+            copy.Add(track);
+            row.Add(copy);
+
+            var arrow = new Label("›");
+            arrow.AddToClassList("st-relationship-card-arrow");
+            row.Add(arrow);
+            return row;
+        }
+
+        public static VisualElement CreateAccountRow(
+            string stableId,
+            string glyph,
+            string title,
+            string balance,
+            string detail,
+            Action onOpen = null)
+        {
+            var row = onOpen == null ? new VisualElement() : new Button(onOpen);
+            row.name = "account-row-" + Sanitize(stableId);
+            row.tooltip = $"{title}. {balance}. {detail}";
+            row.AddToClassList("st-account-row");
+            row.EnableInClassList("interactive", onOpen != null);
+            row.Add(CreateRowIcon(glyph, "st-account-row-icon"));
+            row.Add(CreateRowCopy(title, detail, "st-account-row-title", "st-account-row-detail"));
+            var value = new Label(balance);
+            value.AddToClassList("st-account-row-value");
+            row.Add(value);
+            return row;
+        }
+
+        public static VisualElement CreatePathRow(
+            string stableId,
+            string glyph,
+            string title,
+            string detail,
+            string trailingText,
+            bool available,
+            Action onOpen = null)
+        {
+            var row = onOpen == null ? new VisualElement() : new Button(onOpen);
+            row.name = "path-row-" + Sanitize(stableId);
+            row.tooltip = $"{title}. {detail}. {trailingText}";
+            row.AddToClassList("st-path-row");
+            row.EnableInClassList("locked", !available);
+            row.Add(CreateRowIcon(glyph, "st-path-icon"));
+            row.Add(CreateRowCopy(title, detail, "st-path-title", "st-path-body"));
+            var trailing = new Label(trailingText);
+            trailing.AddToClassList(available ? "st-path-reward" : "st-path-lock");
+            row.Add(trailing);
+            return row;
+        }
+
+        public static VisualElement CreateStatRow(
+            string stableId,
+            string glyph,
+            string title,
+            int value,
+            int maximum = 100)
+        {
+            var safeMaximum = Math.Max(1, maximum);
+            var safeValue = Math.Max(0, Math.Min(safeMaximum, value));
+            var row = new VisualElement
+            {
+                name = "stat-row-" + Sanitize(stableId),
+                tooltip = $"{title}: {safeValue} out of {safeMaximum}."
+            };
+            row.AddToClassList("st-stat-row");
+            row.AddToClassList("st-component-stat-row");
+            row.Add(CreateRowIcon(glyph, "st-stat-icon"));
+            var main = new VisualElement();
+            main.AddToClassList("st-stat-main");
+            var name = new Label(title);
+            name.AddToClassList("st-stat-name");
+            var track = new VisualElement();
+            track.AddToClassList("st-stat-track");
+            var fill = new VisualElement();
+            fill.AddToClassList("st-stat-fill");
+            fill.style.width = Length.Percent(safeValue * 100f / safeMaximum);
+            track.Add(fill);
+            main.Add(name);
+            main.Add(track);
+            row.Add(main);
+            var number = new Label($"{safeValue} / {safeMaximum}");
+            number.AddToClassList("st-stat-number");
+            row.Add(number);
+            return row;
+        }
+
+        public static VisualElement CreateSectionRow(
+            string stableId,
+            string title,
+            string metadata,
+            string trailingText)
+        {
+            var row = new VisualElement
+            {
+                name = "section-row-" + Sanitize(stableId),
+                tooltip = $"{title}. {metadata}. {trailingText}"
+            };
+            row.AddToClassList("st-section-row");
+            row.Add(CreateRowCopy(title, metadata, "st-section-row-title", "st-section-row-meta"));
+            var trailing = new Label(trailingText);
+            trailing.AddToClassList("st-section-row-trailing");
+            row.Add(trailing);
+            return row;
+        }
+
+        private static Label CreateRowIcon(string glyph, string className)
+        {
+            var icon = new Label(string.IsNullOrWhiteSpace(glyph) ? "•" : glyph);
+            icon.AddToClassList(className);
+            return icon;
+        }
+
+        private static VisualElement CreateRowCopy(
+            string title,
+            string detail,
+            string titleClass,
+            string detailClass)
+        {
+            var copy = new VisualElement();
+            copy.AddToClassList("st-row-copy");
+            var titleLabel = new Label(string.IsNullOrWhiteSpace(title) ? "Untitled" : title);
+            titleLabel.AddToClassList(titleClass);
+            var detailLabel = new Label(detail ?? string.Empty);
+            detailLabel.AddToClassList(detailClass);
+            copy.Add(titleLabel);
+            copy.Add(detailLabel);
+            return copy;
+        }
+
         private static string ToCompactTitle(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return "Life update";
@@ -121,6 +297,30 @@ namespace StimTycoon.Runtime
             var sentenceEnd = normalized.IndexOf(". ", StringComparison.Ordinal);
             if (sentenceEnd > 0) normalized = normalized.Substring(0, sentenceEnd + 1);
             return normalized.Length <= 64 ? normalized : normalized.Substring(0, 61).TrimEnd() + "…";
+        }
+
+        private static string ToResultChip(string text, string category)
+        {
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                var normalized = text.Replace('\n', ' ').Trim();
+                var resultStart = normalized.IndexOf(". ", StringComparison.Ordinal);
+                if (resultStart >= 0 && resultStart + 2 < normalized.Length)
+                {
+                    var result = normalized.Substring(resultStart + 2).Trim().TrimEnd('.');
+                    if (result.Length > 18) result = result.Substring(0, 17).TrimEnd() + "…";
+                    if (!string.IsNullOrWhiteSpace(result)) return result;
+                }
+            }
+
+            return ToDisplayName(category);
+        }
+
+        private static string ToCompactTimestamp(StimLifeFeedEntry entry)
+        {
+            if (DateTime.TryParse(entry.timestampUtc, out var timestamp))
+                return timestamp.ToLocalTime().ToString("MMM d");
+            return $"Month {entry.monthOfYear}";
         }
 
         private static string GetCategoryGlyph(string category)
