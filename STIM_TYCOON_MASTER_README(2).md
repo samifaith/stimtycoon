@@ -4,7 +4,7 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 > **Final product name:** Stim Tycoon  
 > **Platform target:** iOS first, with architecture that can support Android later  
-> **Status:** Phase 1 offline loop verified; Phase 2 gameplay expansion active; shared-action foundation delivered
+> **Status:** Feature-complete playable alpha foundation; Phase 5 experience convergence active
 > **Primary reference set:** Three gameplay recordings supplied by the product owner  
 > **Important:** The recordings are inspiration for interaction patterns, pacing, information hierarchy, and feature depth. Stim Tycoon must use original branding, writing, visuals, balancing, content, data, and interface components.
 
@@ -12,12 +12,14 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 The repository currently runs on Unity `6000.3.19f1` and has a verified 337-test EditMode baseline as of July 14, 2026. The offline loop begins with randomized birth and now includes required school paths, contextual activities, persistent peers and drama, identity choices, friendship-gated romance, marriage and divorce, household stats, spouse-derived finances, and revolving credit before continuing through careers, achievements, health decline, and a persistent ending summary. Manual work pays one hour at annual salary divided by 2,080. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, compact native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. A reusable transaction runner and migration-safe shared-action contract now provide stable action instances, reload-safe idempotency, availability states, signed previews, persisted completion, reusable UI Toolkit cards, interruption-safe timed-action reconciliation, and reusable monetary input/payment validation. The first Education vertical slice is complete: age-gated General, Academic, and Vocational tracks have authored costs; easy, medium, and hard monthly sessions carry visible tradeoffs; Qualification XP advances through four visible tiers; and selected tracks and tiers gate career applications and authored event eligibility with explicit locked reasons. Fitness and Professional now join Learning as visible level-based skill paths. M7 is complete: Advance Year safely processes up to twelve ordinary monthly transactions with per-month autosaves and required-input stops; a persisted annual accumulator covers cash, savings, stats, relationships, Education, skills, career, and deterministic major-outcome highlights; and an authored Year in Review grants one transactionally claimed, duplicate-safe reward while retaining at most ten completed reviews. Automated compact-width and 130% text reflow rules cover dense controls while the visual device matrix remains pending. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
 
-### Current phase assessment — July 14, 2026
+### Current phase assessment — July 15, 2026
 
 - **Phase 0 — Product Foundation:** offline foundation delivered. The five representative events, schemas, deterministic resolver, local-save recovery, migration boundary, and product decisions are implemented. Authentication, cloud-conflict validation, Game Center, and ads remain intentionally deferred behind offline-loop stability.
-- **Phase 1 — Simulation Skeleton:** verified complete for the offline implementation. The 242-test run includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
-- **Phase 2 — Skills, Education, and Relationships:** materially underway but incomplete. Required enrollment/path decisions, contextual school/work activities, peers, friendship/drama history, identity, romance, marriage maintenance, household stats, and spouse finances exist. Broader skills, family planning, children, custody, inheritance, and additional relationship arcs remain.
-- **Phase 3 and later:** partial foundations exist. A career ladder, monthly cash flow, manual work, household income, fixed costs, debt, credit limits, variable APR, and interest are playable, but full career industries, transaction history, repayment controls, investing, and business systems remain incomplete.
+- **Phase 1 — Complete-Life Simulation:** verified complete for the offline implementation. The current 337-test source suite includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
+- **Phase 2 — Interactive Life Systems:** complete for the alpha foundation. Education, visible skills, home actions, relationship discovery, adult romance, family planning, children, parenting, custody, goals, rewards, and major-transition records are transactional and persisted.
+- **Phase 3 — Wealth and Work Systems:** complete for the first alpha breadth target. Savings, credit repayment, grounded interest, cash-flow history, gated index investing, three career industries, and one operational business are playable.
+- **Phase 4 — Complete-Life Alpha:** complete in automated coverage. Annual reviews, transitions, goals, achievements, retirement/death, replay, bounded histories, and seeded complete-life simulations are present.
+- **Phase 5 — Experience Convergence:** active. The broad feature set must be reorganized into focused destination workspaces, deepened with original content, and validated at production mobile quality.
 
 ### Deferred Phase 0 online-validation gate
 
@@ -2509,208 +2511,102 @@ A player should be able to:
 
 ## 30. Development Roadmap
 
-## Phase 0: Product Foundation — Offline Foundation Delivered
+This roadmap reports repository reality rather than treating every desired content family as a separate sequential phase. A phase is complete only when its exit gate is represented in the playable UI, persisted transaction path, migration/rollback coverage, and automated verification. The reference screens define interaction density and destination clarity; they do not authorize copying their visual assets, economy, premium systems, or resource model.
 
-Deliverables:
+## Phase 0: Product and Offline Architecture — Complete
 
-- finalized game pillars
-- terminology
-- core stat list
-- skill list
-- MVP feature boundary
-- screen inventory
-- locked event schema and Yarn command/ID mapping
-- five representative authored events covering childhood, school, career, health, and money
-- locked risk and reward probability bands
-- save envelope, invariants, migrations, conflict handling, and versioning strategy
-- economy assumptions
-- original visual direction
-- PG-13+ content boundaries
-- USA and Jamaica content scope
-- ad placement principles
-- account and Game Center requirements
-- repository setup
+Delivered event/schema ownership, deterministic outcomes, Yarn integration, versioned atomic saves, additive migration, recovery, stable IDs, original product rules, and replaceable service boundaries.
 
-Exit criteria:
+Exit evidence: representative events validate and resolve through the runtime; saves round-trip, migrate, reject invalid state, and recover from backup. Online conflict handling remains a Phase 7 distribution gate because cloud services are intentionally absent.
 
-- no unresolved disagreement about the core loop
-- every MVP system has an owner and definition
-- all five representative events validate against schema version 1
-- each representative event runs through Yarn Spinner into the C# resolver
-- internal risk bands match observed outcomes after modifiers
-- save version 1 passes round-trip, corruption recovery, migration, and cloud-conflict tests
+## Phase 1: Complete-Life Simulation — Complete
 
-## Phase 1: Simulation Skeleton — Verified Complete Offline
+Delivered generated lives, monthly and yearly aging, randomized and scheduled events, the Life Feed, stats, economy feedback, education/career progression, achievements, retirement/death, final summaries, replay, and a deterministic birth-to-ending harness.
 
-Build:
+Exit evidence: an automated character reaches a stable ending without developer intervention, and ordinary monthly transactions remain the single source of truth for Advance Year.
 
-- character model
-- age progression
-- life feed
-- stat changes
-- event modal
-- weighted outcome resolver
-- save and load
-- seeded randomness
-- hidden risk/reward calculation with developer-facing validation
+## Phase 2: Interactive Life Systems — Complete for Alpha Foundation
 
-Exit criteria:
+Delivered the shared transactional action contract; study tracks and difficulty sessions; visible Learning, Fitness, and Professional progression; home actions and upgrades; relationship discovery and multi-stage interaction; family planning, children, parenting, custody, goals, achievement rewards, and focused transition records.
 
-- [x] a test character can age from birth to death through authored events
+Exit evidence: these systems are playable, preview requirements and tradeoffs, persist durable consequences, reject duplicate completion, write to the Life Feed, and roll back on save failure.
 
-## Phase 2: Skills, Education, and Relationships — Active Expansion
+## Phase 3: Wealth, Career, and Business — Complete for First Vertical Slice
 
-Build:
+Delivered savings transfers, bounded transaction history, grounded interest and projections, monthly cash-flow detail, revolving-credit repayment, gated index investing, three career industries, and one operational business with staffing, upgrades, locations, risks, failure, valuation, and sale.
 
-- shared interactive-action contract, action cards, previews, requirements, progress, cooldowns, and atomic outcomes
-- education-track selection and difficulty-based study sessions
-- home-object activities, books/inventory, personal training, and household actions
-- compatible-person discovery and persistent dating interactions
-- Main, Daily, and Life goals connected to achievements
-- skills and XP
-- practice actions
-- school stages
-- relationship records
-- relationship actions
-- skill and relationship event modifiers
+Exit evidence: seeded long-run simulations cover distinct economic profiles and business outcomes; all monetary values use integer minor units and atomic transactions.
 
-Exit criteria:
+## Phase 4: Playable-Alpha Breadth — Complete in Code; Visual Verification Pending
 
-- skills visibly unlock choices and alter outcomes
+Delivered M7–M12: annual reviews and rewards, Bank, Home, family, careers/business, goals, rewards, transitions, launch-alpha event coverage validation, bounded histories, migration fixtures, and first-life orientation. The repository contains 337 EditMode test methods.
 
-## Phase 3: Career and Personal Finance
+Exit caveat: Unity must still record a clean current full-suite run, and the implemented breadth is concentrated in one functional vertical-slice shell rather than polished destination-specific experiences.
 
-Build:
+## Phase 5: Experience Convergence — Active (M13–M16)
 
-- jobs and career ladders
-- applications and interviews
-- salary and recurring expenses
-- debt
-- annual finance summary
-- tap-to-earn
-- net worth
+Goal: reach the reference set's clarity and interaction density using original Stim Tycoon presentation and the systems already in the repository.
 
-Exit criteria:
+### M13 — Navigation shell and destination framework
 
-- a player can support or destabilize a life through work and spending
+- Create a persistent, safe-area-aware status header with age/calendar, cash/net worth, and only Stim's real resources.
+- Establish six clear destinations: Life/Home, Education, Career/Business, Money, Social/Family, and Goals/Legacy.
+- Add reusable destination headers, segmented tabs, modal sheets, requirement chips, progress/timer states, and selected-navigation treatment.
+- Restore the prior destination, tab, scroll position, and selected entity after closing a sheet or resolving an action.
+- Pass structural, focus-order, tap-target, compact-width, and 130% text tests before migrating feature screens.
 
-## Phase 4: Business MVP
+Gate: navigation and overlays work without obscuring time controls, pending decisions, endings, or safe areas at 320/390/430/768 widths.
 
-Build:
+### M14 — Bank and Education convergence
 
-- business creation
-- three business types
-- upgrades
-- staffing abstraction
-- revenue and expenses
-- business events
-- valuation and sale
-- shorter-turn and yearly business progression
+- Reframe Money as a Bank workspace with Savings, Credit/Cash Flow, and Investing tabs; keep exact and percentage controls, transparent APY, projections, transaction history, repayment, and risk gates.
+- Add portfolio allocation and performance history only after the existing index-fund path remains balanced; defer casino content.
+- Reframe Education as a study catalog and focused class sheet with qualification badge/progress, easy/medium/hard sessions, explicit duration/cooldown and costs, and direct navigation from locked requirements.
+- Add at least three original study disciplines with career/event consequences, while retaining the existing General/Academic/Vocational foundation.
 
-Exit criteria:
+Gate: a player can understand where money went, why an investment or course is locked, and what every action changes before committing it.
 
-- businesses can succeed, stagnate, fail, or be sold for understandable reasons
+### M15 — Home, inventory, Social, and family convergence
 
-## Phase 5: Investing and Property
+- Turn the Home card list into a room/object workspace with visible house condition/progress and actionable reading, training, rest, maintenance, and household objects.
+- Add a bounded books/equipment inventory with stock/capacity, active timers, offline reconciliation, and single-claim completion; do not introduce artificial hunger/energy currencies.
+- Present relationship discovery as a bounded candidate list, then open persistent profiles with warmth, stage, history, cooldown, consent, and available actions.
+- Surface partner, child, parenting, and custody state in a family workspace without weakening adult-only romance and friendship gates.
 
-Build:
+Gate: each object or person has a clear persistent state, and reload/interruption cannot duplicate inventory use, progress, relationship changes, or child outcomes.
 
-- stock market
-- portfolio
-- dividends
-- property market
-- ownership costs
-- rent
-- appreciation
-- sale
+### M16 — Career, Business, Goals, and transitions convergence
 
-Exit criteria:
+- Build a career workspace for industry selection, requirements, applications/interviews, performance, promotion, retraining, firing, and retirement.
+- Build a business dashboard for action points, operating work, revenue/expenses, staff, upgrades, locations, disruptions, valuation, failure, and sale.
+- Present Main, Daily, and Life goals in a dedicated board with visible progress, direct `Go` navigation, and once-only non-premium rewards.
+- Upgrade birth/new-life, graduation, marriage, parenthood, retirement, death, and legacy moments into focused presentations with concise consequences and a clear return path.
 
-- investment outcomes affect the life without replacing all other play
+Gate: every Phase 2–4 system is reachable through a coherent destination and no longer depends on discovering a long mixed-purpose scroll.
 
-## Phase 6: Complete Life and Legacy Summary
+## Phase 6: Content, Economy, and Presentation Depth — Planned (M17)
 
-Build:
+- Expand original life-stage, health, drama, career, relationship, family, business, and world-event chains with durable consequences and terminal branches.
+- Add property and a small diversified portfolio only after Bank telemetry/simulations show stable savings, debt, and index behavior.
+- Add a second business only after Local Services Co. is understandable and balanced in playtests.
+- Complete original avatar, room, object, career, business, relationship, transition, icon, typography, animation, sound, and music direction with recorded licenses.
+- Balance early-, mid-, and late-life pacing across constrained, middle-income, and affluent origins; ensure setbacks remain recoverable.
 
-- health progression
-- death conditions
-- age-triggered retirement
-- achievements
-- final statistics
-- replay flow
+Gate: seeded lives are materially different, human playtests can explain their major outcomes, no dominant money strategy erases life choices, and content repetition stays within the authored budget.
 
-Exit criteria:
+## Phase 7: Production Hardening and iOS Beta — Planned (M18)
 
-- one life can be completed from birth to final summary without developer intervention
+- Ship Settings for text scale, reduced motion, sound/music, captions/text alternatives, haptics, and destructive confirmations.
+- Complete VoiceOver, focus order, contrast, readable charts, fallback fonts, pseudo-localization, and the full device/text-scale matrix.
+- Validate migration, corruption recovery, backup restore, downgrade behavior, bounded save growth, diagnostics, memory, persistence latency, touch, safe areas, and thermal behavior on supported iPhones.
+- Freeze beta save semantics, then implement and test Authentication, Game Center, Cloud Save conflicts, privacy disclosures, and optional ads only if product placement rules are approved.
+- Prepare signing, privacy manifest, licenses, known issues, rollback build, tester instructions, and TestFlight distribution.
 
-## Phase 7: Content and Balance
+Gate: zero critical/high defects, a clean physical-device birth-to-ending playthrough, safe old/corrupt-save handling, completed accessibility/privacy/licensing checklists, and an approved beta candidate.
 
-Build:
+## Phase 8: Launch and Post-Launch — Future
 
-- event library
-- chained events
-- background-specific content
-- career events
-- business events
-- world events
-- anti-repetition rules
-- simulation testing tools
-
-Exit criteria:
-
-- multiple automated lives produce varied but plausible outcomes
-
-## Phase 8: UX, Art, and Accessibility
-
-Build:
-
-- final component library
-- avatar direction
-- icons
-- motion
-- charts
-- accessibility review
-- device-size testing
-
-Exit criteria:
-
-- all core tasks are clear on supported iPhones
-
-## Phase 9: Beta and Launch
-
-Build:
-
-- analytics
-- crash reporting
-- TestFlight
-- Game Center validation
-- account and cloud-save validation
-- ad frequency and reward validation
-- onboarding refinement
-- performance tuning
-- privacy disclosures
-- App Store screenshots and metadata
-- support workflow
-
-Exit criteria:
-
-- stable beta
-- completed App Store review checklist
-- launch candidate approved
-
-## Phase 10: Post-Launch Expansion
-
-Candidates:
-
-- cryptocurrency
-- deeper luxury assets
-- advanced careers
-- politics
-- crime
-- dynasty mode
-- Android
-- content packs
-- challenge seasons
+Launch work includes measured onboarding refinements, App Store materials, support workflow, release monitoring, and launch-candidate approval. Post-launch candidates include deeper property/luxury assets, advanced careers, dynasty play, Android, content packs, and challenge seasons. Cryptocurrency, crime, politics, and advertising remain separate product decisions rather than assumed roadmap commitments.
 
 ---
 
@@ -2756,6 +2652,7 @@ stim-tycoon/
 ├── docs/
 │   ├── GAME_BIBLE.md
 │   ├── EVENT_SCHEMA.md
+│   ├── CONTENT_PROGRESSION_STANDARDS.md
 │   ├── ECONOMY.md
 │   ├── UX_MAP.md
 │   ├── CONTENT_GUIDE.md
@@ -2922,7 +2819,7 @@ Completed foundation work:
 - [x] Persist timed actions through reload, reconcile elapsed UTC time, enforce single-claim completion, and establish a user-verified 205-test baseline.
 - [x] Add reusable percentage/exact-amount and authored cash-or-credit controls, establishing a user-verified 220-test baseline.
 
-Next phase — **Playable Alpha Expansion (Milestones 7–13):**
+Completed alpha-foundation milestones — **M7–M12:**
 
 1. **M7 — Time, Year in Review, and annual rewards — complete.** Advance Year uses safe sequential monthly transactions, stops for required input, summarizes persisted annual changes and major outcomes, presents meaningful next-year choices, and grants one persisted, duplicate-safe, path-appropriate benefit after any completed twelve-month cycle.
 2. **M8 — Money and banking — complete.** Transactional exact/percentage savings deposits and withdrawals, bounded balance history, reusable amount controls, Life Feed output, a conservative 3.50% savings APY with monthly accrual, one-year projections, last-month cash-flow detail, visible debt/available credit, and atomic revolving-credit repayment are implemented in the playable Money UI. Broad-index contributions are gated behind adulthood, financial knowledge, secondary completion or qualification, emergency savings, and available cash, with deterministic bounded market variation and no promised return or casino-style risk. Seeded twenty-year economy simulations cover constrained, middle-income, and affluent profiles.
@@ -2930,7 +2827,15 @@ Next phase — **Playable Alpha Expansion (Milestones 7–13):**
 4. **M10 — Relationships, dating, and family — complete.** Adult-only compatible-person discovery, bounded histories, consent-aware relationship and family-planning paths, pregnancy/adoption, durable children, parenting, dependent expenses, shared custody, adult-child transitions, editorial safety validation, and custody/death/reload/new-life boundary coverage are implemented.
 5. **M11 — Careers and first complete business — complete.** Finance, Healthcare, and Skilled Trades provide gated applications, deterministic uncertain interviews, distinct ladders, performance warnings, firing, unemployment, retraining, and skill-sensitive progress. Local Services Co. supports transactional startup, action points, work, staffing, payroll, upgrades, locations, seeded revenue/expenses and disruptions, bounded ledgers, losses, failure, valuation, and atomic sale. Seeded ten-year simulations and the verified 320-test EditMode suite cover the milestone.
 6. **M12 — Goals, achievement rewards, and transitions — complete.** Main/Daily/Life goals provide visible progress, direct destinations, and transactionally claimed rewards; authored achievements carry valuable once-only cash prizes. Graduation, marriage, parenthood, retirement, death, and new-life milestones create bounded, migrated, reload-safe presentation records, durable Life Feed consequences, and persisted acknowledgments. An executable launch-alpha content gate enforces minimum event breadth across five life stages and seven event destinations plus Home, valid chain targets, terminal coverage, diagnostic tags, and cooldown-based anti-repetition. The production event gate additionally enforces risk-preview accuracy, risk/reward balance, localization-safe stable IDs, eligibility JSON, unique telemetry, reachable branches, and valid follow-up windows and cancellation rules. A single-screen, once-only first-life orientation explains the Life Feed, time controls, locked requirements, ordinary progression, and local autosaving without delaying childhood.
-7. **M13 — Playable-alpha hardening and iOS gate.** Complete responsive/accessibility validation and Settings; establish pseudo-localization and fallback-font readiness; audit production assets and licenses; validate migration, corruption recovery, backup restore, and bounded save growth; add privacy-safe diagnostics; prepare internal-distribution documentation; install on a physical iPhone; profile persistence/memory/safe areas/touch; resolve critical defects; and finish one clean birth-to-ending device run.
+
+Active path to completion — **M13–M18:**
+
+1. **M13 — Navigation shell and destination framework.** Build the persistent status/navigation shell, reusable destination headers, tabs, sheets, action states, safe-area handling, and state restoration.
+2. **M14 — Bank and Education convergence.** Turn the implemented finance and study systems into focused tabbed workspaces with readable progress, requirements, history, and tradeoffs.
+3. **M15 — Home, inventory, Social, and family convergence.** Add room/object interaction, bounded books/equipment inventory, persistent discovery/profile flows, and a coherent family workspace.
+4. **M16 — Career, Business, Goals, and transitions convergence.** Give work, enterprise, goals, and major-life moments dedicated playable presentations.
+5. **M17 — Content, economy, and presentation depth.** Expand original content and carefully gated asset/business breadth, tune replayable economies, and replace launch-blocking placeholder art/audio.
+6. **M18 — Production hardening and iOS beta.** Complete Settings, accessibility, pseudo-localization, device validation, migration/recovery profiling, privacy/licensing, optional service gates, TestFlight readiness, and a clean device life run.
 
 Phase-wide gates apply to every milestone: stored model changes require additive idempotent migrations and old-save fixtures; persistent histories require bounded-retention tests; economy features require seeded long-run balance simulations; authored content requires stable IDs, localization keys, eligibility/risk/editorial validation, diagnostic tags, Life Feed output, and anti-repetition coverage; and external services must remain optional offline-safe adapters with documented privacy and failure behavior.
 

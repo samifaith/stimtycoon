@@ -10,6 +10,8 @@
 
 All Stim Tycoon events conform to a single **locked schema v1.0**. This document explains the schema, how to author events, and how validation works.
 
+Age bands, progression requirements, NPC-trigger priority, reward budgets, Life Feed ordering, ad-slot restrictions, and visual placeholder metadata are defined in [Content and Progression Standards](CONTENT_PROGRESSION_STANDARDS.md). New events must satisfy both documents.
+
 ### Key Principles
 
 1. **Strict validation** – Events that don't conform to the schema are rejected before gameplay
@@ -81,6 +83,8 @@ Outcome {
 }
 ```
 
+An outcome's `feedEntryKey` is required for production content. Runtime rendering orders resolved entries using the deterministic Life Feed rules in the content standards; event authors must not encode ordering into localized copy.
+
 ### Effect
 
 ```csharp
@@ -91,6 +95,12 @@ Effect {
   metadata: string (JSON for complex effects)
 }
 ```
+
+### NPC trigger and visual metadata
+
+Schema v1 continues to express delayed NPC consequences through `followUps` plus `requirementsJson`, `exclusionsJson`, and `ScheduledEventRef.cancellationRule`. New NPC chains must also reserve stable trigger and relationship IDs in their content definition.
+
+Visuals are optional to event resolution but required as content metadata before production-art exit. Reserve a stable `visualId`, role, aspect ratio, accessibility-label/decorative state, fallback, and source/license status. These are additive content fields; introducing them to serialized runtime events must remain backward compatible with schema v1 or use a separately reviewed schema version.
 
 ---
 
@@ -109,6 +119,8 @@ Effect {
 - Each choice must have `baseSuccessChance` in range [0, 1]
 - Each outcome must have a unique `id` within its choice
 - Each effect must have a non-empty `targetId`
+- Event age ranges and choice thresholds must be reachable under the progression standards
+- NPC follow-ups must include a cancellation rule and must not target an incompatible age, consent state, or family role
 
 ### Optional Fields (Warnings)
 
@@ -116,6 +128,8 @@ Effect {
 - `analyticsTags` – If empty, warning (should include telemetry tags)
 - `modifierRuleIds` – Warning if risky/extreme choice has no modifiers
 - Effects – Warning if outcome has no effects
+- `feedEntryKey` – Warning in prototype content; hard error at production-content validation
+- Visual metadata – Warning until M17; hard error at production-art exit
 
 ---
 

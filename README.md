@@ -1,6 +1,6 @@
 # Stim Tycoon
 
-**Status:** Phase 1 offline life loop verified; Phase 2 gameplay expansion active; shared-action foundation delivered
+**Status:** Feature-complete playable alpha foundation; Phase 5 experience convergence active
 
 **Target:** iOS 13+
 
@@ -35,34 +35,34 @@ The repository now contains:
 - visible Fitness and Professional skill paths with level/XP progress and downstream overtime and career-work benefits
 - a safe Advance Year control that reuses ordinary monthly transactions, autosaves every month, summarizes progress, and stops for events, decisions, failures, or endings
 - automated compact-width and 130% accessibility-text reflow rules with 44-point primary targets
-- a user-verified 242-test EditMode baseline covering Education, expanded skills, responsive reflow, and Advance Year batching
+- a 337-test EditMode suite covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, UI structure, and seeded long-run simulations
 
-Not yet implemented:
+Not yet complete:
 
 - Unity Authentication, Apple Game Center, and Cloud Save adapters
 - Unity LevelPlay ads
 - production navigation, accessibility, localization, art, and audio
 - iOS device build and automated play-flow coverage
-- meaningful one-time achievement prizes, such as cash, durable resources, unlocks, or cosmetic/status rewards
-- a major Year in Review event and single year-completion benefit that reward reaching month 12 through either monthly or annual pacing
+- reference-level destination UX, including focused tabbed Bank, Education, Home, Social, Business, and Goals workspaces
+- broader portfolios and property, deeper books/equipment/inventory, additional businesses, and more authored relationship/career/event content
+- production Settings, accessibility validation, pseudo-localization, licensed art/audio, and physical-device verification
 
 ## Current Focus
 
-Milestones 1–6 and the first expanded skill-path increment are complete with a verified 242-test baseline. The next phase is **Playable Alpha Expansion (Milestones 7–13)**; M7 has begun with safe Advance Year batching.
+Milestones 1–12 are implemented and the repository contains a 337-test EditMode suite. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing.
 
-The milestone sequence is:
+The path to completion is:
 
-1. **M7 — Time and Year in Review:** ship safe Advance Year batching, annual summaries, meaningful choices, and one duplicate-safe annual benefit.
-2. **M8 — Money and banking:** savings transfers, transaction history, grounded interest, cash-flow detail, credit repayment, and investing gates.
-3. **M9 — Home and personal development:** persistent room-object actions, maintenance, household effects, cooldowns, and upgrades.
-4. **M10 — Relationships and family:** discovery, deeper consequence chains, family planning, children, and parenting.
-5. **M11 — Careers and business:** multiple industries and one complete operational business.
-6. **M12 — Goals, rewards, and transitions:** goal boards, valuable achievement prizes, and focused major-life presentations.
-7. **M13 — Alpha hardening and iOS:** responsive/accessibility completion, Settings, pseudo-localization, asset/licensing review, migration/recovery validation, privacy-safe diagnostics, internal-distribution readiness, physical-device profiling, and a clean device life playthrough.
+1. **M13 — Navigation shell and destination framework:** persistent status header, six-destination navigation, reusable sheets/tabs/action cards, safe-area behavior, and destination state restoration.
+2. **M14 — Bank and Education convergence:** focused Bank tabs for savings, credit, cash flow, and index investing; Education catalog, qualification progress, session tiers, and locked-requirement navigation.
+3. **M15 — Home, Social, and inventory convergence:** room-object home interactions, books/equipment inventory and timers, relationship discovery/profile/actions, and household progress.
+4. **M16 — Career, Business, and Goals convergence:** career workspace, operational business dashboard, staff/upgrades/locations, and Main/Daily/Life goal boards with direct navigation.
+5. **M17 — Content, balance, and presentation:** more original event chains and destinations, additional investment/property and business breadth, transition scenes, economy tuning, original art/audio, and first-life pacing.
+6. **M18 — Production hardening and iOS beta:** Settings, accessibility, pseudo-localization, device matrix, save/recovery profiling, privacy/licensing, TestFlight readiness, and a clean birth-to-ending device run.
 
 Every milestone also carries shared gates for save migration and rollback, bounded history growth, deterministic economy balance, authored-content validation, localization keys, accessibility, and offline-safe service boundaries.
 
-See [the active task list](docs/TASKS.md) for acceptance criteria and later Money, Home, Relationship, and Business slices.
+See [the active task list](docs/TASKS.md) for milestone acceptance criteria and shared completion gates.
 
 ## Open and Run
 
@@ -88,7 +88,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The current user-verified result is **242 passing EditMode tests** as of July 14, 2026, including the seeded birth-to-ending harness. That harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
+The repository contains **337 EditMode test methods** as of July 15, 2026, including the seeded birth-to-ending harness. Run the suite in Unity to record the current passing result for the active editor and platform. The full-life harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full verification run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
 
 The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. Transactional autosaves now use compact rather than pretty-printed JSON to avoid unnecessary formatting allocation and whitespace. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
 
@@ -153,7 +153,7 @@ docs/                      # Architecture and gameplay specifications
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 242-test verified baseline
+- [x] 337 EditMode test methods in source
 - [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests
@@ -175,6 +175,7 @@ Profile save/load on physical iPhones before changing formats. If device profili
 - [Package install checklist](docs/PACKAGE_INSTALL_CHECKLIST.md)
 - [Phase 0 architecture checklist](docs/PHASE_0_ARCHITECTURE_CHECKLIST.md)
 - [Event schema](docs/EVENT_SCHEMA.md)
+- [Content and progression standards](docs/CONTENT_PROGRESSION_STANDARDS.md)
 - [Modifier rules](docs/MODIFIER_RULES.md)
 - [Business turn design](docs/BUSINESS_TURNS.md)
 - [Unity setup guide](UNITY_6_UPGRADE_GUIDE.md)
