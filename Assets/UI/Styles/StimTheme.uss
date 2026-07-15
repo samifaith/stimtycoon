@@ -1,0 +1,51 @@
+:root {
+    --stim-pack-foundation: rgb(56, 173, 190);
+    --stim-pack-foundation-dark: rgb(27, 130, 220);
+    --stim-pack-reward: rgb(255, 111, 160);
+    --stim-pack-reward-accent: rgb(255, 179, 64);
+    --stim-pack-panel: rgb(255, 255, 255);
+}
+
+/*
+ * Stim-owned adapter layer for imported art packs.
+ * Foundation: Skyden Games Free Casual GUI.
+ * Layout reference: Space Exploration GUI Kit (no direct dependency here).
+ * Reward interactions: Jelly UI Pack.
+ */
+.stim-pack-foundation-button {
+    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Buttons/button_plain_blugreen.svg");
+    -unity-background-scale-mode: stretch-to-fill;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    color: white;
+}
+
+.stim-pack-secondary-button {
+    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Buttons/button_soft_blue.svg");
+    -unity-background-scale-mode: stretch-to-fill;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    color: white;
+}
+
+.stim-pack-reward-button {
+    background-image: url("project://database/Assets/Jelly_UI_Pack/Sprites/Button/Primary_Btn/btnBlue_round.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    color: white;
+}
+
+.stim-pack-reward-button:hover,
+.stim-pack-reward-button:focus {
+    -unity-background-image-tint-color: rgb(255, 244, 174);
+}
+
+.stim-pack-reward-button:active {
+    -unity-background-image-tint-color: rgb(255, 208, 122);
+}
+
+.stim-pack-reward-icon {
+    background-image: url("project://database/Assets/Jelly_UI_Pack/Sprites/Icons/star_icon.png");
+    -unity-background-scale-mode: scale-to-fit;
+}

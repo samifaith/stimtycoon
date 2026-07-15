@@ -35,7 +35,7 @@ The repository now contains:
 - visible Fitness and Professional skill paths with level/XP progress and downstream overtime and career-work benefits
 - a safe Advance Year control that reuses ordinary monthly transactions, autosaves every month, summarizes progress, and stops for events, decisions, failures, or endings
 - automated compact-width and 130% accessibility-text reflow rules with 44-point primary targets
-- a 337-test EditMode suite covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, UI structure, and seeded long-run simulations
+- 340 EditMode test methods covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, UI structure, and seeded long-run simulations
 
 Not yet complete:
 
@@ -49,7 +49,7 @@ Not yet complete:
 
 ## Current Focus
 
-Milestones 1–12 are implemented and the repository contains a 337-test EditMode suite. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing.
+Milestones 1–12 are implemented and the repository contains 340 EditMode test methods. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing.
 
 The path to completion is:
 
@@ -63,6 +63,8 @@ The path to completion is:
 Every milestone also carries shared gates for save migration and rollback, bounded history growth, deterministic economy balance, authored-content validation, localization keys, accessibility, and offline-safe service boundaries.
 
 See [the active task list](docs/TASKS.md) for milestone acceptance criteria and shared completion gates.
+
+The approved M13 UI direction uses Free Casual GUI as the control foundation, Space Exploration GUI Kit as layout inspiration, and Jelly UI Pack for rewarding interaction accents. Stim-owned UXML and USS remain the integration boundary; imported vendor folders are not edited or reorganized. The selected dependencies and release checks are recorded in [the UI asset manifest](Assets/UI/Art/ASSET_MANIFEST.md).
 
 ## Open and Run
 
@@ -88,7 +90,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The repository contains **337 EditMode test methods** as of July 15, 2026, including the seeded birth-to-ending harness. Run the suite in Unity to record the current passing result for the active editor and platform. The full-life harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full verification run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
+The repository contains **340 EditMode test methods**, with a clean Unity Run All baseline recorded on July 15, 2026, including the seeded birth-to-ending harness and the new M13 coverage. The full-life harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full verification run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
 
 The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. Transactional autosaves now use compact rather than pretty-printed JSON to avoid unnecessary formatting allocation and whitespace. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
 
@@ -153,7 +155,7 @@ docs/                      # Architecture and gameplay specifications
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 337 EditMode test methods in source
+- [x] 340 EditMode test methods with a clean Unity Run All baseline recorded July 15, 2026
 - [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests

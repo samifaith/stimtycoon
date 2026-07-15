@@ -10,6 +10,33 @@ namespace StimTycoon.Tests.Domain.UI
         private const string PlayableLifePath = "Assets/UI/StimVerticalSlice.uxml";
         private const string HeaderPath = "Assets/StimTycoon/UI/Components/AppHeader/AppHeader.uxml";
         private const string NavigationPath = "Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml";
+        private const string ThemePath = "Assets/UI/Styles/StimTheme.uss";
+        private const string ComponentsPath = "Assets/UI/Styles/Components.uss";
+
+        [Test]
+        public void VisualPlaceholder_RequiresStableAccessibleMetadataAndRendersFallback()
+        {
+            Assert.Throws<System.ArgumentException>(() => StimVisualPlaceholderFactory.Create(
+                new StimVisualPlaceholderDefinition { visualId = "event.school.exam", decorative = false }));
+
+            var definition = new StimVisualPlaceholderDefinition
+            {
+                visualId = "event.school.exam",
+                role = StimVisualRole.Hero,
+                aspectRatio = "16:9",
+                accessibilityLabelKey = "visual.event.school.exam",
+                fallbackGlyph = "A+",
+                themeToken = "education"
+            };
+            var visual = StimVisualPlaceholderFactory.Create(definition);
+
+            Assert.That(visual.name, Is.EqualTo("visual-event-school-exam"));
+            Assert.That(visual.ClassListContains("st-visual-placeholder"), Is.True);
+            Assert.That(visual.ClassListContains("role-hero"), Is.True);
+            Assert.That(visual.tooltip, Is.EqualTo("visual.event.school.exam"));
+            Assert.That(visual.Q<Label>(className: "st-visual-placeholder-glyph").text, Is.EqualTo("A+"));
+            Assert.That(visual.userData, Is.SameAs(definition));
+        }
 
         [Test]
         public void PlayableLifeScreen_ContainsEveryControllerBinding()
@@ -26,8 +53,11 @@ namespace StimTycoon.Tests.Domain.UI
                 "advance-month", "advance-year", "toggle-overview", "event-continue", "focus-study", "focus-workout",
                 "focus-study-title", "focus-study-effect", "focus-workout-title", "focus-workout-effect",
                 "context-activities",
+                "event-visual-slot", "home-visual-slot", "education-visual-slot", "relationship-visual-slot",
                 "open-new-life", "new-life-setup", "cancel-new-life", "continue-current-life",
                 "create-new-life", "new-life-error", "social-view", "time-dock",
+                "education-view", "career-view", "goals-view",
+                "education-destination-content", "career-destination-content", "goals-destination-content",
                 "relationship-list-view", "relationship-list", "discover-compatible-person", "relationship-discovery-feedback",
                 "relationship-detail-view", "relationship-back", "relationship-avatar", "relationship-name",
                 "relationship-type", "relationship-strength", "relationship-fill", "relationship-genetics",
@@ -101,19 +131,30 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
-        public void SharedShell_ProvidesFourNamedDestinationsAndHeaderState()
+        public void SharedShell_ProvidesSixNamedDestinationsAndHeaderState()
         {
             var header = Clone(HeaderPath);
             var navigation = Clone(NavigationPath);
+            var theme = AssetDatabase.LoadAssetAtPath<StyleSheet>(ThemePath);
+            var components = AssetDatabase.LoadAssetAtPath<StyleSheet>(ComponentsPath);
 
             Assert.That(header.Q<Label>("life-summary"), Is.Not.Null);
             Assert.That(header.Q<Label>("career-progress-value"), Is.Not.Null);
             Assert.That(header.Q<Label>("cash-value"), Is.Not.Null);
-            Assert.That(navigation.Query<Button>().ToList(), Has.Count.EqualTo(4));
+            Assert.That(theme, Is.Not.Null, "The Stim-owned vendor adapter theme must remain importable.");
+            Assert.That(components, Is.Not.Null, "Shared Stim UI component styling must remain importable.");
+            Assert.That(navigation.Query<Button>().ToList(), Has.Count.EqualTo(6));
             Assert.That(navigation.Q<Button>("nav-life"), Is.Not.Null);
+            Assert.That(navigation.Q<Button>("nav-education"), Is.Not.Null);
+            Assert.That(navigation.Q<Button>("nav-career"), Is.Not.Null);
             Assert.That(navigation.Q<Button>("nav-money"), Is.Not.Null);
             Assert.That(navigation.Q<Button>("nav-social"), Is.Not.Null);
-            Assert.That(navigation.Q<Button>("nav-business"), Is.Not.Null);
+            Assert.That(navigation.Q<Button>("nav-goals"), Is.Not.Null);
+            foreach (var button in navigation.Query<Button>().ToList())
+            {
+                Assert.That(button.ClassListContains("stim-pack-interaction-pop"), Is.True,
+                    $"{button.name} must retain shared pressed interaction feedback.");
+            }
         }
 
         [Test]

@@ -116,7 +116,19 @@
 .st-achievement-copy { flex-grow: 1; flex-shrink: 1; }
 .st-achievement-name { color: var(--st-text-primary); font-size: 15px; -unity-font-style: bold; }
 .st-achievement-description { margin-top: 2px; color: var(--st-text-secondary); font-size: 12px; white-space: normal; }
-.st-feed-card { min-height: 82px; }.st-feed-scroll { height: 230px; max-height: 230px; margin-top: 8px; }.st-feed-scroll .unity-scroller--vertical, .st-feed-scroll .unity-scroller--horizontal { display: none; }.st-feed-list { padding-right: 3px; }.st-feed-month-group { margin-bottom: 11px; }.st-feed-month-header { margin-bottom: 6px; color: var(--st-cyan-600); font-size: 11px; letter-spacing: 0.7px; -unity-font-style: bold; }.st-feed-entry { padding: 10px 11px; margin-bottom: 7px; background-color: var(--st-surface-2); border-left-width: 4px; border-left-color: var(--st-cyan-600); border-radius: 10px; }.st-feed-entry.category-event { border-left-color: var(--st-purple-500); }.st-feed-entry.category-activity { border-left-color: var(--st-pink-500); }.st-feed-entry.category-milestone { border-left-color: var(--st-yellow-500); }.st-feed-text { color: var(--st-text-secondary); font-size: 14px; white-space: normal; }.st-feed-empty { margin-top: 7px; color: var(--st-text-secondary); font-size: 14px; white-space: normal; }
+.st-feed-card { min-height: 82px; }.st-feed-scroll { height: 230px; max-height: 230px; margin-top: 8px; }.st-feed-scroll .unity-scroller--vertical, .st-feed-scroll .unity-scroller--horizontal { display: none; }.st-feed-list { padding-right: 3px; }.st-feed-month-group { margin-bottom: 11px; }.st-feed-month-header { margin-bottom: 6px; color: var(--st-cyan-600); font-size: 11px; letter-spacing: 0.7px; -unity-font-style: bold; }.st-feed-entry { flex-direction: row; align-items: flex-start; padding: 10px 11px; margin-bottom: 7px; background-color: var(--st-surface-2); border-left-width: 4px; border-left-color: var(--st-cyan-600); border-radius: 10px; }.st-feed-entry.category-event { border-left-color: var(--st-purple-500); }.st-feed-entry.category-activity { border-left-color: var(--st-pink-500); }.st-feed-entry.category-milestone { border-left-color: var(--st-yellow-500); }.st-feed-ordinal { min-width: 24px; margin-right: 5px; color: var(--st-text-muted); font-size: 12px; -unity-font-style: bold; }.st-feed-text { flex-grow: 1; color: var(--st-text-secondary); font-size: 14px; white-space: normal; }.st-feed-empty { margin-top: 7px; color: var(--st-text-secondary); font-size: 14px; white-space: normal; }
+
+.st-visual-placeholder { min-width: 64px; min-height: 64px; align-items: center; justify-content: center; background-color: var(--st-surface-2); border-width: 1px; border-color: var(--st-border-soft); border-radius: 12px; }
+.st-visual-placeholder-glyph { color: var(--st-cyan-600); font-size: 28px; -unity-font-style: bold; }
+.st-visual-placeholder-label { margin-top: 4px; color: var(--st-text-muted); font-size: 8px; letter-spacing: 0.5px; -unity-font-style: bold; }
+.st-visual-placeholder.role-hero { min-height: 150px; }
+.st-visual-placeholder.role-avatar, .st-visual-placeholder.role-icon, .st-visual-placeholder.role-badge { width: 72px; height: 72px; }
+.st-visual-slot { align-items: center; justify-content: center; }
+.st-visual-slot-card { min-height: 96px; margin-bottom: 10px; }
+.st-visual-slot-card > .st-visual-placeholder { width: 100%; min-height: 96px; }
+.st-visual-slot-avatar { margin-bottom: 10px; }
+.st-visual-slot-hero { min-height: 150px; margin-top: 10px; margin-bottom: 16px; }
+.st-visual-slot-hero > .st-visual-placeholder { width: 100%; }
 
 .st-time-dock { min-height: 72px; padding: 9px 16px; flex-direction: row; align-items: center; justify-content: space-between; background-color: var(--st-surface-1); border-top-width: 1px; border-top-color: var(--st-border-soft); }
 .st-new-life-link { min-width: 68px; min-height: 44px; margin-right: 10px; padding: 7px; background-color: var(--st-surface-purple); border-width: 1px; border-color: var(--st-border-purple); border-radius: 14px; color: var(--st-purple-600); font-size: 11px; -unity-font-style: bold; }
@@ -157,6 +169,9 @@
 .st-social-view { flex-grow: 1; }
 .st-social-view .unity-scroller--vertical, .st-social-view .unity-scroller--horizontal { display: none; }
 .st-social-view > .unity-scroll-view__content-container { padding: 18px 18px 28px 18px; }
+.st-destination-view { flex-grow: 1; }
+.st-destination-view > .unity-scroll-view__content-container { padding: 18px 18px 28px 18px; }
+.st-destination-content { width: 100%; }
 .st-social-content { width: 100%; max-width: 760px; align-self: center; }
 .st-social-title { margin-top: 4px; color: rgb(7, 36, 82); font-size: 30px; -unity-font-style: bold; }
 .st-social-subtitle { margin-top: 5px; margin-bottom: 16px; color: var(--st-text-secondary); font-size: 15px; white-space: normal; }
@@ -226,6 +241,7 @@
 .st-compact-width .st-life-scroll > .unity-scroll-view__content-container,
 .st-compact-width .st-money-view > .unity-scroll-view__content-container,
 .st-compact-width .st-social-view > .unity-scroll-view__content-container { padding-left: 10px; padding-right: 10px; }
+.st-compact-width .st-destination-view > .unity-scroll-view__content-container { padding-left: 10px; padding-right: 10px; }
 .st-compact-width .st-polished-card { padding: 14px; border-radius: 18px; }
 .st-compact-width .st-worth-card { min-height: 112px; }
 .st-compact-width .st-worth-copy { width: 100%; }

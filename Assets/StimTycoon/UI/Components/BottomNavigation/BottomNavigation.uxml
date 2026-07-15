@@ -1,8 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <ui:VisualElement name="bottom-navigation" class="st-life-bottom-nav">
-        <ui:Button name="nav-life" text="⌂  Life" class="st-life-nav-item active" tooltip="Life" />
-        <ui:Button name="nav-money" text="$  Money" class="st-life-nav-item" tooltip="Money" />
-        <ui:Button name="nav-social" text="●●  Social" class="st-life-nav-item" tooltip="Social" />
-        <ui:Button name="nav-business" text="▥  Business" class="st-life-nav-item" tooltip="Business" />
+        <ui:Button name="nav-life" text="⌂  Life" class="st-life-nav-item stim-pack-interaction-pop active" tooltip="Life and Home" />
+        <ui:Button name="nav-education" text="A+  Study" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Education" />
+        <ui:Button name="nav-career" text="▣  Work" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Career and Business" />
+        <ui:Button name="nav-money" text="$  Bank" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Money and Banking" />
+        <ui:Button name="nav-social" text="●  Social" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Social and Family" />
+        <ui:Button name="nav-goals" text="★  Goals" class="st-life-nav-item stim-pack-interaction-pop" tooltip="Goals and Legacy" />
     </ui:VisualElement>
 </ui:UXML>

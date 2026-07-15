@@ -3,6 +3,8 @@
     <ui:Template name="BottomNavigation" src="project://database/Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml" />
     <Style src="project://database/Assets/StimTycoon/UI/Styles/StimTycoonTheme.uss" />
     <Style src="StimVerticalSliceCozyCorporate.uss" />
+    <Style src="Styles/StimTheme.uss" />
+    <Style src="Styles/Components.uss" />
 
     <ui:VisualElement name="screen" class="screen st-life-screen">
         <ui:Instance template="AppHeader" />
@@ -81,6 +83,7 @@
                         <ui:Label text="⌂" class="st-section-heading-icon" />
                         <ui:Label text="HOME" class="st-section-heading-title" />
                     </ui:VisualElement>
+                    <ui:VisualElement name="home-visual-slot" class="st-visual-slot st-visual-slot-card" />
                     <ui:Label name="home-condition" text="Starter Home · Condition 80 / 100" class="st-home-status" />
                     <ui:Label name="home-progress" text="Level 0 · Improvement progress 0 / 10" class="st-money-help" />
                     <ui:VisualElement name="home-actions" class="st-home-actions" />
@@ -92,6 +95,7 @@
                         <ui:Label text="A+" class="st-section-heading-icon" />
                         <ui:Label text="EDUCATION" class="st-section-heading-title" />
                     </ui:VisualElement>
+                    <ui:VisualElement name="education-visual-slot" class="st-visual-slot st-visual-slot-card" />
                     <ui:Label name="education-stage" text="Primary School" class="st-education-stage" />
                     <ui:Label name="learning-level" text="Learning Level 1" class="st-education-level" />
                     <ui:VisualElement class="st-education-track"><ui:VisualElement name="learning-fill" class="st-education-fill" /></ui:VisualElement>
@@ -209,7 +213,8 @@
                 <ui:VisualElement name="relationship-detail-view" class="hidden">
                     <ui:Button name="relationship-back" text="‹  ALL RELATIONSHIPS" class="st-social-back" />
                     <ui:VisualElement class="st-polished-card st-relationship-profile">
-                        <ui:Label name="relationship-avatar" text="P" class="st-relationship-avatar" />
+                        <ui:VisualElement name="relationship-visual-slot" class="st-visual-slot st-visual-slot-avatar" />
+                        <ui:Label name="relationship-avatar" text="P" class="st-relationship-avatar hidden" />
                         <ui:Label name="relationship-name" text="Parent" class="st-social-title" />
                         <ui:Label name="relationship-type" text="PARENT" class="st-section-kicker" />
                         <ui:Label name="relationship-strength" text="Relationship 50 / 100" class="st-relationship-strength" />
@@ -219,6 +224,33 @@
                     <ui:Label text="SPEND TIME" class="st-section-kicker" />
                     <ui:VisualElement name="relationship-actions" class="st-relationship-actions" />
                 </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+
+        <ui:ScrollView name="education-view" mode="Vertical" class="st-destination-view hidden">
+            <ui:VisualElement class="st-destination-content">
+                <ui:Label text="EDUCATION" class="st-section-kicker" />
+                <ui:Label text="Learn and qualify" class="st-social-title" />
+                <ui:Label text="Build skills, complete qualifications, and unlock future paths." class="st-social-subtitle" />
+                <ui:VisualElement name="education-destination-content" />
+            </ui:VisualElement>
+        </ui:ScrollView>
+
+        <ui:ScrollView name="career-view" mode="Vertical" class="st-destination-view hidden">
+            <ui:VisualElement class="st-destination-content">
+                <ui:Label text="CAREER &amp; BUSINESS" class="st-section-kicker" />
+                <ui:Label text="Build your working life" class="st-social-title" />
+                <ui:Label text="Develop a career or operate your own business." class="st-social-subtitle" />
+                <ui:VisualElement name="career-destination-content" />
+            </ui:VisualElement>
+        </ui:ScrollView>
+
+        <ui:ScrollView name="goals-view" mode="Vertical" class="st-destination-view hidden">
+            <ui:VisualElement class="st-destination-content">
+                <ui:Label text="GOALS &amp; LEGACY" class="st-section-kicker" />
+                <ui:Label text="Shape this life" class="st-social-title" />
+                <ui:Label text="Track immediate priorities, long-term goals, achievements, and legacy." class="st-social-subtitle" />
+                <ui:VisualElement name="goals-destination-content" />
             </ui:VisualElement>
         </ui:ScrollView>
 
@@ -238,9 +270,10 @@
 
         <ui:VisualElement name="event-sheet" class="st-event-scrim hidden">
             <ui:VisualElement class="st-event-sheet">
-                <ui:ScrollView class="st-event-scroll" mode="Vertical">
+                    <ui:ScrollView class="st-event-scroll" mode="Vertical">
                     <ui:VisualElement class="st-event-content">
                         <ui:Label name="event-category" text="LIFE EVENT" class="st-event-kicker" />
+                        <ui:VisualElement name="event-visual-slot" class="st-visual-slot st-visual-slot-hero" />
                         <ui:Label name="event-title" text="A new decision" class="st-event-title" />
                         <ui:Label name="event-body" text="Something needs your attention." class="st-event-body" />
                         <ui:VisualElement name="choices" class="st-event-choices" />
@@ -251,7 +284,7 @@
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:ScrollView>
-                <ui:Button name="event-continue" text="Continue" class="st-event-continue hidden" />
+                <ui:Button name="event-continue" text="Continue" class="st-event-continue stim-pack-foundation-button stim-pack-interaction-pop hidden" />
             </ui:VisualElement>
         </ui:VisualElement>
 
@@ -272,7 +305,7 @@
                 <ui:VisualElement class="st-setup-actions">
                     <ui:Button name="cancel-new-life" text="Cancel" class="st-setup-cancel" />
                     <ui:Button name="continue-current-life" text="CONTINUE CURRENT LIFE  ›" class="st-setup-continue hidden" />
-                    <ui:Button name="create-new-life" text="START NEW GAME  ›" class="st-setup-create" />
+                    <ui:Button name="create-new-life" text="START NEW GAME  ›" class="st-setup-create stim-pack-foundation-button stim-pack-interaction-pop" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

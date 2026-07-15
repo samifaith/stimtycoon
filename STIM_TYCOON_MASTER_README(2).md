@@ -10,12 +10,12 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 
 ### Implementation snapshot — July 14, 2026
 
-The repository currently runs on Unity `6000.3.19f1` and has a verified 337-test EditMode baseline as of July 14, 2026. The offline loop begins with randomized birth and now includes required school paths, contextual activities, persistent peers and drama, identity choices, friendship-gated romance, marriage and divorce, household stats, spouse-derived finances, and revolving credit before continuing through careers, achievements, health decline, and a persistent ending summary. Manual work pays one hour at annual salary divided by 2,080. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, compact native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. A reusable transaction runner and migration-safe shared-action contract now provide stable action instances, reload-safe idempotency, availability states, signed previews, persisted completion, reusable UI Toolkit cards, interruption-safe timed-action reconciliation, and reusable monetary input/payment validation. The first Education vertical slice is complete: age-gated General, Academic, and Vocational tracks have authored costs; easy, medium, and hard monthly sessions carry visible tradeoffs; Qualification XP advances through four visible tiers; and selected tracks and tiers gate career applications and authored event eligibility with explicit locked reasons. Fitness and Professional now join Learning as visible level-based skill paths. M7 is complete: Advance Year safely processes up to twelve ordinary monthly transactions with per-month autosaves and required-input stops; a persisted annual accumulator covers cash, savings, stats, relationships, Education, skills, career, and deterministic major-outcome highlights; and an authored Year in Review grants one transactionally claimed, duplicate-safe reward while retaining at most ten completed reviews. Automated compact-width and 130% text reflow rules cover dense controls while the visual device matrix remains pending. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
+The repository currently runs on Unity `6000.3.19f1` and has a verified clean 340-test EditMode baseline as of July 15, 2026. The offline loop begins with randomized birth and now includes required school paths, contextual activities, persistent peers and drama, identity choices, friendship-gated romance, marriage and divorce, household stats, spouse-derived finances, and revolving credit before continuing through careers, achievements, health decline, and a persistent ending summary. Manual work pays one hour at annual salary divided by 2,080. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, compact native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. A reusable transaction runner and migration-safe shared-action contract now provide stable action instances, reload-safe idempotency, availability states, signed previews, persisted completion, reusable UI Toolkit cards, interruption-safe timed-action reconciliation, and reusable monetary input/payment validation. The first Education vertical slice is complete: age-gated General, Academic, and Vocational tracks have authored costs; easy, medium, and hard monthly sessions carry visible tradeoffs; Qualification XP advances through four visible tiers; and selected tracks and tiers gate career applications and authored event eligibility with explicit locked reasons. Fitness and Professional now join Learning as visible level-based skill paths. M7 is complete: Advance Year safely processes up to twelve ordinary monthly transactions with per-month autosaves and required-input stops; a persisted annual accumulator covers cash, savings, stats, relationships, Education, skills, career, and deterministic major-outcome highlights; and an authored Year in Review grants one transactionally claimed, duplicate-safe reward while retaining at most ten completed reviews. Automated compact-width and 130% text reflow rules cover dense controls while the visual device matrix remains pending. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
 
 ### Current phase assessment — July 15, 2026
 
 - **Phase 0 — Product Foundation:** offline foundation delivered. The five representative events, schemas, deterministic resolver, local-save recovery, migration boundary, and product decisions are implemented. Authentication, cloud-conflict validation, Game Center, and ads remain intentionally deferred behind offline-loop stability.
-- **Phase 1 — Complete-Life Simulation:** verified complete for the offline implementation. The current 337-test source suite includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
+- **Phase 1 — Complete-Life Simulation:** verified complete for the offline implementation. The clean 340-test baseline includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
 - **Phase 2 — Interactive Life Systems:** complete for the alpha foundation. Education, visible skills, home actions, relationship discovery, adult romance, family planning, children, parenting, custody, goals, rewards, and major-transition records are transactional and persisted.
 - **Phase 3 — Wealth and Work Systems:** complete for the first alpha breadth target. Savings, credit repayment, grounded interest, cash-flow history, gated index investing, three career industries, and one operational business are playable.
 - **Phase 4 — Complete-Life Alpha:** complete in automated coverage. Annual reviews, transitions, goals, achievements, retirement/death, replay, bounded histories, and seeded complete-life simulations are present.
@@ -2537,9 +2537,9 @@ Delivered savings transfers, bounded transaction history, grounded interest and 
 
 Exit evidence: seeded long-run simulations cover distinct economic profiles and business outcomes; all monetary values use integer minor units and atomic transactions.
 
-## Phase 4: Playable-Alpha Breadth — Complete in Code; Visual Verification Pending
+## Phase 4: Playable-Alpha Breadth — Complete in Code; Device Visual Matrix Pending
 
-Delivered M7–M12: annual reviews and rewards, Bank, Home, family, careers/business, goals, rewards, transitions, launch-alpha event coverage validation, bounded histories, migration fixtures, and first-life orientation. The repository contains 337 EditMode test methods.
+Delivered M7–M12: annual reviews and rewards, Bank, Home, family, careers/business, goals, rewards, transitions, launch-alpha event coverage validation, bounded histories, migration fixtures, and first-life orientation. All 340 EditMode tests passed in the July 15, 2026 Unity Run All baseline.
 
 Exit caveat: Unity must still record a clean current full-suite run, and the implemented breadth is concentrated in one functional vertical-slice shell rather than polished destination-specific experiences.
 
@@ -2549,13 +2549,15 @@ Goal: reach the reference set's clarity and interaction density using original S
 
 ### M13 — Navigation shell and destination framework
 
+- Apply the approved layered UI direction: Free Casual GUI as the foundation, Space Exploration GUI Kit for layout inspiration, and Jelly UI Pack for rewarding interactions. Keep all vendor packs replaceable behind Stim-owned UXML/USS adapters and the UI asset manifest.
 - Create a persistent, safe-area-aware status header with age/calendar, cash/net worth, and only Stim's real resources.
 - Establish six clear destinations: Life/Home, Education, Career/Business, Money, Social/Family, and Goals/Legacy.
 - Add reusable destination headers, segmented tabs, modal sheets, requirement chips, progress/timer states, and selected-navigation treatment.
+- Replace default or hidden scrollbars with one original Stim scrollbar and scroll-affordance system across pages, lists, sheets, tabs, and nested containers; add consistent spacing, dividers, shadows, borders, interaction states, empty/loading/locked states, wrapping, and icon alignment.
 - Restore the prior destination, tab, scroll position, and selected entity after closing a sheet or resolving an action.
 - Pass structural, focus-order, tap-target, compact-width, and 130% text tests before migrating feature screens.
 
-Gate: navigation and overlays work without obscuring time controls, pending decisions, endings, or safe areas at 320/390/430/768 widths.
+Gate: navigation and overlays work without obscuring time controls, pending decisions, endings, or safe areas at 320/390/430/768 widths, and every implemented screen uses the approved scrollbar and shared UI-detail system.
 
 ### M14 — Bank and Education convergence
 
@@ -2586,6 +2588,7 @@ Gate: every Phase 2–4 system is reachable through a coherent destination and n
 
 ## Phase 6: Content, Economy, and Presentation Depth — Planned (M17)
 
+- Run a catalog-wide age-appropriateness audit covering events, choices, outcomes, rewards, tasks, NPC roles/triggers, follow-ups, and visuals, with automated boundary tests and human editorial sign-off.
 - Expand original life-stage, health, drama, career, relationship, family, business, and world-event chains with durable consequences and terminal branches.
 - Add property and a small diversified portfolio only after Bank telemetry/simulations show stable savings, debt, and index behavior.
 - Add a second business only after Local Services Co. is understandable and balanced in playtests.

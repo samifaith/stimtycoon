@@ -1,0 +1,28 @@
+.stim-pack-panel {
+    padding: var(--st-space-4);
+    background-color: var(--stim-pack-panel);
+    border-width: 1px;
+    border-color: var(--st-border-soft);
+    border-radius: var(--st-radius-xl);
+}
+
+.stim-pack-action-row {
+    min-height: 56px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stim-pack-interaction-pop {
+    transition-property: scale, -unity-background-image-tint-color;
+    transition-duration: 0.08s;
+    transition-timing-function: ease-out;
+}
+
+.stim-pack-interaction-pop:active {
+    scale: 0.97 0.97;
+}
+
+.stim-pack-interaction-pop:disabled {
+    opacity: 0.48;
+}

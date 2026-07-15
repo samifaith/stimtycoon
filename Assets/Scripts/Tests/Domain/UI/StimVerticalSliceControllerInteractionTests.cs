@@ -55,6 +55,7 @@ namespace StimTycoon.Tests.Domain.UI
             session.Start(save);
 
             BindControllerFields();
+            Invoke("ConfigureDestinationContent");
             Invoke("RefreshHeader");
             Invoke("RefreshFeed");
         }
@@ -121,6 +122,40 @@ namespace StimTycoon.Tests.Domain.UI
                 Is.EqualTo("Met a friend"));
             Assert.That(groups[1].Q<Label>(className: "st-feed-month-header").text,
                 Is.EqualTo("AGE 17  ·  DECEMBER"));
+            Assert.That(groups[0].Query<Label>(className: "st-feed-ordinal").ToList()[0].text,
+                Is.EqualTo("1."));
+            Assert.That(groups[0].Q<VisualElement>("feed-item-1").tooltip,
+                Does.Contain("Item 1 of 3").And.Contain("Event"));
+        }
+
+        [Test]
+        public void LifeFeed_UsesDeterministicSortWithoutMutatingSavedOrder()
+        {
+            session.ActiveSave.state.lifeFeed.Clear();
+            var storedFirst = new StimLifeFeedEntry
+            {
+                entryId = "older", age = 18, monthOfYear = 1, revision = 4,
+                category = "activity", text = "Stored first", timestampUtc = "2026-01-01T00:00:00Z"
+            };
+            session.ActiveSave.state.lifeFeed.Add(storedFirst);
+            session.ActiveSave.state.lifeFeed.Add(new StimLifeFeedEntry
+            {
+                entryId = "event", age = 18, monthOfYear = 1, revision = 5,
+                category = "event", text = "Event outcome", timestampUtc = "2026-01-02T00:00:00Z"
+            });
+            session.ActiveSave.state.lifeFeed.Add(new StimLifeFeedEntry
+            {
+                entryId = "milestone", age = 18, monthOfYear = 1, revision = 5,
+                category = "milestone", text = "Major transition", timestampUtc = "2026-01-02T00:00:00Z"
+            });
+
+            Invoke("RefreshFeed");
+
+            var rendered = root.Q("life-feed-list").Query<Label>(className: "st-feed-text").ToList();
+            Assert.That(rendered[0].text, Is.EqualTo("Major transition"));
+            Assert.That(rendered[1].text, Is.EqualTo("Event outcome"));
+            Assert.That(rendered[2].text, Is.EqualTo("Stored first"));
+            Assert.That(session.ActiveSave.state.lifeFeed[0], Is.SameAs(storedFirst));
         }
 
         [Test]
@@ -191,6 +226,35 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(root.Q<Button>("relationship-action-talk"), Is.Not.Null);
             Assert.That(root.Q<Button>("relationship-action-spendtime"), Is.Not.Null);
             Assert.That(root.Q<Button>("relationship-action-argue"), Is.Not.Null);
+        }
+
+        [Test]
+        public void SixDestinationNavigation_ActivatesOneViewAndPreservesSocialDetail()
+        {
+            Invoke("ShowEducationDestination");
+            Assert.IsFalse(root.Q("education-view").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q<Button>("nav-education").ClassListContains("active"));
+            Assert.That(root.Q("education-destination-content").Q("education-card"), Is.Not.Null);
+
+            Invoke("ShowCareerDestination");
+            Assert.IsFalse(root.Q("career-view").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q<Button>("nav-career").ClassListContains("active"));
+            Assert.That(root.Q("career-destination-content").Q("career-card"), Is.Not.Null);
+
+            Invoke("ShowGoalsDestination");
+            Assert.IsFalse(root.Q("goals-view").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q<Button>("nav-goals").ClassListContains("active"));
+            Assert.That(root.Q("goals-destination-content").Q("achievements-card"), Is.Not.Null);
+
+            Invoke("ShowSocialDestination");
+            var relationshipId = session.ActiveSave.state.relationships[0].relationshipId;
+            Invoke("ShowRelationshipDetail", relationshipId);
+            Invoke("ShowMoneyDestination");
+            Invoke("ShowSocialDestination");
+
+            Assert.IsFalse(root.Q("relationship-detail-view").ClassListContains("hidden"));
+            Assert.That(root.Q<Label>("relationship-name").text,
+                Is.EqualTo(session.ActiveSave.state.relationships[0].displayName));
         }
 
         [Test]
@@ -614,7 +678,14 @@ namespace StimTycoon.Tests.Domain.UI
                 { "homeCondition", "home-condition" }, { "homeProgress", "home-progress" },
                 { "homeActions", "home-actions" }, { "homeUpgradeFeedback", "home-upgrade-feedback" },
                 { "lifeScroll", "life-scroll" }, { "socialView", "social-view" },
-                { "timeDock", "time-dock" }, { "navLife", "nav-life" }, { "navSocial", "nav-social" },
+                { "timeDock", "time-dock" }, { "navLife", "nav-life" },
+                { "navEducation", "nav-education" }, { "navCareer", "nav-career" },
+                { "navSocial", "nav-social" }, { "navGoals", "nav-goals" },
+                { "educationView", "education-view" }, { "careerView", "career-view" },
+                { "goalsView", "goals-view" },
+                { "educationDestinationContent", "education-destination-content" },
+                { "careerDestinationContent", "career-destination-content" },
+                { "goalsDestinationContent", "goals-destination-content" },
                 { "relationshipListView", "relationship-list-view" }, { "relationshipList", "relationship-list" },
                 { "discoverCompatiblePerson", "discover-compatible-person" },
                 { "relationshipDiscoveryFeedback", "relationship-discovery-feedback" },

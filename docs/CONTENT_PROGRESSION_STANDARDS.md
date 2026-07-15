@@ -184,8 +184,10 @@ Default slot sizes are `1:1` avatar/icon, `4:3` card art, `16:9` event/transitio
 
 ## 8. Verification gates
 
+- Before M17 exits, generate a complete catalog report listing every event, choice, outcome, task, NPC trigger, follow-up, reward, and visual against its minimum/maximum age and life stage. Human editorial review must approve every row; automated tests must exercise the exact minimum age, exact maximum age, and the adjacent rejected ages.
 - Content coverage tests count tasks/events/NPC triggers by life stage and destination.
 - Validator tests reject invalid ages, unreachable thresholds, missing recovery outcomes, unsafe NPC roles, missing cancellation rules, required ads, duplicate IDs, and incomplete visual metadata.
 - Seeded simulations report progression pace, event frequency, NPC trigger drought/repetition, reward value, and Life Feed size/order.
 - UI structure tests verify ordered-list semantics, placeholder alt/decorative behavior, disabled ad slots, locked reasons, and signed previews.
+- UI review verifies consistent custom scrollbars/overflow affordances, scroll-position visibility, nested-scroll behavior, interaction states, spacing, alignment, wrapping, and empty/loading/locked presentation across every destination and overlay.
 - Human review confirms tone, age appropriateness, consent, cultural context for USA/Jamaica, visual originality, and outcome clarity.

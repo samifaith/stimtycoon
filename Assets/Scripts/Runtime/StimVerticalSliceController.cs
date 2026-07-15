@@ -73,9 +73,18 @@ namespace StimTycoon.Runtime
         private ScrollView socialView;
         private VisualElement timeDock;
         private Button navLife;
+        private Button navEducation;
+        private Button navCareer;
         private Button navMoney;
         private Button navSocial;
+        private Button navGoals;
         private ScrollView moneyView;
+        private ScrollView educationView;
+        private ScrollView careerView;
+        private ScrollView goalsView;
+        private VisualElement educationDestinationContent;
+        private VisualElement careerDestinationContent;
+        private VisualElement goalsDestinationContent;
         private Label manualWorkRole;
         private Label manualWorkRate;
         private Label moneyCashValue;
@@ -205,9 +214,18 @@ namespace StimTycoon.Runtime
             socialView = root.Q<ScrollView>("social-view");
             timeDock = root.Q<VisualElement>("time-dock");
             navLife = root.Q<Button>("nav-life");
+            navEducation = root.Q<Button>("nav-education");
+            navCareer = root.Q<Button>("nav-career");
             navMoney = root.Q<Button>("nav-money");
             navSocial = root.Q<Button>("nav-social");
+            navGoals = root.Q<Button>("nav-goals");
             moneyView = root.Q<ScrollView>("money-view");
+            educationView = root.Q<ScrollView>("education-view");
+            careerView = root.Q<ScrollView>("career-view");
+            goalsView = root.Q<ScrollView>("goals-view");
+            educationDestinationContent = root.Q<VisualElement>("education-destination-content");
+            careerDestinationContent = root.Q<VisualElement>("career-destination-content");
+            goalsDestinationContent = root.Q<VisualElement>("goals-destination-content");
             manualWorkRole = root.Q<Label>("manual-work-role");
             manualWorkRate = root.Q<Label>("manual-work-rate");
             moneyCashValue = root.Q<Label>("money-cash-value");
@@ -318,7 +336,11 @@ namespace StimTycoon.Runtime
                 focusWorkoutTitle == null || focusWorkoutEffect == null || lifeScroll == null || socialView == null ||
                 contextActivities == null || homeCondition == null || homeProgress == null ||
                 homeActions == null || homeUpgradeFeedback == null ||
-                timeDock == null || navLife == null || navMoney == null || navSocial == null || moneyView == null ||
+                timeDock == null || navLife == null || navEducation == null || navCareer == null ||
+                navMoney == null || navSocial == null || navGoals == null || moneyView == null ||
+                educationView == null || careerView == null || goalsView == null ||
+                educationDestinationContent == null || careerDestinationContent == null ||
+                goalsDestinationContent == null ||
                 manualWorkRole == null || manualWorkRate == null || moneyCashValue == null ||
                 manualWorkTap == null || manualWorkFeedback == null || savingsBalanceValue == null ||
                 savingsAvailableValue == null || savingsDepositMode == null || savingsWithdrawMode == null ||
@@ -347,6 +369,9 @@ namespace StimTycoon.Runtime
                 return;
             }
 
+            PopulateVisualPlaceholders(root);
+            ConfigureDestinationContent();
+
             advanceMonth.clicked += AdvanceMonth;
             advanceYear.clicked += AdvanceYear;
             toggleOverview.clicked += ToggleOverview;
@@ -354,8 +379,11 @@ namespace StimTycoon.Runtime
             focusStudy.clicked += () => PerformActivity(primaryFocusActivity);
             focusWorkout.clicked += () => PerformActivity(secondaryFocusActivity);
             navLife.clicked += ShowLifeDestination;
+            navEducation.clicked += ShowEducationDestination;
+            navCareer.clicked += ShowCareerDestination;
             navMoney.clicked += ShowMoneyDestination;
             navSocial.clicked += ShowSocialDestination;
+            navGoals.clicked += ShowGoalsDestination;
             manualWorkTap.clicked += PerformManualWorkTap;
             savingsDepositMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Deposit);
             savingsWithdrawMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Withdrawal);
@@ -410,6 +438,48 @@ namespace StimTycoon.Runtime
             }
 
             ShowNewLifeSetup(true, false);
+        }
+
+        private static void PopulateVisualPlaceholders(VisualElement root)
+        {
+            AddVisualPlaceholder(root, "event-visual-slot", new StimVisualPlaceholderDefinition
+            {
+                visualId = "event.generic.hero", role = StimVisualRole.Hero, aspectRatio = "16:9",
+                accessibilityLabelKey = "visual.event.generic", fallbackGlyph = "✦", themeToken = "event"
+            });
+            AddVisualPlaceholder(root, "home-visual-slot", new StimVisualPlaceholderDefinition
+            {
+                visualId = "home.starter.thumbnail", role = StimVisualRole.Thumbnail, aspectRatio = "4:3",
+                accessibilityLabelKey = "visual.home.starter", fallbackGlyph = "⌂", themeToken = "home"
+            });
+            AddVisualPlaceholder(root, "education-visual-slot", new StimVisualPlaceholderDefinition
+            {
+                visualId = "education.current.thumbnail", role = StimVisualRole.Thumbnail, aspectRatio = "4:3",
+                accessibilityLabelKey = "visual.education.current", fallbackGlyph = "A+", themeToken = "education"
+            });
+            AddVisualPlaceholder(root, "relationship-visual-slot", new StimVisualPlaceholderDefinition
+            {
+                visualId = "relationship.selected.avatar", role = StimVisualRole.Avatar, aspectRatio = "1:1",
+                accessibilityLabelKey = "visual.relationship.selected", fallbackGlyph = "●", themeToken = "social"
+            });
+        }
+
+        private static void AddVisualPlaceholder(
+            VisualElement root,
+            string slotName,
+            StimVisualPlaceholderDefinition definition)
+        {
+            var slot = root.Q<VisualElement>(slotName);
+            if (slot == null) return;
+            slot.Clear();
+            slot.Add(StimVisualPlaceholderFactory.Create(definition));
+        }
+
+        private void ConfigureDestinationContent()
+        {
+            educationDestinationContent.Add(educationCard);
+            careerDestinationContent.Add(careerCard);
+            goalsDestinationContent.Add(achievementsList.parent);
         }
 
         private void OnDisable()
@@ -969,6 +1039,9 @@ namespace StimTycoon.Runtime
                         RefreshAchievements();
                     }
                     else if (goal.destination == "money") ShowMoneyDestination();
+                    else if (goal.destination == "education") ShowEducationDestination();
+                    else if (goal.destination == "career" || goal.destination == "business") ShowCareerDestination();
+                    else if (goal.destination == "social" || goal.destination == "family") ShowSocialDestination();
                     else ShowLifeDestination();
                 };
                 row.Add(icon);
@@ -1584,38 +1657,52 @@ namespace StimTycoon.Runtime
 
         private void ShowLifeDestination()
         {
-            lifeScroll.RemoveFromClassList("hidden");
-            timeDock.RemoveFromClassList("hidden");
-            moneyView.AddToClassList("hidden");
-            socialView.AddToClassList("hidden");
-            navLife.AddToClassList("active");
-            navMoney.RemoveFromClassList("active");
-            navSocial.RemoveFromClassList("active");
+            ShowDestination(lifeScroll, navLife, true);
+        }
+
+        private void ShowEducationDestination()
+        {
+            RefreshEducation();
+            RefreshSkills();
+            ShowDestination(educationView, navEducation, false);
+        }
+
+        private void ShowCareerDestination()
+        {
+            RefreshCareer();
+            ShowDestination(careerView, navCareer, false);
         }
 
         private void ShowMoneyDestination()
         {
             RefreshMoney();
-            lifeScroll.AddToClassList("hidden");
-            timeDock.AddToClassList("hidden");
-            socialView.AddToClassList("hidden");
-            moneyView.RemoveFromClassList("hidden");
-            navLife.RemoveFromClassList("active");
-            navMoney.AddToClassList("active");
-            navSocial.RemoveFromClassList("active");
+            ShowDestination(moneyView, navMoney, false);
         }
 
         private void ShowSocialDestination()
         {
             RefreshSocial();
-            lifeScroll.AddToClassList("hidden");
-            timeDock.AddToClassList("hidden");
-            moneyView.AddToClassList("hidden");
-            socialView.RemoveFromClassList("hidden");
-            navLife.RemoveFromClassList("active");
-            navMoney.RemoveFromClassList("active");
-            navSocial.AddToClassList("active");
-            ShowRelationshipList();
+            ShowDestination(socialView, navSocial, false);
+            if (string.IsNullOrEmpty(selectedRelationshipId)) ShowRelationshipList();
+        }
+
+        private void ShowGoalsDestination()
+        {
+            RefreshAchievements();
+            ShowDestination(goalsView, navGoals, false);
+        }
+
+        private void ShowDestination(VisualElement selectedView, Button selectedButton, bool showTimeDock)
+        {
+            foreach (var view in new VisualElement[]
+                     { lifeScroll, educationView, careerView, moneyView, socialView, goalsView })
+                view.EnableInClassList("hidden", view != selectedView);
+
+            foreach (var button in new[]
+                     { navLife, navEducation, navCareer, navMoney, navSocial, navGoals })
+                button.EnableInClassList("active", button == selectedButton);
+
+            timeDock.EnableInClassList("hidden", !showTimeDock);
         }
 
         private void PerformManualWorkTap()
@@ -2094,7 +2181,7 @@ namespace StimTycoon.Runtime
         private void RefreshFeed()
         {
             lifeFeedList.Clear();
-            var entries = gameSession.ActiveSave.state.lifeFeed;
+            var entries = StimLifeFeedPresentation.GetNewestFirst(gameSession.ActiveSave.state.lifeFeed);
             if (entries == null || entries.Count == 0)
             {
                 var empty = new Label("Your life is ready for its next chapter.");
@@ -2106,7 +2193,7 @@ namespace StimTycoon.Runtime
             VisualElement currentGroup = null;
             var currentAge = -1;
             var currentMonth = -1;
-            for (var index = entries.Count - 1; index >= 0; index--)
+            for (var index = 0; index < entries.Count; index++)
             {
                 var entry = entries[index];
                 if (entry == null) continue;
@@ -2124,12 +2211,20 @@ namespace StimTycoon.Runtime
                     currentGroup.Add(header);
                     lifeFeedList.Add(currentGroup);
                 }
-                var row = new VisualElement();
+                var row = new VisualElement
+                {
+                    name = $"feed-item-{index + 1}",
+                    tooltip = $"Item {index + 1} of {entries.Count}. {ToDisplayName(entry.category)}. Age {entry.age}, month {entry.monthOfYear}. {entry.text}"
+                };
                 row.AddToClassList("st-feed-entry");
                 if (!string.IsNullOrEmpty(entry.category))
                 {
                     row.AddToClassList("category-" + entry.category.ToLowerInvariant());
                 }
+
+                var ordinal = new Label($"{index + 1}.");
+                ordinal.AddToClassList("st-feed-ordinal");
+                row.Add(ordinal);
 
                 var text = new Label(entry.text);
                 text.AddToClassList("st-feed-text");

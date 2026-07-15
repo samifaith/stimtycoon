@@ -1,6 +1,6 @@
 # Stim Tycoon — Completion Plan
 
-This is the operational roadmap after the July 15, 2026 code/documentation audit. The repository contains 337 EditMode test methods and implemented Milestones 7–12. The master README remains the product definition.
+This is the operational roadmap after the July 15, 2026 code/documentation audit. The repository contains 340 EditMode test methods and implemented Milestones 7–12. The master README remains the product definition.
 
 ## Current position
 
@@ -11,7 +11,7 @@ This is the operational roadmap after the July 15, 2026 code/documentation audit
 - [x] M10 — relationship discovery, adult romance, family planning, children, parenting, custody, and safety validation
 - [x] M11 — three career industries and one complete operational business
 - [x] M12 — Main/Daily/Life goals, achievement rewards, transition records, orientation, and alpha content validation
-- [ ] Record a clean Unity Run All result for the current 337-test source suite
+- [x] Clean Unity Run All result recorded for the current 340-test source suite on July 15, 2026
 
 ## Phase 5 — Experience Convergence
 
@@ -19,16 +19,22 @@ This is the operational roadmap after the July 15, 2026 code/documentation audit
 
 ### M13 — Navigation shell and destination framework
 
+> **Approved asset direction:** Free Casual GUI is the visual foundation, Space Exploration GUI Kit guides layout and information hierarchy, and Jelly UI Pack supplies reward interaction accents. Vendor folders stay untouched; Stim-owned UXML and the `StimTheme.uss`/`Components.uss` adapter layer own composition and styling. See `Assets/UI/Art/ASSET_MANIFEST.md`.
+
 - [ ] Implement a safe-area-aware persistent status header for age/calendar, cash/net worth, and Stim's actual stats/resources.
-- [ ] Establish six destinations: Life/Home, Education, Career/Business, Money, Social/Family, and Goals/Legacy.
+- [x] Establish six destinations with exclusive active states: Life/Home, Education, Career/Business, Bank, Social/Family, and Goals/Legacy.
+- [x] Establish the approved three-pack UI direction through a replaceable Stim-owned USS adapter and an asset/license manifest, without reorganizing vendor imports.
 - [ ] Add reusable destination headers, segmented tabs, modal sheets, requirement chips, action states, progress bars, timer/cooldown rows, and selected-navigation styling.
+- [ ] Replace default/placeholder scrollbars throughout the application with one polished Stim scrollbar and scroll-affordance system for page, list, sheet, tab, and nested-scroll contexts; do not solve visual quality by hiding required position feedback.
+- [ ] Complete the shared UI-detail pass for spacing, dividers, shadows, borders, pressed/hover/focus/disabled states, empty/loading/locked states, truncation/wrapping, and consistent icon/text alignment.
 - [ ] Restore destination, tab, scroll position, and selected object/person after sheets and action resolution.
 - [ ] Keep Advance Month/Year, pending decisions, transition presentations, and endings reachable and unobscured.
 - [ ] Add structural and interaction coverage for navigation, overlays, back/close behavior, focus order, and state restoration.
-- [ ] Render Life Feed updates as a deterministic semantic ordered list with age/month/revision ordering, category context, signed effects, and bounded archival behavior.
-- [ ] Add reusable visual slots and Stim-owned placeholders for destination heroes, event art, avatars, icons, objects, badges, and backgrounds, including accessibility/fallback metadata.
+- [x] Render Life Feed updates as a deterministic semantic ordered list with age/month/revision ordering, category context, numbered accessible item context, and no in-place save reordering.
+- [x] Add a reusable Stim-owned visual-placeholder definition/factory with stable IDs, roles, aspect ratios, accessibility/decorative metadata, fallbacks, theme tokens, and development labeling.
+- [ ] Place the reusable visual slots into destination heroes, event art, avatars, icons, objects, badges, and backgrounds; add bounded Life Feed archival behavior.
 
-**Exit gate:** the shell passes 320/390/430/768 widths at 100% and 130% text, maintains 44-point primary targets, respects safe areas, and has no navigation dead ends.
+**Exit gate:** the shell passes 320/390/430/768 widths at 100% and 130% text, maintains 44-point primary targets, respects safe areas, has no navigation dead ends, and uses the approved scrollbar/scroll-affordance and shared UI-detail system in every implemented destination and overlay.
 
 ### M14 — Bank and Education convergence
 
@@ -70,6 +76,7 @@ This is the operational roadmap after the July 15, 2026 code/documentation audit
 
 ### M17 — Replayable content and production presentation
 
+- [ ] Complete a full age-appropriateness audit of every authored event, choice, outcome, reward, NPC role/trigger, follow-up, task, and visual; correct invalid age ranges and add boundary tests at every life-stage transition.
 - [ ] Expand original health, school, drama, career, relationship, family, business, financial, and world-event chains with prerequisites, delayed consequences, and terminal outcomes.
 - [ ] Add property and a small diversified portfolio only after existing Bank balance simulations and playtests remain stable.
 - [ ] Add a second business only after the first business is understandable, balanced, and recoverable from failure.
@@ -78,7 +85,7 @@ This is the operational roadmap after the July 15, 2026 code/documentation audit
 - [ ] Tune constrained, middle-income, and affluent lives so no dominant strategy erases health, education, relationship, or career tradeoffs.
 - [ ] Run multiple seeded complete-life profiles and human comprehension/replay tests.
 
-**Exit gate:** lives are visibly varied, outcomes are understandable, setbacks are recoverable, content repetition is bounded, and the art/audio direction is original and cohesive.
+**Exit gate:** the complete authored catalog passes automated age-boundary checks and human age-appropriateness review; lives are visibly varied, outcomes are understandable, setbacks are recoverable, content repetition is bounded, and the art/audio direction is original and cohesive.
 
 ## Phase 7 — Production Hardening and iOS Beta
 
@@ -86,6 +93,7 @@ This is the operational roadmap after the July 15, 2026 code/documentation audit
 
 - [ ] Add Settings for text scale, reduced motion, sound/music, captions/text alternatives, haptics, and destructive-action confirmation.
 - [ ] Complete VoiceOver labels, focus order, contrast, readable charts, dynamic text, fallback fonts, and pseudo-localization.
+- [ ] Validate every scroll container with touch drag, momentum, mouse/trackpad wheel, keyboard/focus scrolling, VoiceOver, reduced motion, nested containers, and 130% text; confirm position/overflow remains perceivable without obstructing content.
 - [ ] Run every screen and overlay at 320/390/430/768 widths and 100%/130% text scale.
 - [ ] Validate migrations, corruption recovery, backup restore, downgrade behavior, bounded histories, and duplicate protection from representative old saves.
 - [ ] Add privacy-safe diagnostics and performance markers for save failures, event pacing, economy balance, memory, and funnels without requiring an online SDK.
