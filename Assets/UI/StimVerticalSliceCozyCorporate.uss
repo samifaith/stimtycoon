@@ -17,6 +17,7 @@
 .st-profile-avatar-glyph { font-size: 30px; color: var(--st-purple-600); }
 .st-profile-meta { margin-left: 5px; }
 .st-age-pill { min-width: 68px; min-height: 29px; padding: 4px 7px; background-color: var(--st-surface-1); border-width: 2px; border-color: var(--st-border-blue); border-radius: 15px; color: var(--st-text-primary); font-size: 11px; -unity-font-style: bold; -unity-text-align: middle-center; white-space: normal; }
+.st-calendar-summary { margin-top: 2px; color: var(--st-text-secondary); font-size: 9px; -unity-font-style: bold; -unity-text-align: middle-center; }
 .st-xp-pill { width: 78px; min-height: 27px; margin-top: 4px; background-color: var(--st-surface-1); border-width: 2px; border-color: var(--st-border-blue); border-radius: 14px; overflow: hidden; justify-content: center; }
 .st-xp-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 58%; background-color: var(--st-cyan-500); }
 .st-xp-label { color: var(--st-text-primary); font-size: 9px; -unity-font-style: bold; -unity-text-align: middle-center; }
@@ -24,9 +25,12 @@
 .st-wordmark { width: 84px; align-items: center; justify-content: center; }
 .st-wordmark-primary { font-size: 24px; color: var(--st-purple-600); -unity-font-style: bold; letter-spacing: 1px; }
 .st-wordmark-secondary { margin-top: -5px; font-size: 14px; color: var(--st-yellow-500); -unity-font-style: bold; letter-spacing: 1px; }
-.st-balance-pill { min-width: 116px; min-height: 50px; padding: 6px 7px; flex-direction: row; align-items: center; justify-content: space-between; background-color: var(--st-surface-yellow); border-width: 2px; border-color: var(--st-yellow-500); border-radius: 23px; }
+.st-balance-pill { min-width: 142px; min-height: 64px; padding: 6px 7px; flex-direction: row; align-items: center; justify-content: space-between; background-color: var(--st-surface-yellow); border-width: 2px; border-color: var(--st-yellow-500); border-radius: 23px; }
 .st-balance-icon { width: 28px; height: 28px; background-color: rgb(214, 248, 201); border-radius: 9px; color: var(--st-success-500); font-size: 18px; -unity-font-style: bold; -unity-text-align: middle-center; }
+.st-balance-copy { flex-grow: 1; margin-left: 4px; }
+.st-balance-label { color: var(--st-text-muted); font-size: 8px; -unity-font-style: bold; letter-spacing: 0.5px; }
 .st-balance-value { margin-left: 4px; color: var(--st-text-primary); font-size: 13px; -unity-font-style: bold; }
+.st-header-net-worth { margin-left: 4px; color: var(--st-text-secondary); font-size: 9px; -unity-font-style: bold; }
 .st-balance-add { width: 44px; height: 44px; margin-left: 4px; padding: 0; background-color: var(--st-yellow-400); border-width: 0; border-radius: 22px; color: var(--st-text-primary); font-size: 19px; -unity-font-style: bold; }
 
 .st-life-scroll { flex-grow: 1; }
@@ -236,8 +240,9 @@
 .st-compact-width .st-profile-avatar { width: 42px; height: 50px; }
 .st-compact-width .st-age-pill { min-width: 60px; padding-left: 4px; padding-right: 4px; }
 .st-compact-width .st-xp-pill { width: 68px; }
-.st-compact-width .st-balance-pill { min-width: 104px; padding-left: 5px; padding-right: 5px; }
+.st-compact-width .st-balance-pill { min-width: 126px; padding-left: 5px; padding-right: 5px; }
 .st-compact-width .st-balance-value { font-size: 12px; }
+.st-compact-width .st-header-net-worth { font-size: 8px; }
 .st-compact-width .st-life-scroll > .unity-scroll-view__content-container,
 .st-compact-width .st-money-view > .unity-scroll-view__content-container,
 .st-compact-width .st-social-view > .unity-scroll-view__content-container { padding-left: 10px; padding-right: 10px; }

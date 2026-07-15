@@ -4,6 +4,7 @@
             <ui:VisualElement class="st-profile-avatar"><ui:Label name="avatar-glyph" text="☺" class="st-profile-avatar-glyph" /></ui:VisualElement>
             <ui:VisualElement class="st-profile-meta">
                 <ui:Label name="life-summary" text="Age 19" class="st-age-pill" />
+                <ui:Label name="calendar-summary" text="Month 1 of 12" class="st-calendar-summary" />
                 <ui:VisualElement class="st-xp-pill">
                     <ui:VisualElement name="career-progress-fill" class="st-xp-fill" />
                     <ui:Label name="career-progress-value" text="0 / 100 XP" class="st-xp-label" />
@@ -18,7 +19,11 @@
 
         <ui:VisualElement name="balance-pill" class="st-balance-pill">
             <ui:Label text="$" class="st-balance-icon" />
-            <ui:Label name="cash-value" text="$2,540,812" class="st-balance-value" />
+            <ui:VisualElement class="st-balance-copy">
+                <ui:Label text="CASH" class="st-balance-label" />
+                <ui:Label name="cash-value" text="$2,540,812" class="st-balance-value" />
+                <ui:Label name="header-net-worth-value" text="Net $2,540,812" class="st-header-net-worth" />
+            </ui:VisualElement>
             <ui:Button name="add-cash" text="+" class="st-balance-add" tooltip="Money options" />
         </ui:VisualElement>
     </ui:VisualElement>

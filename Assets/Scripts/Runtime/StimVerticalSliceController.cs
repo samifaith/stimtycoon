@@ -18,6 +18,8 @@ namespace StimTycoon.Runtime
         private StimGameSessionService gameSession;
         private Label cashValue;
         private Label lifeSummary;
+        private Label calendarSummary;
+        private Label headerNetWorthValue;
         private Label eventCategory;
         private Label eventTitle;
         private Label eventBody;
@@ -165,6 +167,8 @@ namespace StimTycoon.Runtime
             root.RegisterCallback<GeometryChangedEvent>(HandleRootGeometryChanged);
             cashValue = root.Q<Label>("cash-value");
             lifeSummary = root.Q<Label>("life-summary");
+            calendarSummary = root.Q<Label>("calendar-summary");
+            headerNetWorthValue = root.Q<Label>("header-net-worth-value");
             eventCategory = root.Q<Label>("event-category");
             eventTitle = root.Q<Label>("event-title");
             eventBody = root.Q<Label>("event-body");
@@ -490,6 +494,14 @@ namespace StimTycoon.Runtime
         private void HandleRootGeometryChanged(GeometryChangedEvent evt)
         {
             ApplyResponsiveLayout(rootElement, evt.newRect.width);
+            ApplySafeAreaLayout(
+                rootElement?.Q<VisualElement>("screen"),
+                CalculateSafeAreaInsets(
+                    Screen.width,
+                    Screen.height,
+                    Screen.safeArea,
+                    evt.newRect.width,
+                    evt.newRect.height));
         }
 
         public static void ApplyResponsiveLayout(VisualElement root, float width)
@@ -502,6 +514,36 @@ namespace StimTycoon.Runtime
         {
             if (root == null) return;
             root.EnableInClassList("st-large-text", textScale >= 1.3f);
+        }
+
+        public static Vector4 CalculateSafeAreaInsets(
+            float screenWidth,
+            float screenHeight,
+            Rect safeArea,
+            float panelWidth,
+            float panelHeight)
+        {
+            if (screenWidth <= 0f || screenHeight <= 0f || panelWidth <= 0f || panelHeight <= 0f)
+            {
+                return Vector4.zero;
+            }
+
+            var scaleX = panelWidth / screenWidth;
+            var scaleY = panelHeight / screenHeight;
+            return new Vector4(
+                Mathf.Max(0f, safeArea.xMin) * scaleX,
+                Mathf.Max(0f, screenHeight - safeArea.yMax) * scaleY,
+                Mathf.Max(0f, screenWidth - safeArea.xMax) * scaleX,
+                Mathf.Max(0f, safeArea.yMin) * scaleY);
+        }
+
+        public static void ApplySafeAreaLayout(VisualElement element, Vector4 insets)
+        {
+            if (element == null) return;
+            element.style.paddingLeft = insets.x;
+            element.style.paddingTop = insets.y;
+            element.style.paddingRight = insets.z;
+            element.style.paddingBottom = insets.w;
         }
 
         public void SetAccessibilityTextScale(float textScale)
@@ -703,13 +745,15 @@ namespace StimTycoon.Runtime
         {
             var state = gameSession.ActiveSave.state;
             var career = state.career;
+            var netWorth = state.finances.cashMinorUnits + state.finances.savingsMinorUnits +
+                           state.finances.indexFundMinorUnits - state.finances.debtMinorUnits;
             cashValue.text = FormatMoney(state.finances.cashMinorUnits);
-            netWorthValue.text = FormatMoney(
-                state.finances.cashMinorUnits + state.finances.savingsMinorUnits +
-                state.finances.indexFundMinorUnits - state.finances.debtMinorUnits);
+            netWorthValue.text = FormatMoney(netWorth);
+            headerNetWorthValue.text = $"Net {FormatMoney(netWorth)}";
             lifeSummary.text = string.IsNullOrEmpty(state.character.firstName)
                 ? $"Age {state.character.age}"
                 : $"{state.character.firstName} · {state.character.age}";
+            calendarSummary.text = $"Month {state.calendar.monthOfYear} of 12";
             avatarGlyph.text = string.IsNullOrEmpty(state.character.firstName)
                 ? "☺"
                 : state.character.firstName.Substring(0, 1).ToUpperInvariant();

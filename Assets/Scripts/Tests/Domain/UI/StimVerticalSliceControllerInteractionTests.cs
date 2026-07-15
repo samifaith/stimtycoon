@@ -654,6 +654,8 @@ namespace StimTycoon.Tests.Domain.UI
             var bindings = new Dictionary<string, string>
             {
                 { "cashValue", "cash-value" }, { "lifeSummary", "life-summary" },
+                { "calendarSummary", "calendar-summary" },
+                { "headerNetWorthValue", "header-net-worth-value" },
                 { "eventCategory", "event-category" }, { "eventTitle", "event-title" },
                 { "eventBody", "event-body" }, { "resultText", "result-text" },
                 { "resultEffects", "result-effects" }, { "lifeFeedList", "life-feed-list" },

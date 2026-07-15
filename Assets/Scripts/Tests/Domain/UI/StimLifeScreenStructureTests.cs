@@ -44,7 +44,8 @@ namespace StimTycoon.Tests.Domain.UI
             var root = Clone(PlayableLifePath);
             var requiredNames = new[]
             {
-                "cash-value", "life-summary", "avatar-glyph", "event-category", "event-title", "event-body",
+                "cash-value", "life-summary", "calendar-summary", "header-net-worth-value", "avatar-glyph",
+                "event-category", "event-title", "event-body",
                 "result-text", "result-effects", "life-feed-card", "life-feed-scroll", "life-feed-list", "overview-career", "overview-calendar",
                 "health-value", "happiness-value", "smarts-value", "looks-value", "luck-value",
                 "career-progress-value", "monthly-paycheck-value", "annual-salary-value", "net-worth-value",
@@ -114,6 +115,9 @@ namespace StimTycoon.Tests.Domain.UI
             StimVerticalSliceController.ApplyResponsiveLayout(root, width);
 
             Assert.That(root.ClassListContains("st-compact-width"), Is.EqualTo(expectedCompact));
+            var insets = StimVerticalSliceController.CalculateSafeAreaInsets(
+                390f, 844f, new UnityEngine.Rect(0f, 34f, 390f, 763f), 390f, 844f);
+            Assert.That(insets, Is.EqualTo(new UnityEngine.Vector4(0f, 47f, 0f, 34f)));
         }
 
         [TestCase(1f, false)]
@@ -139,8 +143,10 @@ namespace StimTycoon.Tests.Domain.UI
             var components = AssetDatabase.LoadAssetAtPath<StyleSheet>(ComponentsPath);
 
             Assert.That(header.Q<Label>("life-summary"), Is.Not.Null);
+            Assert.That(header.Q<Label>("calendar-summary"), Is.Not.Null);
             Assert.That(header.Q<Label>("career-progress-value"), Is.Not.Null);
             Assert.That(header.Q<Label>("cash-value"), Is.Not.Null);
+            Assert.That(header.Q<Label>("header-net-worth-value"), Is.Not.Null);
             Assert.That(theme, Is.Not.Null, "The Stim-owned vendor adapter theme must remain importable.");
             Assert.That(components, Is.Not.Null, "Shared Stim UI component styling must remain importable.");
             Assert.That(navigation.Query<Button>().ToList(), Has.Count.EqualTo(6));
