@@ -119,9 +119,12 @@ namespace StimTycoon.Runtime
         Interview,
         WorkHard,
         AskForPromotion,
+        Retrain,
         Quit,
         Retire
     }
+
+    public enum StimBusinessActionType { Start, Work, Upgrade, HireStaff, ExpandLocation, Sell }
 
     /// <summary>
     /// Owns the active life, migrates loaded saves, and commits each action as one transaction.
@@ -177,6 +180,8 @@ namespace StimTycoon.Runtime
                 return false;
             }
 
+            EnqueueTransition(save, "new_life", "A new life begins",
+                $"{save.state.character.firstName} {save.state.character.lastName} begins a new story.");
             EvaluateAchievements(save);
             var serializedSave = JsonUtility.ToJson(save);
             if (!saveRepository.TryCommitAutosave(serializedSave, out summary))
@@ -426,18 +431,24 @@ namespace StimTycoon.Runtime
             var expenses = baseExpenses + homeConditionExpense;
             var netCashFlow = paycheck - taxes - expenses;
             ApplyMonthlyCashFlow(candidateSave.state.finances, paycheck, taxes, expenses);
+            var businessProfit = ProcessMonthlyBusiness(candidateSave);
             candidateSave.state.finances.lastGrossIncomeMinorUnits = paycheck;
             candidateSave.state.finances.lastTaxesMinorUnits = taxes;
             candidateSave.state.finances.lastExpensesMinorUnits = expenses;
             candidateSave.state.finances.lastCreditInterestMinorUnits = creditInterest;
             candidateSave.state.finances.lastSavingsInterestMinorUnits = savingsInterest;
             candidateSave.state.finances.lastNetCashFlowMinorUnits =
-                netCashFlow + savingsInterest - creditInterest;
+                netCashFlow + businessProfit + savingsInterest - creditInterest;
             if (!string.IsNullOrEmpty(candidateSave.state.career.roleTitle) &&
                 candidateSave.state.career.roleTitle != "Retired")
             {
                 candidateSave.state.career.careerProgress = ClampStat(
                     candidateSave.state.career.careerProgress + 1);
+            }
+            else if (candidateSave.state.career.roleTitle != "Retired")
+            {
+                candidateSave.state.career.employmentStatus = "unemployed";
+                candidateSave.state.career.monthsUnemployed++;
             }
             candidateSave.state.character.happiness = ClampStat(
                 candidateSave.state.character.happiness + (netCashFlow >= 0 ? 1 : -2));
@@ -455,14 +466,21 @@ namespace StimTycoon.Runtime
                 candidateSave.state.character.age++;
                 AdvanceChildAges(candidateSave);
                 UpdateLifeAndEducationStage(candidateSave.state);
+                if (candidateSave.state.education?.graduatedSecondary == true &&
+                    previousEducationStage != "completed_secondary")
+                    EnqueueTransition(candidateSave, "graduation", "Graduation",
+                        BuildEducationMilestoneSummary(candidateSave.state));
                 var healthDecline = GetAnnualHealthDecline(candidateSave.state.character.age);
                 candidateSave.state.character.health = ClampStat(
                     candidateSave.state.character.health - healthDecline);
                 if (candidateSave.state.character.health <= 0)
                 {
                     FinalizeLife(candidateSave.state.character, "deceased", "health_decline");
+                    EnqueueTransition(candidateSave, "death", "Life remembered",
+                        $"{candidateSave.state.character.firstName}'s life ended at age {candidateSave.state.character.age}.");
                 }
                 ApplyAnnualIndexFundReturn(candidateSave);
+                EvaluateAnnualCareerStability(candidateSave);
                 CompleteAnnualCycle(candidateSave.state);
             }
             else
@@ -481,6 +499,7 @@ namespace StimTycoon.Runtime
             var hasCareer = !string.IsNullOrEmpty(candidateSave.state.career.roleTitle) &&
                             candidateSave.state.career.roleTitle != "Retired";
             var cashFlowSummary = $"gross {FormatMoney(paycheck)}, taxes {FormatMoney(taxes)}, expenses {FormatMoney(expenses)}, net {FormatSignedMoney(netCashFlow)}" +
+                                  (businessProfit != 0 ? $", business {FormatSignedMoney(businessProfit)}" : string.Empty) +
                                   (homeConditionExpense > 0 ? $", home repair overhead {FormatMoney(homeConditionExpense)}" : string.Empty) +
                                   (creditInterest > 0 ? $", credit interest {FormatMoney(creditInterest)}" : string.Empty) +
                                   (savingsInterest > 0 ? $", savings interest +{FormatMoney(savingsInterest)}" : string.Empty);
@@ -840,6 +859,7 @@ namespace StimTycoon.Runtime
                         : BuildAdvanceYearSummary(
                             monthsProcessed, startingAge, startingCash,
                             $"Stopped: {monthlySummary}");
+                    if (monthsProcessed > 0) TryCommitAdvanceYearFeed(summary, out summary);
                     return monthsProcessed > 0;
                 }
 
@@ -854,12 +874,31 @@ namespace StimTycoon.Runtime
                             : "Stopped for a required school-path decision.";
                     summary = BuildAdvanceYearSummary(
                         monthsProcessed, startingAge, startingCash, stopReason);
+                    TryCommitAdvanceYearFeed(summary, out summary);
                     return true;
                 }
             }
 
             summary = BuildAdvanceYearSummary(
                 monthsProcessed, startingAge, startingCash, "Twelve months completed.");
+            TryCommitAdvanceYearFeed(summary, out summary);
+            return true;
+        }
+
+        private bool TryCommitAdvanceYearFeed(string yearSummary, out string summary)
+        {
+            var candidateSave = CloneSave(ActiveSave);
+            candidateSave.revision++;
+            candidateSave.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
+            AddLifeFeedEntry(candidateSave, "year", yearSummary);
+            if (!saveRepository.TryCommitAutosave(JsonUtility.ToJson(candidateSave), out var commitSummary))
+            {
+                summary = yearSummary + $" Annual feed summary was not saved: {commitSummary}";
+                return false;
+            }
+
+            ActiveSave = candidateSave;
+            summary = yearSummary;
             return true;
         }
 
@@ -1789,6 +1828,8 @@ namespace StimTycoon.Runtime
             save.state.household.cohesion = ClampStat(save.state.household.cohesion + 4);
             AddLifeFeedEntry(save, "family",
                 path == "adoption" ? $"Welcomed {childName} through adoption." : $"Welcomed {childName} after childbirth.");
+            EnqueueTransition(save, "parenthood", "Welcome to the family",
+                path == "adoption" ? $"{childName} joined the household through adoption." : $"{childName} was born into the household.");
         }
 
         public bool TryPerformRelationshipInteraction(
@@ -2359,6 +2400,19 @@ namespace StimTycoon.Runtime
 
         public bool TryPerformCareerAction(StimCareerActionType actionType, out string summary)
         {
+            return TryPerformCareerAction(actionType, StimCareerCatalog.FinanceIndustryId, out summary);
+        }
+
+        public bool TryApplyForCareer(string industryId, out string summary)
+        {
+            return TryPerformCareerAction(StimCareerActionType.Apply, industryId, out summary);
+        }
+
+        private bool TryPerformCareerAction(
+            StimCareerActionType actionType,
+            string applicationIndustryId,
+            out string summary)
+        {
             if (ActiveSave == null)
             {
                 summary = "No active save is loaded.";
@@ -2376,7 +2430,8 @@ namespace StimTycoon.Runtime
             }
 
             NormalizeProgressCollections(ActiveSave.state);
-            if (!TryGetCareerActionRequirement(ActiveSave.state, actionType, out var requirement))
+            if (!TryGetCareerActionRequirement(
+                    ActiveSave.state, actionType, applicationIndustryId, out var requirement))
             {
                 summary = requirement;
                 return false;
@@ -2396,16 +2451,39 @@ namespace StimTycoon.Runtime
             switch (actionType)
             {
                 case StimCareerActionType.Apply:
+                    candidateSave.state.career.pendingIndustryId = applicationIndustryId;
                     AddOrRefreshStatus(candidateSave.state.statuses, "career_interview_ready", 2);
-                    summary = "Application submitted · Interview unlocked next month";
+                    StimCareerCatalog.TryGetIndustry(applicationIndustryId, out var appliedIndustry);
+                    summary = $"{appliedIndustry.displayName} application submitted · Interview unlocked next month";
                     break;
                 case StimCareerActionType.Interview:
                     RemoveStatus(candidateSave.state.statuses, "career_interview_ready");
-                    candidateSave.state.career.employerId = "stim_financial_group";
-                    candidateSave.state.career.roleTitle = "Junior Associate";
-                    candidateSave.state.career.annualSalaryMinorUnits = 4000000;
-                    candidateSave.state.career.careerProgress = 0;
-                    summary = "Interview complete · Hired as Junior Associate · Salary +$40,000";
+                    var pendingIndustryId = string.IsNullOrEmpty(candidateSave.state.career.pendingIndustryId)
+                        ? StimCareerCatalog.FinanceIndustryId
+                        : candidateSave.state.career.pendingIndustryId;
+                    StimCareerCatalog.TryGetIndustry(pendingIndustryId, out var interviewIndustry);
+                    candidateSave.state.career.pendingIndustryId = string.Empty;
+                    var successChance = CalculateInterviewSuccessChance(candidateSave.state, interviewIndustry);
+                    var interviewRoll = StableUnit(candidateSave.rng.seed, candidateSave.rng.step + 7001);
+                    candidateSave.rng.step++;
+                    if (interviewRoll <= successChance)
+                    {
+                        var entryRole = interviewIndustry.roles[0];
+                        candidateSave.state.career.industryId = interviewIndustry.industryId;
+                        candidateSave.state.career.employerId = interviewIndustry.employerId;
+                        candidateSave.state.career.roleTitle = entryRole.title;
+                        candidateSave.state.career.annualSalaryMinorUnits = entryRole.annualSalaryMinorUnits;
+                        candidateSave.state.career.careerProgress = 0;
+                        candidateSave.state.career.employmentStatus = "employed";
+                        candidateSave.state.career.monthsUnemployed = 0;
+                        candidateSave.state.career.performanceWarnings = 0;
+                        summary = $"Interview succeeded · Hired as {entryRole.title} · Salary +{FormatMoney(entryRole.annualSalaryMinorUnits)}";
+                    }
+                    else
+                    {
+                        candidateSave.state.career.employmentStatus = "unemployed";
+                        summary = $"{interviewIndustry.displayName} interview complete · Not selected this time · Retraining is available";
+                    }
                     break;
                 case StimCareerActionType.WorkHard:
                     var professionalLevel = GetSkillLevel(
@@ -2422,16 +2500,25 @@ namespace StimTycoon.Runtime
                     ApplyPromotion(candidateSave.state.career, out var previousRole, out var newRole, out var salaryDelta);
                     summary = $"Promoted from {previousRole} to {newRole} · Salary +{FormatMoney(salaryDelta)}";
                     break;
+                case StimCareerActionType.Retrain:
+                    ApplySkillXp(candidateSave.state.skills, "professional", 15);
+                    candidateSave.state.character.happiness = ClampStat(candidateSave.state.character.happiness - 1);
+                    summary = "Completed career retraining · Professional XP +15 · Happiness −1";
+                    break;
                 case StimCareerActionType.Quit:
                     var formerRole = candidateSave.state.career.roleTitle;
-                    candidateSave.state.career = new StimCareerState();
+                    candidateSave.state.career = new StimCareerState
+                        { employmentStatus = "unemployed", monthsUnemployed = 0 };
                     summary = $"Quit {formerRole} · Salary −{FormatMoney(ActiveSave.state.career.annualSalaryMinorUnits)}";
                     break;
                 case StimCareerActionType.Retire:
                     var retirementRole = candidateSave.state.career.roleTitle;
-                    candidateSave.state.career = new StimCareerState { roleTitle = "Retired" };
+                    candidateSave.state.career = new StimCareerState
+                        { roleTitle = "Retired", employmentStatus = "retired" };
                     FinalizeLife(candidateSave.state.character, "retired", "retirement");
                     summary = $"Retired from {retirementRole} · Salary −{FormatMoney(ActiveSave.state.career.annualSalaryMinorUnits)}";
+                    EnqueueTransition(candidateSave, "retirement", "Retirement",
+                        $"A career as {retirementRole} closes at age {candidateSave.state.character.age}.");
                     break;
                 default:
                     summary = $"Career action {actionType} is not supported.";
@@ -2505,6 +2592,228 @@ namespace StimTycoon.Runtime
             return true;
         }
 
+        public bool TryPerformBusinessAction(StimBusinessActionType actionType, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate => ApplyBusinessAction(candidate, actionType),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        private static StimTransactionMutationResult ApplyBusinessAction(
+            StimSaveEnvelope save,
+            StimBusinessActionType actionType)
+        {
+            if (save.state.character.age < 18)
+                return StimTransactionMutationResult.Failure("Business ownership unlocks at age 18.");
+            if (IsLifeEnded(save.state.character))
+                return StimTransactionMutationResult.Failure("This life has ended. Start a new life to continue playing.");
+            if (!string.IsNullOrEmpty(save.state.pendingEventId))
+                return StimTransactionMutationResult.Failure("Resolve the pending event before operating a business.");
+            save.state.business ??= new StimBusinessState();
+            save.state.statuses ??= new List<StimStatusState>();
+            var business = save.state.business;
+            string summary;
+            switch (actionType)
+            {
+                case StimBusinessActionType.Start:
+                    const long startupCost = 100000;
+                    if (business.status != "none")
+                        return StimTransactionMutationResult.Failure("This life already has a completed or active business path.");
+                    if (GetSkillLevel(GetSkillExperience(save.state.skills, "professional")) < 2)
+                        return StimTransactionMutationResult.Failure("Starting Local Services requires Professional Level 2.");
+                    if (save.state.finances.cashMinorUnits < startupCost)
+                        return StimTransactionMutationResult.Failure("Starting Local Services costs $1,000.");
+                    save.state.finances.cashMinorUnits -= startupCost;
+                    save.state.business = business = new StimBusinessState
+                    {
+                        businessId = $"business_{save.lifeId}_local_services",
+                        businessType = "local_services",
+                        displayName = "Local Services Co.",
+                        status = "operating",
+                        level = 1,
+                        locationLevel = 1,
+                        actionPoints = 3,
+                        maxActionPoints = 3,
+                        valuationMinorUnits = startupCost
+                    };
+                    summary = "Started Local Services Co. · Cost $1,000 · Level 1";
+                    break;
+                case StimBusinessActionType.Work:
+                    if (business.status != "operating")
+                        return StimTransactionMutationResult.Failure("Start an operating business before working in it.");
+                    if (business.actionPoints < 1)
+                        return StimTransactionMutationResult.Failure("No business action points remain this month.");
+                    business.actionPoints--;
+                    business.operatingProgress = ClampStat(business.operatingProgress + 20 + business.staffCount * 2);
+                    summary = $"Worked in Local Services Co. · Operating progress +{20 + business.staffCount * 2} · Action points {business.actionPoints}/{business.maxActionPoints}";
+                    break;
+                case StimBusinessActionType.Upgrade:
+                    if (business.status != "operating")
+                        return StimTransactionMutationResult.Failure("Start an operating business before upgrading it.");
+                    if (business.level >= 3)
+                        return StimTransactionMutationResult.Failure("Local Services Co. has reached its current maximum level.");
+                    if (business.actionPoints < 1)
+                        return StimTransactionMutationResult.Failure("No business action points remain this month.");
+                    var progressRequired = business.level * 25;
+                    var upgradeCost = business.level * 150000L;
+                    if (business.operatingProgress < progressRequired)
+                        return StimTransactionMutationResult.Failure($"Upgrade requires {progressRequired} operating progress.");
+                    if (save.state.finances.cashMinorUnits < upgradeCost)
+                        return StimTransactionMutationResult.Failure($"This upgrade costs {FormatMoney(upgradeCost)}.");
+                    save.state.finances.cashMinorUnits -= upgradeCost;
+                    business.operatingProgress -= progressRequired;
+                    business.actionPoints--;
+                    business.level++;
+                    business.valuationMinorUnits = CalculateBusinessValuation(business);
+                    summary = $"Upgraded Local Services Co. to Level {business.level} · Cost {FormatMoney(upgradeCost)}";
+                    break;
+                case StimBusinessActionType.HireStaff:
+                    if (business.status != "operating")
+                        return StimTransactionMutationResult.Failure("Start an operating business before hiring staff.");
+                    if (business.staffCount >= business.level * 2)
+                        return StimTransactionMutationResult.Failure("Upgrade the business before hiring more staff.");
+                    if (business.actionPoints < 1)
+                        return StimTransactionMutationResult.Failure("No business action points remain this month.");
+                    const long hiringCost = 75000;
+                    if (save.state.finances.cashMinorUnits < hiringCost)
+                        return StimTransactionMutationResult.Failure("Hiring and onboarding costs $750.");
+                    save.state.finances.cashMinorUnits -= hiringCost;
+                    business.actionPoints--;
+                    business.staffCount++;
+                    business.maxActionPoints = Math.Min(9, 3 + business.staffCount);
+                    summary = $"Hired a team member · Cost $750 · Staff {business.staffCount} · Action points {business.actionPoints}/{business.maxActionPoints}";
+                    break;
+                case StimBusinessActionType.ExpandLocation:
+                    if (business.status != "operating")
+                        return StimTransactionMutationResult.Failure("Start an operating business before expanding locations.");
+                    if (business.level < 2)
+                        return StimTransactionMutationResult.Failure("Reach business Level 2 before expanding the location.");
+                    if (business.locationLevel >= 3)
+                        return StimTransactionMutationResult.Failure("The current location plan is fully expanded.");
+                    if (business.actionPoints < 1)
+                        return StimTransactionMutationResult.Failure("No business action points remain this month.");
+                    var expansionCost = business.locationLevel * 300000L;
+                    if (save.state.finances.cashMinorUnits < expansionCost)
+                        return StimTransactionMutationResult.Failure($"Location expansion costs {FormatMoney(expansionCost)}.");
+                    save.state.finances.cashMinorUnits -= expansionCost;
+                    business.actionPoints--;
+                    business.locationLevel++;
+                    business.valuationMinorUnits = CalculateBusinessValuation(business);
+                    summary = $"Expanded Local Services Co. to Location Tier {business.locationLevel} · Cost {FormatMoney(expansionCost)}";
+                    break;
+                case StimBusinessActionType.Sell:
+                    if (business.status != "operating")
+                        return StimTransactionMutationResult.Failure("Only an operating business can be sold.");
+                    business.valuationMinorUnits = CalculateBusinessValuation(business);
+                    var proceeds = business.valuationMinorUnits;
+                    save.state.finances.cashMinorUnits += proceeds;
+                    business.status = "sold";
+                    summary = $"Sold Local Services Co. · Cash +{FormatMoney(proceeds)}";
+                    break;
+                default:
+                    return StimTransactionMutationResult.Failure("Unsupported business action.");
+            }
+            AppendBusinessLedger(save, actionType.ToString().ToLowerInvariant(),
+                actionType == StimBusinessActionType.Sell ? business.valuationMinorUnits : 0);
+            AddLifeFeedEntry(save, "business", summary);
+            return StimTransactionMutationResult.Success(summary);
+        }
+
+        private static long ProcessMonthlyBusiness(StimSaveEnvelope save)
+        {
+            var business = save.state.business;
+            if (business == null || business.status != "operating") return 0;
+            var profit = CalculateBusinessMonthlyProfit(
+                save.rng.seed, save.rng.step, business, out var revenue, out var expenses, out var disruption);
+            if (disruption)
+            {
+                business.riskEventsExperienced++;
+                AddLifeFeedEntry(save, "business",
+                    "An operational disruption reduced Local Services Co. revenue this month.");
+            }
+            business.lastRevenueMinorUnits = revenue;
+            business.lastExpensesMinorUnits = expenses;
+            business.lastProfitMinorUnits = profit;
+            business.lifetimeProfitMinorUnits += profit;
+            business.monthsOperating++;
+            business.consecutiveLossMonths = profit < 0 ? business.consecutiveLossMonths + 1 : 0;
+            if (profit >= 0) save.state.finances.cashMinorUnits += profit;
+            else
+            {
+                var loss = -profit;
+                var cashUsed = Math.Min(save.state.finances.cashMinorUnits, loss);
+                save.state.finances.cashMinorUnits -= cashUsed;
+                save.state.finances.debtMinorUnits += loss - cashUsed;
+            }
+            business.valuationMinorUnits = CalculateBusinessValuation(business);
+            business.maxActionPoints = Math.Min(9, 3 + business.staffCount);
+            business.actionPoints = business.maxActionPoints;
+            AppendBusinessLedger(save, disruption ? "monthly_disruption" : "monthly_result", profit);
+            if (business.consecutiveLossMonths >= 3)
+            {
+                business.status = "failed";
+                business.valuationMinorUnits = 0;
+                AddLifeFeedEntry(save, "business",
+                    "Local Services Co. closed after three consecutive loss months.");
+            }
+            return profit;
+        }
+
+        public static long CalculateBusinessMonthlyProfit(
+            int seed,
+            int step,
+            StimBusinessState business,
+            out long revenueMinorUnits,
+            out long expensesMinorUnits,
+            out bool disruption)
+        {
+            if (business == null || business.status != "operating")
+            {
+                revenueMinorUnits = 0;
+                expensesMinorUnits = 0;
+                disruption = false;
+                return 0;
+            }
+            var variancePercent = StableIndex(seed, step + 11003, 51) - 25;
+            disruption = StableUnit(seed, step + 13007) < 0.10f;
+            var baseRevenue = 60000L * business.level * Math.Max(1, business.locationLevel) +
+                              business.operatingProgress * 1000L + business.staffCount * 30000L;
+            revenueMinorUnits = Math.Max(0, baseRevenue * (100 + variancePercent) / 100);
+            if (disruption) revenueMinorUnits = revenueMinorUnits * 60 / 100;
+            expensesMinorUnits = 65000L * business.level * Math.Max(1, business.locationLevel) +
+                                 business.staffCount * 40000L;
+            return revenueMinorUnits - expensesMinorUnits;
+        }
+
+        public static long CalculateBusinessValuation(StimBusinessState business)
+        {
+            if (business == null || business.status == "failed") return 0;
+            return Math.Max(100000, business.level * 150000L + business.locationLevel * 100000L +
+                business.staffCount * 50000L + Math.Max(0, business.lifetimeProfitMinorUnits * 2));
+        }
+
+        private static void AppendBusinessLedger(StimSaveEnvelope save, string type, long amount)
+        {
+            var business = save.state.business;
+            business.ledger ??= new List<StimBusinessLedgerEntry>();
+            business.ledger.Add(new StimBusinessLedgerEntry
+            {
+                entryId = $"{save.lifeId}_{save.revision}_{type}_{business.ledger.Count}",
+                type = type,
+                amountMinorUnits = amount,
+                valuationMinorUnits = business.valuationMinorUnits,
+                age = save.state.character.age,
+                monthOfYear = save.state.calendar.monthOfYear,
+                revision = save.revision,
+                timestampUtc = save.updatedAtUtc
+            });
+            while (business.ledger.Count > 60) business.ledger.RemoveAt(0);
+        }
+
         public static long CalculateHourlyRateMinorUnits(long annualSalaryMinorUnits)
         {
             if (annualSalaryMinorUnits <= 0) return 0;
@@ -2514,6 +2823,16 @@ namespace StimTycoon.Runtime
         public static bool TryGetCareerActionRequirement(
             StimGameState state,
             StimCareerActionType actionType,
+            out string requirement)
+        {
+            return TryGetCareerActionRequirement(
+                state, actionType, StimCareerCatalog.FinanceIndustryId, out requirement);
+        }
+
+        public static bool TryGetCareerActionRequirement(
+            StimGameState state,
+            StimCareerActionType actionType,
+            string applicationIndustryId,
             out string requirement)
         {
             if (state?.character == null || state.character.age < 18)
@@ -2543,7 +2862,15 @@ namespace StimTycoon.Runtime
                         requirement = "Your interview is already ready.";
                         return false;
                     }
-                    if (!TryGetEntryCareerQualificationRequirement(state, out requirement))
+                    if (!StimCareerCatalog.TryGetIndustry(applicationIndustryId, out _))
+                    {
+                        requirement = $"Career industry {applicationIndustryId} is not available.";
+                        return false;
+                    }
+                    if (applicationIndustryId == StimCareerCatalog.FinanceIndustryId &&
+                        !TryGetEntryCareerQualificationRequirement(state, out requirement))
+                        return false;
+                    if (!StimCareerCatalog.TryGetApplicationRequirement(state, applicationIndustryId, out requirement))
                         return false;
                     return true;
                 case StimCareerActionType.Interview:
@@ -2559,7 +2886,7 @@ namespace StimTycoon.Runtime
                         requirement = "Get hired before requesting promotion.";
                         return false;
                     }
-                    if (!TryGetNextCareerStep(career.roleTitle, out _, out _, out var progressRequired))
+                    if (!TryGetNextCareerStep(career, out _, out _, out var progressRequired))
                     {
                         requirement = "You have reached the top of this career ladder.";
                         return false;
@@ -2568,6 +2895,9 @@ namespace StimTycoon.Runtime
                         ? string.Empty
                         : $"Requires {progressRequired} career progress.";
                     return career.careerProgress >= progressRequired;
+                case StimCareerActionType.Retrain:
+                    requirement = employed ? "Retraining is available while unemployed." : string.Empty;
+                    return !employed && !retired;
                 case StimCareerActionType.Quit:
                     requirement = employed ? string.Empty : "You do not have a role to quit.";
                     return employed;
@@ -2596,6 +2926,27 @@ namespace StimTycoon.Runtime
             }
         }
 
+        private static bool TryGetNextCareerStep(
+            StimCareerState career,
+            out string nextRole,
+            out long nextSalaryMinorUnits,
+            out int progressRequired)
+        {
+            var industryId = string.IsNullOrEmpty(career?.industryId)
+                ? StimCareerCatalog.FinanceIndustryId
+                : career.industryId;
+            if (StimCareerCatalog.TryGetNextRole(industryId, career?.roleTitle, out var role, out progressRequired))
+            {
+                nextRole = role.title;
+                nextSalaryMinorUnits = role.annualSalaryMinorUnits;
+                return true;
+            }
+            nextRole = null;
+            nextSalaryMinorUnits = 0;
+            progressRequired = 0;
+            return false;
+        }
+
         private static bool TryGetEntryCareerQualificationRequirement(
             StimGameState state,
             out string requirement)
@@ -2617,6 +2968,44 @@ namespace StimTycoon.Runtime
             return false;
         }
 
+        public static float CalculateInterviewSuccessChance(
+            StimGameState state,
+            StimCareerIndustryDefinition industry)
+        {
+            if (state?.character == null || industry == null) return 0f;
+            var professionalLevel = GetSkillLevel(GetSkillExperience(state.skills, "professional"));
+            var qualificationSurplus = Math.Max(0,
+                (state.education?.qualificationExperience ?? 0) - industry.requiredQualificationExperience);
+            return Math.Min(0.90f, 0.55f + state.character.smarts / 500f +
+                professionalLevel * 0.05f + Math.Min(0.10f, qualificationSurplus / 1000f));
+        }
+
+        private static void EvaluateAnnualCareerStability(StimSaveEnvelope save)
+        {
+            var career = save?.state?.career;
+            if (career == null || string.IsNullOrEmpty(career.roleTitle) || career.roleTitle == "Retired") return;
+            if (career.careerProgress >= 10)
+            {
+                career.performanceWarnings = Math.Max(0, career.performanceWarnings - 1);
+                return;
+            }
+            if (StableUnit(save.rng.seed, save.rng.step + 9001) >= 0.35f) return;
+            career.performanceWarnings++;
+            if (career.performanceWarnings < 2)
+            {
+                AddLifeFeedEntry(save, "career",
+                    $"Received a performance warning as {career.roleTitle} · Build career progress before the next review");
+                return;
+            }
+
+            var formerRole = career.roleTitle;
+            save.state.career = new StimCareerState
+                { employmentStatus = "unemployed", monthsUnemployed = 0 };
+            save.state.character.happiness = ClampStat(save.state.character.happiness - 5);
+            AddLifeFeedEntry(save, "career",
+                $"Was dismissed from {formerRole} after repeated performance warnings · Happiness −5 · Retraining available");
+        }
+
         private static void ApplyPromotion(
             StimCareerState career,
             out string previousRole,
@@ -2624,7 +3013,7 @@ namespace StimTycoon.Runtime
             out long salaryDelta)
         {
             previousRole = career.roleTitle;
-            TryGetNextCareerStep(previousRole, out newRole, out var nextSalary, out _);
+            TryGetNextCareerStep(career, out newRole, out var nextSalary, out _);
             salaryDelta = nextSalary - career.annualSalaryMinorUnits;
             career.roleTitle = newRole;
             career.annualSalaryMinorUnits = nextSalary;
@@ -2894,6 +3283,9 @@ namespace StimTycoon.Runtime
             var cashBeforeRelationshipTransition = save.state.finances.cashMinorUnits;
             var debtBeforeRelationshipTransition = save.state.finances.debtMinorUnits;
             ApplyRomanceChoice(save, resolution.eventId, resolution.choiceId);
+            if (resolution.eventId == RepresentativeStimEvents.WeddingId && resolution.choiceId == "get_married")
+                EnqueueTransition(save, "marriage", "Just married",
+                    "The partnership became a marriage and household finances were combined.");
             if (save.state.finances.spouseAnnualIncomeMinorUnits > spouseIncomeBefore)
             {
                 AddLifeFeedEntry(save, "money",
@@ -3338,7 +3730,8 @@ namespace StimTycoon.Runtime
 
         private static void UpdateRelationshipStage(StimRelationshipState relationship, bool reconciled)
         {
-            if (relationship == null || relationship.relationshipType == "parent" || relationship.relationshipType == "child")
+            if (relationship == null || relationship.relationshipType == "parent" ||
+                relationship.relationshipType == "child" || relationship.relationshipType == "adult_child")
                 return;
             if (relationship.relationshipType == "dating" || relationship.relationshipType == "partner" ||
                 relationship.relationshipType == "engaged" || relationship.relationshipType == "married" ||
@@ -3499,11 +3892,15 @@ namespace StimTycoon.Runtime
             state.relationships ??= new List<StimRelationshipState>();
             state.statuses ??= new List<StimStatusState>();
             state.achievements ??= new List<StimAchievementState>();
+            state.goals ??= new List<StimGoalState>();
+            state.orientation ??= new StimOrientationState();
+            state.transitionPresentations ??= new List<StimTransitionPresentationState>();
             state.lifeDecisions ??= new List<StimLifeDecisionState>();
             state.household ??= new StimHouseholdState();
             state.annualReview ??= new StimAnnualReviewState();
             state.annualReviewHistory ??= new List<StimAnnualReviewHistoryState>();
             state.moneyTransactions ??= new List<StimMoneyTransactionState>();
+            state.business ??= new StimBusinessState();
             state.lifeFeed ??= new List<StimLifeFeedEntry>();
             state.scheduledEvents ??= new List<StimScheduledEventRecord>();
         }
@@ -3511,6 +3908,7 @@ namespace StimTycoon.Runtime
         private static void EvaluateAchievements(StimSaveEnvelope save)
         {
             NormalizeProgressCollections(save.state);
+            RefreshGoals(save);
             var state = save.state;
             TryUnlockAchievement(save, "first_year", state.character.age >= 1);
             TryUnlockAchievement(save, "school_days", state.education != null && state.education.stage != "not_started");
@@ -3524,6 +3922,99 @@ namespace StimTycoon.Runtime
             TryUnlockAchievement(save, "first_choice", state.eventHistory.Count > 0);
             TryUnlockAchievement(save, "retirement", state.character.lifeStatus == "retired");
             TryUnlockAchievement(save, "life_complete", state.character.lifeStatus != "active");
+        }
+
+        public IReadOnlyList<StimGoalState> GetGoals()
+        {
+            return ActiveSave?.state?.goals ?? (IReadOnlyList<StimGoalState>)Array.Empty<StimGoalState>();
+        }
+
+        public bool TryClaimGoalReward(string goalId, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate =>
+                {
+                    NormalizeProgressCollections(candidate.state);
+                    RefreshGoals(candidate);
+                    var goal = candidate.state.goals.Find(item => item != null && item.goalId == goalId);
+                    if (goal == null) return StimTransactionMutationResult.Failure("This goal is not available.");
+                    if (goal.status == "claimed")
+                        return StimTransactionMutationResult.Failure("This goal reward was already claimed.");
+                    if (goal.status != "claimable")
+                        return StimTransactionMutationResult.Failure("Complete the goal before claiming its reward.");
+                    candidate.state.finances.cashMinorUnits += goal.rewardMinorUnits;
+                    goal.status = "claimed";
+                    goal.claimedRevision = candidate.revision;
+                    goal.claimedAtUtc = candidate.updatedAtUtc;
+                    var claimSummary = $"Claimed {goal.title} · Cash +{FormatMoney(goal.rewardMinorUnits)}";
+                    AddLifeFeedEntry(candidate, "goal", claimSummary);
+                    return StimTransactionMutationResult.Success(claimSummary);
+                },
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        private static void RefreshGoals(StimSaveEnvelope save)
+        {
+            var state = save.state;
+            state.goals ??= new List<StimGoalState>();
+            EnsureGoal(state.goals, new StimGoalState
+            {
+                goalId = "main_first_career", category = "main", title = "Start a Career",
+                description = "Get hired into your first career.", destination = "career",
+                progressRequired = 1, rewardMinorUnits = 50000,
+                createdAtAge = state.character.age, createdAtMonth = state.calendar.monthOfYear
+            });
+            EnsureGoal(state.goals, new StimGoalState
+            {
+                goalId = "life_net_worth_100k", category = "life", title = "Build Security",
+                description = "Reach $100,000 net worth.", destination = "money",
+                progressRequired = 10000000, rewardMinorUnits = 250000,
+                createdAtAge = state.character.age, createdAtMonth = state.calendar.monthOfYear
+            });
+            var dailyId = $"daily_focus_{state.character.age}_{state.calendar.monthOfYear}";
+            foreach (var oldDaily in state.goals)
+            {
+                if (oldDaily != null && oldDaily.category == "daily" && oldDaily.goalId != dailyId &&
+                    oldDaily.status != "claimed") oldDaily.status = "expired";
+            }
+            EnsureGoal(state.goals, new StimGoalState
+            {
+                goalId = dailyId, category = "daily", title = "Choose a Focus",
+                description = "Complete one contextual focus activity this month.", destination = "life",
+                progressRequired = 1, rewardMinorUnits = 1000,
+                createdAtAge = state.character.age, createdAtMonth = state.calendar.monthOfYear
+            });
+
+            var employed = !string.IsNullOrEmpty(state.career?.roleTitle) && state.career.roleTitle != "Retired";
+            UpdateGoal(state.goals, "main_first_career", employed ? 1 : 0);
+            var netWorth = Math.Max(0L, state.finances.cashMinorUnits + state.finances.savingsMinorUnits +
+                state.finances.indexFundMinorUnits + (state.business?.valuationMinorUnits ?? 0) -
+                state.finances.debtMinorUnits);
+            UpdateGoal(state.goals, "life_net_worth_100k", (int)Math.Min(10000000L, netWorth));
+            var focused = state.statuses.Exists(status => status.statusId == "monthly_focus_used");
+            UpdateGoal(state.goals, dailyId, focused ? 1 : 0);
+            while (state.goals.Count > 20)
+            {
+                var removable = state.goals.FindIndex(goal => goal.category == "daily" && goal.status == "expired");
+                state.goals.RemoveAt(removable >= 0 ? removable : 0);
+            }
+        }
+
+        private static void EnsureGoal(List<StimGoalState> goals, StimGoalState goal)
+        {
+            if (!goals.Exists(existing => existing != null && existing.goalId == goal.goalId)) goals.Add(goal);
+        }
+
+        private static void UpdateGoal(List<StimGoalState> goals, string goalId, int progress)
+        {
+            var goal = goals.Find(item => item != null && item.goalId == goalId);
+            if (goal == null || goal.status == "claimed" || goal.status == "expired") return;
+            goal.progress = Math.Max(0, Math.Min(goal.progressRequired, progress));
+            goal.status = goal.progress >= goal.progressRequired ? "claimable" : "active";
         }
 
         private static void TryUnlockAchievement(StimSaveEnvelope save, string achievementId, bool condition)
@@ -3577,6 +4068,134 @@ namespace StimTycoon.Runtime
                 case "life_complete": return "Complete a life through retirement or death.";
                 default: return "A milestone from this life.";
             }
+        }
+
+        public static long GetAchievementRewardMinorUnits(string achievementId)
+        {
+            switch (achievementId)
+            {
+                case "first_year": return 10000;
+                case "school_days": return 15000;
+                case "learning_level_2": return 25000;
+                case "family_bond": return 20000;
+                case "first_job": return 50000;
+                case "moving_up": return 75000;
+                case "six_figures": return 100000;
+                case "first_choice": return 10000;
+                case "retirement": return 150000;
+                case "life_complete": return 200000;
+                default: return 0;
+            }
+        }
+
+        public bool TryClaimAchievementReward(string achievementId, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate =>
+                {
+                    NormalizeProgressCollections(candidate.state);
+                    var achievement = candidate.state.achievements.Find(item =>
+                        item != null && item.achievementId == achievementId);
+                    if (achievement == null)
+                        return StimTransactionMutationResult.Failure("This achievement has not been unlocked.");
+                    if (achievement.rewardClaimed)
+                        return StimTransactionMutationResult.Failure("This achievement prize was already claimed.");
+                    var reward = GetAchievementRewardMinorUnits(achievementId);
+                    if (reward <= 0)
+                        return StimTransactionMutationResult.Failure("This achievement does not have a claimable prize.");
+                    candidate.state.finances.cashMinorUnits += reward;
+                    achievement.rewardClaimed = true;
+                    achievement.rewardClaimedRevision = candidate.revision;
+                    achievement.rewardClaimedAtUtc = candidate.updatedAtUtc;
+                    var claimSummary = $"Claimed {GetAchievementDisplayName(achievementId)} prize · Cash +{FormatMoney(reward)}";
+                    AddLifeFeedEntry(candidate, "achievement", claimSummary);
+                    return StimTransactionMutationResult.Success(claimSummary);
+                },
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public StimTransitionPresentationState GetPendingTransition()
+        {
+            return ActiveSave?.state?.transitionPresentations?.Find(item =>
+                item != null && !item.acknowledged);
+        }
+
+        public bool ShouldPresentFirstLifeOrientation()
+        {
+            return ActiveSave?.state?.character?.age == 0 &&
+                   ActiveSave.state.orientation?.status != "completed";
+        }
+
+        public bool TryCompleteFirstLifeOrientation(out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate =>
+                {
+                    NormalizeProgressCollections(candidate.state);
+                    if (candidate.state.orientation.status == "completed")
+                        return StimTransactionMutationResult.Failure("First-life orientation was already completed.");
+                    candidate.state.orientation.status = "completed";
+                    candidate.state.orientation.completedRevision = candidate.revision;
+                    candidate.state.orientation.completedAtUtc = candidate.updatedAtUtc;
+                    AddLifeFeedEntry(candidate, "milestone", "Orientation complete · The Life Feed, time controls, requirements, and autosave are ready.");
+                    return StimTransactionMutationResult.Success("First-life orientation completed.");
+                },
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TryAcknowledgeTransition(string transitionId, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate =>
+                {
+                    NormalizeProgressCollections(candidate.state);
+                    var transition = candidate.state.transitionPresentations.Find(item =>
+                        item != null && item.transitionId == transitionId);
+                    if (transition == null)
+                        return StimTransactionMutationResult.Failure("This transition presentation no longer exists.");
+                    if (transition.acknowledged)
+                        return StimTransactionMutationResult.Failure("This transition presentation was already acknowledged.");
+                    transition.acknowledged = true;
+                    transition.acknowledgedRevision = candidate.revision;
+                    transition.acknowledgedAtUtc = candidate.updatedAtUtc;
+                    return StimTransactionMutationResult.Success($"Acknowledged {transition.title}.");
+                },
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        private static void EnqueueTransition(
+            StimSaveEnvelope save, string transitionType, string title, string summary)
+        {
+            NormalizeProgressCollections(save.state);
+            var transitionId = $"{transitionType}_{save.lifeId}_{save.revision}";
+            if (save.state.transitionPresentations.Exists(item =>
+                    item != null && item.transitionId == transitionId)) return;
+            save.state.transitionPresentations.Add(new StimTransitionPresentationState
+            {
+                transitionId = transitionId,
+                transitionType = transitionType,
+                title = title,
+                summary = summary,
+                age = save.state.character.age,
+                monthOfYear = save.state.calendar.monthOfYear,
+                revision = save.revision,
+                createdAtUtc = save.updatedAtUtc
+            });
+            while (save.state.transitionPresentations.Count > 20)
+                save.state.transitionPresentations.RemoveAt(0);
+            AddLifeFeedEntry(save, "milestone", $"{title} · {summary}");
         }
 
         private static void AddLifeFeedEntry(StimSaveEnvelope save, string category, string text)

@@ -113,6 +113,90 @@ namespace StimTycoon.Tests.Domain.Save
         }
 
         [Test]
+        public void ValidateSave_RejectsUnknownCareerIndustry()
+        {
+            var save = CreateValidSave();
+            save.state.career.industryId = "unknown_industry";
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("industryId")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsInvalidEmploymentStateAndWarningCount()
+        {
+            var save = CreateValidSave();
+            save.state.career.employmentStatus = "between_things";
+            save.state.career.performanceWarnings = 4;
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("employmentStatus")));
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("warning counters")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsInvalidBusinessAndOversizedLedger()
+        {
+            var save = CreateValidSave();
+            save.state.business.status = "operating";
+            save.state.business.businessId = "business_1";
+            save.state.business.businessType = "local_services";
+            save.state.business.displayName = "Local Services Co.";
+            save.state.business.level = 4;
+            for (var index = 0; index < 61; index++)
+                save.state.business.ledger.Add(new StimBusinessLedgerEntry());
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("operating values")));
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("at most 60")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsDuplicateOrInvalidGoalState()
+        {
+            var save = CreateValidSave();
+            save.state.goals.Add(new StimGoalState
+            {
+                goalId = "goal_1", category = "daily", title = "Goal", description = "Do it",
+                destination = "life", progress = 2, progressRequired = 1,
+                status = "claimed", createdAtMonth = 1
+            });
+            save.state.goals.Add(new StimGoalState
+            {
+                goalId = "goal_1", category = "daily", title = "Duplicate", description = "Do it",
+                destination = "life", progressRequired = 1, createdAtMonth = 1
+            });
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("state.goals")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsClaimedAchievementWithoutClaimAuditMetadata()
+        {
+            var save = CreateValidSave();
+            save.state.achievements.Add(new StimAchievementState
+            {
+                achievementId = "first_job", unlockedAtAge = 18, revision = 1,
+                timestampUtc = "2026-07-13T17:00:00Z", rewardClaimed = true
+            });
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error =>
+                error.Contains("reward claim metadata")));
+        }
+
+        [Test]
         public void ValidateSave_RejectsDuplicateRelationshipIds()
         {
             var save = CreateValidSave();
@@ -142,6 +226,94 @@ namespace StimTycoon.Tests.Domain.Save
             Assert.IsFalse(result.isValid);
             Assert.That(result.errors, Has.Some.Matches<string>(error =>
                 error.Contains("monthsSinceInteraction")));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsUnderageOrIncompleteCompatibleDiscoveryIdentity()
+        {
+            var save = CreateValidSave();
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "compatible_1",
+                identityId = "identity_compatible_1",
+                displayName = "Alex",
+                pronouns = "they/them",
+                genderIdentity = "nonbinary",
+                orientation = "compatible_with_player",
+                origin = "compatible_discovery",
+                introducedAtAge = 17,
+                relationshipType = "friend"
+            });
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error =>
+                error.Contains("compatible identity is invalid")));
+        }
+
+        [Test]
+        public void ValidateSave_AcceptsCompleteAdultCompatibleDiscoveryIdentity()
+        {
+            var save = CreateValidSave();
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "compatible_1",
+                identityId = "identity_compatible_1",
+                displayName = "Alex",
+                pronouns = "they/them",
+                genderIdentity = "nonbinary",
+                orientation = "compatible_with_player",
+                origin = "compatible_discovery",
+                introducedAtAge = 18,
+                relationshipType = "friend"
+            });
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsTrue(result.isValid, StimSaveValidator.GetValidationSummary(result, save.saveId));
+        }
+
+        [TestCase(10, "independent")]
+        [TestCase(18, "shared")]
+        [TestCase(18, "household")]
+        [TestCase(10, "unknown")]
+        public void ValidateSave_RejectsAgeInappropriateOrUnknownChildCustody(int age, string custodyStatus)
+        {
+            var save = CreateValidSave();
+            AddChild(save, age, custodyStatus);
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error =>
+                error.Contains("state.family.children[0] is invalid")));
+        }
+
+        [Test]
+        public void ValidateSave_RequiresDurableChildRelationshipWithMatchingLifeStage()
+        {
+            var save = CreateValidSave();
+            AddChild(save, 8, "shared");
+            save.state.relationships[0].relationshipType = "friend";
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error =>
+                error.Contains("requires a matching child relationship")));
+        }
+
+        [Test]
+        public void ValidateSave_AcceptsDependentAndIndependentChildBoundaries()
+        {
+            var dependent = CreateValidSave();
+            AddChild(dependent, 17, "shared");
+            var adult = CreateValidSave();
+            AddChild(adult, 18, "independent");
+
+            Assert.IsTrue(StimSaveValidator.ValidateSave(dependent).isValid);
+            Assert.IsTrue(StimSaveValidator.ValidateSave(adult).isValid);
         }
 
         [Test]
@@ -341,6 +513,29 @@ namespace StimTycoon.Tests.Domain.Save
                     }
                 }
             };
+        }
+
+        private static void AddChild(StimSaveEnvelope save, int age, string custodyStatus)
+        {
+            save.state.family.children.Add(new StimChildState
+            {
+                childId = "child_1",
+                displayName = "Ari",
+                path = "adoption",
+                parentRelationshipId = "partner_1",
+                joinedAtParentAge = 30,
+                birthMonth = 4,
+                age = age,
+                custodyStatus = custodyStatus
+            });
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "child_1",
+                relationshipType = age >= 18 ? "adult_child" : "child",
+                relationshipStage = age >= 18 ? "adult_child" : "dependent_child",
+                value = 70,
+                warmth = 70
+            });
         }
     }
 }

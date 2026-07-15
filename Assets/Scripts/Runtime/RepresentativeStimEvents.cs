@@ -30,6 +30,21 @@ namespace StimTycoon.Runtime
         public const string YearInReviewId = "time_year_in_review_001";
         public const string HomeDeferredMaintenanceId = "home_deferred_maintenance_001";
 
+        public static IReadOnlyList<StimEvent> CreateLaunchAlphaCatalog()
+        {
+            return new List<StimEvent>
+            {
+                CreateHomeDeferredMaintenance(), CreateYearInReview(), CreateSalaryNegotiation(),
+                CreateHealthBurnout(), CreateMoneyFastReturn(), CreateSchoolGroupProject(),
+                CreateChildhoodGrownFolksTable(), CreateRandomGain(), CreateRandomLoss(),
+                CreateRandomGainRefund(), CreateRandomLossRepair(), CreateLuckCrossroads(),
+                CreateChildhoodDiscovery(), CreateChildhoodComfort(), CreatePeerTrustConflict(),
+                CreatePeerTrustAftermath(), CreatePeerJealousy(), CreateComingOfAgeGender(),
+                CreateComingOfAgeOrientation(), CreatePromInvitation(), CreateFirstKiss(),
+                CreateProposal(), CreateWedding(), CreateMarriageCrossroads()
+            };
+        }
+
         public static StimEvent CreateHomeDeferredMaintenance()
         {
             return new StimEvent
@@ -104,7 +119,7 @@ namespace StimTycoon.Runtime
                 ageRange = new AgeRange { minAge = 0, maxAge = 120 },
                 locations = new List<string> { "USA", "Jamaica" },
                 requirementsJson = "{}",
-                cooldownYears = 0,
+                cooldownYears = 1,
                 repeatPolicy = RepeatPolicy.Repeatable,
                 timingPolicy = EventTimingPolicy.AnnualRollover,
                 monthlyTriggerChance = 1f,
@@ -822,7 +837,7 @@ namespace StimTycoon.Runtime
                 ageRange = new AgeRange { minAge = 13, maxAge = 100 },
                 locations = new List<string> { "USA", "Jamaica" },
                 requirementsJson = "{}",
-                cooldownYears = 0,
+                cooldownYears = 1,
                 repeatPolicy = RepeatPolicy.Repeatable,
                 timingPolicy = EventTimingPolicy.AnyMonth,
                 monthlyTriggerChance = 0.16f,
@@ -853,7 +868,7 @@ namespace StimTycoon.Runtime
                 ageRange = new AgeRange { minAge = 13, maxAge = 100 },
                 locations = new List<string> { "USA", "Jamaica" },
                 requirementsJson = "{}",
-                cooldownYears = 0,
+                cooldownYears = 1,
                 repeatPolicy = RepeatPolicy.Repeatable,
                 timingPolicy = EventTimingPolicy.AnyMonth,
                 monthlyTriggerChance = 0.14f,
@@ -888,7 +903,7 @@ namespace StimTycoon.Runtime
                 ageRange = new AgeRange { minAge = 13, maxAge = 100 },
                 locations = new List<string> { "USA", "Jamaica" },
                 requirementsJson = "{}",
-                cooldownYears = 0,
+                cooldownYears = 1,
                 repeatPolicy = RepeatPolicy.Repeatable,
                 timingPolicy = EventTimingPolicy.AnyMonth,
                 monthlyTriggerChance = 0.12f,
@@ -920,7 +935,7 @@ namespace StimTycoon.Runtime
                 ageRange = new AgeRange { minAge = 13, maxAge = 100 },
                 locations = new List<string> { "USA", "Jamaica" },
                 requirementsJson = "{}",
-                cooldownYears = 0,
+                cooldownYears = 1,
                 repeatPolicy = RepeatPolicy.Repeatable,
                 timingPolicy = EventTimingPolicy.AnyMonth,
                 monthlyTriggerChance = 0.12f,
@@ -1018,7 +1033,7 @@ namespace StimTycoon.Runtime
                 ageRange = new AgeRange { minAge = 0, maxAge = 12 },
                 locations = new List<string> { "USA", "Jamaica" },
                 requirementsJson = "{}",
-                cooldownYears = 0,
+                cooldownYears = 1,
                 repeatPolicy = RepeatPolicy.Repeatable,
                 timingPolicy = EventTimingPolicy.AnyMonth,
                 monthlyTriggerChance = 0.18f,
@@ -1049,7 +1064,7 @@ namespace StimTycoon.Runtime
                 ageRange = new AgeRange { minAge = 0, maxAge = 12 },
                 locations = new List<string> { "USA", "Jamaica" },
                 requirementsJson = "{}",
-                cooldownYears = 0,
+                cooldownYears = 1,
                 repeatPolicy = RepeatPolicy.Repeatable,
                 timingPolicy = EventTimingPolicy.AnyMonth,
                 monthlyTriggerChance = 0.16f,
@@ -1215,7 +1230,7 @@ namespace StimTycoon.Runtime
                     minYearsFromNow = 1,
                     maxYearsFromNow = 1,
                     probability = 1f,
-                    cancellationRule = string.Empty
+                    cancellationRule = "life_ended"
                 });
             }
             return evt;
@@ -1256,7 +1271,7 @@ namespace StimTycoon.Runtime
                     minYearsFromNow = 1,
                     maxYearsFromNow = 1,
                     probability = 1f,
-                    cancellationRule = string.Empty
+                    cancellationRule = "school_peer_primary_missing_or_not_close"
                 });
             }
             return evt;

@@ -50,6 +50,8 @@ namespace StimTycoon.Runtime
         private Button advanceYear;
         private Button toggleOverview;
         private Button eventContinue;
+        private string presentedTransitionId;
+        private bool presentingFirstLifeOrientation;
         private VisualElement newLifeSetup;
         private Label newLifeError;
         private Button cancelNewLife;
@@ -392,6 +394,14 @@ namespace StimTycoon.Runtime
             {
                 PresentEvent(currentEvent);
             }
+            else if (gameSession.GetPendingTransition() != null)
+            {
+                PresentPendingTransition();
+            }
+            else if (gameSession.ShouldPresentFirstLifeOrientation())
+            {
+                PresentFirstLifeOrientation();
+            }
             else
             {
                 choices.AddToClassList("hidden");
@@ -465,6 +475,7 @@ namespace StimTycoon.Runtime
             currentEvent = null;
             RefreshHeader();
             RefreshFeed();
+            PresentPendingTransition();
         }
 
         private void AdvanceMonth()
@@ -502,6 +513,11 @@ namespace StimTycoon.Runtime
 
             if (currentEvent == null)
             {
+                if (gameSession.GetPendingTransition() != null)
+                {
+                    PresentPendingTransition();
+                    return;
+                }
                 choices.AddToClassList("hidden");
                 eventCategory.text = "MONTHLY SUMMARY";
                 eventTitle.text = $"Month {gameSession.ActiveSave.state.calendar.monthOfYear} complete";
@@ -546,6 +562,11 @@ namespace StimTycoon.Runtime
             if (currentEvent != null)
             {
                 PresentEvent(currentEvent);
+                return;
+            }
+            if (gameSession.GetPendingTransition() != null)
+            {
+                PresentPendingTransition();
                 return;
             }
 
@@ -912,13 +933,54 @@ namespace StimTycoon.Runtime
         {
             achievementsList.Clear();
             var achievements = gameSession.ActiveSave.state.achievements;
+            var goals = gameSession.GetGoals();
             achievementsCount.text = $"{achievements.Count} unlocked";
-            if (achievements.Count == 0)
+            foreach (var goal in goals)
             {
-                var empty = new Label("Your milestones will appear here as this life unfolds.");
+                if (goal == null || goal.status == "expired") continue;
+                var row = new VisualElement();
+                row.AddToClassList("st-achievement-row");
+                var icon = new Label(goal.category == "daily" ? "D" : goal.category == "main" ? "M" : "L");
+                icon.AddToClassList("st-achievement-icon");
+                var copy = new VisualElement();
+                copy.AddToClassList("st-achievement-copy");
+                var name = new Label($"{goal.title} · {ToDisplayName(goal.category)}");
+                name.AddToClassList("st-achievement-name");
+                var description = new Label(
+                    $"{goal.description} · {goal.progress} / {goal.progressRequired} · Reward {FormatMoney(goal.rewardMinorUnits)}");
+                description.AddToClassList("st-achievement-description");
+                copy.Add(name);
+                copy.Add(description);
+                var capturedGoalId = goal.goalId;
+                var action = new Button
+                {
+                    name = $"goal-action-{goal.goalId}",
+                    text = goal.status == "claimable" ? "CLAIM" : goal.status == "claimed" ? "CLAIMED" : "GO"
+                };
+                action.SetEnabled(goal.status != "claimed");
+                action.clicked += () =>
+                {
+                    if (goal.status == "claimable")
+                    {
+                        gameSession.TryClaimGoalReward(capturedGoalId, out _);
+                        RefreshHeader();
+                        RefreshFeed();
+                        RefreshMoney();
+                        RefreshAchievements();
+                    }
+                    else if (goal.destination == "money") ShowMoneyDestination();
+                    else ShowLifeDestination();
+                };
+                row.Add(icon);
+                row.Add(copy);
+                row.Add(action);
+                achievementsList.Add(row);
+            }
+            if (achievements.Count == 0 && goals.Count == 0)
+            {
+                var empty = new Label("Your goals and milestones will appear here as this life unfolds.");
                 empty.AddToClassList("st-feed-empty");
                 achievementsList.Add(empty);
-                return;
             }
 
             for (var index = achievements.Count - 1; index >= 0; index--)
@@ -934,12 +996,29 @@ namespace StimTycoon.Runtime
                 var name = new Label(StimGameSessionService.GetAchievementDisplayName(achievement.achievementId));
                 name.AddToClassList("st-achievement-name");
                 var description = new Label(
-                    $"{StimGameSessionService.GetAchievementDescription(achievement.achievementId)} · Age {achievement.unlockedAtAge}");
+                    $"{StimGameSessionService.GetAchievementDescription(achievement.achievementId)} · Age {achievement.unlockedAtAge} · Prize {FormatMoney(StimGameSessionService.GetAchievementRewardMinorUnits(achievement.achievementId))}");
                 description.AddToClassList("st-achievement-description");
                 copy.Add(name);
                 copy.Add(description);
                 row.Add(icon);
                 row.Add(copy);
+                var capturedAchievementId = achievement.achievementId;
+                var claim = new Button
+                {
+                    name = $"achievement-claim-{achievement.achievementId}",
+                    text = achievement.rewardClaimed ? "CLAIMED" : "CLAIM"
+                };
+                claim.SetEnabled(!achievement.rewardClaimed &&
+                    StimGameSessionService.GetAchievementRewardMinorUnits(achievement.achievementId) > 0);
+                claim.clicked += () =>
+                {
+                    gameSession.TryClaimAchievementReward(capturedAchievementId, out _);
+                    RefreshHeader();
+                    RefreshFeed();
+                    RefreshMoney();
+                    RefreshAchievements();
+                };
+                row.Add(claim);
                 achievementsList.Add(row);
             }
         }
@@ -1241,6 +1320,7 @@ namespace StimTycoon.Runtime
                 StimCareerActionType.Interview,
                 StimCareerActionType.WorkHard,
                 StimCareerActionType.AskForPromotion,
+                StimCareerActionType.Retrain,
                 StimCareerActionType.Quit,
                 StimCareerActionType.Retire
             };
@@ -1257,6 +1337,35 @@ namespace StimTycoon.Runtime
                 button.SetEnabled(unlocked && !usedThisMonth);
                 var capturedAction = action;
                 button.clicked += () => PerformCareerAction(capturedAction);
+                careerActions.Add(button);
+            }
+            var business = state.business ?? new StimBusinessState();
+            foreach (var action in new[]
+                     {
+                         StimBusinessActionType.Start, StimBusinessActionType.Work,
+                         StimBusinessActionType.Upgrade, StimBusinessActionType.HireStaff,
+                         StimBusinessActionType.ExpandLocation, StimBusinessActionType.Sell
+                     })
+            {
+                var button = new Button
+                {
+                    name = $"business-action-{action.ToString().ToLowerInvariant()}",
+                    text = action == StimBusinessActionType.Start
+                        ? "Start Local Services\n$1,000 · Professional Level 2"
+                        : action == StimBusinessActionType.Work
+                            ? $"Work Business\nProgress {business.operatingProgress} / 100"
+                            : action == StimBusinessActionType.Upgrade
+                                ? $"Upgrade Business\nLevel {business.level} / 3"
+                                : action == StimBusinessActionType.HireStaff
+                                    ? $"Hire Staff\n{business.staffCount} / {business.level * 2} · $750"
+                                    : action == StimBusinessActionType.ExpandLocation
+                                        ? $"Expand Location\nTier {business.locationLevel} / 3"
+                                        : $"Sell Business\nValuation {FormatMoney(business.valuationMinorUnits)}"
+                };
+                button.AddToClassList("st-career-action");
+                button.SetEnabled(true);
+                var capturedAction = action;
+                button.clicked += () => PerformBusinessAction(capturedAction);
                 careerActions.Add(button);
             }
         }
@@ -1283,6 +1392,26 @@ namespace StimTycoon.Runtime
             {
                 ShowFinalLifeSummary();
             }
+        }
+
+        private void PerformBusinessAction(StimBusinessActionType actionType)
+        {
+            var succeeded = gameSession.TryPerformBusinessAction(actionType, out var summary);
+            eventCategory.text = succeeded ? "BUSINESS UPDATE" : "BUSINESS ACTION LOCKED";
+            eventTitle.text = ToDisplayName(actionType.ToString());
+            eventBody.text = succeeded
+                ? "Your business changed and the result was saved."
+                : "Meet the displayed requirement or advance the month before trying again.";
+            resultText.text = summary;
+            resultEffects.text = string.Empty;
+            resultEffects.AddToClassList("hidden");
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            if (!succeeded) return;
+            RefreshHeader();
+            RefreshFeed();
         }
 
         private void ConfigureAgeAppropriateActivities(int age)
@@ -1356,9 +1485,71 @@ namespace StimTycoon.Runtime
 
         private void CloseEventSheet()
         {
+            if (!string.IsNullOrEmpty(presentedTransitionId))
+            {
+                gameSession.TryAcknowledgeTransition(presentedTransitionId, out _);
+                presentedTransitionId = null;
+                RefreshFeed();
+                if (gameSession.GetPendingTransition() != null)
+                {
+                    PresentPendingTransition();
+                    return;
+                }
+                if (gameSession.ShouldPresentFirstLifeOrientation())
+                {
+                    PresentFirstLifeOrientation();
+                    return;
+                }
+            }
+            if (presentingFirstLifeOrientation)
+            {
+                if (!gameSession.TryCompleteFirstLifeOrientation(out var orientationSummary))
+                {
+                    resultText.text = orientationSummary;
+                    resultEffects.text = "Orientation remains open until progress can be saved";
+                    return;
+                }
+                presentingFirstLifeOrientation = false;
+                RefreshFeed();
+            }
             eventSheet.AddToClassList("hidden");
             resultCard.AddToClassList("hidden");
             eventContinue.AddToClassList("hidden");
+        }
+
+        private void PresentPendingTransition()
+        {
+            var transition = gameSession.GetPendingTransition();
+            if (transition == null) return;
+            presentedTransitionId = transition.transitionId;
+            currentEvent = null;
+            eventCategory.text = "LIFE MILESTONE";
+            eventTitle.text = transition.title;
+            eventBody.text = transition.summary;
+            resultText.text = $"Age {transition.age} · {GetMonthName(transition.monthOfYear)}";
+            resultEffects.text = "Saved to your Life Feed";
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            resultEffects.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+        }
+
+        private void PresentFirstLifeOrientation()
+        {
+            presentingFirstLifeOrientation = true;
+            currentEvent = null;
+            eventCategory.text = "WELCOME TO STIM TYCOON";
+            eventTitle.text = "Your life, one choice at a time";
+            eventBody.text =
+                "The Life Feed records what changes. Advance Month for detail or Advance Year for faster pacing—time always pauses for choices. Locked actions show what they require, and every completed action autosaves locally.";
+            resultText.text = "Nothing here costs premium currency, and ordinary progression remains available.";
+            resultEffects.text = "One screen · Continue when ready";
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            resultEffects.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
         }
 
         private void PerformActivity(StimActivityType activityType)
@@ -1780,6 +1971,7 @@ namespace StimTycoon.Runtime
                 RefreshFeed();
                 RefreshSocial();
                 ShowLifeDestination();
+                PresentPendingTransition();
             }
             catch (ArgumentException exception)
             {

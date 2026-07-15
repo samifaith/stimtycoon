@@ -11,6 +11,66 @@ namespace StimTycoon.Tests.Domain.Events
     public class StimEventValidatorTests
     {
         [Test]
+        public void LaunchAlphaCatalog_MeetsStageDestinationChainAndAntiRepetitionMinimums()
+        {
+            var result = StimAlphaContentCoverage.Validate(
+                RepresentativeStimEvents.CreateLaunchAlphaCatalog());
+
+            Assert.That(result.isValid, Is.True, string.Join("\n", result.errors));
+            Assert.That(result.stageCounts["early_childhood"], Is.GreaterThanOrEqualTo(2));
+            Assert.That(result.stageCounts["senior"], Is.GreaterThanOrEqualTo(6));
+            Assert.That(result.chainStartCount, Is.GreaterThanOrEqualTo(5));
+            Assert.That(result.terminalOutcomeCount, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void AlphaCoverage_RejectsMissingFollowUpAndUncappedRepeatableEvent()
+        {
+            var events = new List<StimEvent>(RepresentativeStimEvents.CreateLaunchAlphaCatalog());
+            var repeatable = events.Find(item => item.id == RepresentativeStimEvents.RandomGainId);
+            repeatable.cooldownYears = 0;
+            var chainStart = events.Find(item => item.id == RepresentativeStimEvents.PeerTrustConflictId);
+            chainStart.choices[0].outcomes[0].followUps[0].eventId = "missing_follow_up";
+
+            var result = StimAlphaContentCoverage.Validate(events);
+
+            Assert.That(result.isValid, Is.False);
+            Assert.That(result.errors, Has.Some.Contains("requires a cooldown"));
+            Assert.That(result.errors, Has.Some.Contains("missing follow-up"));
+        }
+
+        [Test]
+        public void ProductionValidation_RejectsRiskMismatchMalformedEligibilityAndUnsafeLocalizationId()
+        {
+            var evt = CreateValidEvent();
+            evt.id = "Bad Event Id";
+            evt.requirementsJson = "not-json";
+            evt.choices[0].riskPreview = RiskLevel.Extreme;
+
+            var result = StimEventValidator.ValidateProductionEvent(evt);
+
+            Assert.That(result.isValid, Is.False);
+            Assert.That(result.errors, Has.Some.Contains("localization-key safe"));
+            Assert.That(result.errors, Has.Some.Contains("requirementsJson must be a JSON object"));
+            Assert.That(result.errors, Has.Some.Contains("suggests Moderate"));
+        }
+
+        [Test]
+        public void ProductionValidation_RejectsUnreachableBranchesAndDuplicateTelemetry()
+        {
+            var evt = CreateValidEvent();
+            evt.choices[0].baseSuccessChance = 1f;
+            evt.choices[0].riskPreview = RiskLevel.Safe;
+            evt.choices[0].outcomes[1].telemetryCode = evt.choices[0].outcomes[0].telemetryCode;
+
+            var result = StimEventValidator.ValidateProductionEvent(evt);
+
+            Assert.That(result.isValid, Is.False);
+            Assert.That(result.errors, Has.Some.Contains("unreachable outcome branches"));
+            Assert.That(result.errors, Has.Some.Contains("Duplicate telemetry code"));
+        }
+
+        [Test]
         public void ValidateEvent_RejectsNullEvent()
         {
             var result = StimEventValidator.ValidateEvent(null);
@@ -268,6 +328,52 @@ namespace StimTycoon.Tests.Domain.Events
 
             Assert.IsFalse(result.isValid);
             Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("not balanced")));
+        }
+
+        [Test]
+        public void ValidateEvent_RejectsUnderageRomance()
+        {
+            var evt = CreateValidEvent();
+            evt.category = EventCategory.Relationship;
+            evt.ageRange = new AgeRange { minAge = 17, maxAge = 17 };
+            evt.analyticsTags = new List<string> { "romance" };
+
+            var result = StimEventValidator.ValidateEvent(evt);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("under age 18")));
+        }
+
+        [Test]
+        public void ValidateEvent_RequiresConsentTagForIntimateMilestone()
+        {
+            var evt = CreateValidEvent();
+            evt.category = EventCategory.Relationship;
+            evt.analyticsTags = new List<string> { "romance", "first_kiss" };
+
+            var result = StimEventValidator.ValidateEvent(evt);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error => error.Contains("consent tag")));
+        }
+
+        [Test]
+        public void ValidateEvent_PassesAuthoredRelationshipSafetySet()
+        {
+            var events = new[]
+            {
+                RepresentativeStimEvents.CreatePromInvitation(),
+                RepresentativeStimEvents.CreateFirstKiss(),
+                RepresentativeStimEvents.CreateProposal(),
+                RepresentativeStimEvents.CreateWedding(),
+                RepresentativeStimEvents.CreateMarriageCrossroads()
+            };
+
+            foreach (var evt in events)
+            {
+                var result = StimEventValidator.ValidateEvent(evt);
+                Assert.IsTrue(result.isValid, StimEventValidator.GetValidationSummary(result, evt.id));
+            }
         }
 
         [Test]

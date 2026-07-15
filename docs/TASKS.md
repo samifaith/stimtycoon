@@ -41,28 +41,28 @@ This is the active queue after the user-verified 242-test EditMode baseline on J
 - [x] Add consent-aware family planning, pregnancy/adoption, childbirth, child records, parenting choices, and household consequences.
   - [x] Add mutual discussion/opt-out state, consent-gated pregnancy and adoption paths, persisted resolution timers, atomic adoption fees, duplicate-pending protection, child records/relationships, arrival consequences, and ongoing child expenses.
   - [x] Add age-appropriate parenting choices, shared-custody state after separation, annual child aging, independent adult-child transitions, bounded development, and dependent-expense retirement at age 18.
-- [ ] Preserve friendship thresholds, adult-only romantic rules, opt-outs, and authored exceptions.
-- [ ] Add editorial and automated safety checks for age, consent, family roles, identity, relationship eligibility, and sensitive-event exclusions.
-- [ ] Test household/child relationship history across reload, aging, separation, custody, death, and new-life boundaries.
+- [x] Preserve friendship thresholds, adult-only romantic rules, opt-outs, and authored exceptions.
+- [x] Add editorial and automated safety checks for age, consent, family roles, identity, relationship eligibility, and sensitive-event exclusions.
+- [x] Test household/child relationship history across reload, aging, separation, custody, death, and new-life boundaries.
 
 ### M11 — Careers and first complete business
 
-- [ ] Add multiple career industries with Education/skill gates, uncertain interviews, firing, unemployment, retraining, and distinct ladders.
-- [ ] Make Professional and other relevant skills affect visible career requirements and outcomes.
-- [ ] Build one complete business with work actions, action points, revenue, expenses, staffing, upgrades, locations, risks, valuation, failure, and sale.
-- [ ] Validate the economy before adding more industries, business types, property, or portfolio breadth.
-- [ ] Add deterministic multi-year career/business simulations covering startup, growth, payroll, debt, failure, sale, unemployment, and re-entry.
-- [ ] Define bounded business ledgers and migration fixtures before expanding business count.
+- [x] Add multiple career industries with Education/skill gates, uncertain interviews, firing, unemployment, retraining, and distinct ladders.
+- [x] Make Professional and other relevant skills affect visible career requirements and outcomes.
+- [x] Build one complete business with work actions, action points, revenue, expenses, staffing, upgrades, locations, risks, valuation, failure, and sale.
+- [x] Validate the economy before adding more industries, business types, property, or portfolio breadth.
+- [x] Add deterministic multi-year career/business simulations covering startup, growth, payroll, debt, failure, sale, unemployment, and re-entry.
+- [x] Define bounded business ledgers and migration fixtures before expanding business count.
 
 ### M12 — Goals, achievement rewards, and major transitions
 
-- [ ] Add Main, Daily, and Life goals with visible progress, direct navigation, and claimable non-premium rewards.
-- [ ] Add meaningful one-time achievement prizes such as cash, durable resources, unlocks, or cosmetic/status rewards.
-- [ ] Give graduation, marriage, parenthood, retirement, death, and new-life transitions focused presentations and persisted consequences.
-- [ ] Ensure every reward is once-only and never requires an advertisement as the baseline completion path.
-- [ ] Define launch-alpha content minimums by life stage and destination, including event-chain starts, follow-ups, endings, cooldowns, and anti-repetition coverage.
-- [ ] Run every new event through schema, risk/reward, editorial-tone, localization-key, eligibility, and unreachable-branch validation.
-- [ ] Add a lightweight first-life orientation that explains the Life Feed, time controls, locked requirements, and saving without trapping childhood in a long tutorial.
+- [x] Add Main, Daily, and Life goals with visible progress, direct navigation, and claimable non-premium rewards.
+- [x] Add meaningful one-time achievement prizes such as cash, durable resources, unlocks, or cosmetic/status rewards.
+- [x] Give graduation, marriage, parenthood, retirement, death, and new-life transitions focused presentations and persisted consequences.
+- [x] Ensure every reward is once-only and never requires an advertisement as the baseline completion path.
+- [x] Define launch-alpha content minimums by life stage and destination, including event-chain starts, follow-ups, endings, cooldowns, and anti-repetition coverage.
+- [x] Run every new event through schema, risk/reward, editorial-tone, localization-key, eligibility, and unreachable-branch validation.
+- [x] Add a lightweight first-life orientation that explains the Life Feed, time controls, locked requirements, and saving without trapping childhood in a long tutorial.
 
 ### M13 — Playable-alpha hardening and iOS gate
 

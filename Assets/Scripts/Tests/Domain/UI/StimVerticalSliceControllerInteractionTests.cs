@@ -79,6 +79,25 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void FirstLifeOrientation_UsesOneFocusedScreenAndPersistsContinue()
+        {
+            session.ActiveSave.state.character.age = 0;
+            session.ActiveSave.state.orientation = new StimOrientationState();
+
+            Invoke("PresentFirstLifeOrientation");
+
+            Assert.That(root.Q<Label>("event-category").text, Is.EqualTo("WELCOME TO STIM TYCOON"));
+            Assert.That(root.Q<Label>("event-body").text,
+                Does.Contain("Life Feed").And.Contain("Advance Month").And.Contain("Locked actions").And.Contain("autosaves"));
+            Assert.IsFalse(root.Q("event-sheet").ClassListContains("hidden"));
+
+            Invoke("CloseEventSheet");
+
+            Assert.That(session.ActiveSave.state.orientation.status, Is.EqualTo("completed"));
+            Assert.IsTrue(root.Q("event-sheet").ClassListContains("hidden"));
+        }
+
+        [Test]
         public void LifeFeed_GroupsEntriesByMonthWithNewestMonthFirst()
         {
             session.ActiveSave.state.lifeFeed.Clear();
@@ -145,6 +164,11 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(root.Q<Label>("result-text").text, Does.Contain("Advanced 12 months"));
             Assert.That(root.Q<Label>("result-effects").text,
                 Is.EqualTo("12 monthly transactions committed"));
+            Assert.That(root.Q("life-feed-list").Query<VisualElement>(className: "category-year").ToList(),
+                Has.Count.EqualTo(1));
+            Assert.That(root.Q("life-feed-list").Q<VisualElement>(className: "category-year")
+                .Q<Label>(className: "st-feed-text").text,
+                Does.Contain("Advanced 12 months").And.Contain("Twelve months completed"));
             Assert.IsFalse(root.Q("event-sheet").ClassListContains("hidden"));
         }
 

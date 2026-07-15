@@ -59,6 +59,7 @@ namespace StimTycoon.Saves
         public StimFinancesState finances = new StimFinancesState();
         public List<StimMoneyTransactionState> moneyTransactions = new List<StimMoneyTransactionState>();
         public StimCareerState career = new StimCareerState();
+        public StimBusinessState business = new StimBusinessState();
         public StimEducationState education = new StimEducationState();
         public StimHouseholdState household = new StimHouseholdState();
         public StimFamilyState family = new StimFamilyState();
@@ -67,6 +68,9 @@ namespace StimTycoon.Saves
         public List<StimRelationshipState> relationships = new List<StimRelationshipState>();
         public List<StimStatusState> statuses = new List<StimStatusState>();
         public List<StimAchievementState> achievements = new List<StimAchievementState>();
+        public List<StimGoalState> goals = new List<StimGoalState>();
+        public StimOrientationState orientation = new StimOrientationState();
+        public List<StimTransitionPresentationState> transitionPresentations = new List<StimTransitionPresentationState>();
         public List<StimLifeDecisionState> lifeDecisions = new List<StimLifeDecisionState>();
         public List<StimActionProgressState> actionProgress = new List<StimActionProgressState>();
         public List<StimLifeFeedEntry> lifeFeed = new List<StimLifeFeedEntry>();
@@ -233,10 +237,52 @@ namespace StimTycoon.Saves
     [Serializable]
     public class StimCareerState
     {
+        public string industryId;
+        public string pendingIndustryId;
+        public string employmentStatus = "unemployed";
+        public int monthsUnemployed;
+        public int performanceWarnings;
         public string employerId;
         public string roleTitle;
         public long annualSalaryMinorUnits;
         public int careerProgress;
+    }
+
+    [Serializable]
+    public class StimBusinessState
+    {
+        public string businessId;
+        public string businessType;
+        public string displayName;
+        public string status = "none";
+        public int level;
+        public int staffCount;
+        public int locationLevel;
+        public int actionPoints;
+        public int maxActionPoints;
+        public int riskEventsExperienced;
+        public int operatingProgress;
+        public int monthsOperating;
+        public int consecutiveLossMonths;
+        public long lastRevenueMinorUnits;
+        public long lastExpensesMinorUnits;
+        public long lastProfitMinorUnits;
+        public long lifetimeProfitMinorUnits;
+        public long valuationMinorUnits;
+        public List<StimBusinessLedgerEntry> ledger = new List<StimBusinessLedgerEntry>();
+    }
+
+    [Serializable]
+    public class StimBusinessLedgerEntry
+    {
+        public string entryId;
+        public string type;
+        public long amountMinorUnits;
+        public long valuationMinorUnits;
+        public int age;
+        public int monthOfYear;
+        public int revision;
+        public string timestampUtc;
     }
 
     [Serializable]
@@ -313,6 +359,27 @@ namespace StimTycoon.Saves
         public int unlockedAtAge;
         public int revision;
         public string timestampUtc;
+        public bool rewardClaimed;
+        public int rewardClaimedRevision;
+        public string rewardClaimedAtUtc;
+    }
+
+    [Serializable]
+    public class StimGoalState
+    {
+        public string goalId;
+        public string category;
+        public string title;
+        public string description;
+        public string destination;
+        public int progress;
+        public int progressRequired = 1;
+        public long rewardMinorUnits;
+        public string status = "active";
+        public int createdAtAge;
+        public int createdAtMonth;
+        public int claimedRevision;
+        public string claimedAtUtc;
     }
 
     [Serializable]
@@ -353,6 +420,30 @@ namespace StimTycoon.Saves
         public int monthOfYear;
         public int revision;
         public string timestampUtc;
+    }
+
+    [Serializable]
+    public class StimTransitionPresentationState
+    {
+        public string transitionId;
+        public string transitionType;
+        public string title;
+        public string summary;
+        public int age;
+        public int monthOfYear;
+        public int revision;
+        public string createdAtUtc;
+        public bool acknowledged;
+        public int acknowledgedRevision;
+        public string acknowledgedAtUtc;
+    }
+
+    [Serializable]
+    public class StimOrientationState
+    {
+        public string status = "not_started";
+        public int completedRevision;
+        public string completedAtUtc;
     }
 
     [Serializable]
@@ -478,13 +569,18 @@ namespace StimTycoon.Saves
             ValidateFinancesState(result, save.state.finances);
             ValidateMoneyTransactions(result, save.state.moneyTransactions);
             ValidateCareerState(result, save.state.career);
+            ValidateBusinessState(result, save.state.business);
+            ValidateOrientation(result, save.state.orientation);
+            ValidateTransitionPresentations(result, save.state.transitionPresentations);
             ValidateHouseholdState(result, save.state.household);
             ValidateFamilyState(result, save.state.family);
             ValidateHomeState(result, save.state.home);
             ValidateSkills(result, save.state.skills);
             ValidateRelationships(result, save.state.relationships);
+            ValidateFamilyRelationshipConsistency(result, save.state.family, save.state.relationships);
             ValidateStatuses(result, save.state.statuses);
             ValidateAchievements(result, save.state.achievements);
+            ValidateGoals(result, save.state.goals);
             ValidateLifeDecisions(result, save.state.lifeDecisions);
             ValidateActionProgress(result, save.state.actionProgress);
             ValidateEventHistory(result, save.state.eventHistory);
@@ -699,6 +795,24 @@ namespace StimTycoon.Saves
                 result.isValid = false;
                 result.errors.Add("state.family pending path and resolution timing are inconsistent");
             }
+            if (!string.IsNullOrEmpty(family.pendingPath) &&
+                family.pendingPath != "pregnancy" && family.pendingPath != "adoption")
+            {
+                result.isValid = false;
+                result.errors.Add("state.family.pendingPath must be pregnancy or adoption");
+            }
+            if (family.planningPreference != "undiscussed" && family.planningPreference != "open" &&
+                family.planningPreference != "not_now")
+            {
+                result.isValid = false;
+                result.errors.Add("state.family.planningPreference is invalid");
+            }
+            if (family.partnerConsent &&
+                (family.planningPreference != "open" || string.IsNullOrWhiteSpace(family.planningPartnerId)))
+            {
+                result.isValid = false;
+                result.errors.Add("state.family partner consent requires an open preference and planning partner");
+            }
             if (family.children == null || family.children.Count > 12)
             {
                 result.isValid = false;
@@ -715,10 +829,36 @@ namespace StimTycoon.Saves
                     string.IsNullOrWhiteSpace(child.parentRelationshipId) || child.joinedAtParentAge < 18 ||
                     child.birthMonth < 1 || child.birthMonth > 12 || child.age < 0 ||
                     child.wellbeing < 0 || child.wellbeing > 100 || child.learning < 0 || child.learning > 100 ||
-                    child.independence < 0 || child.independence > 100 || string.IsNullOrWhiteSpace(child.custodyStatus))
+                    child.independence < 0 || child.independence > 100 ||
+                    (child.custodyStatus != "household" && child.custodyStatus != "shared" &&
+                     child.custodyStatus != "independent") ||
+                    (child.age < 18 && child.custodyStatus == "independent") ||
+                    (child.age >= 18 && child.custodyStatus != "independent"))
                 {
                     result.isValid = false;
                     result.errors.Add($"state.family.children[{index}] is invalid");
+                }
+            }
+        }
+
+        private static void ValidateFamilyRelationshipConsistency(
+            StimSaveValidationResult result,
+            StimFamilyState family,
+            List<StimRelationshipState> relationships)
+        {
+            if (family?.children == null || relationships == null) return;
+            foreach (var child in family.children)
+            {
+                if (child == null || string.IsNullOrWhiteSpace(child.childId)) continue;
+                var relationship = relationships.Find(candidate =>
+                    candidate != null && candidate.relationshipId == child.childId);
+                var expectedType = child.age >= 18 ? "adult_child" : "child";
+                var expectedStage = child.age >= 18 ? "adult_child" : "dependent_child";
+                if (relationship == null || relationship.relationshipType != expectedType ||
+                    relationship.relationshipStage != expectedStage)
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.family child {child.childId} requires a matching {expectedType} relationship");
                 }
             }
         }
@@ -840,6 +980,157 @@ namespace StimTycoon.Saves
                 result.isValid = false;
                 result.errors.Add("state.career.careerProgress must be within [0, 100]");
             }
+            if (!string.IsNullOrEmpty(career.industryId) && career.industryId != "finance" &&
+                career.industryId != "healthcare" && career.industryId != "skilled_trades")
+            {
+                result.isValid = false;
+                result.errors.Add("state.career.industryId is invalid");
+            }
+            if (!string.IsNullOrEmpty(career.pendingIndustryId) && career.pendingIndustryId != "finance" &&
+                career.pendingIndustryId != "healthcare" && career.pendingIndustryId != "skilled_trades")
+            {
+                result.isValid = false;
+                result.errors.Add("state.career.pendingIndustryId is invalid");
+            }
+            if (career.employmentStatus != "unemployed" && career.employmentStatus != "employed" &&
+                career.employmentStatus != "retired")
+            {
+                result.isValid = false;
+                result.errors.Add("state.career.employmentStatus is invalid");
+            }
+            if (career.monthsUnemployed < 0 || career.performanceWarnings < 0 || career.performanceWarnings > 3)
+            {
+                result.isValid = false;
+                result.errors.Add("state.career unemployment or warning counters are invalid");
+            }
+        }
+
+        private static void ValidateBusinessState(StimSaveValidationResult result, StimBusinessState business)
+        {
+            if (business == null)
+            {
+                result.isValid = false;
+                result.errors.Add("state.business is null");
+                return;
+            }
+            if (business.status != "none" && business.status != "operating" &&
+                business.status != "sold" && business.status != "failed")
+            {
+                result.isValid = false;
+                result.errors.Add("state.business.status is invalid");
+            }
+            if (business.level < 0 || business.level > 3 || business.operatingProgress < 0 ||
+                business.operatingProgress > 100 || business.monthsOperating < 0 ||
+                business.consecutiveLossMonths < 0 || business.consecutiveLossMonths > 3 ||
+                business.staffCount < 0 || business.staffCount > 6 ||
+                business.locationLevel < 0 || business.locationLevel > 3 ||
+                business.actionPoints < 0 || business.maxActionPoints < 0 ||
+                business.actionPoints > business.maxActionPoints || business.maxActionPoints > 9 ||
+                business.riskEventsExperienced < 0 ||
+                business.lastRevenueMinorUnits < 0 || business.lastExpensesMinorUnits < 0 ||
+                business.valuationMinorUnits < 0)
+            {
+                result.isValid = false;
+                result.errors.Add("state.business operating values are invalid");
+            }
+            if (business.status == "operating" &&
+                (string.IsNullOrWhiteSpace(business.businessId) || business.businessType != "local_services" ||
+                 string.IsNullOrWhiteSpace(business.displayName) || business.level < 1 ||
+                 business.locationLevel < 1 || business.maxActionPoints < 3))
+            {
+                result.isValid = false;
+                result.errors.Add("operating business identity is invalid");
+            }
+            if (business.ledger == null || business.ledger.Count > 60)
+            {
+                result.isValid = false;
+                result.errors.Add("state.business.ledger must contain at most 60 entries");
+                return;
+            }
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            for (var index = 0; index < business.ledger.Count; index++)
+            {
+                var entry = business.ledger[index];
+                if (entry == null || string.IsNullOrWhiteSpace(entry.entryId) || !ids.Add(entry.entryId) ||
+                    string.IsNullOrWhiteSpace(entry.type) || entry.valuationMinorUnits < 0 || entry.age < 0 ||
+                    entry.monthOfYear < 1 || entry.monthOfYear > 12 || entry.revision < 1 ||
+                    !TryParseUtcTimestamp(entry.timestampUtc, out _))
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.business.ledger[{index}] is invalid");
+                }
+            }
+        }
+
+        private static void ValidateGoals(StimSaveValidationResult result, List<StimGoalState> goals)
+        {
+            if (goals == null || goals.Count > 20)
+            {
+                result.isValid = false;
+                result.errors.Add("state.goals must contain at most 20 entries");
+                return;
+            }
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            for (var index = 0; index < goals.Count; index++)
+            {
+                var goal = goals[index];
+                if (goal == null || string.IsNullOrWhiteSpace(goal.goalId) || !ids.Add(goal.goalId) ||
+                    (goal.category != "main" && goal.category != "daily" && goal.category != "life") ||
+                    string.IsNullOrWhiteSpace(goal.title) || string.IsNullOrWhiteSpace(goal.description) ||
+                    string.IsNullOrWhiteSpace(goal.destination) || goal.progress < 0 ||
+                    goal.progressRequired < 1 || goal.progress > goal.progressRequired ||
+                    goal.rewardMinorUnits < 0 ||
+                    (goal.status != "active" && goal.status != "claimable" &&
+                     goal.status != "claimed" && goal.status != "expired") ||
+                    goal.createdAtAge < 0 || goal.createdAtMonth < 1 || goal.createdAtMonth > 12 ||
+                    (goal.status == "claimed" &&
+                     (goal.claimedRevision < 1 || !TryParseUtcTimestamp(goal.claimedAtUtc, out _))))
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.goals[{index}] is invalid");
+                }
+            }
+        }
+
+        private static void ValidateTransitionPresentations(
+            StimSaveValidationResult result, List<StimTransitionPresentationState> transitions)
+        {
+            if (transitions == null || transitions.Count > 20)
+            {
+                result.isValid = false;
+                result.errors.Add("state.transitionPresentations must contain at most 20 entries");
+                return;
+            }
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            for (var index = 0; index < transitions.Count; index++)
+            {
+                var item = transitions[index];
+                if (item == null || string.IsNullOrWhiteSpace(item.transitionId) ||
+                    !ids.Add(item.transitionId) || string.IsNullOrWhiteSpace(item.transitionType) ||
+                    string.IsNullOrWhiteSpace(item.title) || string.IsNullOrWhiteSpace(item.summary) ||
+                    item.age < 0 || item.monthOfYear < 1 || item.monthOfYear > 12 || item.revision < 1 ||
+                    !TryParseUtcTimestamp(item.createdAtUtc, out _) ||
+                    (item.acknowledged && (item.acknowledgedRevision < 1 ||
+                     !TryParseUtcTimestamp(item.acknowledgedAtUtc, out _))))
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.transitionPresentations[{index}] is invalid");
+                }
+            }
+        }
+
+        private static void ValidateOrientation(
+            StimSaveValidationResult result, StimOrientationState orientation)
+        {
+            if (orientation == null ||
+                (orientation.status != "not_started" && orientation.status != "completed") ||
+                (orientation.status == "completed" &&
+                 (orientation.completedRevision < 1 ||
+                  !TryParseUtcTimestamp(orientation.completedAtUtc, out _))))
+            {
+                result.isValid = false;
+                result.errors.Add("state.orientation is invalid");
+            }
         }
 
         private static void ValidateSkills(StimSaveValidationResult result, List<StimSkillState> skills)
@@ -874,6 +1165,15 @@ namespace StimTycoon.Saves
             {
                 var relationship = relationships[relationshipIndex];
                 if (relationship == null) continue;
+                if (relationship.origin == "compatible_discovery" &&
+                    (relationship.introducedAtAge < 18 || string.IsNullOrWhiteSpace(relationship.identityId) ||
+                     string.IsNullOrWhiteSpace(relationship.pronouns) ||
+                     string.IsNullOrWhiteSpace(relationship.genderIdentity) ||
+                     relationship.orientation != "compatible_with_player"))
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.relationships[{relationshipIndex}] compatible identity is invalid");
+                }
                 if (relationship.relationshipHistory == null || relationship.relationshipHistory.Count > 50)
                 {
                     result.isValid = false;
@@ -917,8 +1217,11 @@ namespace StimTycoon.Saves
                 achievements,
                 "state.achievements",
                 achievement => achievement?.achievementId,
-                achievement => achievement == null || achievement.unlockedAtAge >= 0 && achievement.revision >= 1,
-                "unlock age must be non-negative and revision must be positive");
+                achievement => achievement == null || achievement.unlockedAtAge >= 0 &&
+                               achievement.revision >= 1 &&
+                               (!achievement.rewardClaimed || achievement.rewardClaimedRevision >= 1 &&
+                                TryParseUtcTimestamp(achievement.rewardClaimedAtUtc, out _)),
+                "unlock age/revision and reward claim metadata must be valid");
         }
 
         private static void ValidateLifeDecisions(

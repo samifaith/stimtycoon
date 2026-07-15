@@ -178,6 +178,36 @@ namespace StimTycoon.Saves
                 save.state.career = new StimCareerState();
                 Record(report, "state.career created");
             }
+            if (save.state.business == null || !serializedSave.Contains("\"business\""))
+            {
+                save.state.business = new StimBusinessState();
+                Record(report, "state.business created");
+            }
+            else if (!serializedSave.Contains("\"actionPoints\""))
+            {
+                save.state.business.locationLevel = save.state.business.status == "operating" ? 1 : 0;
+                save.state.business.maxActionPoints = save.state.business.status == "operating" ? 3 : 0;
+                save.state.business.actionPoints = save.state.business.maxActionPoints;
+                save.state.business.staffCount = 0;
+                save.state.business.riskEventsExperienced = 0;
+                Record(report, "state.business staffing, location, and action points created");
+            }
+            if (save.state.career != null && !serializedSave.Contains("\"industryId\"") &&
+                !string.IsNullOrEmpty(save.state.career.roleTitle) &&
+                save.state.career.roleTitle != "Retired")
+            {
+                save.state.career.industryId = "finance";
+                Record(report, "state.career.industryId=finance");
+            }
+            if (save.state.career != null && !serializedSave.Contains("\"employmentStatus\""))
+            {
+                save.state.career.employmentStatus = save.state.career.roleTitle == "Retired"
+                    ? "retired"
+                    : string.IsNullOrEmpty(save.state.career.roleTitle) ? "unemployed" : "employed";
+                save.state.career.monthsUnemployed = 0;
+                save.state.career.performanceWarnings = 0;
+                Record(report, $"state.career.employmentStatus={save.state.career.employmentStatus}");
+            }
             if (save.state.education == null)
             {
                 save.state.education = new StimEducationState();
@@ -242,6 +272,38 @@ namespace StimTycoon.Saves
             {
                 save.state.achievements = new List<StimAchievementState>();
                 Record(report, "state.achievements created");
+            }
+            else if (save.state.achievements.Count > 0 && !serializedSave.Contains("\"rewardClaimed\""))
+            {
+                foreach (var achievement in save.state.achievements)
+                {
+                    if (achievement == null) continue;
+                    achievement.rewardClaimed = false;
+                    achievement.rewardClaimedRevision = 0;
+                    achievement.rewardClaimedAtUtc = string.Empty;
+                }
+                Record(report, "state.achievements reward claims created");
+            }
+            if (save.state.goals == null || !serializedSave.Contains("\"goals\""))
+            {
+                save.state.goals = new List<StimGoalState>();
+                Record(report, "state.goals created");
+            }
+            if (save.state.orientation == null || !serializedSave.Contains("\"orientation\""))
+            {
+                save.state.orientation = new StimOrientationState
+                {
+                    status = "completed",
+                    completedRevision = Math.Max(1, save.revision),
+                    completedAtUtc = save.updatedAtUtc
+                };
+                Record(report, "state.orientation completed for established life");
+            }
+            if (save.state.transitionPresentations == null ||
+                !serializedSave.Contains("\"transitionPresentations\""))
+            {
+                save.state.transitionPresentations = new List<StimTransitionPresentationState>();
+                Record(report, "state.transitionPresentations created");
             }
             if (save.state.lifeDecisions == null || !serializedSave.Contains("\"lifeDecisions\""))
             {

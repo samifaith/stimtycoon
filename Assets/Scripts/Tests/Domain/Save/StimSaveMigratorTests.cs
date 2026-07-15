@@ -18,6 +18,7 @@ namespace StimTycoon.Tests.Domain.Save
             save.state.statuses = null;
             save.state.achievements = null;
             var json = JsonUtility.ToJson(save)
+                .Replace("\"orientation\":{\"status\":\"not_started\",\"completedRevision\":0,\"completedAtUtc\":\"\"},", string.Empty)
                 .Replace("\"family\":{\"planningPreference\":\"undiscussed\",\"planningPartnerId\":\"\",\"partnerConsent\":false,\"pendingPath\":\"\",\"monthsUntilResolution\":0,\"children\":[]},", string.Empty)
                 .Replace("\"home\":{\"homeId\":\"starter_home\",\"condition\":80,\"upgradeLevel\":0,\"improvementProgress\":0,\"readingMaterialStock\":3,\"readingMaterialCapacity\":3,\"trainingEquipmentCondition\":100},", string.Empty)
                 .Replace("\"moneyTransactions\":[],", string.Empty)
@@ -55,6 +56,11 @@ namespace StimTycoon.Tests.Domain.Save
             Assert.That(result.state.home.trainingEquipmentCondition, Is.EqualTo(100));
             Assert.That(result.state.family, Is.Not.Null);
             Assert.That(result.state.family.children, Is.Not.Null.And.Empty);
+            Assert.That(result.state.business, Is.Not.Null);
+            Assert.That(result.state.business.status, Is.EqualTo("none"));
+            Assert.That(result.state.goals, Is.Not.Null.And.Empty);
+            Assert.That(result.state.orientation.status, Is.EqualTo("completed"));
+            Assert.That(result.state.orientation.completedRevision, Is.GreaterThan(0));
             Assert.That(result.integrity.payloadHash, Is.Empty);
         }
 
@@ -73,6 +79,57 @@ namespace StimTycoon.Tests.Domain.Save
             Assert.IsTrue(firstReport.changed);
             Assert.IsFalse(secondReport.changed);
             Assert.That(secondReport.changes, Is.Empty);
+        }
+
+        [Test]
+        public void Migrate_InfersFinanceIndustryForLegacyEmployedCareer()
+        {
+            var save = CreateValidSave();
+            save.state.career = new StimCareerState
+            {
+                employerId = "stim_financial_group",
+                roleTitle = "Associate",
+                annualSalaryMinorUnits = 5500000,
+                careerProgress = 20
+            };
+            var legacyJson = JsonUtility.ToJson(save)
+                .Replace("\"industryId\":\"\",", string.Empty)
+                .Replace("\"pendingIndustryId\":\"\",", string.Empty)
+                .Replace("\"employmentStatus\":\"unemployed\",", string.Empty)
+                .Replace("\"monthsUnemployed\":0,", string.Empty)
+                .Replace("\"performanceWarnings\":0,", string.Empty);
+
+            Assert.IsTrue(StimSaveMigrator.TryMigrate(
+                legacyJson, out var migrated, out var report, out var error), error);
+
+            Assert.That(migrated.state.career.industryId, Is.EqualTo("finance"));
+            Assert.That(migrated.state.career.employmentStatus, Is.EqualTo("employed"));
+            Assert.That(report.changes, Has.Some.Matches<string>(change =>
+                change.Contains("state.career.industryId=finance")));
+            Assert.IsTrue(StimSaveMigrator.TryMigrate(
+                JsonUtility.ToJson(migrated), out _, out var repeated, out error), error);
+            Assert.IsFalse(repeated.changed);
+        }
+
+        [Test]
+        public void Migrate_AddsUnclaimedRewardAuditFieldsToLegacyAchievements()
+        {
+            var save = CreateValidSave();
+            save.state.achievements.Add(new StimAchievementState
+            {
+                achievementId = "first_job", unlockedAtAge = 18, revision = 1,
+                timestampUtc = "2026-07-13T12:00:00Z"
+            });
+            var legacyJson = JsonUtility.ToJson(save).Replace(
+                ",\"rewardClaimed\":false,\"rewardClaimedRevision\":0,\"rewardClaimedAtUtc\":\"\"",
+                string.Empty);
+
+            Assert.IsTrue(StimSaveMigrator.TryMigrate(
+                legacyJson, out var migrated, out var report, out var error), error);
+
+            Assert.That(migrated.state.achievements[0].rewardClaimed, Is.False);
+            Assert.That(report.changes, Has.Some.Matches<string>(change =>
+                change.Contains("reward claims created")));
         }
 
         [Test]

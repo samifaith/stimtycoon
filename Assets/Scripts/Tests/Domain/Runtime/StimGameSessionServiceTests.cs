@@ -329,8 +329,11 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(nextEvent, Is.Null);
             Assert.That(service.ActiveSave.state.character.age, Is.EqualTo(25));
             Assert.That(service.ActiveSave.state.calendar.monthOfYear, Is.EqualTo(1));
-            Assert.That(repository.CommitCount, Is.EqualTo(12));
+            Assert.That(repository.CommitCount, Is.EqualTo(13));
             Assert.That(summary, Does.Contain("Advanced 12 months").And.Contain("Twelve months completed"));
+            Assert.That(service.ActiveSave.state.lifeFeed[^1].category, Is.EqualTo("year"));
+            Assert.That(service.ActiveSave.state.lifeFeed[^1].text,
+                Does.Contain("Advanced 12 months").And.Contain("Age +1").And.Contain("Twelve months completed"));
         }
 
         [Test]
@@ -351,6 +354,9 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(service.ActiveSave.state.pendingEventId,
                 Is.EqualTo(RepresentativeStimEvents.SalaryNegotiationId));
             Assert.That(summary, Does.Contain("Stopped for The annual review"));
+            Assert.That(service.ActiveSave.state.lifeFeed[^1].category, Is.EqualTo("year"));
+            Assert.That(service.ActiveSave.state.lifeFeed[^1].text,
+                Does.Contain("Advanced 1 month").And.Contain("Stopped for The annual review"));
         }
 
         [Test]
@@ -1069,6 +1075,7 @@ namespace StimTycoon.Tests.Domain.Runtime
                 relationship.relationshipId == child.childId && relationship.relationshipType == "child"), Is.True);
             Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
                 entry.category == "family" && entry.text.Contains("childbirth")), Is.True);
+            Assert.That(service.GetPendingTransition()?.transitionType, Is.EqualTo("parenthood"));
             Assert.IsTrue(StimSaveValidator.ValidateSave(
                 JsonUtility.FromJson<StimSaveEnvelope>(repository.LastCommittedSave)).isValid);
         }
@@ -1150,6 +1157,27 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void AdultChildRole_IsProtectedFromFriendshipAndRomanceStageConversion()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            AddTestChild(save, "adult_child_1", 18, "partner_1");
+            save.state.relationships.Find(item => item.relationshipId == "adult_child_1").value = 90;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "adult_child_1", StimRelationshipInteractionType.Talk, out var summary), summary);
+            var relationship = service.ActiveSave.state.relationships.Find(item =>
+                item.relationshipId == "adult_child_1");
+            Assert.That(relationship.relationshipType, Is.EqualTo("adult_child"));
+            Assert.That(relationship.relationshipStage, Is.EqualTo("adult_child"));
+            Assert.IsFalse(service.TryPerformRelationshipInteraction(
+                "adult_child_1", StimRelationshipInteractionType.AskOnDate, out var dating));
+            Assert.That(dating, Does.Contain("friendship"));
+        }
+
+        [Test]
         public void PartnerSeparation_AssignsSharedCustodyWithoutDeletingChildHistory()
         {
             var service = new StimGameSessionService(
@@ -1167,6 +1195,73 @@ namespace StimTycoon.Tests.Domain.Runtime
                 "partner_1", StimRelationshipInteractionType.Separate, out var summary), summary);
             Assert.That(service.ActiveSave.state.family.children[0].custodyStatus, Is.EqualTo("shared"));
             Assert.That(service.ActiveSave.state.relationships.Exists(item => item.relationshipId == "child_1"), Is.True);
+        }
+
+        [Test]
+        public void SharedCustodyAndChildHistory_SurviveReloadAndRemainPlayable()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "partner_1", displayName = "Alex", relationshipType = "partner",
+                relationshipStage = "partnered", value = 80, warmth = 70
+            });
+            AddTestChild(save, "child_1", 9, "partner_1");
+            service.Start(save);
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "partner_1", StimRelationshipInteractionType.Separate, out var separation), separation);
+
+            var reloaded = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            reloaded.Start(JsonUtility.FromJson<StimSaveEnvelope>(repository.LastCommittedSave));
+            Assert.That(reloaded.ActiveSave.state.family.children[0].custodyStatus, Is.EqualTo("shared"));
+            var before = reloaded.ActiveSave.state.relationships.Find(item => item.relationshipId == "child_1")
+                .relationshipHistory.Count;
+            Assert.IsTrue(reloaded.TryPerformParentingAction(
+                "child_1", StimParentingAction.QualityTime, out var parenting), parenting);
+            Assert.That(reloaded.ActiveSave.state.relationships.Find(item => item.relationshipId == "child_1")
+                .relationshipHistory, Has.Count.EqualTo(before + 1));
+        }
+
+        [Test]
+        public void EndedLife_BlocksParentingWithoutChangingChildOrHistory()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            AddTestChild(save, "child_1", 7, "partner_1");
+            save.state.character.lifeStatus = "deceased";
+            save.state.character.endingReason = "death";
+            save.state.character.endedAtAge = save.state.character.age;
+            service.Start(save);
+            var historyCount = service.ActiveSave.state.relationships.Find(item =>
+                item.relationshipId == "child_1").relationshipHistory.Count;
+
+            Assert.IsFalse(service.TryPerformParentingAction(
+                "child_1", StimParentingAction.QualityTime, out var summary));
+            Assert.That(summary, Does.Contain("current life state"));
+            Assert.That(service.ActiveSave.state.family.children[0].wellbeing, Is.EqualTo(60));
+            Assert.That(service.ActiveSave.state.relationships.Find(item => item.relationshipId == "child_1")
+                .relationshipHistory, Has.Count.EqualTo(historyCount));
+        }
+
+        [Test]
+        public void StartNewLife_DoesNotCarryFamilyOrChildRelationshipsAcrossLifeBoundary()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var oldLife = CreateValidSave();
+            AddTestChild(oldLife, "child_old_life", 12, "partner_1");
+            service.Start(oldLife);
+            var newLife = StimNewLifeFactory.Create(
+                new StimNewLifeRequest(), "0.1.0", new System.DateTime(2026, 7, 14, 12, 0, 0, System.DateTimeKind.Utc), 404);
+
+            Assert.IsTrue(service.TryStartNewLife(newLife, out var summary), summary);
+            Assert.That(service.ActiveSave.lifeId, Is.EqualTo(newLife.lifeId));
+            Assert.That(service.ActiveSave.state.family.children, Is.Empty);
+            Assert.That(service.ActiveSave.state.relationships.Exists(item =>
+                item.relationshipId == "child_old_life"), Is.False);
         }
 
         [Test]
@@ -1321,6 +1416,7 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(107334));
             Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
                 entry.category == "event" && entry.text.Contains("Got married")), Is.True);
+            Assert.That(service.GetPendingTransition()?.transitionType, Is.EqualTo("marriage"));
             Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
                 entry.category == "money" && entry.text.Contains("Financial impact")), Is.True);
         }
@@ -2051,6 +2147,509 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void CareerIndustries_ExposeDistinctStableLaddersAndRequirements()
+        {
+            var industries = StimCareerCatalog.GetIndustries();
+
+            Assert.That(industries, Has.Count.EqualTo(3));
+            Assert.That(industries.Select(industry => industry.industryId), Is.EquivalentTo(new[]
+            {
+                StimCareerCatalog.FinanceIndustryId,
+                StimCareerCatalog.HealthcareIndustryId,
+                StimCareerCatalog.SkilledTradesIndustryId
+            }));
+            Assert.That(industries.All(industry => industry.roles.Count == 4), Is.True);
+            Assert.That(industries.Select(industry => industry.roles[0].title).Distinct().Count(), Is.EqualTo(3));
+        }
+
+        [Test]
+        public void HealthcareApplication_RequiresAcademicQualificationAndLearningThenPersistsIndustry()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.career = new StimCareerState();
+            save.state.education = new StimEducationState
+            {
+                stage = "completed_secondary", studyTrack = "academic", qualificationExperience = 124
+            };
+            save.state.skills.Add(new StimSkillState { skillId = "learning", experience = 50 });
+            service.Start(save);
+
+            Assert.IsFalse(service.TryApplyForCareer(
+                StimCareerCatalog.HealthcareIndustryId, out var locked));
+            Assert.That(locked, Does.Contain("125 qualification XP"));
+            service.ActiveSave.state.education.qualificationExperience = 125;
+            Assert.IsTrue(service.TryApplyForCareer(
+                StimCareerCatalog.HealthcareIndustryId, out var applied), applied);
+            Assert.That(service.ActiveSave.state.career.pendingIndustryId,
+                Is.EqualTo(StimCareerCatalog.HealthcareIndustryId));
+            AdvanceAndAssert(service);
+            Assert.IsTrue(service.TryPerformCareerAction(
+                StimCareerActionType.Interview, out var interview), interview);
+            Assert.That(service.ActiveSave.state.career.industryId,
+                Is.EqualTo(StimCareerCatalog.HealthcareIndustryId));
+            Assert.That(service.ActiveSave.state.career.roleTitle, Is.EqualTo("Care Assistant"));
+            Assert.That(service.ActiveSave.state.career.employerId, Is.EqualTo("harbor_health_network"));
+            Assert.That(JsonUtility.FromJson<StimSaveEnvelope>(repository.LastCommittedSave)
+                .state.career.industryId, Is.EqualTo(StimCareerCatalog.HealthcareIndustryId));
+        }
+
+        [Test]
+        public void SkilledTradesPromotion_UsesIndustrySpecificThresholdAndRole()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.career = new StimCareerState
+            {
+                industryId = StimCareerCatalog.SkilledTradesIndustryId,
+                employerId = "community_build_works",
+                roleTitle = "Apprentice Technician",
+                annualSalaryMinorUnits = 3600000,
+                careerProgress = 20
+            };
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformCareerAction(
+                StimCareerActionType.AskForPromotion, out var summary), summary);
+            Assert.That(service.ActiveSave.state.career.roleTitle, Is.EqualTo("Technician"));
+            Assert.That(service.ActiveSave.state.career.annualSalaryMinorUnits, Is.EqualTo(5200000));
+            Assert.That(service.ActiveSave.state.career.careerProgress, Is.Zero);
+        }
+
+        [Test]
+        public void InterviewRejection_IsDeterministicAndUnlocksTransactionalRetraining()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.rng.seed = 2;
+            save.state.career = new StimCareerState();
+            service.Start(save);
+
+            Assert.IsTrue(service.TryApplyForCareer(
+                StimCareerCatalog.FinanceIndustryId, out var application), application);
+            AdvanceAndAssert(service);
+            Assert.IsTrue(service.TryPerformCareerAction(
+                StimCareerActionType.Interview, out var interview), interview);
+            Assert.That(interview, Does.Contain("Not selected this time"));
+            Assert.That(service.ActiveSave.state.career.employmentStatus, Is.EqualTo("unemployed"));
+            Assert.That(string.IsNullOrEmpty(service.ActiveSave.state.career.roleTitle), Is.True);
+            Assert.That(service.ActiveSave.state.career.pendingIndustryId, Is.Empty);
+
+            AdvanceAndAssert(service);
+            var previousRevision = service.ActiveSave.revision;
+            Assert.IsTrue(service.TryPerformCareerAction(
+                StimCareerActionType.Retrain, out var retraining), retraining);
+            Assert.That(service.ActiveSave.state.skills.Find(skill => skill.skillId == "professional")
+                .experience, Is.EqualTo(15));
+            Assert.That(service.ActiveSave.revision, Is.EqualTo(previousRevision + 1));
+            Assert.That(service.ActiveSave.state.lifeFeed[^1].text, Does.Contain("Professional XP +15"));
+            Assert.That(JsonUtility.FromJson<StimSaveEnvelope>(repository.LastCommittedSave)
+                .state.skills.Find(skill => skill.skillId == "professional").experience, Is.EqualTo(15));
+        }
+
+        [Test]
+        public void InterviewChance_IsBoundedAndImprovesWithSmartsSkillsAndQualificationSurplus()
+        {
+            Assert.IsTrue(StimCareerCatalog.TryGetIndustry(
+                StimCareerCatalog.HealthcareIndustryId, out var industry));
+            var baseline = CreateValidSave().state;
+            baseline.education.studyTrack = "academic";
+            baseline.education.qualificationExperience = 125;
+            baseline.character.smarts = 40;
+            var developed = CreateValidSave().state;
+            developed.education.studyTrack = "academic";
+            developed.education.qualificationExperience = 225;
+            developed.character.smarts = 90;
+            developed.skills.Add(new StimSkillState { skillId = "professional", experience = 150 });
+
+            var baselineChance = StimGameSessionService.CalculateInterviewSuccessChance(baseline, industry);
+            var developedChance = StimGameSessionService.CalculateInterviewSuccessChance(developed, industry);
+
+            Assert.That(baselineChance, Is.InRange(0f, 0.90f));
+            Assert.That(developedChance, Is.InRange(0f, 0.90f));
+            Assert.That(developedChance, Is.GreaterThan(baselineChance));
+        }
+
+        [Test]
+        public void Retraining_IsUnavailableWhileEmployed()
+        {
+            var state = CreateValidSave().state;
+
+            Assert.IsFalse(StimGameSessionService.TryGetCareerActionRequirement(
+                state, StimCareerActionType.Retrain, out var requirement));
+            Assert.That(requirement, Does.Contain("while unemployed"));
+        }
+
+        [Test]
+        public void RepeatedLowPerformanceWarning_CanCauseDeterministicFiringAndUnemployment()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.rng.seed = 1;
+            save.state.calendar.monthOfYear = 12;
+            save.state.career = new StimCareerState
+            {
+                industryId = StimCareerCatalog.FinanceIndustryId,
+                employerId = "stim_financial_group",
+                roleTitle = "Junior Associate",
+                annualSalaryMinorUnits = 4000000,
+                careerProgress = 0,
+                employmentStatus = "employed",
+                performanceWarnings = 1
+            };
+            service.Start(save);
+
+            AdvanceAndAssert(service);
+
+            Assert.That(service.ActiveSave.state.career.employmentStatus, Is.EqualTo("unemployed"));
+            Assert.That(string.IsNullOrEmpty(service.ActiveSave.state.career.roleTitle), Is.True);
+            Assert.That(service.ActiveSave.state.career.annualSalaryMinorUnits, Is.Zero);
+            Assert.That(service.ActiveSave.state.character.happiness, Is.EqualTo(66));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "career" && entry.text.Contains("dismissed")), Is.True);
+        }
+
+        [Test]
+        public void LocalServicesBusiness_StartUpgradeAndSaleAreTransactional()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.finances.cashMinorUnits = 1000000;
+            save.state.skills.Add(new StimSkillState { skillId = "professional", experience = 50 });
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformBusinessAction(StimBusinessActionType.Start, out var started), started);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(900000));
+            AdvanceAndAssert(service);
+            Assert.IsTrue(service.TryPerformBusinessAction(StimBusinessActionType.Work, out var worked), worked);
+            Assert.That(service.ActiveSave.state.business.operatingProgress, Is.EqualTo(20));
+            AdvanceAndAssert(service);
+            service.ActiveSave.state.business.operatingProgress = 25;
+            Assert.IsTrue(service.TryPerformBusinessAction(StimBusinessActionType.Upgrade, out var upgraded), upgraded);
+            Assert.That(service.ActiveSave.state.business.level, Is.EqualTo(2));
+            AdvanceAndAssert(service);
+            var cashBeforeSale = service.ActiveSave.state.finances.cashMinorUnits;
+            Assert.IsTrue(service.TryPerformBusinessAction(StimBusinessActionType.Sell, out var sold), sold);
+            Assert.That(service.ActiveSave.state.business.status, Is.EqualTo("sold"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits,
+                Is.EqualTo(cashBeforeSale + service.ActiveSave.state.business.valuationMinorUnits));
+            Assert.That(JsonUtility.FromJson<StimSaveEnvelope>(repository.LastCommittedSave)
+                .state.business.status, Is.EqualTo("sold"));
+        }
+
+        [Test]
+        public void BusinessStartup_EnforcesSkillFundsAndPersistenceRollback()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            service.Start(save);
+            Assert.IsFalse(service.TryPerformBusinessAction(StimBusinessActionType.Start, out var skillLocked));
+            Assert.That(skillLocked, Does.Contain("Professional Level 2"));
+            service.ActiveSave.state.skills.Add(new StimSkillState { skillId = "professional", experience = 50 });
+            service.ActiveSave.state.finances.cashMinorUnits = 99999;
+            Assert.IsFalse(service.TryPerformBusinessAction(StimBusinessActionType.Start, out var fundsLocked));
+            Assert.That(fundsLocked, Does.Contain("costs $1,000"));
+            service.ActiveSave.state.finances.cashMinorUnits = 100000;
+            repository.ShouldCommit = false;
+            Assert.IsFalse(service.TryPerformBusinessAction(StimBusinessActionType.Start, out _));
+            Assert.That(service.ActiveSave.state.business.status, Is.EqualTo("none"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(100000));
+        }
+
+        [Test]
+        public void Business_ClosesAfterThirdLossAndBoundsLedger()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.rng.seed = 1;
+            save.state.business = new StimBusinessState
+            {
+                businessId = "business_test", businessType = "local_services",
+                displayName = "Local Services Co.", status = "operating", level = 1,
+                locationLevel = 1, actionPoints = 3, maxActionPoints = 3,
+                consecutiveLossMonths = 2, valuationMinorUnits = 100000
+            };
+            for (var index = 0; index < 60; index++)
+                save.state.business.ledger.Add(new StimBusinessLedgerEntry
+                {
+                    entryId = $"old_{index}", type = "monthly_result", age = 24,
+                    monthOfYear = 1, revision = index + 1, timestampUtc = "2026-07-13T17:00:00Z"
+                });
+            service.Start(save);
+
+            AdvanceAndAssert(service);
+
+            Assert.That(service.ActiveSave.state.business.status, Is.EqualTo("failed"));
+            Assert.That(service.ActiveSave.state.business.valuationMinorUnits, Is.Zero);
+            Assert.That(service.ActiveSave.state.business.ledger, Has.Count.EqualTo(60));
+            Assert.That(service.ActiveSave.state.business.ledger[0].entryId, Is.EqualTo("old_1"));
+        }
+
+        [Test]
+        public void BusinessValuation_UsesLevelAndPositiveLifetimeProfit()
+        {
+            var business = new StimBusinessState
+                { status = "operating", level = 2, lifetimeProfitMinorUnits = 75000 };
+
+            Assert.That(StimGameSessionService.CalculateBusinessValuation(business), Is.EqualTo(450000));
+        }
+
+        [Test]
+        public void BusinessStaffing_AddsCapacityRevenueAndPayrollWithinActionPointLimit()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.finances.cashMinorUnits = 1000000;
+            save.state.skills.Add(new StimSkillState { skillId = "professional", experience = 50 });
+            service.Start(save);
+            Assert.IsTrue(service.TryPerformBusinessAction(StimBusinessActionType.Start, out _));
+            Assert.IsTrue(service.TryPerformBusinessAction(StimBusinessActionType.HireStaff, out _));
+            Assert.That(service.ActiveSave.state.business.staffCount, Is.EqualTo(1));
+            Assert.That(service.ActiveSave.state.business.maxActionPoints, Is.EqualTo(4));
+            Assert.That(service.ActiveSave.state.business.actionPoints, Is.EqualTo(2));
+            Assert.IsTrue(service.TryPerformBusinessAction(StimBusinessActionType.Work, out _));
+            Assert.IsTrue(service.TryPerformBusinessAction(StimBusinessActionType.Work, out _));
+            Assert.IsFalse(service.TryPerformBusinessAction(StimBusinessActionType.Work, out var exhausted));
+            Assert.That(exhausted, Does.Contain("No business action points"));
+
+            AdvanceAndAssert(service);
+
+            Assert.That(service.ActiveSave.state.business.actionPoints, Is.EqualTo(4));
+            Assert.That(service.ActiveSave.state.business.lastExpensesMinorUnits, Is.EqualTo(105000));
+        }
+
+        [Test]
+        public void BusinessLocationExpansionAndSeededDisruptionAffectMonthlyResult()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.rng.seed = 8;
+            save.state.finances.cashMinorUnits = 1000000;
+            save.state.business = new StimBusinessState
+            {
+                businessId = "business_test", businessType = "local_services",
+                displayName = "Local Services Co.", status = "operating", level = 2,
+                locationLevel = 1, actionPoints = 3, maxActionPoints = 3,
+                operatingProgress = 50, valuationMinorUnits = 400000
+            };
+            service.Start(save);
+            Assert.IsTrue(service.TryPerformBusinessAction(
+                StimBusinessActionType.ExpandLocation, out var expanded), expanded);
+            Assert.That(service.ActiveSave.state.business.locationLevel, Is.EqualTo(2));
+
+            AdvanceAndAssert(service);
+
+            Assert.That(service.ActiveSave.state.business.riskEventsExperienced, Is.EqualTo(1));
+            Assert.That(service.ActiveSave.state.business.ledger[^1].type, Is.EqualTo("monthly_disruption"));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "business" && entry.text.Contains("operational disruption")), Is.True);
+        }
+
+        [TestCase(17)]
+        [TestCase(71)]
+        [TestCase(211)]
+        public void SeededTenYearBusinessSimulation_IsDeterministicAndBalanceBounded(int seed)
+        {
+            var first = SimulateBusiness(seed, 120);
+            var repeated = SimulateBusiness(seed, 120);
+
+            Assert.That(repeated, Is.EqualTo(first));
+            Assert.That(first, Is.InRange(-15000000L, 50000000L));
+        }
+
+        [Test]
+        public void DailyGoal_ProgressesFromRealActivityAndClaimsRewardExactlyOnceAcrossReload()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            service.Start(save);
+            Assert.IsTrue(service.TryPerformActivity(StimActivityType.Rest, out var activity), activity);
+            var daily = service.ActiveSave.state.goals.Find(goal => goal.category == "daily");
+            Assert.That(daily.status, Is.EqualTo("claimable"));
+            var cashBefore = service.ActiveSave.state.finances.cashMinorUnits;
+
+            Assert.IsTrue(service.TryClaimGoalReward(daily.goalId, out var claimed), claimed);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore + 1000));
+            Assert.IsFalse(service.TryClaimGoalReward(daily.goalId, out var duplicate));
+            Assert.That(duplicate, Does.Contain("already claimed"));
+
+            var reloaded = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            reloaded.Start(JsonUtility.FromJson<StimSaveEnvelope>(repository.LastCommittedSave));
+            Assert.IsFalse(reloaded.TryClaimGoalReward(daily.goalId, out duplicate));
+            Assert.That(reloaded.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore + 1000));
+        }
+
+        [Test]
+        public void MainAndLifeGoals_UseCareerAndNetWorthProgressWithDestinationMetadata()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.finances.cashMinorUnits = 10000000;
+            service.Start(save);
+            Assert.IsTrue(service.TryPerformCareerAction(StimCareerActionType.WorkHard, out var worked), worked);
+
+            var main = service.ActiveSave.state.goals.Find(goal => goal.goalId == "main_first_career");
+            var life = service.ActiveSave.state.goals.Find(goal => goal.goalId == "life_net_worth_100k");
+            Assert.That(main.status, Is.EqualTo("claimable"));
+            Assert.That(main.destination, Is.EqualTo("career"));
+            Assert.That(life.status, Is.EqualTo("claimable"));
+            Assert.That(life.destination, Is.EqualTo("money"));
+        }
+
+        [Test]
+        public void DailyGoals_ExpireAndRemainBoundedAcrossLongLives()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            service.Start(save);
+            for (var month = 0; month < 30; month++)
+            {
+                service.ActiveSave.state.character.age = 24 + month / 12;
+                service.ActiveSave.state.calendar.monthOfYear = month % 12 + 1;
+                service.ActiveSave.state.statuses.RemoveAll(status => status.statusId == "monthly_focus_used");
+                Assert.IsTrue(service.TryPerformActivity(StimActivityType.Rest, out var activity), activity);
+            }
+
+            Assert.That(service.ActiveSave.state.goals.Count, Is.LessThanOrEqualTo(20));
+            Assert.That(service.ActiveSave.state.goals.Count(goal => goal.category == "daily" &&
+                goal.status != "expired"), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void AchievementPrize_ClaimsExactlyOnceAndSurvivesReload()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.achievements.Add(new StimAchievementState
+            {
+                achievementId = "first_job", unlockedAtAge = 18, revision = 1,
+                timestampUtc = "2026-07-13T17:00:00Z"
+            });
+            service.Start(save);
+            var cashBefore = service.ActiveSave.state.finances.cashMinorUnits;
+
+            Assert.IsTrue(service.TryClaimAchievementReward("first_job", out var claimed), claimed);
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore + 50000));
+            Assert.That(service.ActiveSave.state.achievements[0].rewardClaimed, Is.True);
+            Assert.IsFalse(service.TryClaimAchievementReward("first_job", out var duplicate));
+            Assert.That(duplicate, Does.Contain("already claimed"));
+
+            var reloaded = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            reloaded.Start(JsonUtility.FromJson<StimSaveEnvelope>(repository.LastCommittedSave));
+            Assert.IsFalse(reloaded.TryClaimAchievementReward("first_job", out duplicate));
+            Assert.That(reloaded.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore + 50000));
+        }
+
+        [Test]
+        public void AchievementPrize_RollsBackWhenAutosaveFails()
+        {
+            var repository = new RecordingSaveRepository { ShouldCommit = false };
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.achievements.Add(new StimAchievementState
+            {
+                achievementId = "first_year", unlockedAtAge = 1, revision = 1,
+                timestampUtc = "2026-07-13T17:00:00Z"
+            });
+            service.Start(save);
+            var cashBefore = service.ActiveSave.state.finances.cashMinorUnits;
+
+            Assert.IsFalse(service.TryClaimAchievementReward("first_year", out _));
+
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore));
+            Assert.That(service.ActiveSave.state.achievements[0].rewardClaimed, Is.False);
+        }
+
+        [Test]
+        public void AchievementPrizes_AreDefinedForEveryAuthoredAchievement()
+        {
+            var ids = new[]
+            {
+                "first_year", "school_days", "learning_level_2", "family_bond", "first_job",
+                "moving_up", "six_figures", "first_choice", "retirement", "life_complete"
+            };
+
+            Assert.That(ids.All(id => StimGameSessionService.GetAchievementRewardMinorUnits(id) > 0), Is.True);
+        }
+
+        [Test]
+        public void NewLifeTransition_PersistsAndCanBeAcknowledgedOnlyOnce()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+
+            Assert.IsTrue(service.TryStartNewLife(save, out var started), started);
+            var transition = service.GetPendingTransition();
+            Assert.That(transition, Is.Not.Null);
+            Assert.That(transition.transitionType, Is.EqualTo("new_life"));
+            Assert.That(service.ActiveSave.state.lifeFeed.Exists(entry =>
+                entry.category == "milestone" && entry.text.Contains("A new life begins")), Is.True);
+
+            var reloaded = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            Assert.IsTrue(reloaded.TryLoadLatest(out var loaded), loaded);
+            Assert.That(reloaded.GetPendingTransition()?.transitionId, Is.EqualTo(transition.transitionId));
+            Assert.IsTrue(reloaded.TryAcknowledgeTransition(transition.transitionId, out var acknowledged), acknowledged);
+            Assert.That(reloaded.GetPendingTransition(), Is.Null);
+            Assert.IsFalse(reloaded.TryAcknowledgeTransition(transition.transitionId, out var duplicate));
+            Assert.That(duplicate, Does.Contain("already acknowledged"));
+        }
+
+        [Test]
+        public void FirstLifeOrientation_CompletesOnceAndSurvivesReload()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository,
+                utcNow: () => DateTimeOffset.Parse("2026-07-14T12:00:00Z"));
+            var save = StimNewLifeFactory.Create(new StimNewLifeRequest(), "0.1.0",
+                DateTimeOffset.Parse("2026-07-14T11:00:00Z"), 42);
+            Assert.IsTrue(service.TryStartNewLife(save, out var started), started);
+            Assert.That(service.ShouldPresentFirstLifeOrientation(), Is.True);
+
+            Assert.IsTrue(service.TryCompleteFirstLifeOrientation(out var completed), completed);
+            Assert.That(service.ShouldPresentFirstLifeOrientation(), Is.False);
+            Assert.IsFalse(service.TryCompleteFirstLifeOrientation(out var duplicate));
+            Assert.That(duplicate, Does.Contain("already completed"));
+
+            var reloaded = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            Assert.IsTrue(reloaded.TryLoadLatest(out var loaded), loaded);
+            Assert.That(reloaded.ShouldPresentFirstLifeOrientation(), Is.False);
+            Assert.That(reloaded.ActiveSave.state.orientation.completedRevision, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void SecondaryGraduation_QueuesFocusedPersistedTransition()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 17;
+            save.state.character.lifeStage = "teen";
+            save.state.calendar.monthOfYear = 12;
+            save.state.education.stage = "high_school";
+            save.state.education.schoolPath = "academic_track";
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out _, out var summary), summary);
+
+            Assert.That(service.GetPendingTransition()?.transitionType, Is.EqualTo("graduation"));
+            Assert.That(service.GetPendingTransition()?.summary, Does.Contain("completed secondary school"));
+        }
+
+        [Test]
         public void AuthoredEventRequirements_CanGateByStudyTrackAndQualificationExperience()
         {
             var gatedEvent = RepresentativeStimEvents.CreateSalaryNegotiation();
@@ -2141,6 +2740,7 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(retirementSummary, Does.Contain("Retired from Analyst"));
             Assert.That(service.ActiveSave.state.character.lifeStatus, Is.EqualTo("retired"));
             Assert.That(service.ActiveSave.state.character.endedAtAge, Is.EqualTo(65));
+            Assert.That(service.GetPendingTransition()?.transitionType, Is.EqualTo("retirement"));
             Assert.IsFalse(service.TryAdvanceMonth(out _, out var endedSummary));
             Assert.That(endedSummary, Does.Contain("life has ended"));
         }
@@ -3126,6 +3726,33 @@ namespace StimTycoon.Tests.Domain.Runtime
         {
             Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
             Assert.That(nextEvent, Is.Null);
+        }
+
+        private static long SimulateBusiness(int seed, int months)
+        {
+            var business = new StimBusinessState
+            {
+                status = "operating",
+                level = 2,
+                locationLevel = 1,
+                staffCount = 1,
+                operatingProgress = 50,
+                actionPoints = 4,
+                maxActionPoints = 4
+            };
+            long total = 0;
+            for (var month = 0; month < months; month++)
+            {
+                var profit = StimGameSessionService.CalculateBusinessMonthlyProfit(
+                    seed, month, business, out _, out _, out _);
+                total += profit;
+                business.lifetimeProfitMinorUnits += profit;
+                business.consecutiveLossMonths = profit < 0
+                    ? business.consecutiveLossMonths + 1
+                    : 0;
+                if (business.consecutiveLossMonths >= 3) break;
+            }
+            return total;
         }
 
         private static void AddTestChild(

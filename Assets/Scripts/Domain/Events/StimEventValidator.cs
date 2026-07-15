@@ -139,7 +139,127 @@ namespace StimTycoon.Events
                 result.warnings.Add("analyticsTags list is empty; add tags for telemetry");
             }
 
+            ValidateEditorialSafety(evt, result);
+
             return result;
+        }
+
+        /// <summary>Stricter shipping gate layered over the schema contract.</summary>
+        public static EventValidationResult ValidateProductionEvent(StimEvent evt)
+        {
+            var result = ValidateEvent(evt);
+            if (evt == null) return result;
+            if (!IsLocalizationSegment(evt.id))
+                AddProductionError(result, $"Event id {evt.id} is not localization-key safe.");
+            ValidateJsonObject(evt.requirementsJson, "requirementsJson", true, result);
+            ValidateJsonObject(evt.exclusionsJson, "exclusionsJson", false, result);
+            var localizationKeys = new HashSet<string>(StringComparer.Ordinal);
+            AddLocalizationKey(localizationKeys, $"event.{evt.id}.title", result);
+            AddLocalizationKey(localizationKeys, $"event.{evt.id}.body", result);
+            var telemetryCodes = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var choice in evt.choices ?? new List<Choice>())
+            {
+                if (choice == null) continue;
+                if (!IsLocalizationSegment(choice.id))
+                    AddProductionError(result, $"Choice id {choice.id} is not localization-key safe.");
+                AddLocalizationKey(localizationKeys, $"event.{evt.id}.choice.{choice.id}", result);
+                ValidateJsonObject(choice.requirements, $"choice {choice.id} requirements", false, result);
+                if (!RiskRewardCalculator.ValidateRiskLevelAccuracy(
+                        choice.baseSuccessChance, choice.riskPreview,
+                        choice.modifierRuleIds ?? new List<string>(), out var riskFeedback))
+                    AddProductionError(result, $"Choice {choice.id}: {riskFeedback}");
+                if (choice.outcomes != null && choice.outcomes.Count > 1 &&
+                    (choice.baseSuccessChance <= 0f || choice.baseSuccessChance >= 1f))
+                    AddProductionError(result, $"Choice {choice.id} has unreachable outcome branches.");
+                foreach (var outcome in choice.outcomes ?? new List<Outcome>())
+                {
+                    if (outcome == null) continue;
+                    if (!IsLocalizationSegment(outcome.id))
+                        AddProductionError(result, $"Outcome id {outcome.id} is not localization-key safe.");
+                    AddLocalizationKey(localizationKeys,
+                        $"event.{evt.id}.choice.{choice.id}.outcome.{outcome.id}.result", result);
+                    AddLocalizationKey(localizationKeys,
+                        $"event.{evt.id}.choice.{choice.id}.outcome.{outcome.id}.feed", result);
+                    if (!telemetryCodes.Add(outcome.telemetryCode ?? string.Empty))
+                        AddProductionError(result, $"Duplicate telemetry code {outcome.telemetryCode}.");
+                    if (float.IsNaN(outcome.weightWithinResultGroup) || float.IsInfinity(outcome.weightWithinResultGroup))
+                        AddProductionError(result, $"Outcome {outcome.id} has a non-finite weight.");
+                    foreach (var followUp in outcome.followUps ?? new List<ScheduledEventRef>())
+                        if (followUp == null || followUp.probability <= 0f || followUp.probability > 1f ||
+                            followUp.minYearsFromNow < 0 || followUp.maxYearsFromNow < followUp.minYearsFromNow ||
+                            string.IsNullOrWhiteSpace(followUp.cancellationRule))
+                            AddProductionError(result, $"Outcome {outcome.id} has invalid follow-up eligibility metadata.");
+                }
+            }
+            return result;
+        }
+
+        private static void ValidateJsonObject(
+            string json, string field, bool required, EventValidationResult result)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                if (required) AddProductionError(result, $"{field} requires an explicit JSON object.");
+                return;
+            }
+            var trimmed = json.Trim();
+            if (!trimmed.StartsWith("{") || !trimmed.EndsWith("}"))
+            {
+                AddProductionError(result, $"{field} must be a JSON object.");
+                return;
+            }
+            try { JsonUtility.FromJson<EligibilityJsonProbe>(trimmed); }
+            catch (ArgumentException) { AddProductionError(result, $"{field} contains malformed JSON."); }
+        }
+
+        private static void AddLocalizationKey(
+            HashSet<string> keys, string key, EventValidationResult result)
+        {
+            if (string.IsNullOrWhiteSpace(key) || !keys.Add(key))
+                AddProductionError(result, $"Localization key {key} is invalid or duplicated.");
+        }
+
+        private static bool IsLocalizationSegment(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return false;
+            foreach (var character in value)
+                if (!(character == '_' || character >= 'a' && character <= 'z' ||
+                      character >= '0' && character <= '9')) return false;
+            return true;
+        }
+
+        private static void AddProductionError(EventValidationResult result, string error)
+        {
+            result.isValid = false;
+            result.errors.Add(error);
+        }
+
+        [Serializable]
+        private sealed class EligibilityJsonProbe { }
+
+        private static void ValidateEditorialSafety(StimEvent evt, EventValidationResult result)
+        {
+            var tags = evt.analyticsTags ?? new List<string>();
+            var toneTags = evt.toneTags ?? new List<string>();
+            var isRomance = tags.Contains("romance") || toneTags.Contains("romance");
+            if (isRomance && evt.ageRange != null && evt.ageRange.minAge < 18)
+            {
+                result.isValid = false;
+                result.errors.Add("Romance events must exclude characters under age 18");
+            }
+
+            var isIntimateMilestone = tags.Contains("first_kiss") || tags.Contains("intimacy");
+            if (isIntimateMilestone && !tags.Contains("consent") && !toneTags.Contains("consent"))
+            {
+                result.isValid = false;
+                result.errors.Add("Intimate relationship events require an explicit consent tag");
+            }
+
+            if (tags.Contains("identity") && evt.ageRange != null && evt.ageRange.minAge < 16)
+            {
+                result.isValid = false;
+                result.errors.Add("Authored identity-choice events must begin at age 16 or later");
+            }
         }
 
         /// <summary>
