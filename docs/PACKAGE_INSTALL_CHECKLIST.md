@@ -5,18 +5,24 @@ Install vendors only when the related feature is ready. After each package chang
 ## Baseline — complete
 
 - [x] Open with Unity `6000.3.19f1` and install iOS Build Support through Unity Hub.
-- [x] Confirm a clean compile and 220 passing EditMode tests (user-verified July 14, 2026).
+- [x] Confirm a clean compile and 340 passing EditMode tests (user-verified July 15, 2026).
 - [x] Run `Tools → Stim Tycoon → Run Setup Check` with no project-level failures.
 - [x] Use the native atomic JSON repository for required local saves.
 - [x] Install Yarn Spinner from its official Git repository and isolate it behind the Stim dialogue bridge.
 - [x] Run the salary-negotiation vertical slice in the mobile simulator.
 
+## Installed but awaiting integration
+
+- [x] Install Unity LevelPlay / Ads Mediation `9.5.0`.
+- [x] Install Unity IAP `5.4.1`.
+- [ ] Configure LevelPlay placements, test mode, consent/ATT, privacy and age treatment, offline failure behavior, and a Stim-owned production adapter.
+- [ ] Configure the Unity IAP product catalog, store IDs, purchase restoration and validation, cancellation/failure behavior, and a Stim-owned adapter.
+- [ ] Create an iOS development build after each native SDK integration is configured.
+
 ## Deferred vendors
 
 - [ ] Add Unity Authentication and Cloud Save together when account-linked backup work begins.
 - [ ] Add Apple GameKit when Game Center sign-in, achievements, or leaderboards enter the active slice.
-- [ ] Add Unity LevelPlay / Ads Mediation last, after placements and consent behavior are defined.
-- [ ] Create an iOS development build after each native SDK integration.
 
 ## Guardrails
 

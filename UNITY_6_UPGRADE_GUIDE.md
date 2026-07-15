@@ -21,7 +21,7 @@ The project may live on an external drive. Use APFS on macOS, keep the drive mou
 
 1. Confirm the title bar or **Unity → About Unity** reports `6000.3.19f1`.
 2. Run `Tools → Stim Tycoon → Run Setup Check`.
-3. Open `Window → General → Test Runner`, select **EditMode**, and run all 32 tests.
+3. Open `Window → General → Test Runner`, select **EditMode**, and run the complete suite. The repository currently contains 340 EditMode test methods; include the `SlowSimulation` birth-to-ending harness in a full verification run.
 4. Open `Assets/Scenes/StimVerticalSlice.unity` and press Play.
 
 ## Current Dependencies
@@ -29,10 +29,12 @@ The project may live on an external drive. Use APFS on macOS, keep the drive mou
 - UI Toolkit and UI Builder
 - Input System
 - Unity Test Framework
+- Unity LevelPlay `9.5.0` (installed; configuration and production adapter deferred)
+- Unity IAP `5.4.1` (installed; catalog, restore/validation flows, and adapter deferred)
 - Yarn Spinner
 - native Stim atomic JSON saves
 
-Authentication, Cloud Save, Apple GameKit, and LevelPlay remain deferred. Dialogue System for Unity and Easy Save 3 are not required.
+Authentication, Cloud Save, and Apple GameKit remain uninstalled and deferred. LevelPlay and Unity IAP are installed but not integrated into production gameplay. Dialogue System for Unity and Easy Save 3 are not required.
 
 ## Troubleshooting
 

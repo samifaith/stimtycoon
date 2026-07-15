@@ -99,7 +99,7 @@ This is the operational roadmap after the July 15, 2026 code/documentation audit
 - [ ] Add privacy-safe diagnostics and performance markers for save failures, event pacing, economy balance, memory, and funnels without requiring an online SDK.
 - [ ] Install on supported physical iPhones; profile save/load latency, save size, memory, safe areas, touch, thermal behavior, and complete-life stability.
 - [ ] Freeze beta save semantics, then implement Authentication, Game Center, Cloud Save and conflict fixtures before account-enabled TestFlight.
-- [ ] Add LevelPlay only after placement, consent, privacy, age treatment, offline failure, and non-required reward paths are approved.
+- [ ] Configure the enabled Unity LevelPlay `9.5.0` and Unity IAP `5.4.1` packages behind Stim-owned adapters: use environment-specific app/ad-unit IDs and store product IDs, keep development builds in test mode, and define consent/ATT, privacy, age treatment, purchase restore/validation, cancellation, and offline/failure behavior. Ads and purchases must remain optional and must never gate baseline progression or recovery.
 - [ ] Prepare build/signing, entitlements, privacy manifest/disclosures, licenses, known issues, rollback build, tester instructions, and TestFlight checklist.
 - [ ] Resolve all critical/high defects and complete one clean physical-device birth-to-ending run.
 

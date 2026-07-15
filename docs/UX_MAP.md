@@ -27,13 +27,15 @@ Active screen content
 └── one dominant action
 
 Bottom navigation
-├── Life
-├── Money
-├── Social
-└── Business
+├── Life / Home
+├── Education
+├── Career / Business
+├── Bank
+├── Social / Family
+└── Goals / Legacy
 ```
 
-Career, investing, property, health, education, and activities begin as destinations within these four sections. They become separate tabs only if playtesting shows that the additional navigation is clearer.
+The six destinations use exclusive active states and remain the Phase 5 navigation contract. Investing belongs within Bank; career and business share a destination; health and ordinary activities remain reachable from Life/Home unless playtesting justifies a separately approved navigation change.
 
 ## Primary flows
 

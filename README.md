@@ -40,7 +40,7 @@ The repository now contains:
 Not yet complete:
 
 - Unity Authentication, Apple Game Center, and Cloud Save adapters
-- Unity LevelPlay ads
+- configured Unity LevelPlay ads and Unity IAP purchasing flows (the packages are installed, but production adapters and store/placement configuration are not implemented)
 - production navigation, accessibility, localization, art, and audio
 - iOS device build and automated play-flow coverage
 - reference-level destination UX, including focused tabbed Bank, Education, Home, Social, Business, and Goals workspaces
@@ -101,14 +101,17 @@ Already installed or built in:
 - UI Toolkit and UI Builder
 - Unity Input System
 - Unity Test Framework
+- Unity LevelPlay `9.5.0`
+- Unity IAP `5.4.1`
 - Yarn Spinner from its official Git repository
 - native Stim save repository; Easy Save 3 is optional and not required
 
-Still deferred until the related gameplay needs them:
+Still deferred until the related gameplay or production gate needs them:
 
 - Unity Authentication and Cloud Save
 - Apple GameKit / Game Center
-- Unity LevelPlay / Ads Mediation
+- LevelPlay placement/consent configuration and its production Stim-owned adapter
+- Unity IAP product catalog, restore/validation flows, and its Stim-owned adapter
 
 See [the package checklist](docs/PACKAGE_INSTALL_CHECKLIST.md) before adding a vendor dependency. Keep all vendor SDK types behind the interfaces in `Assets/Scripts/Domain/Abstractions`.
 

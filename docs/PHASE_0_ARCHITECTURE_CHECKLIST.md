@@ -13,7 +13,7 @@
 - [x] Yarn Spinner package and isolated bridge
 - [x] Salary-negotiation Yarn script and representative event data
 - [x] Playable UI Toolkit scene for the first vertical slice
-- [x] 220 passing EditMode tests, including seeded birth-to-ending, timed lifecycle, and monetary-input coverage (user-verified July 14, 2026)
+- [x] 340 passing EditMode tests, including seeded birth-to-ending, transactional systems, UI structure, and long-run simulation coverage (user-verified July 15, 2026)
 
 ## Remaining Phase 0 work
 
@@ -33,9 +33,10 @@
 - [ ] Unity Authentication
 - [ ] Apple GameKit / Game Center
 - [ ] Unity Cloud Save and conflict handling
-- [ ] Unity LevelPlay / Ads Mediation
+- [ ] Unity LevelPlay production adapter and placement/consent configuration (package `9.5.0` installed)
+- [ ] Unity IAP adapter, product catalog, restoration, and validation (package `5.4.1` installed)
 
-These services are intentionally deferred until the offline life loop is stable. Their implementations must stay behind the existing Stim-owned interfaces.
+These service implementations are intentionally deferred until their production gates. Installed packages do not count as gameplay integration; implementations must stay behind Stim-owned interfaces.
 
 ## Package status
 
@@ -44,6 +45,8 @@ Present now:
 - UI Toolkit and UI Builder
 - Unity Input System
 - Unity Test Framework
+- Unity LevelPlay `9.5.0` package (unconfigured)
+- Unity IAP `5.4.1` package (unconfigured)
 - Yarn Spinner
 - native Stim save repository
 
@@ -53,4 +56,4 @@ Optional or deferred:
 - Easy Save 3 adapter evaluation only for convenience features, not as the current performance fix
 - Apple GameKit
 - Unity Authentication and Cloud Save
-- Unity LevelPlay / Ads Mediation
+- LevelPlay and Unity IAP production configuration/adapters

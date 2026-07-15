@@ -29,7 +29,7 @@ The remaining cloud-conflict exit criterion is deliberately deferred; it does no
 2. Freeze the first beta-ready save semantics for revision ancestry, RNG state, event history, money, inventory, and recovery backups.
 3. Then implement Unity Authentication, Game Center account linking, and Cloud Save behind the existing Stim-owned interfaces.
 4. Add same-ancestry, divergent-ancestry, offline-newer, cloud-newer, corrupt-snapshot, and user-restore conflict fixtures.
-5. Complete this work before account-enabled TestFlight distribution. It must be finished before Phase 9 beta exit, even though the original requirement was documented under Phase 0.
+5. Complete this work before account-enabled TestFlight distribution. It must be finished before the Phase 7 beta exit, even though the original requirement was documented under Phase 0.
 
 Until that gate, Phase 0 should be described as **offline foundation delivered, online validation deferred**, rather than unconditionally complete.
 
@@ -37,6 +37,7 @@ The current implementation choices supersede earlier package assumptions in this
 
 - **Yarn Spinner** is the branching dialogue authoring layer.
 - The Stim-owned **native atomic JSON repository** is the required local-save implementation.
+- **Unity LevelPlay `9.5.0` and Unity IAP `5.4.1` are installed but not production-integrated.** LevelPlay still uses the Stim no-op service at runtime, and IAP still needs a Stim-owned adapter, product catalog, restore/validation flows, and store configuration.
 - Dialogue System for Unity and Easy Save 3 are optional future adapters, not required dependencies.
 
 ### Save performance decision — July 13, 2026
@@ -2541,7 +2542,7 @@ Exit evidence: seeded long-run simulations cover distinct economic profiles and 
 
 Delivered M7–M12: annual reviews and rewards, Bank, Home, family, careers/business, goals, rewards, transitions, launch-alpha event coverage validation, bounded histories, migration fixtures, and first-life orientation. All 340 EditMode tests passed in the July 15, 2026 Unity Run All baseline.
 
-Exit caveat: Unity must still record a clean current full-suite run, and the implemented breadth is concentrated in one functional vertical-slice shell rather than polished destination-specific experiences.
+Exit caveat: the clean baseline is historical evidence from July 15, 2026 and should be rerun after package or code changes; the implemented breadth remains concentrated in one functional vertical-slice shell rather than polished destination-specific experiences.
 
 ## Phase 5: Experience Convergence — Active (M13–M16)
 
@@ -2602,7 +2603,7 @@ Gate: seeded lives are materially different, human playtests can explain their m
 - Ship Settings for text scale, reduced motion, sound/music, captions/text alternatives, haptics, and destructive confirmations.
 - Complete VoiceOver, focus order, contrast, readable charts, fallback fonts, pseudo-localization, and the full device/text-scale matrix.
 - Validate migration, corruption recovery, backup restore, downgrade behavior, bounded save growth, diagnostics, memory, persistence latency, touch, safe areas, and thermal behavior on supported iPhones.
-- Freeze beta save semantics, then implement and test Authentication, Game Center, Cloud Save conflicts, privacy disclosures, and optional ads only if product placement rules are approved.
+- Freeze beta save semantics, then implement and test Authentication, Game Center, Cloud Save conflicts, privacy disclosures, and the installed LevelPlay/IAP packages behind Stim-owned adapters. Configure optional placements/products only after consent, privacy, age treatment, restore/validation, offline failure, and non-required progression rules are approved.
 - Prepare signing, privacy manifest, licenses, known issues, rollback build, tester instructions, and TestFlight distribution.
 
 Gate: zero critical/high defects, a clean physical-device birth-to-ending playthrough, safe old/corrupt-save handling, completed accessibility/privacy/licensing checklists, and an approved beta candidate.
