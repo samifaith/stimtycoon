@@ -174,15 +174,18 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
-        public void PlayableLifeScreen_PutsFeedFirstAndNetWorthInMoney()
+        public void PlayableLifeScreen_PutsAgeProgressionThenFeedAndNetWorthInMoney()
         {
             var root = Clone(PlayableLifePath);
             var lifeContent = root.Q(className: "st-life-content");
             var moneyContent = root.Q(className: "st-money-content");
+            var ageProgression = root.Q("age-progression");
             var feedCard = root.Q("life-feed-card");
             var netWorthCard = root.Q("net-worth-card");
 
-            Assert.That(lifeContent.ElementAt(0), Is.SameAs(feedCard));
+            Assert.That(lifeContent.ElementAt(0), Is.SameAs(ageProgression));
+            Assert.That(lifeContent.ElementAt(1), Is.SameAs(feedCard));
+            Assert.IsTrue(lifeContent.Contains(ageProgression));
             Assert.IsTrue(lifeContent.Contains(feedCard));
             Assert.IsFalse(lifeContent.Contains(netWorthCard));
             Assert.IsTrue(moneyContent.Contains(netWorthCard));

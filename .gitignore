@@ -11,6 +11,17 @@
 # Generated Unity/Yarn editor state
 /ProjectSettings/SceneTemplateSettings.json
 /ProjectSettings/Packages/dev.yarnspinner/*-generated.ysls.json
+/ProjectSettings/Packages/com.unity.ai.assistant/
+
+# Deferred package integration artifacts
+# LevelPlay/IAP production configuration is intentionally deferred until M18.
+/Assets/MobileDependencyResolver/
+/Assets/MobileDependencyResolver.meta
+/Assets/Resources/BillingMode.json
+/Assets/Resources/BillingMode.json.meta
+
+# Do not accidentally embed Unity's registry-owned simulator device catalog.
+/Packages/com.unity.device-simulator.devices/
 
 # Unity asset meta cache
 *.pidb.meta
@@ -50,3 +61,8 @@ Thumbs.db
 
 # Keep Unity metadata tracked for project assets
 !*.meta
+
+# These metadata files belong only to the deferred generated artifacts above.
+/Assets/MobileDependencyResolver.meta
+/Assets/Resources.meta
+/Assets/Resources/BillingMode.json.meta

@@ -21,13 +21,13 @@
 }
 
 .stim-pack-interaction-pop {
-    transition-property: scale, -unity-background-image-tint-color;
+    transition-property: opacity, -unity-background-image-tint-color;
     transition-duration: 0.08s;
     transition-timing-function: ease-out;
 }
 
 .stim-pack-interaction-pop:active {
-    scale: 0.97 0.97;
+    opacity: 0.86;
 }
 
 .stim-pack-interaction-pop:disabled {
