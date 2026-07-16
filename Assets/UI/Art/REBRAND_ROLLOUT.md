@@ -56,11 +56,15 @@ The intended visual sentence is: **Skyden is the language, Space is the organiza
 4. **Application shell**
    - Header and navigation occupy explicit non-shrinking template slots around one active destination scroller.
    - The Life-only action dock contains New Life, Advance Month, and Year. The profile cluster opens Life Summary and restores the prior destination and scroll state when closed.
+   - Each destination retains an independent scroll offset across navigation; restoration is rescheduled after rebuilt content receives its final scroll range.
    - Baloo is opt-in for display headings and branded actions; dense values and body content keep the normal UI font.
 
 5. **Core screen migration**
    - Life leads with Life Feed and Core Stats; Age Progression, detailed stats, skills, and home are in Life Summary.
    - Study, Work, Bank, Social, and Goals follow the reference module order while rendering only systems backed by current save data.
+   - Bank now separates Savings, Credit/Cash Flow, and Investing into exclusive persistent tabs while retaining the shared net-worth context.
+   - Qualification study cards now open a focused confirmation sheet with numeric effects, readiness, and monthly timing before the existing transactional action executes.
+   - The age-appropriate Education catalog presents Applied Finance, Community Health, and Sustainable Trades over the migration-safe General/Academic/Vocational state, with qualification status, real career consequences, material requirements, and direct focus for resolvable choices.
    - Store, Stim+, ads, season pass, currencies, and mini-games remain intentionally absent.
 
 6. **Remaining visual release gate**

@@ -94,7 +94,7 @@ Assets/UI/
 - [ ] Add reusable destination headers, segmented tabs, modal sheets, requirement chips, action states, progress bars, timer/cooldown rows, and selected-navigation styling.
 - [ ] Replace default/placeholder scrollbars throughout the application with one polished Stim scrollbar and scroll-affordance system for page, list, sheet, tab, and nested-scroll contexts; do not solve visual quality by hiding required position feedback.
 - [ ] Complete the shared UI-detail pass for spacing, dividers, shadows, borders, pressed/hover/focus/disabled states, empty/loading/locked states, truncation/wrapping, and consistent icon/text alignment.
-- [ ] Restore destination, tab, scroll position, and selected object/person after sheets and action resolution.
+- [ ] Restore destination, tab, scroll position, and selected object/person after sheets and action resolution. Per-destination scroll offsets, Life Summary return state, selected Social profiles, and Bank tab state are implemented; broader tab and post-action restoration remain.
 - [x] Omit options that are not yet age-appropriate from destination UI; once relevant by age, show other unmet requirements as explicit locks rather than leaking future-life actions early.
 - [ ] Keep Advance Month/Year, pending decisions, transition presentations, and endings reachable and unobscured.
 - [ ] Add structural and interaction coverage for navigation, overlays, back/close behavior, focus order, and state restoration.
@@ -106,12 +106,12 @@ Assets/UI/
 
 ### M14 — Bank and Education convergence
 
-- [ ] Build a Bank workspace with Savings, Credit/Cash Flow, and Investing tabs.
+- [x] Build a Bank workspace with persistent Savings, Credit/Cash Flow, and Investing tabs; age-inappropriate adult tabs remain absent before age 18.
 - [ ] Preserve exact/percentage transfers, transparent 3.50% APY, annual projections, bounded transaction history, credit repayment, and atomic rollback.
 - [ ] Add readable portfolio contributions/performance without promised returns; keep casino content deferred.
-- [ ] Build an Education catalog with study disciplines, qualification badges, progress, visible requirements, and `Go` links for resolvable locks.
-- [ ] Build a focused study sheet with easy/medium/hard sessions, clear benefits/costs, duration/cooldown, progress, and single-claim completion.
-- [ ] Add at least three original disciplines with distinct career/event consequences using reusable content definitions.
+- [ ] Build an Education catalog with study disciplines, qualification badges, progress, visible requirements, and `Go` links for resolvable locks. Applied Finance, Community Health, and Sustainable Trades map migration-safely onto the established tracks; tier/XP text, requirements, and `Go` behavior are implemented, while dedicated badge presentation remains.
+- [ ] Build a focused study sheet with easy/medium/hard sessions, clear benefits/costs, duration/cooldown, progress, and single-claim completion. The focused preview, numeric tradeoffs, readiness, monthly timing, cancel/confirm behavior, and transactional commitment are implemented; timed progress/claim presentation remains.
+- [ ] Add at least three original disciplines with distinct career/event consequences using reusable content definitions. Three reusable authored disciplines now expose distinct real career consequences; discipline-specific event consequences remain.
 - [ ] Apply the documented stat, skill, qualification, wealth, task-reward, and locked-requirement thresholds; add reachability and pacing tests.
 
 **Exit gate:** players can explain where money went, what interest/risk means, why a financial or education action is locked, and what each commitment changes.

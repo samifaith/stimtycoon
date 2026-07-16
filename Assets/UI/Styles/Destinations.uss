@@ -410,6 +410,81 @@
     margin-top: 14px;
 }
 
+.st-segmented-tabs {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    padding: 3px;
+    flex-direction: row;
+    background-color: rgb(225, 234, 246);
+    border-radius: 13px;
+}
+
+.st-segmented-tab {
+    min-width: 0;
+    min-height: 40px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding-left: 5px;
+    padding-right: 5px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    border-radius: 10px;
+    color: var(--st-text-secondary);
+    font-size: 10px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.st-segmented-tab.active {
+    background-color: var(--st-surface-1);
+    color: var(--st-purple-600);
+}
+
+.st-bank-tab-panel {
+    width: 100%;
+}
+
+.st-study-session-sheet {
+    max-height: 620px;
+}
+
+.st-study-session-preview {
+    margin-top: 14px;
+}
+
+.st-study-session-actions {
+    padding-top: 10px;
+    flex-direction: row;
+    border-top-width: 1px;
+    border-top-color: var(--st-border-soft);
+}
+
+.st-study-session-actions > .st-setup-cancel,
+.st-study-session-actions > .st-setup-create {
+    min-height: 48px;
+    flex-grow: 1;
+}
+
+.st-study-session-actions > .st-setup-cancel {
+    margin-right: 8px;
+}
+
+.st-education-catalog {
+    margin-bottom: 10px;
+}
+
+.st-education-catalog-list {
+    margin-top: 8px;
+}
+
+.st-education-catalog-row.selected {
+    background-color: var(--st-surface-purple);
+    border-left-width: 3px;
+    border-left-color: var(--st-purple-500);
+}
+
 .st-transfer-mode {
     flex-grow: 1;
     min-height: 44px;

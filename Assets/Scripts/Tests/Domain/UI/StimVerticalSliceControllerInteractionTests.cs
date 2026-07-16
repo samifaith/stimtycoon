@@ -439,6 +439,39 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void EducationCatalog_AppearsAtTrackAgeAndMarksPersistentSelection()
+        {
+            session.ActiveSave.state.character.age = 13;
+            session.ActiveSave.state.education.stage = "middle_school";
+            Invoke("RefreshEducation");
+            Assert.IsTrue(root.Q("education-catalog").ClassListContains("hidden"));
+
+            session.ActiveSave.state.character.age = 15;
+            session.ActiveSave.state.education.stage = "high_school";
+            session.ActiveSave.state.education.studyTrack = null;
+            session.ActiveSave.state.finances.cashMinorUnits = 10000;
+            Invoke("RefreshEducation");
+
+            Assert.IsFalse(root.Q("education-catalog").ClassListContains("hidden"));
+            Assert.That(root.Q("education-catalog-list").childCount, Is.EqualTo(3));
+            Assert.That(root.Q<Button>("path-row-study-general"), Is.Not.Null);
+            Assert.That(root.Q<Button>("path-row-study-academic"), Is.Not.Null);
+            Assert.That(root.Q<Button>("path-row-study-vocational"), Is.Not.Null);
+            Assert.That(root.Q<Button>("path-row-study-general").Q<Label>(className: "st-path-title").text,
+                Is.EqualTo("Applied Finance"));
+            Assert.That(root.Q<Button>("path-row-study-academic").Q<Label>(className: "st-path-title").text,
+                Is.EqualTo("Community Health"));
+            Assert.That(root.Q<Button>("path-row-study-vocational").Q<Label>(className: "st-path-title").text,
+                Is.EqualTo("Sustainable Trades"));
+
+            Invoke("PerformStudyTrackChoice", StimStudyTrack.Academic);
+
+            Assert.IsTrue(root.Q("path-row-study-academic").ClassListContains("selected"));
+            Assert.That(root.Q<Label>("education-catalog-status").text,
+                Does.Contain("Current: Academic").And.Contain("0 XP"));
+        }
+
+        [Test]
         public void EducationCard_ShowsQualificationProgressAndCommitsStudyDifficulty()
         {
             session.ActiveSave.state.character.age = 15;
@@ -463,6 +496,32 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(root.Q<Label>("result-text").text,
                 Does.Contain("Certificate Qualification"));
             Assert.That(root.Q<Button>("education-action-study-easy").enabledSelf, Is.False);
+        }
+
+        [Test]
+        public void StudySessionCard_OpensFocusedPreviewBeforeCommit()
+        {
+            session.ActiveSave.state.character.age = 15;
+            session.ActiveSave.state.character.smarts = 60;
+            session.ActiveSave.state.education.stage = "high_school";
+            session.ActiveSave.state.education.studyTrack = "academic";
+            session.ActiveSave.state.education.qualificationExperience = 45;
+            var definition = session.GetStudySessionDefinitions()[1];
+
+            Invoke("ShowStudySessionSheet", StimStudyDifficulty.Medium, definition);
+
+            Assert.IsFalse(root.Q("study-session-sheet").ClassListContains("hidden"));
+            Assert.That(root.Q<Label>("study-session-title").text, Is.EqualTo("Medium Study Session"));
+            Assert.That(root.Q<Label>("study-session-effects").text,
+                Does.Contain("Qualification XP +20").And.Contain("Happiness −1"));
+            Assert.That(root.Q<Label>("study-session-timing").text, Does.Contain("this month's school action"));
+            Assert.IsTrue(root.Q<Button>("study-session-confirm").enabledSelf);
+
+            Invoke("ConfirmSelectedStudySession");
+
+            Assert.IsTrue(root.Q("study-session-sheet").ClassListContains("hidden"));
+            Assert.That(session.ActiveSave.state.education.qualificationExperience, Is.EqualTo(65));
+            Assert.That(root.Q<Label>("result-text").text, Does.Contain("Certificate Qualification"));
         }
 
         [Test]
@@ -609,6 +668,15 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(root.Q("career-path-preview").childCount, Is.EqualTo(0));
             Assert.IsTrue(root.Q("index-investment-card").ClassListContains("hidden"));
             Assert.IsTrue(root.Q("manual-work-card").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q<Button>("bank-tab-credit").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q<Button>("bank-tab-investing").ClassListContains("hidden"));
+            var setBankTab = typeof(StimVerticalSliceController).GetMethod(
+                "SetBankTab", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(setBankTab, Is.Not.Null);
+            var investingTab = Enum.Parse(setBankTab.GetParameters()[0].ParameterType, "Investing");
+            setBankTab.Invoke(controller, new[] { investingTab });
+            Assert.IsTrue(root.Q<Button>("bank-tab-savings").ClassListContains("active"));
+            Assert.IsTrue(root.Q("bank-panel-investing").ClassListContains("hidden"));
             Assert.That(root.Q("money-accounts-list").Q("account-row-index-fund"), Is.Null);
             Assert.IsTrue(root.Q<Button>("discover-compatible-person").ClassListContains("hidden"));
             Assert.That(root.Q<Button>("career-action-retire"), Is.Null);
@@ -622,11 +690,38 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(root.Q("career-path-preview").childCount, Is.GreaterThan(0));
             Assert.IsFalse(root.Q("index-investment-card").ClassListContains("hidden"));
             Assert.IsFalse(root.Q<Button>("discover-compatible-person").ClassListContains("hidden"));
+            Assert.IsFalse(root.Q<Button>("bank-tab-credit").ClassListContains("hidden"));
+            Assert.IsFalse(root.Q<Button>("bank-tab-investing").ClassListContains("hidden"));
             Assert.That(root.Q<Button>("career-action-retire"), Is.Null);
 
             session.ActiveSave.state.character.age = 65;
             Invoke("RefreshCareer");
             Assert.That(root.Q<Button>("career-action-retire"), Is.Not.Null);
+        }
+
+        [Test]
+        public void BankTabs_AreExclusiveAndPersistAcrossDestinationNavigation()
+        {
+            Invoke("ShowMoneyDestination");
+            Assert.IsTrue(root.Q<Button>("bank-tab-savings").ClassListContains("active"));
+            Assert.IsFalse(root.Q("bank-panel-savings").ClassListContains("hidden"));
+
+            var setBankTab = typeof(StimVerticalSliceController).GetMethod(
+                "SetBankTab", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(setBankTab, Is.Not.Null);
+            var investing = Enum.Parse(setBankTab.GetParameters()[0].ParameterType, "Investing");
+            setBankTab.Invoke(controller, new[] { investing });
+
+            Assert.IsTrue(root.Q<Button>("bank-tab-investing").ClassListContains("active"));
+            Assert.IsFalse(root.Q("bank-panel-investing").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q("bank-panel-savings").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q("bank-panel-credit").ClassListContains("hidden"));
+
+            Invoke("ShowLifeDestination");
+            Invoke("ShowMoneyDestination");
+
+            Assert.IsTrue(root.Q<Button>("bank-tab-investing").ClassListContains("active"));
+            Assert.IsFalse(root.Q("bank-panel-investing").ClassListContains("hidden"));
         }
 
         [Test]
@@ -724,6 +819,14 @@ namespace StimTycoon.Tests.Domain.UI
                 { "avatarGlyph", "avatar-glyph" }, { "choices", "choices" },
                 { "resultCard", "result-card" }, { "playerOverview", "player-overview" },
                 { "careerProgressFill", "career-progress-fill" }, { "eventSheet", "event-sheet" },
+                { "studySessionSheet", "study-session-sheet" },
+                { "studySessionTitle", "study-session-title" },
+                { "studySessionDescription", "study-session-description" },
+                { "studySessionEffects", "study-session-effects" },
+                { "studySessionTiming", "study-session-timing" },
+                { "studySessionRequirement", "study-session-requirement" },
+                { "studySessionCancel", "study-session-cancel" },
+                { "studySessionConfirm", "study-session-confirm" },
                 { "healthFill", "health-fill" }, { "happinessFill", "happiness-fill" },
                 { "smartsFill", "smarts-fill" }, { "looksFill", "looks-fill" },
                 { "luckFill", "luck-fill" }, { "advanceMonth", "advance-month" },
@@ -762,6 +865,9 @@ namespace StimTycoon.Tests.Domain.UI
                 { "goalsDestinationContent", "goals-destination-content" },
                 { "educationEmptyState", "education-empty-state" },
                 { "educationUnavailableCopy", "education-unavailable-copy" },
+                { "educationCatalog", "education-catalog" },
+                { "educationCatalogStatus", "education-catalog-status" },
+                { "educationCatalogList", "education-catalog-list" },
                 { "careerEmptyState", "career-empty-state" },
                 { "careerContextCopy", "career-context-copy" },
                 { "careerPathPreview", "career-path-preview" },
@@ -810,7 +916,13 @@ namespace StimTycoon.Tests.Domain.UI
                 { "indexFundValue", "index-fund-value" },
                 { "indexInvestmentRequirement", "index-investment-requirement" },
                 { "indexInvestmentInput", "index-investment-input" },
-                { "indexInvestmentFeedback", "index-investment-feedback" }
+                { "indexInvestmentFeedback", "index-investment-feedback" },
+                { "bankTabSavings", "bank-tab-savings" },
+                { "bankTabCredit", "bank-tab-credit" },
+                { "bankTabInvesting", "bank-tab-investing" },
+                { "bankPanelSavings", "bank-panel-savings" },
+                { "bankPanelCredit", "bank-panel-credit" },
+                { "bankPanelInvesting", "bank-panel-investing" }
             };
 
             foreach (var binding in bindings)

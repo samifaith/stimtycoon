@@ -1879,6 +1879,22 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void EducationDisciplineCatalog_MapsThreeOriginalPathsToDistinctCareerConsequences()
+        {
+            var disciplines = StimEducationDisciplineCatalog.GetAll();
+
+            Assert.That(disciplines, Has.Count.EqualTo(3));
+            Assert.That(disciplines.Select(item => item.disciplineId).Distinct(), Has.Count.EqualTo(3));
+            Assert.That(disciplines.Select(item => item.studyTrack).Distinct(), Has.Count.EqualTo(3));
+            Assert.That(disciplines, Has.Some.Matches<StimEducationDisciplineDefinition>(item =>
+                item.displayName == "Applied Finance" && item.consequenceSummary.Contains("Finance")));
+            Assert.That(disciplines, Has.Some.Matches<StimEducationDisciplineDefinition>(item =>
+                item.displayName == "Community Health" && item.consequenceSummary.Contains("Healthcare")));
+            Assert.That(disciplines, Has.Some.Matches<StimEducationDisciplineDefinition>(item =>
+                item.displayName == "Sustainable Trades" && item.consequenceSummary.Contains("Skilled Trades")));
+        }
+
+        [Test]
         public void ChooseStudyTrack_DeductsAuthoredCostPersistsAndWritesFeed()
         {
             var repository = new RecordingSaveRepository();

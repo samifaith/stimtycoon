@@ -4,6 +4,47 @@ using StimTycoon.Saves;
 
 namespace StimTycoon.Runtime
 {
+    public sealed class StimEducationDisciplineDefinition
+    {
+        public string disciplineId;
+        public string displayName;
+        public StimStudyTrack studyTrack;
+        public string consequenceSummary;
+    }
+
+    public static class StimEducationDisciplineCatalog
+    {
+        private static readonly IReadOnlyList<StimEducationDisciplineDefinition> Definitions =
+            new List<StimEducationDisciplineDefinition>
+            {
+                Create("applied_finance", "Applied Finance", StimStudyTrack.General,
+                    "Builds broad business foundations and supports the Finance career ladder."),
+                Create("community_health", "Community Health", StimStudyTrack.Academic,
+                    "Builds theory-led qualifications required by the Healthcare career path."),
+                Create("sustainable_trades", "Sustainable Trades", StimStudyTrack.Vocational,
+                    "Builds practical qualifications required by the Skilled Trades career path.")
+            };
+
+        public static IReadOnlyList<StimEducationDisciplineDefinition> GetAll() => Definitions;
+
+        public static StimEducationDisciplineDefinition GetForTrack(StimStudyTrack track)
+        {
+            foreach (var definition in Definitions)
+                if (definition.studyTrack == track) return definition;
+            return null;
+        }
+
+        private static StimEducationDisciplineDefinition Create(
+            string id, string name, StimStudyTrack track, string consequence) =>
+            new StimEducationDisciplineDefinition
+            {
+                disciplineId = id,
+                displayName = name,
+                studyTrack = track,
+                consequenceSummary = consequence
+            };
+    }
+
     /// <summary>
     /// Owns Education-action eligibility and candidate-save mutation.
     /// Persistence remains the responsibility of the transaction runner.
@@ -32,7 +73,9 @@ namespace StimTycoon.Runtime
                 return StimTransactionMutationResult.Failure("Not enough cash for the selected study track materials.");
             save.state.finances.cashMinorUnits -= cost;
             save.state.education.studyTrack = track.ToString().ToLowerInvariant();
+            var discipline = StimEducationDisciplineCatalog.GetForTrack(track);
             var summary = $"{track} study track selected" +
+                          (discipline == null ? string.Empty : $" · {discipline.displayName}") +
                           (cost > 0 ? $" · Materials −${cost / 100m:0.00}" : string.Empty);
             AddLifeFeedEntry(save, summary);
             return StimTransactionMutationResult.Success(summary);

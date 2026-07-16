@@ -108,6 +108,18 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void Navigation_PersistsDestinationScrollStateAcrossViewsAndLifeSummary()
+        {
+            var controller = File.ReadAllText(ControllerPath);
+
+            StringAssert.Contains("Dictionary<StimDestination, Vector2> destinationScrollOffsets", controller);
+            StringAssert.Contains("destinationScrollOffsets[activeDestination] = previousView.scrollOffset", controller);
+            StringAssert.Contains("destinationScrollOffsets.TryGetValue(destination, out var savedOffset)", controller);
+            StringAssert.Contains("selectedScroll.schedule.Execute(() => selectedScroll.scrollOffset = targetOffset)", controller);
+            StringAssert.Contains("NavigateTo(activeDestination);", controller);
+        }
+
+        [Test]
         public void FeedRowFactory_CreatesCompactSemanticRow()
         {
             var entry = new StimTycoon.Saves.StimLifeFeedEntry
@@ -182,6 +194,9 @@ namespace StimTycoon.Tests.Domain.UI
                 "summary-happiness-fill", "summary-smarts-fill", "summary-looks-fill", "summary-luck-fill",
                 "age-progression", "age-stage-summary", "age-stage-0", "age-stage-1", "age-stage-2", "age-stage-3",
                 "event-category", "event-title", "event-body",
+                "study-session-sheet", "study-session-title", "study-session-description",
+                "study-session-effects", "study-session-timing", "study-session-requirement",
+                "study-session-cancel", "study-session-confirm",
                 "result-text", "result-effects", "life-feed-card", "life-feed-scroll", "life-feed-list", "overview-career", "overview-calendar",
                 "health-value", "happiness-value", "smarts-value", "looks-value", "luck-value",
                 "career-progress-value", "monthly-paycheck-value", "annual-salary-value", "net-worth-value",
@@ -194,6 +209,7 @@ namespace StimTycoon.Tests.Domain.UI
                 "open-new-life", "new-life-setup", "cancel-new-life", "continue-current-life",
                 "create-new-life", "new-life-error", "social-view", "time-dock",
                 "education-view", "career-view", "goals-view", "education-empty-state", "career-empty-state",
+                "education-catalog", "education-catalog-status", "education-catalog-list",
                 "education-unavailable-copy", "career-context-copy", "career-path-preview",
                 "education-destination-content", "career-destination-content", "goals-destination-content",
                 "relationship-list-view", "relationship-list", "discover-compatible-person", "relationship-discovery-feedback",
@@ -205,6 +221,8 @@ namespace StimTycoon.Tests.Domain.UI
                 "final-life-summary", "ending-name", "ending-status", "ending-summary", "ending-new-life",
                 "achievements-card", "achievements-count", "achievements-list", "money-view", "net-worth-card",
                 "manual-work-card", "manual-work-role", "manual-work-rate", "money-cash-value",
+                "bank-tabs", "bank-tab-savings", "bank-tab-credit", "bank-tab-investing",
+                "bank-panel-savings", "bank-panel-credit", "bank-panel-investing",
                 "manual-work-tap", "manual-work-feedback", "savings-card", "savings-balance-value",
                 "savings-available-value", "savings-deposit-mode", "savings-withdraw-mode",
                 "savings-amount-input", "savings-transfer-feedback", "money-history-card",
@@ -432,6 +450,19 @@ namespace StimTycoon.Tests.Domain.UI
                 Assert.That(button.Q<Label>(className: "st-nav-label"), Is.Not.Null,
                     $"{button.name} must expose a readable navigation label.");
             }
+        }
+
+        [Test]
+        public void Header_AnchorsCashClusterToSafeTopRightCorner()
+        {
+            var shell = File.ReadAllText(ShellPath);
+
+            StringAssert.Contains(".st-balance-pill {", shell);
+            StringAssert.Contains("position: absolute;", shell);
+            StringAssert.Contains("right: 10px;", shell);
+            StringAssert.Contains("top: 8px;", shell);
+            StringAssert.Contains("padding-right: 158px;", shell);
+            StringAssert.Contains(".st-compact-width .st-balance-pill", shell);
         }
 
         [Test]

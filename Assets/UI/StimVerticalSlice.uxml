@@ -176,6 +176,12 @@
                         <ui:Label name="money-cash-value" text="$0" class="st-worth-current-value" />
                     </ui:VisualElement>
                 </ui:VisualElement>
+                <ui:VisualElement name="bank-tabs" class="st-segmented-tabs st-bank-tabs">
+                    <ui:Button name="bank-tab-savings" text="SAVINGS" class="st-segmented-tab active" />
+                    <ui:Button name="bank-tab-credit" text="CREDIT &amp; FLOW" class="st-segmented-tab" />
+                    <ui:Button name="bank-tab-investing" text="INVESTING" class="st-segmented-tab" />
+                </ui:VisualElement>
+                <ui:VisualElement name="bank-panel-savings" class="st-bank-tab-panel">
                 <ui:VisualElement name="savings-card" class="st-polished-card st-savings-card">
                     <ui:Label text="SAVINGS TRANSFER" class="st-section-kicker" />
                     <ui:Label text="Savings balance" class="st-money-balance-label" />
@@ -197,6 +203,15 @@
                     <ui:Label text="RECENT TRANSFERS" class="st-section-kicker" />
                     <ui:VisualElement name="money-transaction-history" />
                 </ui:VisualElement>
+                <ui:VisualElement name="manual-work-card" class="st-polished-card st-manual-work-card">
+                    <ui:Label text="OPTIONAL MANUAL WORK" class="st-section-kicker" />
+                    <ui:Label name="manual-work-role" text="Get a job to begin" class="st-manual-work-role" />
+                    <ui:Label name="manual-work-rate" text="$0.00 per hour" class="st-manual-work-rate" />
+                    <ui:Button name="manual-work-tap" text="WORK 1 HOUR" class="st-manual-work-button stim-pack-foundation-button stim-pack-interaction-pop" />
+                    <ui:Label name="manual-work-feedback" text="" class="st-manual-work-feedback" />
+                </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="bank-panel-credit" class="st-bank-tab-panel hidden">
                 <ui:VisualElement name="cash-flow-card" class="st-polished-card st-money-history-card">
                     <ui:Label text="LAST MONTH CASH FLOW" class="st-section-kicker" />
                     <ui:Label name="cash-flow-gross" text="Gross income: $0" class="st-money-help" />
@@ -215,6 +230,8 @@
                     <ui:VisualElement name="credit-repayment-input" />
                     <ui:Label name="credit-repayment-feedback" text="" class="st-manual-work-feedback" />
                 </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="bank-panel-investing" class="st-bank-tab-panel hidden">
                 <ui:VisualElement name="index-investment-card" class="st-polished-card st-money-history-card">
                     <ui:Label text="LONG-TERM INVESTING" class="st-section-kicker" />
                     <ui:Label name="index-fund-value" text="Index fund: $0" class="st-savings-balance" />
@@ -223,12 +240,6 @@
                     <ui:VisualElement name="index-investment-input" />
                     <ui:Label name="index-investment-feedback" text="" class="st-manual-work-feedback" />
                 </ui:VisualElement>
-                <ui:VisualElement name="manual-work-card" class="st-polished-card st-manual-work-card">
-                    <ui:Label text="OPTIONAL MANUAL WORK" class="st-section-kicker" />
-                    <ui:Label name="manual-work-role" text="Get a job to begin" class="st-manual-work-role" />
-                    <ui:Label name="manual-work-rate" text="$0.00 per hour" class="st-manual-work-rate" />
-                    <ui:Button name="manual-work-tap" text="WORK 1 HOUR" class="st-manual-work-button stim-pack-foundation-button stim-pack-interaction-pop" />
-                    <ui:Label name="manual-work-feedback" text="" class="st-manual-work-feedback" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:ScrollView>
@@ -265,6 +276,11 @@
                 <ui:VisualElement name="education-empty-state" class="st-preview-panel hidden">
                     <ui:VisualElement class="st-preview-heading"><ui:Label text="📚" class="st-preview-heading-icon" /><ui:Label text="EDUCATION" class="st-preview-heading-title" /></ui:VisualElement>
                     <ui:VisualElement class="st-info-callout"><ui:Label text="ℹ️" class="st-info-icon" /><ui:Label name="education-unavailable-copy" text="Formal school actions begin at age 6." class="st-info-copy" /></ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="education-catalog" class="st-polished-card st-education-catalog hidden">
+                    <ui:VisualElement class="st-section-heading"><ui:Label text="🎓" class="st-section-heading-icon" /><ui:Label text="STUDY PATHS" class="st-section-heading-title" /></ui:VisualElement>
+                    <ui:Label name="education-catalog-status" text="Choose a path to begin qualification progress." class="st-money-help" />
+                    <ui:VisualElement name="education-catalog-list" class="st-education-catalog-list" />
                 </ui:VisualElement>
                 <ui:VisualElement name="education-destination-content" />
             </ui:VisualElement>
@@ -306,6 +322,28 @@
         </ui:VisualElement>
 
         <ui:Instance template="BottomNavigation" class="st-shell-nav-slot" />
+
+        <ui:VisualElement name="study-session-sheet" class="st-event-scrim hidden">
+            <ui:VisualElement class="st-event-sheet st-study-session-sheet">
+                <ui:ScrollView class="st-event-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden">
+                    <ui:VisualElement class="st-event-content">
+                        <ui:Label text="STUDY SESSION" class="st-event-kicker" />
+                        <ui:Label name="study-session-title" text="Focused study" class="st-event-title" />
+                        <ui:Label name="study-session-description" text="Review this commitment before starting." class="st-event-body" />
+                        <ui:VisualElement class="st-polished-card st-study-session-preview">
+                            <ui:Label text="EXPECTED CHANGES" class="st-section-kicker" />
+                            <ui:Label name="study-session-effects" text="Qualification XP +10" class="st-result-effects" />
+                            <ui:Label name="study-session-timing" text="One action this month" class="st-money-help" />
+                            <ui:Label name="study-session-requirement" text="Ready" class="st-money-help" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:ScrollView>
+                <ui:VisualElement class="st-study-session-actions">
+                    <ui:Button name="study-session-cancel" text="CANCEL" class="st-setup-cancel" />
+                    <ui:Button name="study-session-confirm" text="START SESSION" class="st-setup-create stim-pack-foundation-button stim-pack-interaction-pop" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
 
         <ui:VisualElement name="event-sheet" class="st-event-scrim hidden">
             <ui:VisualElement class="st-event-sheet">

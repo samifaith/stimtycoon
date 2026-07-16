@@ -19,6 +19,13 @@ namespace StimTycoon.Runtime
         Goals
     }
 
+    internal enum StimBankTab
+    {
+        Savings,
+        Credit,
+        Investing
+    }
+
     [RequireComponent(typeof(UIDocument))]
     public sealed class StimVerticalSliceController : MonoBehaviour
     {
@@ -54,6 +61,14 @@ namespace StimTycoon.Runtime
         private VisualElement playerOverview;
         private VisualElement careerProgressFill;
         private VisualElement eventSheet;
+        private VisualElement studySessionSheet;
+        private Label studySessionTitle;
+        private Label studySessionDescription;
+        private Label studySessionEffects;
+        private Label studySessionTiming;
+        private Label studySessionRequirement;
+        private Button studySessionCancel;
+        private Button studySessionConfirm;
         private VisualElement healthFill;
         private VisualElement happinessFill;
         private VisualElement smartsFill;
@@ -117,6 +132,9 @@ namespace StimTycoon.Runtime
         private VisualElement goalsDestinationContent;
         private VisualElement educationEmptyState;
         private Label educationUnavailableCopy;
+        private VisualElement educationCatalog;
+        private Label educationCatalogStatus;
+        private VisualElement educationCatalogList;
         private VisualElement careerEmptyState;
         private Label careerContextCopy;
         private VisualElement careerPathPreview;
@@ -149,7 +167,14 @@ namespace StimTycoon.Runtime
         private Label indexInvestmentRequirement;
         private VisualElement indexInvestmentInput;
         private Label indexInvestmentFeedback;
+        private Button bankTabSavings;
+        private Button bankTabCredit;
+        private Button bankTabInvesting;
+        private VisualElement bankPanelSavings;
+        private VisualElement bankPanelCredit;
+        private VisualElement bankPanelInvesting;
         private StimSavingsTransferType savingsTransferType = StimSavingsTransferType.Deposit;
+        private StimBankTab selectedBankTab = StimBankTab.Savings;
         private VisualElement relationshipListView;
         private VisualElement relationshipList;
         private Button discoverCompatiblePerson;
@@ -190,8 +215,11 @@ namespace StimTycoon.Runtime
         private StimActivityType primaryFocusActivity;
         private StimActivityType secondaryFocusActivity;
         private StimEvent currentEvent;
+        private StimStudyDifficulty selectedStudyDifficulty;
+        private StimActionDefinition selectedStudyDefinition;
         private StimDestination activeDestination = StimDestination.Life;
-        private Vector2 scrollOffsetBeforeLifeSummary;
+        private readonly Dictionary<StimDestination, Vector2> destinationScrollOffsets =
+            new Dictionary<StimDestination, Vector2>();
 
         private void OnEnable()
         {
@@ -229,6 +257,14 @@ namespace StimTycoon.Runtime
             playerOverview = root.Q<VisualElement>("player-overview");
             careerProgressFill = root.Q<VisualElement>("career-progress-fill");
             eventSheet = root.Q<VisualElement>("event-sheet");
+            studySessionSheet = root.Q<VisualElement>("study-session-sheet");
+            studySessionTitle = root.Q<Label>("study-session-title");
+            studySessionDescription = root.Q<Label>("study-session-description");
+            studySessionEffects = root.Q<Label>("study-session-effects");
+            studySessionTiming = root.Q<Label>("study-session-timing");
+            studySessionRequirement = root.Q<Label>("study-session-requirement");
+            studySessionCancel = root.Q<Button>("study-session-cancel");
+            studySessionConfirm = root.Q<Button>("study-session-confirm");
             healthFill = root.Q<VisualElement>("health-fill");
             happinessFill = root.Q<VisualElement>("happiness-fill");
             smartsFill = root.Q<VisualElement>("smarts-fill");
@@ -286,6 +322,9 @@ namespace StimTycoon.Runtime
             goalsDestinationContent = root.Q<VisualElement>("goals-destination-content");
             educationEmptyState = root.Q<VisualElement>("education-empty-state");
             educationUnavailableCopy = root.Q<Label>("education-unavailable-copy");
+            educationCatalog = root.Q<VisualElement>("education-catalog");
+            educationCatalogStatus = root.Q<Label>("education-catalog-status");
+            educationCatalogList = root.Q<VisualElement>("education-catalog-list");
             careerEmptyState = root.Q<VisualElement>("career-empty-state");
             careerContextCopy = root.Q<Label>("career-context-copy");
             careerPathPreview = root.Q<VisualElement>("career-path-preview");
@@ -318,6 +357,12 @@ namespace StimTycoon.Runtime
             indexInvestmentRequirement = root.Q<Label>("index-investment-requirement");
             indexInvestmentInput = root.Q<VisualElement>("index-investment-input");
             indexInvestmentFeedback = root.Q<Label>("index-investment-feedback");
+            bankTabSavings = root.Q<Button>("bank-tab-savings");
+            bankTabCredit = root.Q<Button>("bank-tab-credit");
+            bankTabInvesting = root.Q<Button>("bank-tab-investing");
+            bankPanelSavings = root.Q<VisualElement>("bank-panel-savings");
+            bankPanelCredit = root.Q<VisualElement>("bank-panel-credit");
+            bankPanelInvesting = root.Q<VisualElement>("bank-panel-investing");
             relationshipListView = root.Q<VisualElement>("relationship-list-view");
             relationshipList = root.Q<VisualElement>("relationship-list");
             discoverCompatiblePerson = root.Q<Button>("discover-compatible-person");
@@ -394,6 +439,9 @@ namespace StimTycoon.Runtime
                 careerProgressValue == null ||
                 careerProgressFill == null || monthlyPaycheckValue == null || annualSalaryValue == null ||
                 netWorthValue == null || avatarGlyph == null || eventSheet == null || eventContinue == null ||
+                studySessionSheet == null || studySessionTitle == null || studySessionDescription == null ||
+                studySessionEffects == null || studySessionTiming == null || studySessionRequirement == null ||
+                studySessionCancel == null || studySessionConfirm == null ||
                 healthFill == null || happinessFill == null || smartsFill == null || looksFill == null ||
                 luckFill == null || newLifeSetup == null || newLifeError == null ||
                 cancelNewLife == null || continueCurrentLife == null || createNewLife == null || openNewLife == null ||
@@ -413,6 +461,7 @@ namespace StimTycoon.Runtime
                 educationDestinationContent == null || careerDestinationContent == null ||
                 goalsDestinationContent == null || educationEmptyState == null || careerEmptyState == null ||
                 educationUnavailableCopy == null ||
+                educationCatalog == null || educationCatalogStatus == null || educationCatalogList == null ||
                 careerContextCopy == null || careerPathPreview == null ||
                 manualWorkRole == null || manualWorkRate == null || moneyCashValue == null ||
                 manualWorkTap == null || manualWorkFeedback == null || savingsBalanceValue == null ||
@@ -426,6 +475,8 @@ namespace StimTycoon.Runtime
                 creditRepaymentInput == null || creditRepaymentFeedback == null ||
                 indexFundValue == null || indexInvestmentRequirement == null ||
                 indexInvestmentInput == null || indexInvestmentFeedback == null ||
+                bankTabSavings == null || bankTabCredit == null || bankTabInvesting == null ||
+                bankPanelSavings == null || bankPanelCredit == null || bankPanelInvesting == null ||
                 relationshipListView == null ||
                 relationshipList == null || discoverCompatiblePerson == null || relationshipDiscoveryFeedback == null ||
                 relationshipDetailView == null || relationshipBack == null ||
@@ -451,6 +502,8 @@ namespace StimTycoon.Runtime
             advanceYear.clicked += AdvanceYear;
             toggleOverview.clicked += ToggleOverview;
             eventContinue.clicked += CloseEventSheet;
+            studySessionCancel.clicked += CloseStudySessionSheet;
+            studySessionConfirm.clicked += ConfirmSelectedStudySession;
             focusStudy.clicked += () => PerformActivity(primaryFocusActivity);
             focusWorkout.clicked += () => PerformActivity(secondaryFocusActivity);
             navLife.clicked += ShowLifeDestination;
@@ -465,6 +518,9 @@ namespace StimTycoon.Runtime
             manualWorkTap.clicked += PerformManualWorkTap;
             savingsDepositMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Deposit);
             savingsWithdrawMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Withdrawal);
+            bankTabSavings.clicked += () => SetBankTab(StimBankTab.Savings);
+            bankTabCredit.clicked += () => SetBankTab(StimBankTab.Credit);
+            bankTabInvesting.clicked += () => SetBankTab(StimBankTab.Investing);
             relationshipBack.clicked += ShowRelationshipList;
             discoverCompatiblePerson.clicked += DiscoverCompatiblePerson;
             endingNewLife.clicked += OpenNewLifeFromEnding;
@@ -1102,6 +1158,25 @@ namespace StimTycoon.Runtime
             if (canInvest)
                 indexInvestmentInput.Add(StimActionInputFactory.CreateAmountSelector(
                     state.finances.cashMinorUnits, PerformIndexInvestment));
+            bankTabCredit.EnableInClassList("hidden", !adult);
+            bankTabInvesting.EnableInClassList("hidden", !adult);
+            if (!adult && selectedBankTab != StimBankTab.Savings)
+                selectedBankTab = StimBankTab.Savings;
+            SetBankTab(selectedBankTab);
+        }
+
+        private void SetBankTab(StimBankTab tab)
+        {
+            var adult = (gameSession?.ActiveSave?.state?.character?.age ?? 0) >= 18;
+            if (!adult && tab != StimBankTab.Savings)
+                tab = StimBankTab.Savings;
+            selectedBankTab = tab;
+            bankPanelSavings.EnableInClassList("hidden", tab != StimBankTab.Savings);
+            bankPanelCredit.EnableInClassList("hidden", tab != StimBankTab.Credit);
+            bankPanelInvesting.EnableInClassList("hidden", tab != StimBankTab.Investing);
+            bankTabSavings.EnableInClassList("active", tab == StimBankTab.Savings);
+            bankTabCredit.EnableInClassList("active", tab == StimBankTab.Credit);
+            bankTabInvesting.EnableInClassList("active", tab == StimBankTab.Investing);
         }
 
         private void SetSavingsTransferType(StimSavingsTransferType transferType)
@@ -1262,6 +1337,7 @@ namespace StimTycoon.Runtime
             var enrolled = state.character.age >= 6 && state.character.age < 18;
             educationEmptyState.EnableInClassList("hidden", enrolled);
             educationCard.EnableInClassList("hidden", !enrolled);
+            educationCatalog.EnableInClassList("hidden", !enrolled || state.character.age < 14);
             if (!enrolled)
             {
                 educationUnavailableCopy.text = state.character.age < 6
@@ -1269,6 +1345,8 @@ namespace StimTycoon.Runtime
                     : "This life has no active school enrollment. Completed education remains part of the saved life state.";
                 return;
             }
+
+            RefreshEducationCatalog(state);
 
             var experience = StimGameSessionService.GetSkillExperience(state.skills, "learning");
             var level = StimGameSessionService.GetSkillLevel(experience);
@@ -1327,7 +1405,7 @@ namespace StimTycoon.Runtime
                     var capturedDifficulty = difficulty;
                     educationActions.Add(StimActionCardFactory.Create(
                         definition,
-                        () => PerformStudySession(capturedDifficulty)));
+                        () => ShowStudySessionSheet(capturedDifficulty, definition)));
                 }
                 return;
             }
@@ -1345,6 +1423,60 @@ namespace StimTycoon.Runtime
             }
         }
 
+        private void RefreshEducationCatalog(StimGameState state)
+        {
+            educationCatalogList.Clear();
+            if (state.character.age < 14 || state.character.age >= 18) return;
+
+            var currentTrack = state.education?.studyTrack ?? string.Empty;
+            var qualificationXp = Math.Max(0, state.education?.qualificationExperience ?? 0);
+            educationCatalogStatus.text = string.IsNullOrEmpty(currentTrack)
+                ? "Choose one path below. The choice persists and shapes later qualifications."
+                : $"Current: {ToDisplayName(currentTrack)} · {StimEducationActionService.GetQualificationTier(qualificationXp)} · {qualificationXp} XP";
+
+            foreach (var discipline in StimEducationDisciplineCatalog.GetAll())
+            {
+                var cost = discipline.studyTrack == StimStudyTrack.Academic ? 5000L :
+                    discipline.studyTrack == StimStudyTrack.Vocational ? 7500L : 0L;
+                AddEducationCatalogRow(
+                    state, discipline.studyTrack, discipline.displayName, cost,
+                    discipline.consequenceSummary, currentTrack);
+            }
+        }
+
+        private void AddEducationCatalogRow(
+            StimGameState state,
+            StimStudyTrack track,
+            string disciplineName,
+            long costMinorUnits,
+            string consequence,
+            string currentTrack)
+        {
+            var trackId = track.ToString().ToLowerInvariant();
+            var selected = string.Equals(currentTrack, trackId, StringComparison.OrdinalIgnoreCase);
+            var choiceOpen = string.IsNullOrEmpty(currentTrack) &&
+                             string.IsNullOrEmpty(state.education.awaitingDecisionId);
+            var affordable = state.finances.cashMinorUnits >= costMinorUnits;
+            var materialText = costMinorUnits == 0 ? "Free materials" : $"{FormatMoney(costMinorUnits)} materials";
+            var trailing = selected ? "CURRENT" : choiceOpen && affordable ? "GO" : materialText;
+            Action onOpen = null;
+            if (choiceOpen && affordable)
+            {
+                onOpen = () =>
+                {
+                    var target = educationActions.Q<Button>($"study-track-{trackId}");
+                    target?.Focus();
+                };
+            }
+
+            var row = StimUiComponentFactory.CreatePathRow(
+                $"study-{trackId}", "🎓", disciplineName,
+                $"{track} Track · {consequence} · {materialText}", trailing, affordable || selected, onOpen);
+            row.AddToClassList("st-education-catalog-row");
+            row.EnableInClassList("selected", selected);
+            educationCatalogList.Add(row);
+        }
+
         private void AddStudyTrackCard(StimStudyTrack track, long costMinorUnits, string description)
         {
             var affordable = gameSession.ActiveSave.state.finances != null &&
@@ -1353,7 +1485,10 @@ namespace StimTycoon.Runtime
             card.AddToClassList("st-action-card");
             card.EnableInClassList("locked", !affordable);
 
-            var title = new Label($"{track} Track");
+            var discipline = StimEducationDisciplineCatalog.GetForTrack(track);
+            var title = new Label(discipline == null
+                ? $"{track} Track"
+                : $"{discipline.displayName} · {track} Track");
             title.AddToClassList("st-action-card-title");
             card.Add(title);
 
@@ -1407,6 +1542,43 @@ namespace StimTycoon.Runtime
             summary.Add(tier);
             summary.Add(progress);
             educationActions.Add(summary);
+        }
+
+        private void ShowStudySessionSheet(
+            StimStudyDifficulty difficulty,
+            StimActionDefinition definition)
+        {
+            if (definition == null) return;
+            selectedStudyDifficulty = difficulty;
+            selectedStudyDefinition = definition;
+            studySessionTitle.text = definition.title;
+            studySessionDescription.text = definition.description;
+            studySessionEffects.text = definition.previews == null || definition.previews.Count == 0
+                ? "No numeric changes"
+                : string.Join(" · ", definition.previews.ConvertAll(delta =>
+                    $"{delta.targetId} {(delta.amount >= 0 ? "+" : "−")}{Math.Abs(delta.amount)}"));
+            studySessionTiming.text = definition.cooldownMonths > 0
+                ? $"Uses this month's school action · Available again after advancing a month"
+                : "No monthly cooldown";
+            studySessionRequirement.text = string.IsNullOrEmpty(definition.lockedReason)
+                ? "Ready to begin"
+                : definition.lockedReason;
+            studySessionConfirm.SetEnabled(definition.state == StimActionState.Ready);
+            studySessionSheet.RemoveFromClassList("hidden");
+        }
+
+        private void CloseStudySessionSheet()
+        {
+            studySessionSheet.AddToClassList("hidden");
+            selectedStudyDefinition = null;
+        }
+
+        private void ConfirmSelectedStudySession()
+        {
+            if (selectedStudyDefinition == null) return;
+            var difficulty = selectedStudyDifficulty;
+            CloseStudySessionSheet();
+            PerformStudySession(difficulty);
         }
 
         private void PerformStudySession(StimStudyDifficulty difficulty)
@@ -1963,8 +2135,16 @@ namespace StimTycoon.Runtime
             NavigateTo(StimDestination.Goals);
         }
 
-        private void NavigateTo(StimDestination destination, bool resetScroll = true)
+        private void NavigateTo(StimDestination destination, bool restoreScroll = true)
         {
+            if (lifeSummaryView != null && lifeSummaryView.ClassListContains("hidden") &&
+                activeDestination != destination)
+            {
+                var previousView = GetDestinationView(activeDestination);
+                if (previousView != null)
+                    destinationScrollOffsets[activeDestination] = previousView.scrollOffset;
+            }
+
             activeDestination = destination;
             VisualElement selectedView;
             Button selectedButton;
@@ -2006,11 +2186,14 @@ namespace StimTycoon.Runtime
 
             timeDock.EnableInClassList("hidden", destination != StimDestination.Life);
 
-            if (resetScroll && selectedView is ScrollView selectedScroll)
+            if (selectedView is ScrollView selectedScroll)
             {
-                // Hidden ScrollViews can retain a stale offset while their content is rebuilt.
-                // Reset after the display change so destination headings never slide beneath the header.
-                selectedScroll.schedule.Execute(() => selectedScroll.scrollOffset = Vector2.zero);
+                var targetOffset = restoreScroll && destinationScrollOffsets.TryGetValue(destination, out var savedOffset)
+                    ? savedOffset
+                    : Vector2.zero;
+                selectedScroll.scrollOffset = targetOffset;
+                // Apply once more after display/content rebuild, when the final scroll range is known.
+                selectedScroll.schedule.Execute(() => selectedScroll.scrollOffset = targetOffset);
             }
         }
 
@@ -2018,7 +2201,7 @@ namespace StimTycoon.Runtime
         {
             if (!lifeSummaryView.ClassListContains("hidden")) return;
             var previousView = GetDestinationView(activeDestination);
-            scrollOffsetBeforeLifeSummary = previousView.scrollOffset;
+            destinationScrollOffsets[activeDestination] = previousView.scrollOffset;
             RefreshHeader();
 
             foreach (var view in new VisualElement[]
@@ -2032,9 +2215,7 @@ namespace StimTycoon.Runtime
 
         private void CloseLifeSummary()
         {
-            NavigateTo(activeDestination, false);
-            var restoredView = GetDestinationView(activeDestination);
-            restoredView.schedule.Execute(() => restoredView.scrollOffset = scrollOffsetBeforeLifeSummary);
+            NavigateTo(activeDestination);
         }
 
         private ScrollView GetDestinationView(StimDestination destination)

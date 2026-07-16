@@ -190,7 +190,7 @@
     min-height: 0;
     padding: 8px 10px;
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     background-color: rgb(255, 250, 240);
     flex-shrink: 0;
@@ -208,6 +208,7 @@
     border-width: 0;
     color: var(--st-text-primary);
     -unity-text-align: middle-left;
+    padding-right: 158px;
 }
 
 .st-profile-cluster:hover,
@@ -289,6 +290,9 @@
 }
 
 .st-balance-pill {
+    position: absolute;
+    right: 10px;
+    top: 8px;
     min-width: 148px;
     min-height: 66px;
     padding: 7px 8px;
@@ -595,6 +599,10 @@
     padding: 6px;
 }
 
+.st-compact-width .st-profile-cluster {
+    padding-right: 148px;
+}
+
 .st-compact-width .st-profile-avatar {
     width: 46px;
     height: 56px;
@@ -605,6 +613,8 @@
 }
 
 .st-compact-width .st-balance-pill {
+    right: 6px;
+    top: 6px;
     min-width: 142px;
     padding-left: 5px;
     padding-right: 5px;
