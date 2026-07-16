@@ -147,6 +147,11 @@ namespace StimTycoon.Saves
                 save.state.finances.indexFundMinorUnits = 0;
                 Record(report, "state.finances.indexFundMinorUnits=0");
             }
+            if (save.state.finances != null && !serializedSave.Contains("\"indexFundContributionsMinorUnits\""))
+            {
+                save.state.finances.indexFundContributionsMinorUnits = save.state.finances.indexFundMinorUnits;
+                Record(report, "state.finances.indexFundContributionsMinorUnits=current index fund value");
+            }
             if (save.state.finances != null && !serializedSave.Contains("\"savingsApyBasisPoints\""))
             {
                 save.state.finances.savingsApyBasisPoints = 350;

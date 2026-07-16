@@ -18,6 +18,7 @@ namespace StimTycoon.Runtime
                           $"Age {entry.age}, month {entry.monthOfYear}. {entry.text}"
             };
             row.AddToClassList("st-feed-entry");
+            row.AddToClassList("st-brand-skyden-list");
             row.AddToClassList("category-" + category);
 
             var timeline = new VisualElement();
@@ -54,6 +55,8 @@ namespace StimTycoon.Runtime
             banner.AddToClassList("st-info-callout");
             var icon = new Label("ℹ️");
             icon.AddToClassList("st-info-icon");
+            icon.AddToClassList("st-brand-space-icon");
+            icon.AddToClassList("icon-info");
             banner.Add(icon);
             var copy = new VisualElement();
             copy.AddToClassList("st-info-banner-copy");
@@ -85,6 +88,7 @@ namespace StimTycoon.Runtime
                 tooltip = $"{title}. {category}. Progress {accessibleProgress ?? progress}. Reward {reward}."
             };
             row.AddToClassList("st-achievement-row");
+            row.AddToClassList("st-brand-jelly-reward-row");
 
             var icon = new Label(string.IsNullOrEmpty(badge) ? "🏆" : badge);
             icon.AddToClassList("st-achievement-icon");
@@ -118,6 +122,7 @@ namespace StimTycoon.Runtime
                 text = actionText
             };
             action.AddToClassList(actionText == "CLAIM" ? "stim-pack-reward-button" : "stim-pack-secondary-button");
+            action.AddToClassList(actionText == "CLAIM" ? "st-brand-jelly-claim" : "st-brand-skyden-secondary");
             action.AddToClassList("stim-pack-interaction-pop");
             action.SetEnabled(actionEnabled);
             row.Add(action);

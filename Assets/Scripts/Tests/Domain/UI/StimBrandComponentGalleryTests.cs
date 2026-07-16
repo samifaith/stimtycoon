@@ -54,10 +54,14 @@ namespace StimTycoon.Tests.Domain.UI
             var theme = File.ReadAllText(ThemePath);
             var galleryStyles = File.ReadAllText(GalleryStylesPath);
 
+            StringAssert.Contains("Free_Casual_GUI/Resource/Free_Casual_GUI/Other/Progress_Bar.svg.svg", theme);
             StringAssert.Contains("Free_Casual_GUI/Resource/Free_Casual_GUI/Buttons/button_plain_blugreen.svg", theme);
-            StringAssert.Contains("Jelly_UI_Pack/Sprites/Button/Primary_Btn/btnPink_wide.png", theme);
+            StringAssert.Contains("-unity-slice-left: 55", theme);
+            StringAssert.Contains("-unity-slice-scale: 0.4px", theme);
+            StringAssert.Contains("Jelly_UI_Pack/Sprites/Icons/star_icon.png", theme);
             StringAssert.Contains("Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple", theme);
             StringAssert.DoesNotContain("Space_Exploration_GUI_Kit/Containers", theme);
+            StringAssert.DoesNotContain("Jelly_UI_Pack/Sprites/Button", theme);
             StringAssert.Contains(".st-gallery.st-compact-width", galleryStyles);
         }
 
@@ -80,8 +84,33 @@ namespace StimTycoon.Tests.Domain.UI
 
             var actionCard = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(CanonicalComponentPaths[4]).CloneTree();
             Assert.That(actionCard.Q<Button>("action-card-commit").ClassListContains("stim-pack-interaction-pop"), Is.True);
+            Assert.That(actionCard.Q("action-card").ClassListContains("st-brand-skyden-panel"), Is.True);
+            Assert.That(actionCard.Q<Button>("action-card-commit")
+                .ClassListContains("st-brand-skyden-primary"), Is.True);
             var achievement = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(CanonicalComponentPaths[3]).CloneTree();
             Assert.That(achievement.Q<Button>("achievement-row-action").enabledSelf, Is.True);
+            Assert.That(achievement.Q<Button>("achievement-row-action")
+                .ClassListContains("st-brand-jelly-claim"), Is.True);
+            var info = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(CanonicalComponentPaths[5]).CloneTree();
+            Assert.That(info.Q("info-banner-icon").ClassListContains("st-brand-space-icon"), Is.True);
+        }
+
+        [Test]
+        public void CanonicalComponents_DeclareProductionAssetKitContracts()
+        {
+            var requiredBindings = new[]
+            {
+                ("Assets/StimTycoon/UI/Components/BaseCard/BaseCard.uxml", "st-brand-skyden-panel"),
+                ("Assets/StimTycoon/UI/Components/FeedRow/FeedRow.uxml", "st-brand-skyden-list"),
+                ("Assets/StimTycoon/UI/Components/StatTile/StatTile.uxml", "st-brand-skyden-progress"),
+                ("Assets/StimTycoon/UI/Components/ActionCard/ActionCard.uxml", "st-brand-skyden-primary"),
+                ("Assets/StimTycoon/UI/Components/InfoBanner/InfoBanner.uxml", "st-brand-space-icon"),
+                ("Assets/StimTycoon/UI/Components/AchievementRow/AchievementRow.uxml", "st-brand-jelly-claim"),
+                ("Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml", "st-brand-space-icon")
+            };
+
+            foreach (var binding in requiredBindings)
+                StringAssert.Contains(binding.Item2, File.ReadAllText(binding.Item1), binding.Item1);
         }
 
         private static TemplateContainer CloneGallery()

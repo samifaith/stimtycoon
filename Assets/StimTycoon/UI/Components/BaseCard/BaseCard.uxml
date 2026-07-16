@@ -1,6 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <ui:VisualElement name="card-root" class="st-card">
+    <ui:VisualElement name="card-root" class="st-card st-brand-skyden-panel">
         <ui:VisualElement name="card-content" />
     </ui:VisualElement>
 </ui:UXML>
-

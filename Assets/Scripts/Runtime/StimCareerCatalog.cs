@@ -34,8 +34,10 @@ namespace StimTycoon.Runtime
             {
                 Create(FinanceIndustryId, "Finance", "stim_financial_group", string.Empty, 0,
                     "professional", 1,
-                    Role("Junior Associate", 4000000, 25), Role("Associate", 5500000, 50),
-                    Role("Senior Associate", 7500000, 75), Role("Manager", 10000000, 0)),
+                    Role("Junior Associate", 4000000, StimProgressionStandards.FirstCareerPromotionProgress),
+                    Role("Associate", 5500000, StimProgressionStandards.SecondCareerPromotionProgress),
+                    Role("Senior Associate", 7500000, StimProgressionStandards.ThirdCareerPromotionProgress),
+                    Role("Manager", 10000000, 0)),
                 Create(HealthcareIndustryId, "Healthcare", "harbor_health_network", "academic", 125,
                     "learning", 2,
                     Role("Care Assistant", 3800000, 30), Role("Clinical Coordinator", 5800000, 55),

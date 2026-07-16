@@ -12,6 +12,95 @@
     color: var(--st-text-primary);
 }
 
+/* Full production integration: text-free Skyden shell surfaces + Space navigation identity. */
+.st-asset-kits-integrated .st-life-header {
+    background-color: rgb(255, 250, 242);
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(222, 203, 181);
+}
+
+.st-asset-kits-integrated .st-time-dock {
+    background-color: rgb(255, 255, 255);
+    border-width: 1px;
+    border-color: var(--st-border-soft);
+    border-radius: 16px;
+}
+
+.st-asset-kits-integrated .st-nav-icon {
+    -unity-background-image-tint-color: white;
+}
+
+.st-asset-kits-integrated .st-nav-icon.icon-home {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/home-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-asset-kits-integrated .st-nav-icon.icon-study {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/book-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-asset-kits-integrated .st-nav-icon.icon-work {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/rocket-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-asset-kits-integrated .st-nav-icon.icon-bank {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/buy-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-asset-kits-integrated .st-nav-icon.icon-social {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/heart-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-asset-kits-integrated .st-nav-icon.icon-goals {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/trophy-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-asset-kits-integrated .st-life-nav-item.active .st-nav-icon {
+    -unity-background-image-tint-color: white;
+}
+
+/* Stim-owned shell pieces follow the same soft geometry and layered palette. */
+.st-asset-kits-integrated .st-profile-avatar {
+    background-color: rgba(255, 255, 255, 0.94);
+    border-width: 2px;
+    border-color: var(--st-border-blue);
+    border-radius: 18px;
+}
+
+.st-asset-kits-integrated .st-balance-pill {
+    background-color: rgba(255, 249, 226, 0.96);
+    border-width: 2px;
+    border-color: var(--st-yellow-500);
+    border-radius: 18px;
+}
+
+.st-asset-kits-integrated .st-balance-icon {
+    border-width: 1px;
+    border-color: rgb(151, 226, 151);
+    border-radius: 12px;
+}
+
+.st-asset-kits-integrated .st-life-bottom-nav {
+    background-color: rgba(255, 252, 247, 0.98);
+    border-top-width: 2px;
+    border-top-color: var(--st-border-soft);
+}
+
+.st-asset-kits-integrated .st-life-nav-item {
+    border-radius: 18px;
+}
+
+.st-asset-kits-integrated .st-life-nav-item.active {
+    background-color: var(--st-surface-blue);
+    border-width: 1px;
+    border-color: var(--st-border-blue);
+}
+
 .st-xp-fill {
     position: absolute;
     left: 0;

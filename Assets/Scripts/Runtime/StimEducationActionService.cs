@@ -51,6 +51,16 @@ namespace StimTycoon.Runtime
     /// </summary>
     public sealed class StimEducationActionService
     {
+        public const int CertificateQualificationExperience =
+            StimProgressionStandards.CertificateQualificationExperience;
+        public const int DiplomaQualificationExperience =
+            StimProgressionStandards.DiplomaQualificationExperience;
+        public const int AdvancedQualificationExperience =
+            StimProgressionStandards.AdvancedQualificationExperience;
+        public const int EasyStudyExperience = 10;
+        public const int MediumStudyExperience = 20;
+        public const int HardStudyExperience = 35;
+
         public const string MonthlyCooldownStatusId = "monthly_education_action_used";
 
         public StimTransactionMutationResult ChooseStudyTrack(
@@ -106,6 +116,8 @@ namespace StimTycoon.Runtime
                     lockedReason = !available ? requirement : coolingDown
                         ? "School action already completed this month."
                         : string.Empty,
+                    durationSeconds = difficulty == StimStudyDifficulty.Easy ? 60 :
+                        difficulty == StimStudyDifficulty.Medium ? 120 : 180,
                     cooldownMonths = 1,
                     previews = new List<StimActionDeltaPreview>
                     {
@@ -175,9 +187,10 @@ namespace StimTycoon.Runtime
                 requirement = "Unsupported study difficulty.";
                 return false;
             }
-            if (difficulty == StimStudyDifficulty.Hard && state.character.smarts < 60)
+            if (difficulty == StimStudyDifficulty.Hard &&
+                state.character.smarts < StimProgressionStandards.StrongCoreStatStartsAt)
             {
-                requirement = "Requires 60 Smarts.";
+                requirement = $"Requires {StimProgressionStandards.StrongCoreStatStartsAt} Smarts.";
                 return false;
             }
             requirement = string.Empty;
@@ -186,18 +199,18 @@ namespace StimTycoon.Runtime
 
         public static string GetQualificationTier(int experience)
         {
-            if (experience >= 250) return "Advanced Qualification";
-            if (experience >= 125) return "Diploma Qualification";
-            if (experience >= 50) return "Certificate Qualification";
+            if (experience >= AdvancedQualificationExperience) return "Advanced Qualification";
+            if (experience >= DiplomaQualificationExperience) return "Diploma Qualification";
+            if (experience >= CertificateQualificationExperience) return "Certificate Qualification";
             return "Foundation Qualification";
         }
 
         public static int GetNextQualificationTierAt(int experience)
         {
-            if (experience < 50) return 50;
-            if (experience < 125) return 125;
-            if (experience < 250) return 250;
-            return 250;
+            if (experience < CertificateQualificationExperience) return CertificateQualificationExperience;
+            if (experience < DiplomaQualificationExperience) return DiplomaQualificationExperience;
+            if (experience < AdvancedQualificationExperience) return AdvancedQualificationExperience;
+            return AdvancedQualificationExperience;
         }
 
         private static bool TryGetStudySessionDeltas(
@@ -209,11 +222,11 @@ namespace StimTycoon.Runtime
             switch (difficulty)
             {
                 case StimStudyDifficulty.Easy:
-                    qualificationXp = 10; smarts = 1; happiness = 0; return true;
+                    qualificationXp = EasyStudyExperience; smarts = 1; happiness = 0; return true;
                 case StimStudyDifficulty.Medium:
-                    qualificationXp = 20; smarts = 1; happiness = -1; return true;
+                    qualificationXp = MediumStudyExperience; smarts = 1; happiness = -1; return true;
                 case StimStudyDifficulty.Hard:
-                    qualificationXp = 35; smarts = 2; happiness = -3; return true;
+                    qualificationXp = HardStudyExperience; smarts = 2; happiness = -3; return true;
                 default:
                     qualificationXp = 0; smarts = 0; happiness = 0; return false;
             }
@@ -396,16 +409,12 @@ namespace StimTycoon.Runtime
 
         public static int GetSkillLevel(int experience)
         {
-            experience = Math.Max(0, experience);
-            var level = 1;
-            while (25L * level * (level + 1) <= experience) level++;
-            return level;
+            return StimProgressionStandards.GetSkillLevel(experience);
         }
 
         public static int GetExperienceForSkillLevel(int level)
         {
-            if (level <= 1) return 0;
-            return (int)Math.Min(int.MaxValue, 25L * (level - 1) * level);
+            return StimProgressionStandards.GetSkillExperienceForLevel(level);
         }
 
         private static bool TryGetDeltas(

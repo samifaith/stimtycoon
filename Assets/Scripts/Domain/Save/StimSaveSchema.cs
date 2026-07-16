@@ -159,6 +159,7 @@ namespace StimTycoon.Saves
         public long cashMinorUnits;
         public long savingsMinorUnits;
         public long indexFundMinorUnits;
+        public long indexFundContributionsMinorUnits;
         public int savingsApyBasisPoints = 350;
         public long lastGrossIncomeMinorUnits;
         public long lastTaxesMinorUnits;
@@ -683,6 +684,11 @@ namespace StimTycoon.Saves
             {
                 result.isValid = false;
                 result.errors.Add("state.finances.indexFundMinorUnits cannot be negative");
+            }
+            if (finances.indexFundContributionsMinorUnits < 0)
+            {
+                result.isValid = false;
+                result.errors.Add("state.finances.indexFundContributionsMinorUnits cannot be negative");
             }
             if (finances.savingsApyBasisPoints < 0 || finances.savingsApyBasisPoints > 1000)
             {

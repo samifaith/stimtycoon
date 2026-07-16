@@ -1,6 +1,6 @@
 # Stim Tycoon — Completion Plan
 
-This is the operational roadmap after the July 15, 2026 code/documentation audit. The repository contains 340 EditMode test methods and implemented Milestones 7–12. The master README remains the product definition.
+This is the operational roadmap after the July 16, 2026 code/documentation audit. Milestones 1–12 and the M14 Bank/Education implementation are in place; M13 retains physical-layout gates and M15 is the next implementation milestone. The master README remains the product definition.
 
 ## Current position
 
@@ -11,7 +11,9 @@ This is the operational roadmap after the July 15, 2026 code/documentation audit
 - [x] M10 — relationship discovery, adult romance, family planning, children, parenting, custody, and safety validation
 - [x] M11 — three career industries and one complete operational business
 - [x] M12 — Main/Daily/Life goals, achievement rewards, transition records, orientation, and alpha content validation
-- [x] Clean Unity Run All result recorded for the current 340-test source suite on July 15, 2026
+- [x] M14 implementation — persistent Bank/Education workspaces, timed study claims, progression standards, discipline consequences, and portfolio contribution/performance reporting
+- [x] Clean Unity Run All result: 655 / 655 EditMode test cases passed on July 16, 2026
+- [ ] M13 exit verification — 320/390/430/768 widths, 100%/130% text, safe areas, touch targets, and live Play Mode visual approval
 
 ## Phase 5 — Experience Convergence
 
@@ -19,7 +21,7 @@ This is the operational roadmap after the July 15, 2026 code/documentation audit
 
 ### M13 — Navigation shell and destination framework
 
-> **Approved asset direction:** Free Casual GUI is the visual foundation, Space Exploration GUI Kit guides layout and information hierarchy, and Jelly UI Pack supplies reward interaction accents. Vendor folders stay untouched; Stim-owned UXML and the `StimTheme.uss`/`Components.uss` adapter layer own composition and styling. See `Assets/UI/Art/ASSET_MANIFEST.md`.
+> **Approved component direction:** the supplied colored mobile references are the visual authority and Stim-owned UI Toolkit is the responsive component system. Free Casual GUI contributes calibrated nine-sliced SVG controls plus palette/type/progress accents, Space Exploration GUI Kit contributes pictograms, and Jelly UI Pack contributes reward marks. Vendor folders stay untouched. See `Assets/UI/Art/ASSET_MANIFEST.md`.
 
 **Required implementation workflow:** GUI work is source-controlled UI Toolkit work and should be completed primarily in VS Code. UXML owns layout, USS owns presentation and vendor-sprite references, and C# owns binding, data, and behavior. Unity UI Builder is an optional preview/layout-adjustment tool for the same UXML/USS assets, not a separate source of truth.
 
@@ -34,7 +36,7 @@ Specification execution phases:
 - [x] Phase 1C — rebuild six-destination navigation with licensed Lucide SVGs, icon-over-label composition, active capsules, and 44-point targets.
 - [ ] Phase 1D — complete Play Mode overlap, truncation, safe-area, and 320/390/430/768-width verification.
 - [x] Add Unity Device Simulator profiles for iPhone 17, iPhone 17 Pro, and iPhone 17 Pro Max using native pixel dimensions and conservative Dynamic Island/home-indicator safe areas.
-- [ ] Phase 2 — extract and adopt reusable `SectionHeader`, `FeedRow`, `StatTile`, `AchievementRow`, `ActionCard`, and `InfoBanner` components. Canonical UXML contracts, shared USS hooks, runtime row factories, gallery coverage, and stable-root tests are implemented; full live-shell adoption remains.
+- [ ] Phase 2 — finish the custom responsive component system. `AppHeader` and `BottomNavigation` are live templates; static page composition stays in `StimVerticalSlice.uxml`; changing collections use the runtime factories. The other extracted UXML files are reviewable structure contracts until explicitly instantiated by a production screen.
 - [x] Replace temporary content-art glyphs with emoji imagery across live feed, life actions, education, career previews, goals, avatars, and reusable visual slots; retain Lucide SVGs for functional navigation.
 - [x] Add the compact four-stage age progression strip required by the Life wireframe and bind its active/completed/locked state to player age.
 - [ ] Phase 3 — add normalized original illustrations, one reusable mini-game framework with Study Match, and disabled/configurable Stim+ and sponsored placeholders.
@@ -68,7 +70,7 @@ The native display sizes come from Apple’s published technical specifications.
 1. Keep the imported vendor packs in their existing vendor-owned folders; place only Stim-owned derivatives, mappings, and manifest records in `Assets/UI/Art` and `Assets/UI/Icons`.
 2. Build destination screens as `.uxml` files under `Assets/UI/Screens` and reusable UI elements under the designated Stim-owned component directory.
 3. Use `Assets/UI/Styles/StimTheme.uss` as the canonical shared theme and `Components.uss` for reusable component rules; eliminate or explicitly map overlapping legacy theme files so the live scene cannot silently use the wrong stylesheet.
-4. Reference the approved pack sprites from USS backgrounds and component classes. A sprite being imported but never referenced by a live UXML/USS asset is not implementation.
+4. Use `scale-to-fit` for icons/progress and complete calibrated USS nine-slicing for approved Skyden SVG controls. Never stretch an undivided component image or place dynamic copy over an uncalibrated asset. A responsive component is complete when its hierarchy, density, states, text containment, and behavior match the reference contract.
 5. Preview and adjust the UXML with Unity UI Builder as useful, then verify the actual `StimVerticalSlice` scene in Play Mode.
 6. Give interactive UXML elements stable names and connect them to C# controllers/binders without moving gameplay rules out of the existing domain/runtime services.
 
@@ -87,10 +89,10 @@ Assets/UI/
 - [x] Implement a safe-area-aware persistent status header for age/calendar, cash/net worth, and Stim's actual stats/resources.
 - [x] Establish six destinations with exclusive active states: Life/Home, Education, Career/Business, Bank, Social/Family, and Goals/Legacy.
 - [x] Establish the approved three-pack UI direction through a replaceable Stim-owned USS adapter and an asset/license manifest, without reorganizing vendor imports.
-- [ ] Apply the imported GUI packs visibly to the live `StimVerticalSlice` UI through Stim-owned UXML/USS: use Free Casual GUI for the primary panel/button/control surfaces, Space Exploration GUI Kit to reshape headers, status clusters, navigation, and information-dense layouts, and Jelly UI Pack for reward, claim, achievement, and celebratory interaction accents.
+- [x] Apply the imported GUI packs visibly to the live `StimVerticalSlice` UI through Stim-owned UXML/USS: Free Casual GUI supplies calibrated nine-sliced SVG controls, the responsive palette/type language, and aspect-contained progress; Space Exploration GUI Kit owns navigation/destination/information identity; Jelly UI Pack supplies aspect-contained achievement/outcome marks plus the palette for claims, qualification, and inputs. Tests reject unsliced stretching and incomplete or unapproved nine-slicing.
 - [ ] Replace the current plain/default/placeholder presentation across the six-destination shell with the selected vendor sprites and Stim-owned themed derivatives; importing assets, listing them in the manifest, or defining unused USS tokens does not satisfy this task.
 - [x] Audit the overlapping `Assets/UI` and `Assets/StimTycoon/UI` UXML/USS trees, retain `Assets/UI/StimVerticalSlice.uxml` plus the four `Assets/UI/Styles` owners as production paths, and keep extracted templates under `Assets/StimTycoon/UI/Components`; structural tests protect these boundaries.
-- [ ] Complete and document a live Play Mode visual verification at 320/390/430/768 widths showing that the approved assets are actually rendered in the status header, navigation, representative destination panels, primary/secondary actions, and at least one reward/claim flow.
+- [ ] Complete and document a live Play Mode visual verification at 320/390/430/768 widths showing that approved aspect-contained assets and kit-matched responsive surfaces render correctly in the status header, navigation, representative destination panels, primary/secondary actions, and at least one reward/claim flow.
 - [ ] Add reusable destination headers, segmented tabs, modal sheets, requirement chips, action states, progress bars, timer/cooldown rows, and selected-navigation styling.
 - [ ] Replace default/placeholder scrollbars throughout the application with one polished Stim scrollbar and scroll-affordance system for page, list, sheet, tab, and nested-scroll contexts; do not solve visual quality by hiding required position feedback.
 - [ ] Complete the shared UI-detail pass for spacing, dividers, shadows, borders, pressed/hover/focus/disabled states, empty/loading/locked states, truncation/wrapping, and consistent icon/text alignment.
@@ -106,17 +108,21 @@ Assets/UI/
 
 ### M14 — Bank and Education convergence
 
+**Status:** implementation complete and automation-verified. The human comprehension portion of the exit gate remains a playtest item; it does not block starting M15.
+
 - [x] Build a Bank workspace with persistent Savings, Credit/Cash Flow, and Investing tabs; age-inappropriate adult tabs remain absent before age 18.
-- [ ] Preserve exact/percentage transfers, transparent 3.50% APY, annual projections, bounded transaction history, credit repayment, and atomic rollback.
-- [ ] Add readable portfolio contributions/performance without promised returns; keep casino content deferred.
-- [ ] Build an Education catalog with study disciplines, qualification badges, progress, visible requirements, and `Go` links for resolvable locks. Applied Finance, Community Health, and Sustainable Trades map migration-safely onto the established tracks; tier/XP text, requirements, and `Go` behavior are implemented, while dedicated badge presentation remains.
-- [ ] Build a focused study sheet with easy/medium/hard sessions, clear benefits/costs, duration/cooldown, progress, and single-claim completion. The focused preview, numeric tradeoffs, readiness, monthly timing, cancel/confirm behavior, and transactional commitment are implemented; timed progress/claim presentation remains.
-- [ ] Add at least three original disciplines with distinct career/event consequences using reusable content definitions. Three reusable authored disciplines now expose distinct real career consequences; discipline-specific event consequences remain.
-- [ ] Apply the documented stat, skill, qualification, wealth, task-reward, and locked-requirement thresholds; add reachability and pacing tests.
+- [x] Preserve exact/percentage transfers, transparent 3.50% APY, annual projections, bounded transaction history, credit repayment, and atomic rollback.
+- [x] Add readable portfolio contributions/performance without promised returns; keep casino content deferred.
+- [x] Build an Education catalog with study disciplines, qualification badges, progress, visible requirements, and `Go` links for resolvable locks. Applied Finance, Community Health, and Sustainable Trades map migration-safely onto the established tracks, with earned/current/locked tier badges and actionable requirements.
+- [x] Build a focused study sheet with easy/medium/hard sessions, clear benefits/costs, duration/cooldown, progress, and single-claim completion. Persisted 60/120/180-second sessions expose numeric previews, reserve the monthly action, show in-progress/claimable state in Education, withhold rewards until completion, and grant them through one transactional claim.
+- [x] Add at least three original disciplines with distinct career/event consequences using reusable content definitions. Applied Finance, Community Health, and Sustainable Trades now map to distinct career outcomes and track-gated annual education challenges.
+- [x] Apply the documented stat, skill, qualification, wealth, task-reward, and locked-requirement thresholds; add reachability and pacing tests. `StimProgressionStandards` now owns the core-stat bands, cumulative skill curve through Level 7, `50/125/250` qualification tiers, investing age/Smarts/emergency-savings boundary, `25/50/75` Finance ladder, level-scaled business progress, and Daily/Main/Life reward bands. Exact-boundary tests cover the shared contract and business locks; seeded pacing proves the easy-study route reaches Advanced within the teen window and the Finance ladder reaches Manager within two years of monthly actions.
 
 **Exit gate:** players can explain where money went, what interest/risk means, why a financial or education action is locked, and what each commitment changes.
 
 ### M15 — Home, inventory, Social, and family convergence
+
+**Execution order:** add the bounded inventory/timer save contract first; build the room/object Home workspace on that state; then converge discovery and relationship profiles; finish with the family workspace, NPC-trigger scheduler, reload/duplicate tests, and Play Mode validation.
 
 - [ ] Build a room/object Home workspace with visible condition, improvement progress, upgrade level, and interactive reading, training, rest, maintenance, and household objects.
 - [ ] Add bounded books/equipment inventory with stock/capacity, active timers, offline reconciliation, consumption, and single-claim completion.

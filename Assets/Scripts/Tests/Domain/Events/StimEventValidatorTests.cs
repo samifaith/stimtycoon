@@ -377,6 +377,23 @@ namespace StimTycoon.Tests.Domain.Events
         }
 
         [Test]
+        public void ValidateEvent_PassesAuthoredEducationDisciplineSet()
+        {
+            var events = new[]
+            {
+                RepresentativeStimEvents.CreateAppliedFinanceChallenge(),
+                RepresentativeStimEvents.CreateCommunityHealthChallenge(),
+                RepresentativeStimEvents.CreateSustainableTradesChallenge()
+            };
+
+            foreach (var evt in events)
+            {
+                var result = StimEventValidator.ValidateEvent(evt);
+                Assert.IsTrue(result.isValid, StimEventValidator.GetValidationSummary(result, evt.id));
+            }
+        }
+
+        [Test]
         public void GetValidationSummary_CreatesHumanReadableSummary()
         {
             var result = new EventValidationResult();

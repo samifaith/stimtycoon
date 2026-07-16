@@ -131,6 +131,11 @@ namespace StimTycoon.Runtime
     /// </summary>
     public sealed class StimGameSessionService
     {
+        public const int IndexInvestmentMinimumAge = StimProgressionStandards.IndexInvestmentMinimumAge;
+        public const int IndexInvestmentMinimumSmarts = StimProgressionStandards.IndexInvestmentMinimumSmarts;
+        public const long IndexInvestmentMinimumEmergencySavingsMinorUnits =
+            StimProgressionStandards.IndexInvestmentMinimumEmergencySavingsMinorUnits;
+
         private readonly IStimEventCatalog eventCatalog;
         private readonly IStimSaveRepository saveRepository;
         private readonly StimOutcomeResolver outcomeResolver;
@@ -696,23 +701,26 @@ namespace StimTycoon.Runtime
                 requirement = "Financial information is unavailable.";
                 return false;
             }
-            if (state.character.age < 18)
+            if (state.character.age < IndexInvestmentMinimumAge)
             {
-                requirement = "Index investing unlocks at age 18.";
+                requirement = $"Index investing unlocks at age {IndexInvestmentMinimumAge}.";
                 return false;
             }
-            if (state.character.smarts < 55)
+            if (state.character.smarts < IndexInvestmentMinimumSmarts)
             {
-                requirement = "Reach 55 Smarts to understand long-term investment risk.";
+                requirement = $"Reach {IndexInvestmentMinimumSmarts} Smarts to understand long-term investment risk.";
                 return false;
             }
             if (state.education == null ||
-                !state.education.graduatedSecondary && state.education.qualificationExperience < 50)
+                !state.education.graduatedSecondary &&
+                state.education.qualificationExperience < StimEducationActionService.CertificateQualificationExperience)
             {
                 requirement = "Complete secondary school or reach the Certificate qualification tier.";
                 return false;
             }
-            var requiredSavings = Math.Max(50000L, state.finances.monthlyLivingExpensesMinorUnits);
+            var requiredSavings = Math.Max(
+                IndexInvestmentMinimumEmergencySavingsMinorUnits,
+                state.finances.monthlyLivingExpensesMinorUnits);
             if (state.finances.savingsMinorUnits < requiredSavings)
             {
                 requirement = $"Build an emergency savings cushion of {FormatMoney(requiredSavings)} first.";
@@ -760,6 +768,7 @@ namespace StimTycoon.Runtime
             var finances = save.state.finances;
             finances.cashMinorUnits -= amountMinorUnits;
             finances.indexFundMinorUnits += amountMinorUnits;
+            finances.indexFundContributionsMinorUnits += amountMinorUnits;
             save.state.moneyTransactions.Add(new StimMoneyTransactionState
             {
                 transactionId = $"money_{save.revision}_index_investment",
@@ -2317,20 +2326,71 @@ namespace StimTycoon.Runtime
             return StimEducationActionService.GetStudySessionDefinitions(ActiveSave?.state);
         }
 
-        public bool TryPerformStudySession(StimStudyDifficulty difficulty, out string summary)
+        public bool TryStartStudySession(
+            StimStudyDifficulty difficulty, string instanceId, out string summary)
         {
+            var definitions = StimEducationActionService.GetStudySessionDefinitions(ActiveSave?.state);
+            var actionId = StimEducationActionService.GetStudySessionActionId(difficulty);
+            var definition = definitions.Find(candidate => candidate.id == actionId);
+            var request = new StimActionRequest(actionId, instanceId);
             var succeeded = transactionRunner.TryExecute(
                 ActiveSave,
                 candidate =>
                 {
-                    var result = educationActionService.ApplyStudySession(candidate, difficulty);
-                    if (result.Succeeded) EvaluateAchievements(candidate);
-                    return result;
+                    var result = actionLifecycleService.Start(candidate, definition, request, utcNow());
+                    if (!result.Succeeded) return result;
+                    candidate.state.statuses ??= new List<StimStatusState>();
+                    candidate.state.statuses.Add(new StimStatusState
+                    {
+                        statusId = StimEducationActionService.MonthlyCooldownStatusId,
+                        remainingMonths = 1
+                    });
+                    return StimTransactionMutationResult.Success(
+                        $"{difficulty} study session started · rewards available when the timer completes.");
                 },
                 out var committedSave,
                 out summary);
             if (succeeded) ActiveSave = committedSave;
             return succeeded;
+        }
+
+        public bool TryClaimStudySession(string instanceId, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate =>
+                {
+                    actionLifecycleService.Reconcile(candidate, utcNow());
+                    var action = candidate.state.actionProgress?.Find(item => item?.instanceId == instanceId);
+                    const string prefix = "education.study.";
+                    if (action == null || string.IsNullOrEmpty(action.actionId) ||
+                        !action.actionId.StartsWith(prefix, StringComparison.Ordinal) ||
+                        !Enum.TryParse(action.actionId.Substring(prefix.Length), true,
+                            out StimStudyDifficulty difficulty))
+                        return StimTransactionMutationResult.Failure("Study session was not found.");
+                    var claim = actionLifecycleService.Claim(candidate, instanceId, utcNow());
+                    if (!claim.Succeeded) return claim;
+                    candidate.state.statuses?.RemoveAll(status =>
+                        status?.statusId == StimEducationActionService.MonthlyCooldownStatusId);
+                    var reward = educationActionService.ApplyStudySession(candidate, difficulty);
+                    if (!reward.Succeeded) return reward;
+                    action.resultSummary = reward.Summary;
+                    EvaluateAchievements(candidate);
+                    return reward;
+                },
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool IsActionReadyToClaim(StimActionProgressState action)
+        {
+            if (action == null) return false;
+            if (action.state == StimActionState.Claimable.ToString()) return true;
+            return action.state == StimActionState.InProgress.ToString() &&
+                   DateTimeOffset.TryParse(action.completesAtUtc, out var completesAt) &&
+                   utcNow() >= completesAt;
         }
 
         public bool TryStartAction(
@@ -2658,7 +2718,8 @@ namespace StimTycoon.Runtime
                         return StimTransactionMutationResult.Failure("Local Services Co. has reached its current maximum level.");
                     if (business.actionPoints < 1)
                         return StimTransactionMutationResult.Failure("No business action points remain this month.");
-                    var progressRequired = business.level * 25;
+                    var progressRequired =
+                        StimProgressionStandards.GetBusinessUpgradeProgressRequired(business.level);
                     var upgradeCost = business.level * 150000L;
                     if (business.operatingProgress < progressRequired)
                         return StimTransactionMutationResult.Failure($"Upgrade requires {progressRequired} operating progress.");
@@ -2919,9 +2980,9 @@ namespace StimTycoon.Runtime
         {
             switch (roleTitle)
             {
-                case "Junior Associate": nextRole = "Associate"; nextSalaryMinorUnits = 5500000; progressRequired = 25; return true;
-                case "Associate": nextRole = "Senior Associate"; nextSalaryMinorUnits = 7500000; progressRequired = 50; return true;
-                case "Senior Associate": nextRole = "Manager"; nextSalaryMinorUnits = 10000000; progressRequired = 75; return true;
+                case "Junior Associate": nextRole = "Associate"; nextSalaryMinorUnits = 5500000; progressRequired = StimProgressionStandards.FirstCareerPromotionProgress; return true;
+                case "Associate": nextRole = "Senior Associate"; nextSalaryMinorUnits = 7500000; progressRequired = StimProgressionStandards.SecondCareerPromotionProgress; return true;
+                case "Senior Associate": nextRole = "Manager"; nextSalaryMinorUnits = 10000000; progressRequired = StimProgressionStandards.ThirdCareerPromotionProgress; return true;
                 default: nextRole = null; nextSalaryMinorUnits = 0; progressRequired = 0; return false;
             }
         }
@@ -2957,13 +3018,17 @@ namespace StimTycoon.Runtime
                 requirement = string.Empty;
                 return true;
             }
-            var requiredExperience = education.studyTrack == "general" ? 125 : 50;
+            var requiredExperience = education.studyTrack == "general"
+                ? StimProgressionStandards.DiplomaQualificationExperience
+                : StimProgressionStandards.CertificateQualificationExperience;
             if (education.qualificationExperience >= requiredExperience)
             {
                 requirement = string.Empty;
                 return true;
             }
-            var tier = requiredExperience == 125 ? "Diploma" : "Certificate";
+            var tier = requiredExperience == StimProgressionStandards.DiplomaQualificationExperience
+                ? "Diploma"
+                : "Certificate";
             requirement = $"Requires a {tier} qualification ({requiredExperience} XP) for the selected track.";
             return false;
         }
@@ -3965,14 +4030,14 @@ namespace StimTycoon.Runtime
             {
                 goalId = "main_first_career", category = "main", title = "Start a Career",
                 description = "Get hired into your first career.", destination = "career",
-                progressRequired = 1, rewardMinorUnits = 50000,
+                progressRequired = 1, rewardMinorUnits = StimProgressionStandards.MainGoalRewardMinorUnits,
                 createdAtAge = state.character.age, createdAtMonth = state.calendar.monthOfYear
             });
             EnsureGoal(state.goals, new StimGoalState
             {
                 goalId = "life_net_worth_100k", category = "life", title = "Build Security",
                 description = "Reach $100,000 net worth.", destination = "money",
-                progressRequired = 10000000, rewardMinorUnits = 250000,
+                progressRequired = 10000000, rewardMinorUnits = StimProgressionStandards.LifeGoalRewardMinorUnits,
                 createdAtAge = state.character.age, createdAtMonth = state.calendar.monthOfYear
             });
             var dailyId = $"daily_focus_{state.character.age}_{state.calendar.monthOfYear}";
@@ -3985,7 +4050,7 @@ namespace StimTycoon.Runtime
             {
                 goalId = dailyId, category = "daily", title = "Choose a Focus",
                 description = "Complete one contextual focus activity this month.", destination = "life",
-                progressRequired = 1, rewardMinorUnits = 1000,
+                progressRequired = 1, rewardMinorUnits = StimProgressionStandards.DailyGoalRewardMinorUnits,
                 createdAtAge = state.character.age, createdAtMonth = state.calendar.monthOfYear
             });
 

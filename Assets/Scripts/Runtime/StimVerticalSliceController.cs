@@ -164,6 +164,8 @@ namespace StimTycoon.Runtime
         private VisualElement creditRepaymentInput;
         private Label creditRepaymentFeedback;
         private Label indexFundValue;
+        private Label indexFundContributions;
+        private Label indexFundPerformance;
         private Label indexInvestmentRequirement;
         private VisualElement indexInvestmentInput;
         private Label indexInvestmentFeedback;
@@ -354,6 +356,8 @@ namespace StimTycoon.Runtime
             creditRepaymentInput = root.Q<VisualElement>("credit-repayment-input");
             creditRepaymentFeedback = root.Q<Label>("credit-repayment-feedback");
             indexFundValue = root.Q<Label>("index-fund-value");
+            indexFundContributions = root.Q<Label>("index-fund-contributions");
+            indexFundPerformance = root.Q<Label>("index-fund-performance");
             indexInvestmentRequirement = root.Q<Label>("index-investment-requirement");
             indexInvestmentInput = root.Q<VisualElement>("index-investment-input");
             indexInvestmentFeedback = root.Q<Label>("index-investment-feedback");
@@ -424,6 +428,9 @@ namespace StimTycoon.Runtime
             catalog.Upsert(RepresentativeStimEvents.CreateProposal());
             catalog.Upsert(RepresentativeStimEvents.CreateWedding());
             catalog.Upsert(RepresentativeStimEvents.CreateMarriageCrossroads());
+            catalog.Upsert(RepresentativeStimEvents.CreateAppliedFinanceChallenge());
+            catalog.Upsert(RepresentativeStimEvents.CreateCommunityHealthChallenge());
+            catalog.Upsert(RepresentativeStimEvents.CreateSustainableTradesChallenge());
             gameSession = new StimGameSessionService(catalog, new NativeStimSaveRepository());
             var loadedExistingLife = gameSession.TryLoadLatest(out _);
 
@@ -473,7 +480,8 @@ namespace StimTycoon.Runtime
                 savingsProjection == null ||
                 creditBalanceValue == null || creditDetailValue == null || availableCreditValue == null ||
                 creditRepaymentInput == null || creditRepaymentFeedback == null ||
-                indexFundValue == null || indexInvestmentRequirement == null ||
+                indexFundValue == null || indexFundContributions == null || indexFundPerformance == null ||
+                indexInvestmentRequirement == null ||
                 indexInvestmentInput == null || indexInvestmentFeedback == null ||
                 bankTabSavings == null || bankTabCredit == null || bankTabInvesting == null ||
                 bankPanelSavings == null || bankPanelCredit == null || bankPanelInvesting == null ||
@@ -1150,6 +1158,10 @@ namespace StimTycoon.Runtime
             creditRepaymentInput.Add(StimActionInputFactory.CreateAmountSelector(
                 Math.Min(state.finances.cashMinorUnits, creditBalance), PerformCreditRepayment));
             indexFundValue.text = $"Index fund: {FormatMoney(state.finances.indexFundMinorUnits)}";
+            indexFundContributions.text = $"Contributions: {FormatMoney(state.finances.indexFundContributionsMinorUnits)}";
+            var indexFundPerformanceMinorUnits =
+                state.finances.indexFundMinorUnits - state.finances.indexFundContributionsMinorUnits;
+            indexFundPerformance.text = $"Market performance: {FormatSignedMoney(indexFundPerformanceMinorUnits)}";
             var canInvest = StimGameSessionService.TryGetIndexInvestmentRequirement(state, out var investmentRequirement);
             indexInvestmentRequirement.text = canInvest
                 ? "Unlocked · Minimum contribution $10"
@@ -1398,6 +1410,7 @@ namespace StimTycoon.Runtime
                 !string.IsNullOrEmpty(state.education.studyTrack))
             {
                 AddQualificationSummary();
+                AddStudySessionProgress(state);
                 foreach (var definition in gameSession.GetStudySessionDefinitions())
                 {
                     var suffix = definition.id.Substring("education.study.".Length);
@@ -1533,15 +1546,50 @@ namespace StimTycoon.Runtime
             track.AddToClassList("st-action-card-title");
             var tier = new Label(StimEducationActionService.GetQualificationTier(experience));
             tier.AddToClassList("st-education-level");
-            var progress = new Label(experience >= 250
+            var badges = new VisualElement { name = "qualification-badges" };
+            badges.AddToClassList("st-qualification-badges");
+            AddQualificationBadge(badges, "foundation", "Foundation", 0, experience);
+            AddQualificationBadge(badges, "certificate", "Certificate",
+                StimEducationActionService.CertificateQualificationExperience, experience);
+            AddQualificationBadge(badges, "diploma", "Diploma",
+                StimEducationActionService.DiplomaQualificationExperience, experience);
+            AddQualificationBadge(badges, "advanced", "Advanced",
+                StimEducationActionService.AdvancedQualificationExperience, experience);
+            var progress = new Label(
+                experience >= StimEducationActionService.AdvancedQualificationExperience
                 ? $"{experience} XP · Highest tier reached"
                 : $"{experience} / {nextTierAt} Qualification XP");
             progress.name = "qualification-progress";
             progress.AddToClassList("st-education-progress");
             summary.Add(track);
             summary.Add(tier);
+            summary.Add(badges);
             summary.Add(progress);
             educationActions.Add(summary);
+        }
+
+        private static void AddQualificationBadge(
+            VisualElement badges, string id, string label, int threshold, int experience)
+        {
+            var earned = experience >= threshold;
+            var currentThreshold = experience >= StimEducationActionService.AdvancedQualificationExperience
+                ? StimEducationActionService.AdvancedQualificationExperience
+                : experience >= StimEducationActionService.DiplomaQualificationExperience
+                    ? StimEducationActionService.DiplomaQualificationExperience
+                    : experience >= StimEducationActionService.CertificateQualificationExperience
+                        ? StimEducationActionService.CertificateQualificationExperience
+                        : 0;
+            var current = threshold == currentThreshold;
+            var badge = new Label(earned ? $"✓ {label}" : $"🔒 {label} · {threshold} XP")
+            {
+                name = $"qualification-badge-{id}",
+                tooltip = earned ? $"{label} qualification earned" : $"Requires {threshold} qualification XP"
+            };
+            badge.AddToClassList("st-qualification-badge");
+            badge.EnableInClassList("earned", earned);
+            badge.EnableInClassList("current", current);
+            badge.EnableInClassList("locked", !earned);
+            badges.Add(badge);
         }
 
         private void ShowStudySessionSheet(
@@ -1558,7 +1606,7 @@ namespace StimTycoon.Runtime
                 : string.Join(" · ", definition.previews.ConvertAll(delta =>
                     $"{delta.targetId} {(delta.amount >= 0 ? "+" : "−")}{Math.Abs(delta.amount)}"));
             studySessionTiming.text = definition.cooldownMonths > 0
-                ? $"Uses this month's school action · Available again after advancing a month"
+                ? $"{definition.durationSeconds} seconds · Uses this month's school action · Available again after advancing a month"
                 : "No monthly cooldown";
             studySessionRequirement.text = string.IsNullOrEmpty(definition.lockedReason)
                 ? "Ready to begin"
@@ -1578,16 +1626,17 @@ namespace StimTycoon.Runtime
             if (selectedStudyDefinition == null) return;
             var difficulty = selectedStudyDifficulty;
             CloseStudySessionSheet();
-            PerformStudySession(difficulty);
+            StartTimedStudySession(difficulty);
         }
 
-        private void PerformStudySession(StimStudyDifficulty difficulty)
+        private void StartTimedStudySession(StimStudyDifficulty difficulty)
         {
-            var succeeded = gameSession.TryPerformStudySession(difficulty, out var summary);
-            eventCategory.text = succeeded ? "QUALIFICATION PROGRESS" : "SESSION LOCKED";
+            var instanceId = $"focused-study-{gameSession.ActiveSave.revision + 1}-{difficulty.ToString().ToLowerInvariant()}";
+            var succeeded = gameSession.TryStartStudySession(difficulty, instanceId, out var summary);
+            eventCategory.text = succeeded ? "STUDY IN PROGRESS" : "SESSION LOCKED";
             eventTitle.text = $"{difficulty} Study Session";
             eventBody.text = succeeded
-                ? "Your focused study advanced your selected qualification."
+                ? "Your session is saved. Return to Education to claim its rewards when the timer completes."
                 : "Review the study-track, Smarts, and monthly-action requirements.";
             resultText.text = summary;
             resultEffects.text = string.Empty;
@@ -1597,6 +1646,57 @@ namespace StimTycoon.Runtime
             eventContinue.RemoveFromClassList("hidden");
             eventSheet.RemoveFromClassList("hidden");
             if (!succeeded) return;
+            RefreshEducation();
+            RefreshHeader();
+            RefreshFeed();
+        }
+
+        private void AddStudySessionProgress(StimGameState state)
+        {
+            if (state.actionProgress == null) return;
+            foreach (var action in state.actionProgress)
+            {
+                if (action == null || string.IsNullOrEmpty(action.actionId) ||
+                    !action.actionId.StartsWith("education.study.", StringComparison.Ordinal) ||
+                    action.state == StimActionState.Complete.ToString()) continue;
+                var ready = gameSession.IsActionReadyToClaim(action);
+                var card = new VisualElement { name = $"study-progress-{action.instanceId}" };
+                card.AddToClassList("st-action-card");
+                card.AddToClassList("st-study-progress-card");
+                var title = new Label(ToDisplayName(action.actionId.Substring("education.study.".Length)) + " Study Session");
+                title.AddToClassList("st-action-card-title");
+                var status = new Label(ready ? "Complete · reward ready to claim" : "In progress · rewards pending");
+                status.AddToClassList("st-action-card-progress");
+                var capturedInstanceId = action.instanceId;
+                var claim = new Button(() => ClaimTimedStudySession(capturedInstanceId))
+                {
+                    name = $"study-claim-{action.instanceId}",
+                    text = ready ? "CLAIM REWARD" : "IN PROGRESS"
+                };
+                claim.AddToClassList("st-action-commit");
+                claim.AddToClassList("st-brand-jelly-claim");
+                claim.SetEnabled(ready);
+                card.Add(title);
+                card.Add(status);
+                card.Add(claim);
+                educationActions.Add(card);
+            }
+        }
+
+        private void ClaimTimedStudySession(string instanceId)
+        {
+            var succeeded = gameSession.TryClaimStudySession(instanceId, out var summary);
+            eventCategory.text = succeeded ? "QUALIFICATION PROGRESS" : "SESSION NOT READY";
+            eventTitle.text = "Study Session Reward";
+            eventBody.text = succeeded
+                ? "Your completed focused study advanced your selected qualification."
+                : "The session must finish before its reward can be claimed.";
+            resultText.text = summary;
+            resultCard.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            if (!succeeded) return;
+            RefreshEducation();
             RefreshHeader();
             RefreshFeed();
         }
@@ -1817,8 +1917,10 @@ namespace StimTycoon.Runtime
                     if (business.status != "operating") return Fail("Start a business first", out requirement);
                     if (business.level >= 3) return Fail("Maximum business level reached", out requirement);
                     if (business.actionPoints < 1) return Fail("No action points remain this month", out requirement);
-                    if (business.operatingProgress < business.level * 25)
-                        return Fail($"Requires {business.level * 25} operating progress", out requirement);
+                    var progressRequired =
+                        StimProgressionStandards.GetBusinessUpgradeProgressRequired(business.level);
+                    if (business.operatingProgress < progressRequired)
+                        return Fail($"Requires {progressRequired} operating progress", out requirement);
                     if (state.finances.cashMinorUnits < business.level * 150000L)
                         return Fail($"Requires {FormatMoney(business.level * 150000L)} cash", out requirement);
                     return true;

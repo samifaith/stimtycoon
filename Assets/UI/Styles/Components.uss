@@ -198,6 +198,39 @@
     border-radius: 14px;
 }
 
+.st-qualification-badges {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.st-qualification-badge {
+    margin-right: 5px;
+    margin-bottom: 5px;
+    padding: 5px 8px;
+    border-width: 1px;
+    border-color: var(--st-border-soft);
+    border-radius: 999px;
+    color: var(--st-text-secondary);
+    font-size: 11px;
+}
+
+.st-qualification-badge.earned {
+    background-color: rgb(232, 248, 236);
+    border-color: var(--st-success-500);
+    color: var(--st-text-primary);
+}
+
+.st-qualification-badge.current {
+    border-width: 2px;
+    -unity-font-style: bold;
+}
+
+.st-qualification-badge.locked {
+    opacity: 0.7;
+}
+
 .st-action-card {
     width: 48%;
     min-height: 112px;
@@ -539,6 +572,26 @@
     font-size: 23px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
+}
+
+.st-destination-icon-frame {
+    width: 54px;
+    height: 54px;
+    margin-right: 10px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Containers/Medium/homepage-icon-container-medium.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-destination-icon-frame > .st-destination-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 0;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    border-radius: 0;
 }
 
 .st-destination-heading-copy {
@@ -1109,6 +1162,147 @@
     color: rgba(0, 0, 0, 0);
 }
 
+/* Asset-kit production layer. Runtime factories inherit these mappings. */
+.st-asset-kits-integrated .st-polished-card,
+.st-asset-kits-integrated .stim-pack-panel,
+.st-asset-kits-integrated .st-card,
+.st-asset-kits-integrated .st-action-card,
+.st-asset-kits-integrated .st-preview-panel,
+.st-asset-kits-integrated .st-career-preview {
+    min-width: 0;
+    background-color: rgb(255, 255, 255);
+    border-width: 1px;
+    border-color: var(--st-border-soft);
+    border-radius: 16px;
+    padding: 14px;
+}
+
+.st-asset-kits-integrated .st-action-commit,
+.st-asset-kits-integrated .st-amount-apply,
+.st-asset-kits-integrated .st-payment-option {
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px 12px;
+    background-color: var(--st-cyan-600);
+    border-width: 0;
+    border-radius: 18px;
+    color: white;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+}
+
+.st-asset-kits-integrated .st-percentage-button {
+    min-height: 44px;
+    padding: 8px;
+    background-color: rgb(255, 246, 241);
+    border-width: 1px;
+    border-color: rgb(219, 195, 167);
+    border-radius: 14px;
+    color: var(--st-text-primary);
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.st-asset-kits-integrated .st-percentage-button.active {
+    background-color: var(--st-cyan-600);
+    border-color: var(--st-cyan-600);
+    color: white;
+}
+
+.st-asset-kits-integrated .st-stat-track,
+.st-asset-kits-integrated .st-education-track,
+.st-asset-kits-integrated .st-career-track,
+.st-asset-kits-integrated .st-relationship-track,
+.st-asset-kits-integrated .st-relationship-card-track,
+.st-asset-kits-integrated .st-xp-pill {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Other/Progress_Bar.svg.svg");
+    -unity-background-scale-mode: scale-to-fit;
+    border-width: 0;
+}
+
+.st-asset-kits-integrated .stim-pack-reward-button,
+.st-asset-kits-integrated .st-brand-jelly-claim {
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px 10px;
+    background-color: var(--stim-pack-reward);
+    border-width: 2px;
+    border-color: var(--stim-pack-reward-accent);
+    border-radius: 18px;
+    color: white;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+}
+
+.st-asset-kits-integrated .st-achievement-row {
+    min-height: 58px;
+    margin-bottom: 6px;
+    padding: 8px 9px;
+    background-color: rgba(255, 255, 255, 0.94);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 4px;
+    border-top-color: var(--st-border-blue);
+    border-right-color: var(--st-border-blue);
+    border-bottom-color: var(--st-border-blue);
+    border-left-color: var(--stim-pack-reward);
+    border-radius: 14px;
+}
+
+.st-asset-kits-integrated .st-info-icon {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/info-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+    color: rgba(0, 0, 0, 0);
+}
+
+.st-asset-kits-integrated .st-relationship-card,
+.st-asset-kits-integrated .st-path-row,
+.st-asset-kits-integrated .st-account-row.interactive,
+.st-asset-kits-integrated .st-section-row {
+    min-width: 0;
+    background-color: rgb(255, 255, 255);
+    border-width: 1px;
+    border-color: var(--st-border-soft);
+    border-radius: 14px;
+    padding: 10px 15px;
+}
+
+.st-asset-kits-integrated .st-path-row.locked {
+    -unity-background-image-tint-color: rgb(205, 205, 205);
+}
+
+.st-asset-kits-integrated .st-education-catalog-row.selected {
+    -unity-background-image-tint-color: rgb(225, 245, 255);
+    border-left-width: 3px;
+    border-left-color: var(--st-purple-500);
+}
+
+.st-asset-kits-integrated .st-exact-amount .unity-text-input {
+    min-width: 0;
+    background-color: white;
+    border-width: 2px;
+    border-color: var(--st-border-purple);
+    border-radius: 14px;
+    padding-left: 18px;
+    padding-right: 18px;
+}
+
+.st-asset-kits-integrated .st-qualification-badge.current {
+    max-width: 100%;
+    background-color: var(--stim-pack-reward);
+    border-width: 2px;
+    border-color: var(--stim-pack-reward-accent);
+    border-radius: 14px;
+    color: white;
+    padding-left: 12px;
+    padding-right: 12px;
+    white-space: normal;
+}
+
 .st-achievement-copy {
     flex-grow: 1;
     flex-shrink: 1;
@@ -1172,4 +1366,65 @@
     padding-right: 3px;
     border-radius: 9px;
     font-size: 8px;
+}
+
+/*
+ * Stim-owned fallback components use the kit's quality bar without stretching
+ * decorative vendor art over dynamic content.
+ */
+.st-asset-kits-integrated .st-stat-tile,
+.st-asset-kits-integrated .st-qualification-summary,
+.st-asset-kits-integrated .st-info-callout,
+.st-asset-kits-integrated .st-empty-state,
+.st-asset-kits-integrated .st-visual-placeholder {
+    background-color: rgba(248, 252, 255, 0.96);
+    border-width: 1px;
+    border-color: var(--st-border-blue);
+    border-radius: 18px;
+}
+
+.st-asset-kits-integrated .st-account-row {
+    margin-bottom: 6px;
+    padding: 8px 10px;
+    background-color: rgba(255, 255, 255, 0.94);
+    border-width: 1px;
+    border-color: var(--st-border-blue);
+    border-radius: 14px;
+}
+
+.st-asset-kits-integrated .st-account-row-icon,
+.st-asset-kits-integrated .st-feed-icon,
+.st-asset-kits-integrated .st-achievement-icon,
+.st-asset-kits-integrated .st-path-icon {
+    border-width: 1px;
+    border-color: var(--st-border-blue);
+    border-radius: 12px;
+}
+
+.st-asset-kits-integrated .st-path-icon {
+    height: 38px;
+    background-color: var(--st-surface-purple);
+}
+
+.st-asset-kits-integrated .st-feed-result-chip,
+.st-asset-kits-integrated .st-achievement-category,
+.st-asset-kits-integrated .st-qualification-badge {
+    border-width: 1px;
+    border-color: var(--st-border-soft);
+    border-radius: 999px;
+}
+
+.st-asset-kits-integrated .st-action-requirement-chip,
+.st-asset-kits-integrated .st-path-reward,
+.st-asset-kits-integrated .st-path-lock {
+    border-width: 1px;
+    border-color: var(--st-border-soft);
+    border-radius: 12px;
+}
+
+.st-asset-kits-integrated .st-skill-track {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Other/Progress_Bar.svg.svg");
+    -unity-background-scale-mode: scale-to-fit;
+    border-width: 0;
 }

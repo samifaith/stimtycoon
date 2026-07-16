@@ -6,7 +6,7 @@
     <Style src="Styles/Components.uss" />
     <Style src="Styles/Destinations.uss" />
 
-    <ui:VisualElement name="screen" class="screen st-life-screen">
+    <ui:VisualElement name="screen" class="screen st-life-screen st-asset-kits-integrated">
         <ui:Instance template="AppHeader" class="st-shell-header-slot" />
 
         <ui:ScrollView name="life-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-life-scroll">
@@ -118,7 +118,7 @@
                     <ui:Button name="close-life-summary" text="‹  BACK" class="st-icon-button st-life-summary-back" tooltip="Return to the previous destination" />
                     <ui:Label text="LIFE SUMMARY" class="st-section-kicker" />
                 </ui:VisualElement>
-                <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:Label text="👤" class="st-destination-icon" /><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Your life at a glance" class="st-social-title" /><ui:Label text="Progress, strengths, home, skills, and current stage." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
+                <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:VisualElement class="st-destination-icon-frame st-brand-space-container"><ui:Label text="👤" class="st-destination-icon st-brand-space-icon icon-badge" /></ui:VisualElement><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Your life at a glance" class="st-social-title" /><ui:Label text="Progress, strengths, home, skills, and current stage." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
 
                 <ui:VisualElement name="age-progression" class="st-polished-card st-component-card st-age-progression">
                     <ui:VisualElement class="st-age-strip-heading"><ui:Label text="AGE PROGRESSION" class="st-section-kicker" /><ui:Label name="age-stage-summary" text="Current life stage" class="st-age-strip-summary" /></ui:VisualElement>
@@ -165,7 +165,7 @@
 
         <ui:ScrollView name="money-view" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-money-view hidden">
             <ui:VisualElement class="st-money-content">
-                <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:Label text="💵" class="st-destination-icon" /><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Earn and manage" class="st-social-title" /><ui:Label text="Work, save, repay credit, and invest for the long term." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
+                <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:VisualElement class="st-destination-icon-frame st-brand-space-container"><ui:Label text="💵" class="st-destination-icon st-brand-space-icon icon-buy" /></ui:VisualElement><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Earn and manage" class="st-social-title" /><ui:Label text="Work, save, repay credit, and invest for the long term." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
                 <ui:VisualElement name="net-worth-card" class="st-polished-card st-worth-card">
                     <ui:VisualElement class="st-worth-copy">
                         <ui:Label text="TOTAL NET WORTH" class="st-section-kicker" />
@@ -207,7 +207,7 @@
                     <ui:Label text="OPTIONAL MANUAL WORK" class="st-section-kicker" />
                     <ui:Label name="manual-work-role" text="Get a job to begin" class="st-manual-work-role" />
                     <ui:Label name="manual-work-rate" text="$0.00 per hour" class="st-manual-work-rate" />
-                    <ui:Button name="manual-work-tap" text="WORK 1 HOUR" class="st-manual-work-button stim-pack-foundation-button stim-pack-interaction-pop" />
+                    <ui:Button name="manual-work-tap" text="WORK 1 HOUR" class="st-manual-work-button st-brand-skyden-primary stim-pack-foundation-button stim-pack-interaction-pop" />
                     <ui:Label name="manual-work-feedback" text="" class="st-manual-work-feedback" />
                 </ui:VisualElement>
                 </ui:VisualElement>
@@ -235,6 +235,8 @@
                 <ui:VisualElement name="index-investment-card" class="st-polished-card st-money-history-card">
                     <ui:Label text="LONG-TERM INVESTING" class="st-section-kicker" />
                     <ui:Label name="index-fund-value" text="Index fund: $0" class="st-savings-balance" />
+                    <ui:Label name="index-fund-contributions" text="Contributions: $0" class="st-money-help" />
+                    <ui:Label name="index-fund-performance" text="Market performance: $0" class="st-money-help" />
                     <ui:Label name="index-investment-requirement" text="Requirements loading" class="st-money-help" />
                     <ui:Label text="Broad-market investing can rise or fall. No return is guaranteed, and emergency savings comes first." class="st-money-help" />
                     <ui:VisualElement name="index-investment-input" />
@@ -247,8 +249,8 @@
         <ui:ScrollView name="social-view" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-social-view hidden">
             <ui:VisualElement class="st-social-content">
                 <ui:VisualElement name="relationship-list-view">
-                    <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:Label text="👥" class="st-destination-icon st-brand-space-icon icon-heart" /><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Your people" class="st-social-title" /><ui:Label text="Relationships grow through the time and choices you share." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
-                    <ui:Button name="discover-compatible-person" text="DISCOVER SOMEONE COMPATIBLE" class="st-social-discover stim-pack-secondary-button stim-pack-interaction-pop" />
+                    <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:VisualElement class="st-destination-icon-frame st-brand-space-container"><ui:Label text="👥" class="st-destination-icon st-brand-space-icon icon-heart" /></ui:VisualElement><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Your people" class="st-social-title" /><ui:Label text="Relationships grow through the time and choices you share." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
+                    <ui:Button name="discover-compatible-person" text="DISCOVER SOMEONE COMPATIBLE" class="st-social-discover st-brand-skyden-secondary stim-pack-secondary-button stim-pack-interaction-pop" />
                     <ui:Label name="relationship-discovery-feedback" text="" class="st-manual-work-feedback" />
                     <ui:VisualElement name="relationship-list" class="st-relationship-list" />
                 </ui:VisualElement>
@@ -272,7 +274,7 @@
 
         <ui:ScrollView name="education-view" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-destination-view hidden">
             <ui:VisualElement class="st-destination-content">
-                <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:Label text="🎓" class="st-destination-icon" /><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Learn and qualify" class="st-social-title" /><ui:Label text="Build skills, complete qualifications, and unlock future paths." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
+                <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:VisualElement class="st-destination-icon-frame st-brand-space-container"><ui:Label text="🎓" class="st-destination-icon st-brand-space-icon icon-book" /></ui:VisualElement><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Learn and qualify" class="st-social-title" /><ui:Label text="Build skills, complete qualifications, and unlock future paths." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
                 <ui:VisualElement name="education-empty-state" class="st-preview-panel hidden">
                     <ui:VisualElement class="st-preview-heading"><ui:Label text="📚" class="st-preview-heading-icon" /><ui:Label text="EDUCATION" class="st-preview-heading-title" /></ui:VisualElement>
                     <ui:VisualElement class="st-info-callout"><ui:Label text="ℹ️" class="st-info-icon" /><ui:Label name="education-unavailable-copy" text="Formal school actions begin at age 6." class="st-info-copy" /></ui:VisualElement>
@@ -288,7 +290,7 @@
 
         <ui:ScrollView name="career-view" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-destination-view hidden">
             <ui:VisualElement class="st-destination-content">
-                <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:Label text="💼" class="st-destination-icon" /><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Build your working life" class="st-social-title" /><ui:Label text="Develop a career or operate your own business." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
+                <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:VisualElement class="st-destination-icon-frame st-brand-space-container"><ui:Label text="💼" class="st-destination-icon st-brand-space-icon icon-rocket" /></ui:VisualElement><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Build your working life" class="st-social-title" /><ui:Label text="Develop a career or operate your own business." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
                 <ui:VisualElement class="st-info-callout"><ui:Label text="ℹ️" class="st-info-icon" /><ui:Label name="career-context-copy" text="Career and business actions unlock in adulthood. Childhood choices will shape the available paths." class="st-info-copy" /></ui:VisualElement>
                 <ui:VisualElement name="career-destination-content" />
                 <ui:VisualElement name="career-empty-state" class="st-career-preview">
@@ -304,7 +306,7 @@
 
         <ui:ScrollView name="goals-view" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-destination-view hidden">
             <ui:VisualElement class="st-destination-content">
-                <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:Label text="⭐" class="st-destination-icon" /><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Shape this life" class="st-social-title" /><ui:Label text="Track immediate priorities, long-term goals, achievements, and legacy." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
+                <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:VisualElement class="st-destination-icon-frame st-brand-space-container"><ui:Label text="⭐" class="st-destination-icon st-brand-space-icon icon-trophy" /></ui:VisualElement><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Shape this life" class="st-social-title" /><ui:Label text="Track immediate priorities, long-term goals, achievements, and legacy." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
                 <ui:VisualElement name="goals-destination-content" />
             </ui:VisualElement>
         </ui:ScrollView>
@@ -317,7 +319,7 @@
             </ui:VisualElement>
             <ui:VisualElement class="st-time-actions">
                 <ui:Button name="advance-month" text="ADVANCE MONTH  ›" class="st-advance-month stim-pack-foundation-button st-brand-skyden-button stim-pack-interaction-pop" tooltip="Advance time by one month" />
-                <ui:Button name="advance-year" text="YEAR  »" class="st-advance-year stim-pack-secondary-button stim-pack-interaction-pop" tooltip="Advance up to twelve normal months, stopping for decisions" />
+                <ui:Button name="advance-year" text="YEAR  »" class="st-advance-year st-brand-skyden-secondary stim-pack-secondary-button stim-pack-interaction-pop" tooltip="Advance up to twelve normal months, stopping for decisions" />
             </ui:VisualElement>
         </ui:VisualElement>
 
@@ -340,7 +342,7 @@
                 </ui:ScrollView>
                 <ui:VisualElement class="st-study-session-actions">
                     <ui:Button name="study-session-cancel" text="CANCEL" class="st-setup-cancel" />
-                    <ui:Button name="study-session-confirm" text="START SESSION" class="st-setup-create stim-pack-foundation-button stim-pack-interaction-pop" />
+                    <ui:Button name="study-session-confirm" text="START SESSION" class="st-setup-create st-brand-skyden-primary stim-pack-foundation-button stim-pack-interaction-pop" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
@@ -355,13 +357,14 @@
                         <ui:Label name="event-body" text="Something needs your attention." class="st-event-body" />
                         <ui:VisualElement name="choices" class="st-event-choices" />
                         <ui:VisualElement name="result-card" class="st-result-card hidden">
+                            <ui:VisualElement class="st-jelly-result-mark" />
                             <ui:Label text="OUTCOME" class="st-event-kicker" />
                             <ui:Label name="result-text" class="st-result-text" />
                             <ui:Label name="result-effects" class="st-result-effects" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:ScrollView>
-                <ui:Button name="event-continue" text="Continue" class="st-event-continue stim-pack-foundation-button stim-pack-interaction-pop hidden" />
+                <ui:Button name="event-continue" text="Continue" class="st-event-continue st-brand-skyden-primary stim-pack-foundation-button stim-pack-interaction-pop hidden" />
             </ui:VisualElement>
         </ui:VisualElement>
 
@@ -382,13 +385,14 @@
                 <ui:VisualElement class="st-setup-actions">
                     <ui:Button name="cancel-new-life" text="Cancel" class="st-setup-cancel" />
                     <ui:Button name="continue-current-life" text="CONTINUE CURRENT LIFE  ›" class="st-setup-continue hidden" />
-                    <ui:Button name="create-new-life" text="START NEW GAME  ›" class="st-setup-create stim-pack-foundation-button stim-pack-interaction-pop" />
+                    <ui:Button name="create-new-life" text="START NEW GAME  ›" class="st-setup-create st-brand-skyden-primary stim-pack-foundation-button stim-pack-interaction-pop" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:VisualElement name="final-life-summary" class="st-ending-scrim hidden">
             <ui:VisualElement class="st-ending-card">
+                <ui:VisualElement class="st-jelly-result-mark" />
                 <ui:Label text="A LIFE REMEMBERED" class="st-event-kicker" />
                 <ui:Label name="ending-name" text="Your story" class="st-ending-title" />
                 <ui:Label name="ending-status" text="Retired at age 65" class="st-ending-status" />

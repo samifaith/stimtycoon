@@ -10,6 +10,7 @@ namespace StimTycoon.Runtime
             if (definition == null) throw new ArgumentNullException(nameof(definition));
             var card = new VisualElement { name = $"action-card-{definition.id.Replace('.', '-')}" };
             card.AddToClassList("st-action-card");
+            card.AddToClassList("st-brand-skyden-panel");
             card.EnableInClassList("locked", definition.state == StimActionState.Locked);
 
             var title = new Label(definition.title);
@@ -52,6 +53,9 @@ namespace StimTycoon.Runtime
                     : definition.lockedReason
             };
             button.AddToClassList("st-action-commit");
+            button.AddToClassList(definition.state == StimActionState.Claimable
+                ? "st-brand-jelly-claim"
+                : "st-brand-skyden-primary");
             button.SetEnabled(definition.state == StimActionState.Ready ||
                               definition.state == StimActionState.Claimable);
             card.Add(button);

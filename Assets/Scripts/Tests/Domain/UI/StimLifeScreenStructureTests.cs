@@ -46,17 +46,18 @@ namespace StimTycoon.Tests.Domain.UI
             }
 
             var shellSource = File.ReadAllText(ShellPath);
-            Assert.That(CountSelectorOccurrences(shellSource, ".st-life-header"), Is.EqualTo(1));
-            Assert.That(CountSelectorOccurrences(shellSource, ".st-time-dock"), Is.EqualTo(1));
-            Assert.That(CountSelectorOccurrences(shellSource, ".st-life-bottom-nav"), Is.EqualTo(1));
+            Assert.That(CountSelectorOccurrences(shellSource, ".st-life-header"), Is.GreaterThanOrEqualTo(1));
+            Assert.That(CountSelectorOccurrences(shellSource, ".st-time-dock"), Is.GreaterThanOrEqualTo(1));
+            Assert.That(CountSelectorOccurrences(shellSource, ".st-life-bottom-nav"), Is.GreaterThanOrEqualTo(1));
         }
 
         [Test]
-        public void PlayableShell_AppliesBoundedThemeAdapterSurfaces()
+        public void PlayableShell_FullyIntegratesAllThreeAssetKits()
         {
             var root = Clone(PlayableLifePath);
             var header = Clone(HeaderPath);
 
+            Assert.That(root.Q("screen").ClassListContains("st-asset-kits-integrated"), Is.True);
             Assert.That(root.Q("life-feed-card").ClassListContains("stim-pack-panel"), Is.True);
             Assert.That(root.Q<Button>("advance-month").ClassListContains("stim-pack-foundation-button"), Is.True);
             Assert.That(root.Q<Button>("advance-year").ClassListContains("stim-pack-secondary-button"), Is.True);
@@ -65,7 +66,29 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(header.Q<Button>("add-cash").ClassListContains("stim-pack-secondary-button"), Is.True);
 
             var themeSource = File.ReadAllText(ThemePath);
-            StringAssert.Contains("Assets/Jelly_UI_Pack", themeSource);
+            var shellSource = File.ReadAllText(ShellPath);
+            var componentsSource = File.ReadAllText(ComponentsPath);
+            var destinationsSource = File.ReadAllText(DestinationsPath);
+            var productionStyles = themeSource + shellSource + componentsSource + destinationsSource;
+            StringAssert.Contains("Assets/Skyden_Games/Free_Casual_GUI", productionStyles);
+            StringAssert.Contains("Assets/Space_Exploration_GUI_Kit", productionStyles);
+            StringAssert.Contains("Assets/Jelly_UI_Pack", productionStyles);
+            StringAssert.DoesNotContain("/Pannel/", productionStyles,
+                "Native-ratio panel artwork cannot be used as a flexible responsive surface.");
+            StringAssert.Contains("Progress_Bar.svg.svg", productionStyles);
+            StringAssert.Contains("Jelly_UI_Pack/Sprites/Icons/star_icon.png", productionStyles);
+            StringAssert.Contains("progress_bg.png", themeSource);
+            StringAssert.DoesNotContain("panel_status_score", productionStyles);
+            StringAssert.DoesNotContain("panel_list_", productionStyles);
+            StringAssert.Contains(".st-asset-kits-integrated .st-account-row", componentsSource);
+            StringAssert.Contains(".st-asset-kits-integrated .st-stat-tile", componentsSource);
+            StringAssert.Contains(".st-asset-kits-integrated .st-skill-row", destinationsSource);
+            StringAssert.Contains(".st-asset-kits-integrated .st-summary-detail-row", destinationsSource);
+            Assert.That(root.Query(className: "st-brand-space-icon").ToList(),
+                Has.Count.GreaterThanOrEqualTo(8));
+            Assert.That(root.Query(className: "st-brand-space-container").ToList(),
+                Has.Count.EqualTo(6));
+            Assert.That(root.Query(className: "st-jelly-result-mark").ToList(), Has.Count.EqualTo(2));
         }
 
         [Test]
@@ -90,21 +113,23 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
-        public void BottomNavigation_UsesLicensedFunctionalSvgIcons()
+        public void BottomNavigation_UsesSpaceKitDestinationIcons()
         {
             var iconNames = new[]
             {
-                "house.svg", "graduation-cap.svg", "briefcase-business.svg",
-                "landmark.svg", "users.svg", "star.svg"
+                "home-64.png", "book-64.png", "rocket-64.png",
+                "buy-64.png", "heart-64.png", "trophy-64.png"
             };
 
             foreach (var iconName in iconNames)
-                Assert.That(File.Exists($"Assets/UI/Icons/Lucide/{iconName}"), Is.True, iconName);
+                Assert.That(File.Exists(
+                    $"Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/{iconName}"),
+                    Is.True, iconName);
 
-            Assert.That(File.Exists("Assets/UI/Icons/Lucide/LICENSE.txt"), Is.True);
             var components = File.ReadAllText(ShellPath);
             foreach (var iconName in iconNames)
-                StringAssert.Contains($"Assets/UI/Icons/Lucide/{iconName}", components);
+                StringAssert.Contains(
+                    $"Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/{iconName}", components);
         }
 
         [Test]
@@ -231,6 +256,7 @@ namespace StimTycoon.Tests.Domain.UI
                 "cash-flow-net", "savings-projection", "credit-repayment-card", "credit-balance-value",
                 "credit-detail-value", "available-credit-value", "credit-repayment-input",
                 "credit-repayment-feedback", "index-investment-card", "index-fund-value",
+                "index-fund-contributions", "index-fund-performance",
                 "index-investment-requirement", "index-investment-input", "index-investment-feedback",
                 "home-card", "home-condition", "home-progress", "home-actions", "home-upgrade-feedback"
             };
@@ -316,6 +342,61 @@ namespace StimTycoon.Tests.Domain.UI
             }
 
             Assert.That(ownerBySelector.Count, Is.GreaterThan(100));
+        }
+
+        [Test]
+        public void ProductionStylesheets_UseAspectFitOrCompleteNineSliceForVendorArtwork()
+        {
+            var checkedBindings = 0;
+            var checkedSlicedBindings = 0;
+            foreach (var path in new[] { ThemePath, ShellPath, ComponentsPath, DestinationsPath })
+            {
+                var source = File.ReadAllText(path);
+
+                foreach (Match rule in Regex.Matches(source, @"([^{}]+)\{([^{}]*)\}",
+                             RegexOptions.Singleline))
+                {
+                    var selector = rule.Groups[1].Value;
+                    var declarations = rule.Groups[2].Value;
+                    if (!declarations.Contains("background-image:") ||
+                        !Regex.IsMatch(declarations,
+                            @"Assets/(Skyden_Games|Space_Exploration_GUI_Kit|Jelly_UI_Pack)"))
+                        continue;
+
+                    checkedBindings++;
+                    if (declarations.Contains("-unity-background-scale-mode: stretch-to-fill"))
+                    {
+                        checkedSlicedBindings++;
+                        StringAssert.Contains("Free_Casual_GUI/Resource/Free_Casual_GUI/Buttons", declarations,
+                            $"Only the Skyden vector controls may use calibrated nine-slicing: {selector.Trim()}.");
+                        Assert.That(Regex.IsMatch(selector,
+                                @"\.st-brand-skyden-(button|primary|secondary|neutral)"), Is.True,
+                            $"Sliced artwork must be isolated behind an explicit Skyden control adapter: {selector.Trim()}.");
+                        foreach (var property in new[]
+                                 {
+                                     "-unity-slice-left:", "-unity-slice-right:", "-unity-slice-top:",
+                                     "-unity-slice-bottom:", "-unity-slice-scale:"
+                                 })
+                            StringAssert.Contains(property, declarations,
+                                $"Nine-sliced binding '{selector.Trim()}' is missing {property}.");
+                    }
+                    else
+                    {
+                        StringAssert.Contains("-unity-background-scale-mode: scale-to-fit", declarations,
+                            $"Unsliced vendor artwork in {path} must explicitly preserve its aspect ratio.");
+                        Assert.That(Regex.IsMatch(selector,
+                                @"(\.st-brand-space-icon|\.st-nav-icon|\.st-destination-icon-frame|" +
+                                @"\.stim-pack-reward-icon|\.st-info-icon|\.st-jelly-result-mark|" +
+                                @"\.st-brand-(skyden|jelly)-(progress|add)|" +
+                                @"\.st-(stat|education|career|relationship|relationship-card|skill)-track|" +
+                                @"\.st-xp-pill)"), Is.True,
+                            $"Unsliced vendor artwork may only occupy an aspect-safe icon/progress slot; found '{selector.Trim()}'.");
+                    }
+                }
+            }
+
+            Assert.That(checkedBindings, Is.GreaterThan(20));
+            Assert.That(checkedSlicedBindings, Is.GreaterThanOrEqualTo(3));
         }
 
         [Test]

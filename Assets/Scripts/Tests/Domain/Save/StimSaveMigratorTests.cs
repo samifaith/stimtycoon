@@ -133,6 +133,27 @@ namespace StimTycoon.Tests.Domain.Save
         }
 
         [Test]
+        public void Migrate_PreservesLegacyIndexValueAsContributionsBaseline()
+        {
+            var save = CreateValidSave();
+            save.state.finances.indexFundMinorUnits = 125000;
+            save.state.finances.indexFundContributionsMinorUnits = 0;
+            var legacyJson = JsonUtility.ToJson(save)
+                .Replace("\"indexFundContributionsMinorUnits\":0,", string.Empty);
+
+            Assert.IsTrue(StimSaveMigrator.TryMigrate(
+                legacyJson, out var migrated, out var report, out var error), error);
+
+            Assert.That(migrated.state.finances.indexFundContributionsMinorUnits,
+                Is.EqualTo(125000));
+            Assert.That(report.changes, Has.Some.Matches<string>(change =>
+                change.Contains("indexFundContributionsMinorUnits")));
+            Assert.IsTrue(StimSaveMigrator.TryMigrate(
+                JsonUtility.ToJson(migrated), out _, out var repeated, out error), error);
+            Assert.IsFalse(repeated.changed);
+        }
+
+        [Test]
         public void Migrate_RejectsUnknownSaveFormatVersion()
         {
             var save = CreateValidSave();

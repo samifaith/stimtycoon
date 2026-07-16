@@ -71,7 +71,7 @@
 /*
  * Stim-owned adapter layer for imported art packs.
  * Foundation: Skyden Games Free Casual GUI.
- * Layout reference: Space Exploration GUI Kit (no direct dependency here).
+ * Information identity: Space Exploration GUI Kit.
  * Reward interactions: Jelly UI Pack.
  */
 .stim-pack-foundation-button {
@@ -85,20 +85,26 @@
  * These classes are deliberately opt-in: the source art has been checked at
  * the dimensions used here, while unsliced raster panels remain quarantined.
  */
-.st-brand-skyden-button {
+.st-brand-skyden-button,
+.st-brand-skyden-primary {
     background-color: rgba(0, 0, 0, 0);
     background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Buttons/button_plain_blugreen.svg");
     -unity-background-scale-mode: stretch-to-fill;
+    -unity-slice-left: 55;
+    -unity-slice-right: 55;
+    -unity-slice-top: 53;
+    -unity-slice-bottom: 53;
+    -unity-slice-scale: 0.4px;
     border-width: 0;
     color: white;
     -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
 }
 
 .st-brand-jelly-reward {
-    background-color: rgba(0, 0, 0, 0);
-    background-image: url("project://database/Assets/Jelly_UI_Pack/Sprites/Button/Primary_Btn/btnPink_wide.png");
-    -unity-background-scale-mode: stretch-to-fill;
-    border-width: 0;
+    background-color: var(--stim-pack-reward);
+    border-width: 2px;
+    border-color: var(--stim-pack-reward-accent);
+    border-radius: 22px;
     color: white;
     -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
 }
@@ -111,18 +117,119 @@
 
 .st-brand-space-icon.icon-book {
     background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/book-64.png");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .st-brand-space-icon.icon-home {
     background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/home-64.png");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .st-brand-space-icon.icon-heart {
     background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/heart-64.png");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .st-brand-space-icon.icon-badge {
     background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/badge-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-brand-space-icon.icon-buy {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/buy-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-brand-space-icon.icon-rocket {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/rocket-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-brand-space-icon.icon-trophy {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/trophy-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-brand-space-icon.icon-info {
+    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/info-64.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-brand-skyden-progress {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Other/Progress_Bar.svg.svg");
+    -unity-background-scale-mode: scale-to-fit;
+    border-width: 0;
+}
+
+.st-brand-skyden-list {
+    background-color: rgb(255, 255, 255);
+    border-width: 1px;
+    border-color: var(--st-border-soft);
+    border-radius: 16px;
+}
+
+.st-brand-jelly-reward-row {
+    border-left-width: 4px;
+    border-left-color: var(--stim-pack-reward);
+}
+
+.st-brand-skyden-panel {
+    background-color: rgb(255, 255, 255);
+    border-width: 1px;
+    border-color: var(--st-border-soft);
+    border-radius: 16px;
+}
+
+.st-brand-skyden-secondary {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Buttons/button_plain_purplepink.svg");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-slice-left: 55;
+    -unity-slice-right: 55;
+    -unity-slice-top: 53;
+    -unity-slice-bottom: 53;
+    -unity-slice-scale: 0.4px;
+    border-width: 0;
+    color: white;
+    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+}
+
+.st-brand-skyden-neutral {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Buttons/button_plain_cream.svg");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-slice-left: 53;
+    -unity-slice-right: 53;
+    -unity-slice-top: 53;
+    -unity-slice-bottom: 53;
+    -unity-slice-scale: 0.4px;
+    border-width: 0;
+    color: var(--st-text-primary);
+}
+
+.st-brand-skyden-add {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Buttons/Button_circle_orange.svg.svg");
+    -unity-background-scale-mode: scale-to-fit;
+    border-width: 0;
+    color: var(--st-text-primary);
+    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+}
+
+.st-brand-jelly-claim {
+    background-color: var(--stim-pack-reward);
+    border-width: 2px;
+    border-color: var(--stim-pack-reward-accent);
+    border-radius: 18px;
+    color: white;
+    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+}
+
+.st-brand-jelly-progress {
+    background-image: url("project://database/Assets/Jelly_UI_Pack/Sprites/ProgressBar/progress_bg.png");
+    -unity-background-scale-mode: scale-to-fit;
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .stim-pack-secondary-button {

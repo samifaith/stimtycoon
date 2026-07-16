@@ -1,11 +1,11 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <ui:VisualElement name="app-header" class="st-life-header st-component-app-header stim-pack-status-cluster">
+    <ui:VisualElement name="app-header" class="st-life-header st-component-app-header stim-pack-status-cluster st-brand-skyden-panel">
         <ui:Button name="open-life-summary" class="st-profile-cluster" tooltip="Open Life Summary">
             <ui:VisualElement class="st-profile-avatar"><ui:Label name="avatar-glyph" text="🧑" class="st-profile-avatar-glyph" /></ui:VisualElement>
             <ui:VisualElement class="st-profile-meta">
                 <ui:Label name="life-summary" text="Age 19" class="st-age-pill" />
                 <ui:Label name="calendar-summary" text="Month 1 of 12" class="st-calendar-summary" />
-                <ui:VisualElement class="st-xp-pill">
+                <ui:VisualElement class="st-xp-pill st-brand-skyden-progress">
                     <ui:VisualElement name="career-progress-fill" class="st-xp-fill" />
                     <ui:Label name="career-progress-value" text="0 / 100 XP" class="st-xp-label" />
                 </ui:VisualElement>
@@ -19,7 +19,7 @@
                 <ui:Label name="cash-value" text="$2,540,812" class="st-balance-value" />
                 <ui:Label name="header-net-worth-value" text="Net $2,540,812" class="st-header-net-worth" />
             </ui:VisualElement>
-            <ui:Button name="add-cash" text="+" class="st-balance-add stim-pack-secondary-button stim-pack-interaction-pop" tooltip="Money options" />
+            <ui:Button name="add-cash" text="+" class="st-balance-add st-brand-skyden-add stim-pack-secondary-button stim-pack-interaction-pop" tooltip="Money options" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

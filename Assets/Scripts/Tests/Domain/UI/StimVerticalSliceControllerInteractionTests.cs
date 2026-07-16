@@ -472,7 +472,7 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
-        public void EducationCard_ShowsQualificationProgressAndCommitsStudyDifficulty()
+        public void EducationCard_ShowsQualificationProgressAndStudyDifficultyOptions()
         {
             session.ActiveSave.state.character.age = 15;
             session.ActiveSave.state.character.smarts = 60;
@@ -484,18 +484,12 @@ namespace StimTycoon.Tests.Domain.UI
 
             Assert.That(root.Q<Label>("qualification-progress").text,
                 Is.EqualTo("45 / 50 Qualification XP"));
+            Assert.IsTrue(root.Q("qualification-badge-foundation").ClassListContains("current"));
+            Assert.IsTrue(root.Q("qualification-badge-certificate").ClassListContains("locked"));
             Assert.That(root.Q<Button>("education-action-study-easy").enabledSelf, Is.True);
             Assert.That(root.Q<Button>("education-action-study-medium").enabledSelf, Is.True);
             Assert.That(root.Q<Button>("education-action-study-hard").enabledSelf, Is.True);
 
-            Invoke("PerformStudySession", StimStudyDifficulty.Medium);
-
-            Assert.That(session.ActiveSave.state.education.qualificationExperience, Is.EqualTo(65));
-            Assert.That(root.Q<Label>("qualification-progress").text,
-                Is.EqualTo("65 / 125 Qualification XP"));
-            Assert.That(root.Q<Label>("result-text").text,
-                Does.Contain("Certificate Qualification"));
-            Assert.That(root.Q<Button>("education-action-study-easy").enabledSelf, Is.False);
         }
 
         [Test]
@@ -520,8 +514,27 @@ namespace StimTycoon.Tests.Domain.UI
             Invoke("ConfirmSelectedStudySession");
 
             Assert.IsTrue(root.Q("study-session-sheet").ClassListContains("hidden"));
+            Assert.That(session.ActiveSave.state.education.qualificationExperience, Is.EqualTo(45));
+            Assert.That(session.ActiveSave.state.actionProgress, Has.Some.Matches<StimActionProgressState>(action =>
+                action.actionId == "education.study.medium" && action.state == "InProgress"));
+            Assert.That(root.Q<Label>("result-text").text, Does.Contain("rewards available"));
+            var action = session.ActiveSave.state.actionProgress[0];
+            var claimName = $"study-claim-{action.instanceId}";
+            Assert.That(root.Q<Button>(claimName), Is.Not.Null);
+            Assert.IsFalse(root.Q<Button>(claimName).enabledSelf);
+
+            action.completesAtUtc = "2026-07-13T19:59:00Z";
+            Invoke("RefreshEducation");
+            Assert.IsTrue(root.Q<Button>(claimName).enabledSelf);
+
+            Invoke("ClaimTimedStudySession", action.instanceId);
+
             Assert.That(session.ActiveSave.state.education.qualificationExperience, Is.EqualTo(65));
-            Assert.That(root.Q<Label>("result-text").text, Does.Contain("Certificate Qualification"));
+            Assert.That(root.Q<Label>("qualification-progress").text,
+                Is.EqualTo("65 / 125 Qualification XP"));
+            Assert.That(root.Q<Button>(claimName), Is.Null);
+            Assert.That(root.Q<Label>("result-text").text,
+                Does.Contain("Certificate Qualification"));
         }
 
         [Test]
@@ -799,6 +812,21 @@ namespace StimTycoon.Tests.Domain.UI
                 .Q<Label>(className: "st-money-history-title").text, Does.Contain("Credit repayment"));
         }
 
+        [Test]
+        public void MoneyDestination_SeparatesIndexContributionsFromMarketPerformance()
+        {
+            session.ActiveSave.state.finances.indexFundContributionsMinorUnits = 100000;
+            session.ActiveSave.state.finances.indexFundMinorUnits = 112500;
+
+            Invoke("ShowMoneyDestination");
+
+            Assert.That(root.Q<Label>("index-fund-value").text, Is.EqualTo("Index fund: $1,125"));
+            Assert.That(root.Q<Label>("index-fund-contributions").text,
+                Is.EqualTo("Contributions: $1,000"));
+            Assert.That(root.Q<Label>("index-fund-performance").text,
+                Is.EqualTo("Market performance: +$125"));
+        }
+
         private void BindControllerFields()
         {
             SetField("gameSession", session);
@@ -914,6 +942,8 @@ namespace StimTycoon.Tests.Domain.UI
                 { "creditRepaymentInput", "credit-repayment-input" },
                 { "creditRepaymentFeedback", "credit-repayment-feedback" },
                 { "indexFundValue", "index-fund-value" },
+                { "indexFundContributions", "index-fund-contributions" },
+                { "indexFundPerformance", "index-fund-performance" },
                 { "indexInvestmentRequirement", "index-investment-requirement" },
                 { "indexInvestmentInput", "index-investment-input" },
                 { "indexInvestmentFeedback", "index-investment-feedback" },

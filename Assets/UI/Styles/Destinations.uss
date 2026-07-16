@@ -38,17 +38,19 @@
 }
 
 .st-focus-grid {
-    flex-direction: row;
+    flex-direction: column;
 }
 
 .st-focus-tile {
-    flex-grow: 1;
-    min-width: 90px;
-    min-height: 72px;
-    margin-right: 8px;
-    padding: 7px;
+    width: 100%;
+    min-width: 0;
+    min-height: 52px;
+    margin-right: 0;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     border-width: 1px;
     border-radius: 17px;
 }
@@ -70,6 +72,8 @@
 }
 
 .st-focus-icon {
+    width: 32px;
+    margin-right: 9px;
     font-size: 20px;
     -unity-font-style: bold;
 }
@@ -87,14 +91,19 @@
 }
 
 .st-focus-title {
-    margin-top: 3px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-top: 0;
     color: rgb(7, 36, 82);
     font-size: 12px;
     -unity-font-style: bold;
 }
 
 .st-focus-effect {
-    margin-top: 2px;
+    max-width: 42%;
+    margin-top: 0;
+    margin-left: 8px;
     font-size: 9px;
     -unity-font-style: bold;
 }
@@ -129,15 +138,14 @@
 }
 
 .st-context-activities {
-    margin-top: 12px;
-    flex-direction: row;
-    flex-wrap: wrap;
+    margin-top: 2px;
+    flex-direction: column;
 }
 
 .st-context-activity {
-    width: 48%;
-    min-height: 52px;
-    margin-right: 2%;
+    width: 100%;
+    min-height: 48px;
+    margin-right: 0;
     margin-bottom: 8px;
     padding: 9px;
     background-color: var(--st-surface-blue);
@@ -597,6 +605,7 @@
     color: var(--st-text-primary);
     font-size: 15px;
     -unity-font-style: bold;
+    white-space: normal;
 }
 
 .st-relationship-action:disabled {
@@ -695,6 +704,7 @@
     color: var(--st-text-primary);
     font-size: 15px;
     -unity-font-style: bold;
+    white-space: normal;
 }
 
 .st-result-card {
@@ -1462,4 +1472,240 @@
     margin-top: 2px;
     font-size: 10px;
     line-height: 14px;
+}
+
+/* Full asset-kit integration for destination controls, sheets, and rewards. */
+.st-asset-kits-integrated .st-focus-tile,
+.st-asset-kits-integrated .st-context-activity,
+.st-asset-kits-integrated .st-education-action,
+.st-asset-kits-integrated .st-career-action,
+.st-asset-kits-integrated .st-home-action,
+.st-asset-kits-integrated .st-relationship-action,
+.st-asset-kits-integrated .st-manual-work-button,
+.st-asset-kits-integrated .st-social-discover,
+.st-asset-kits-integrated .choice-button,
+.st-asset-kits-integrated .st-advance-year,
+.st-asset-kits-integrated .st-setup-continue {
+    min-width: 0;
+    min-height: 44px;
+    padding: 9px 12px;
+    background-color: rgb(255, 255, 255);
+    border-width: 1px;
+    border-color: var(--st-border-blue);
+    border-radius: 22px;
+    color: var(--st-text-primary);
+    white-space: normal;
+    -unity-text-align: middle-center;
+    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+}
+
+.st-asset-kits-integrated .st-advance-month,
+.st-asset-kits-integrated .st-event-continue,
+.st-asset-kits-integrated .st-setup-create,
+.st-asset-kits-integrated .st-ending-action {
+    min-width: 0;
+    min-height: 44px;
+    padding: 9px 12px;
+    background-color: var(--st-cyan-600);
+    border-width: 0;
+    border-radius: 22px;
+    color: white;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+}
+
+.st-asset-kits-integrated .st-segmented-tab,
+.st-asset-kits-integrated .st-transfer-mode,
+.st-asset-kits-integrated .st-setup-cancel,
+.st-asset-kits-integrated .st-social-back,
+.st-asset-kits-integrated .st-icon-button,
+.st-asset-kits-integrated .st-new-life-link {
+    min-width: 0;
+    min-height: 44px;
+    padding: 9px 12px;
+    background-color: rgb(255, 246, 241);
+    border-width: 1px;
+    border-color: rgb(219, 195, 167);
+    border-radius: 18px;
+    color: var(--st-text-primary);
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.st-asset-kits-integrated .st-segmented-tab.active,
+.st-asset-kits-integrated .st-transfer-mode.active {
+    background-color: var(--st-cyan-600);
+    border-color: var(--st-cyan-600);
+    color: white;
+}
+
+.st-asset-kits-integrated .st-event-sheet,
+.st-asset-kits-integrated .st-setup-sheet,
+.st-asset-kits-integrated .st-ending-card {
+    min-width: 0;
+    background-color: rgb(255, 255, 255);
+    border-width: 1px;
+    border-color: var(--st-border-soft);
+    border-radius: 20px;
+    padding: 22px;
+}
+
+.st-asset-kits-integrated .st-result-card {
+    border-width: 3px;
+    border-color: var(--stim-pack-reward);
+    background-color: rgb(255, 245, 251);
+}
+
+/* Responsive Stim controls own their full bounds, so labels wrap inside them. */
+.st-asset-kits-integrated .st-focus-title {
+    color: var(--st-text-primary);
+    max-width: 100%;
+    white-space: normal;
+    -unity-text-align: middle-left;
+}
+
+.st-asset-kits-integrated .st-focus-effect {
+    color: var(--st-text-secondary);
+    max-width: 100%;
+    white-space: normal;
+    -unity-text-align: middle-right;
+}
+
+.st-asset-kits-integrated .st-focus-cta {
+    color: var(--st-text-inverse);
+    max-width: 100%;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.st-asset-kits-integrated .st-focus-tile.study {
+    background-color: var(--st-surface-blue);
+    border-color: var(--st-border-blue);
+}
+
+.st-asset-kits-integrated .st-focus-tile.workout {
+    background-color: var(--st-surface-pink);
+    border-color: var(--st-border-pink);
+}
+
+.st-asset-kits-integrated .st-focus-tile.work {
+    background-color: var(--st-surface-yellow);
+    border-color: var(--st-border-yellow);
+}
+
+.st-asset-kits-integrated .st-social-discover,
+.st-asset-kits-integrated .st-advance-year {
+    background-color: var(--st-purple-500);
+    border-width: 0;
+    color: var(--st-text-inverse);
+}
+
+.st-asset-kits-integrated .st-manual-work-button {
+    background-color: var(--st-success-500);
+    border-width: 0;
+    color: var(--st-text-inverse);
+}
+
+/* Harmonize Stim-owned detail rows and setup controls with the live kit layer. */
+.st-asset-kits-integrated .st-skill-row,
+.st-asset-kits-integrated .st-summary-detail-row,
+.st-asset-kits-integrated .st-money-history-row {
+    margin-bottom: 6px;
+    padding: 8px 10px;
+    background-color: rgba(255, 255, 255, 0.88);
+    border-width: 1px;
+    border-color: var(--st-border-blue);
+    border-radius: 14px;
+}
+
+.st-asset-kits-integrated .st-generated-identity {
+    background-color: var(--st-surface-blue);
+    border-width: 1px;
+    border-color: var(--st-border-blue);
+    border-radius: 18px;
+}
+
+.st-asset-kits-integrated .st-result-effects {
+    background-color: rgba(255, 255, 255, 0.94);
+    border-width: 1px;
+    border-color: var(--st-border-pink);
+    border-radius: 14px;
+}
+
+.st-asset-kits-integrated .st-generated-icon,
+.st-asset-kits-integrated .st-preview-heading-icon {
+    height: 34px;
+    background-color: var(--st-surface-purple);
+    border-width: 1px;
+    border-color: var(--st-border-purple);
+    border-radius: 12px;
+    color: var(--st-purple-600);
+}
+
+.st-asset-kits-integrated .st-age-stage-icon {
+    width: 32px;
+    height: 32px;
+    background-color: var(--st-surface-blue);
+    border-width: 2px;
+    border-color: var(--st-border-blue);
+    border-radius: 16px;
+}
+
+.st-asset-kits-integrated .st-age-stage.complete .st-age-stage-icon {
+    background-color: rgb(232, 248, 236);
+    border-color: var(--st-success-500);
+}
+
+.st-asset-kits-integrated .st-age-stage.active .st-age-stage-icon {
+    background-color: var(--st-surface-purple);
+    border-color: var(--st-purple-500);
+}
+
+.st-asset-kits-integrated .st-setup-field .unity-base-text-field__input {
+    min-width: 0;
+    min-height: 44px;
+    padding: 9px 18px;
+    background-color: white;
+    border-width: 2px;
+    border-color: var(--st-border-purple);
+    border-radius: 14px;
+}
+
+.st-asset-kits-integrated .st-option-button,
+.st-asset-kits-integrated .st-background-option {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-width: 1px;
+    border-color: var(--st-border-blue);
+    border-radius: 16px;
+}
+
+.st-asset-kits-integrated .st-option-button:hover,
+.st-asset-kits-integrated .st-option-button:focus,
+.st-asset-kits-integrated .st-background-option:hover,
+.st-asset-kits-integrated .st-background-option:focus {
+    background-color: var(--st-surface-blue);
+    border-color: var(--st-cyan-600);
+}
+
+.st-jelly-result-mark {
+    width: 36px;
+    height: 36px;
+    align-self: center;
+    margin-bottom: 4px;
+    background-image: url("project://database/Assets/Jelly_UI_Pack/Sprites/Icons/star_icon.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.st-asset-kits-integrated Button:hover,
+.st-asset-kits-integrated Button:focus {
+    -unity-background-image-tint-color: rgb(255, 246, 224);
+}
+
+.st-asset-kits-integrated Button:active {
+    opacity: 0.84;
+}
+
+.st-asset-kits-integrated Button:disabled {
+    opacity: 0.45;
 }

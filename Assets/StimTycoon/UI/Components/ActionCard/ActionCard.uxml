@@ -1,9 +1,9 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <ui:VisualElement name="action-card" class="st-action-card st-component-action-card">
+    <ui:VisualElement name="action-card" class="st-action-card st-component-action-card st-brand-skyden-panel">
         <ui:Label name="action-card-title" text="Action" class="st-action-card-title" />
         <ui:Label name="action-card-preview" text="Stat +1" class="st-action-card-preview" />
         <ui:Label name="action-card-progress" text="Ready" class="st-action-card-progress" />
         <ui:Label name="action-card-requirement" text="Available" class="st-action-requirement-chip" />
-        <ui:Button name="action-card-commit" text="START" class="st-action-commit stim-pack-interaction-pop" />
+        <ui:Button name="action-card-commit" text="START" class="st-action-commit st-brand-skyden-primary stim-pack-interaction-pop" />
     </ui:VisualElement>
 </ui:UXML>

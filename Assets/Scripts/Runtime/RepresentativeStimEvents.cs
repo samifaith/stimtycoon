@@ -29,6 +29,9 @@ namespace StimTycoon.Runtime
         public const string MarriageCrossroadsId = "romance_marriage_crossroads_001";
         public const string YearInReviewId = "time_year_in_review_001";
         public const string HomeDeferredMaintenanceId = "home_deferred_maintenance_001";
+        public const string AppliedFinanceChallengeId = "education_applied_finance_challenge_001";
+        public const string CommunityHealthChallengeId = "education_community_health_challenge_001";
+        public const string SustainableTradesChallengeId = "education_sustainable_trades_challenge_001";
 
         public static IReadOnlyList<StimEvent> CreateLaunchAlphaCatalog()
         {
@@ -41,7 +44,67 @@ namespace StimTycoon.Runtime
                 CreateChildhoodDiscovery(), CreateChildhoodComfort(), CreatePeerTrustConflict(),
                 CreatePeerTrustAftermath(), CreatePeerJealousy(), CreateComingOfAgeGender(),
                 CreateComingOfAgeOrientation(), CreatePromInvitation(), CreateFirstKiss(),
-                CreateProposal(), CreateWedding(), CreateMarriageCrossroads()
+                CreateProposal(), CreateWedding(), CreateMarriageCrossroads(),
+                CreateAppliedFinanceChallenge(), CreateCommunityHealthChallenge(),
+                CreateSustainableTradesChallenge()
+            };
+        }
+
+        public static StimEvent CreateAppliedFinanceChallenge() => CreateDisciplineChallenge(
+            AppliedFinanceChallengeId, "general", "A neighborhood budget challenge",
+            "A community group asks your class to turn a limited budget into a realistic plan for a local project.",
+            "build_budget", "Build a careful line-item budget",
+            "Your clear budget protects the project from avoidable surprises.",
+            "Built a practical community project budget.", "discipline_finance_budget",
+            new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 2 },
+            new Effect { type = EffectType.SkillXp, targetId = "professional", value = 8 });
+
+        public static StimEvent CreateCommunityHealthChallenge() => CreateDisciplineChallenge(
+            CommunityHealthChallengeId, "academic", "A community health question",
+            "Your class is asked to explain a confusing health message without frightening or misleading anyone.",
+            "research_message", "Research and rewrite the message",
+            "You turn the evidence into advice people can understand and use.",
+            "Created a clear evidence-based community health message.", "discipline_health_message",
+            new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 2 },
+            new Effect { type = EffectType.SkillXp, targetId = "learning", value = 8 });
+
+        public static StimEvent CreateSustainableTradesChallenge() => CreateDisciplineChallenge(
+            SustainableTradesChallengeId, "vocational", "Repair instead of replace",
+            "A damaged classroom fixture could be discarded, but your group has a chance to repair it safely.",
+            "repair_fixture", "Diagnose and repair the fixture",
+            "Your repair works, saves materials, and demonstrates careful practical judgment.",
+            "Repaired a damaged fixture instead of replacing it.", "discipline_trades_repair",
+            new Effect { type = EffectType.StatDelta, targetId = "smarts", value = 1 },
+            new Effect { type = EffectType.SkillXp, targetId = "professional", value = 10 });
+
+        private static StimEvent CreateDisciplineChallenge(
+            string id, string studyTrack, string title, string body,
+            string choiceId, string choiceLabel, string result, string feed, string telemetry,
+            params Effect[] effects)
+        {
+            return new StimEvent
+            {
+                id = id,
+                category = EventCategory.School,
+                titleKey = title,
+                bodyKey = body,
+                toneTags = new List<string> { "education", "discipline", "age_appropriate" },
+                ageRange = new AgeRange { minAge = 14, maxAge = 17 },
+                locations = new List<string> { "USA", "Jamaica" },
+                requirementsJson = $"{{\"studyTrack\":\"{studyTrack}\",\"minimumQualificationExperience\":10}}",
+                cooldownYears = 100,
+                repeatPolicy = RepeatPolicy.Never,
+                timingPolicy = EventTimingPolicy.AnnualRollover,
+                monthlyTriggerChance = 1f,
+                analyticsTags = new List<string> { "education", "discipline", studyTrack },
+                choices = new List<Choice>
+                {
+                    CreateCertainChoice(choiceId, choiceLabel, result, feed, telemetry, effects),
+                    CreateCertainChoice("step_back", "Let another student lead",
+                        "You make room for someone else, but miss a chance to practice the discipline.",
+                        "Stepped back from a discipline challenge.", telemetry + "_declined",
+                        new Effect { type = EffectType.StatDelta, targetId = "happiness", value = -1 })
+                }
             };
         }
 
