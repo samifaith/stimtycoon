@@ -41,7 +41,7 @@ The repository now contains:
 - visible Fitness and Professional skill paths with level/XP progress and downstream overtime and career-work benefits
 - a safe Advance Year control that reuses ordinary monthly transactions, autosaves every month, summarizes progress, and stops for events, decisions, failures, or endings
 - automated compact-width and 130% accessibility-text reflow rules with 44-point primary targets
-- 672 passing EditMode test cases covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, UI structure, and seeded long-run simulations
+- 676 passing EditMode test cases covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, UI structure, UI Builder template integration, and seeded long-run simulations
 
 Not yet complete:
 
@@ -55,7 +55,7 @@ Not yet complete:
 
 ## Current Focus
 
-Milestones 1–12 and the M14 Bank/Education implementation are complete and the current 672-case EditMode suite is green. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing. M13 still has device/text-scale visual gates and M14 still needs its human comprehension check; M15 is the next implementation milestone.
+Milestones 1–12 and the M14 Bank/Education implementation are complete and the current 676-case EditMode suite is green. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing. M13 still has device/text-scale visual gates and M14 still needs its human comprehension check; M15 is the next implementation milestone.
 
 The path to completion is:
 
@@ -71,6 +71,8 @@ Every milestone also carries shared gates for save migration and rollback, bound
 ### Frontend and wiring workflow
 
 UI production is intentionally split. The frontend owner controls UXML composition, USS, art, responsive presentation, and runtime visual approval. The wiring owner controls named-element binding, view states, callbacks, domain/application services, age and requirement rules, persistence, rollback, content registration, accessibility semantics, and automated tests. Bound UXML `name` values are the API between those tracks; visual containers and classes may evolve without moving game rules into UXML or USS.
+
+The playable scene now exposes its Panel Settings and Source Asset directly on `UIDocument`, uses one `EventSystem` with `InputSystemUIInputModule`, and treats the UI Builder-authored Feed Row, Achievement Row, and Action Card templates as the runtime hierarchy source. Sprite support is a direct package dependency, and runtime visual states are expressed through USS classes instead of inline colors.
 
 The full handoff format, clean-branch workflow, controller-extraction direction, and immediate W0–W3 wiring backlog are in [the frontend/wiring collaboration contract](docs/FRONTEND_WIRING_WORKFLOW.md).
 
@@ -106,7 +108,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The repository has a clean **672 / 672 EditMode test-case** Unity Run All baseline recorded on July 16, 2026, including the seeded birth-to-ending harness, pending-event recovery, resumable Advance Year, age/financial-agency guards, and M13/M14 coverage. The full-life harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full verification run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
+The repository has a clean **676 / 676 EditMode test-case** Unity Run All baseline recorded on July 16, 2026, including the seeded birth-to-ending harness, pending-event recovery, resumable Advance Year, age/financial-agency guards, and M13/M14 coverage. The full-life harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full verification run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
 
 The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. Transactional autosaves now use compact rather than pretty-printed JSON to avoid unnecessary formatting allocation and whitespace. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
 
@@ -175,7 +177,7 @@ docs/                      # Architecture and gameplay specifications
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 672 / 672 EditMode test cases with a clean Unity Run All baseline recorded July 16, 2026
+- [x] 676 / 676 EditMode test cases with a clean Unity Run All baseline recorded July 16, 2026
 - [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests

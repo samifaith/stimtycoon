@@ -3,7 +3,8 @@
   "rootNamespace": "StimTycoon.Editor",
   "references": [
     "StimTycoon.Domain",
-    "StimTycoon.Runtime"
+    "StimTycoon.Runtime",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [
     "Editor"

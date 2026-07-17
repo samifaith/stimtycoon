@@ -3,6 +3,8 @@ using StimTycoon.Runtime;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UIElements;
 
 namespace StimTycoon.Editor
@@ -12,6 +14,9 @@ namespace StimTycoon.Editor
         private const string ScenePath = "Assets/Scenes/StimVerticalSlice.unity";
         private const string UxmlPath = "Assets/UI/StimVerticalSlice.uxml";
         private const string PanelSettingsPath = "Assets/UI/StimPanelSettings.asset";
+        private const string FeedRowPath = "Assets/StimTycoon/UI/Components/FeedRow/FeedRow.uxml";
+        private const string AchievementRowPath = "Assets/StimTycoon/UI/Components/AchievementRow/AchievementRow.uxml";
+        private const string ActionCardPath = "Assets/StimTycoon/UI/Components/ActionCard/ActionCard.uxml";
 
         [MenuItem("Tools/Stim Tycoon/Create Vertical Slice Scene")]
         public static void CreateScene()
@@ -44,11 +49,25 @@ namespace StimTycoon.Editor
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var gameObject = new GameObject("Stim Vertical Slice");
             gameObject.SetActive(false);
-            gameObject.AddComponent<UIDocument>();
+            var document = gameObject.AddComponent<UIDocument>();
+            document.panelSettings = panelSettings;
+            document.visualTreeAsset = visualTree;
             var controller = gameObject.AddComponent<StimVerticalSliceController>();
-            controller.Configure(panelSettings, visualTree);
+            var serializedController = new SerializedObject(controller);
+            serializedController.FindProperty("feedRowTemplate").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(FeedRowPath);
+            serializedController.FindProperty("achievementRowTemplate").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(AchievementRowPath);
+            serializedController.FindProperty("actionCardTemplate").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ActionCardPath);
+            serializedController.ApplyModifiedPropertiesWithoutUndo();
             gameObject.SetActive(true);
+            EditorUtility.SetDirty(document);
             EditorUtility.SetDirty(controller);
+
+            var eventSystemObject = new GameObject("EventSystem");
+            eventSystemObject.AddComponent<EventSystem>();
+            eventSystemObject.AddComponent<InputSystemUIInputModule>();
 
             var cameraObject = new GameObject("Main Camera");
             cameraObject.tag = "MainCamera";

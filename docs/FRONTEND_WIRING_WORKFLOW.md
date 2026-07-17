@@ -62,6 +62,16 @@ Rules:
 
 Frontend work should replace the scoped neutral rules incrementally. Do not remove `st-frontend-canvas`, reorder the five canonical stylesheet entry points, or move gameplay meaning into USS. Locked, disabled, selected, success, and failure states must continue to have a text, icon, or accessibility signal in addition to any future color treatment.
 
+## UI Builder, sprites, stylesheets, and input
+
+- `Assets/UI/StimVerticalSlice.uxml` is the playable UI Builder document. Its five directly attached USS files are the canonical cascade, with `FrontendCanvas.uss` loaded last for frontend ownership.
+- The scene `UIDocument` owns its Panel Settings and Source Asset references in the Inspector. Runtime code validates those references but must not replace them, so scene preview, UI Builder, and Play mode all use the same assets.
+- Feed Row, Achievement Row, and Action Card are UI Builder-authored UXML components. Runtime factories clone those templates and only bind dynamic content, state classes, progress, and callbacks. Do not recreate their visual hierarchy in controller code.
+- Destination cards live under their real destination hosts in UXML; runtime code does not reparent them. A visual slot with an authored sprite child is preserved, while an empty slot receives a fallback placeholder at runtime.
+- `com.unity.2d.sprite` is a direct dependency. Import raster UI art as `Sprite (2D and UI)`, retain transparency, disable mipmaps unless the asset needs scaled/world rendering, and use `scale-to-fit` for unsliced art or complete nine-slice metadata for stretchable controls.
+- The playable scene has one explicit `EventSystem` with `InputSystemUIInputModule`, matching the project’s New Input System setting. Do not add `StandaloneInputModule` or a second EventSystem. UI Toolkit has a built-in runtime event path, but this explicit module is retained for inspectable/remappable input and future mixed UI requirements.
+- USS owns visual presentation. Runtime C# may set data-driven geometry such as progress width and safe-area padding, but visual states use semantic classes such as `is-error`, `locked`, `selected`, and `claimable` rather than inline colors, sprites, borders, fonts, or radii.
+
 ## Handoff format for each visual slice
 
 The UI handoff should identify:

@@ -4,6 +4,11 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using StimTycoon.Runtime;
 using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 namespace StimTycoon.Tests.Domain.UI
@@ -11,8 +16,12 @@ namespace StimTycoon.Tests.Domain.UI
     public sealed class StimLifeScreenStructureTests
     {
         private const string PlayableLifePath = "Assets/UI/StimVerticalSlice.uxml";
+        private const string PlayableScenePath = "Assets/Scenes/StimVerticalSlice.unity";
         private const string HeaderPath = "Assets/StimTycoon/UI/Components/AppHeader/AppHeader.uxml";
         private const string NavigationPath = "Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml";
+        private const string FeedRowPath = "Assets/StimTycoon/UI/Components/FeedRow/FeedRow.uxml";
+        private const string AchievementRowPath = "Assets/StimTycoon/UI/Components/AchievementRow/AchievementRow.uxml";
+        private const string ActionCardPath = "Assets/StimTycoon/UI/Components/ActionCard/ActionCard.uxml";
         private const string ThemePath = "Assets/UI/Styles/StimTheme.uss";
         private const string ShellPath = "Assets/UI/Styles/Shell.uss";
         private const string ComponentsPath = "Assets/UI/Styles/Components.uss";
@@ -180,6 +189,97 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(row.Q<Label>(className: "st-achievement-category").text, Is.EqualTo("Career"));
             Assert.That(row.Q<Label>(className: "st-achievement-reward").text, Is.EqualTo("$250"));
             Assert.That(row.Q<Button>().enabledSelf, Is.True);
+        }
+
+        [Test]
+        public void RuntimeFactories_CloneUiBuilderAuthoredTemplates()
+        {
+            var feedTemplate = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(FeedRowPath);
+            var achievementTemplate = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(AchievementRowPath);
+            var actionTemplate = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ActionCardPath);
+            Assert.That(feedTemplate, Is.Not.Null);
+            Assert.That(achievementTemplate, Is.Not.Null);
+            Assert.That(actionTemplate, Is.Not.Null);
+
+            var feed = StimUiComponentFactory.CreateFeedRow(
+                new StimTycoon.Saves.StimLifeFeedEntry
+                {
+                    category = "money", text = "Saved money. Cash +10.", age = 18, monthOfYear = 2
+                },
+                0,
+                1,
+                feedTemplate);
+            var achievement = StimUiComponentFactory.CreateAchievementRow(
+                "template-check", "★", "Template Check", "QA", "1 / 1", "$1", "CLAIM", true,
+                () => { },
+                template: achievementTemplate);
+            var action = StimActionCardFactory.Create(
+                new StimActionDefinition
+                {
+                    id = "education.template",
+                    title = "Template Action",
+                    description = "Authored in UI Builder",
+                    state = StimActionState.Ready
+                },
+                () => { },
+                actionTemplate);
+
+            Assert.That(feed.Q<Label>("feed-row-title").text, Is.EqualTo("Saved money."));
+            Assert.That(achievement.Q<Label>("achievement-row-title").text, Is.EqualTo("Template Check"));
+            Assert.That(action.Q<Label>("action-card-title").text, Is.EqualTo("Template Action"));
+        }
+
+        [Test]
+        public void UiBuilderHierarchy_MatchesRuntimeDestinationsAndPreservesAuthoredVisualSlots()
+        {
+            var root = Clone(PlayableLifePath);
+            Assert.That(root.Q("education-card").parent.name, Is.EqualTo("education-destination-content"));
+            Assert.That(root.Q("career-card").parent.name, Is.EqualTo("career-destination-content"));
+            Assert.That(root.Q("achievements-card").parent.name, Is.EqualTo("goals-destination-content"));
+
+            var controller = File.ReadAllText(ControllerPath);
+            StringAssert.DoesNotContain("ConfigureDestinationContent", controller);
+            StringAssert.Contains("if (slot.childCount > 0) return;", controller);
+            StringAssert.DoesNotContain("slot.Clear();", controller);
+        }
+
+        [Test]
+        public void PlayableScene_UsesInspectorAuthoredUiDocumentAndSingleInputSystemEventSystem()
+        {
+            var scene = SceneManager.GetSceneByPath(PlayableScenePath);
+            var openedForTest = !scene.IsValid() || !scene.isLoaded;
+            if (openedForTest) scene = EditorSceneManager.OpenScene(PlayableScenePath, OpenSceneMode.Additive);
+            try
+            {
+                UIDocument document = null;
+                StimVerticalSliceController controller = null;
+                var eventSystemCount = 0;
+                InputSystemUIInputModule inputModule = null;
+                StandaloneInputModule legacyInputModule = null;
+                foreach (var root in scene.GetRootGameObjects())
+                {
+                    document = document ?? root.GetComponentInChildren<UIDocument>(true);
+                    controller = controller ?? root.GetComponentInChildren<StimVerticalSliceController>(true);
+                    eventSystemCount += root.GetComponentsInChildren<EventSystem>(true).Length;
+                    inputModule = inputModule ?? root.GetComponentInChildren<InputSystemUIInputModule>(true);
+                    legacyInputModule = legacyInputModule ?? root.GetComponentInChildren<StandaloneInputModule>(true);
+                }
+
+                Assert.That(document, Is.Not.Null);
+                Assert.That(document.panelSettings, Is.EqualTo(AssetDatabase.LoadAssetAtPath<PanelSettings>("Assets/UI/StimPanelSettings.asset")));
+                Assert.That(document.visualTreeAsset, Is.EqualTo(AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(PlayableLifePath)));
+                Assert.That(eventSystemCount, Is.EqualTo(1));
+                Assert.That(inputModule, Is.Not.Null);
+                Assert.That(legacyInputModule, Is.Null);
+                var serializedController = new SerializedObject(controller);
+                Assert.That(serializedController.FindProperty("feedRowTemplate").objectReferenceValue, Is.Not.Null);
+                Assert.That(serializedController.FindProperty("achievementRowTemplate").objectReferenceValue, Is.Not.Null);
+                Assert.That(serializedController.FindProperty("actionCardTemplate").objectReferenceValue, Is.Not.Null);
+            }
+            finally
+            {
+                if (openedForTest) EditorSceneManager.CloseScene(scene, true);
+            }
         }
 
         [Test]
@@ -577,8 +677,8 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(navigation.Q<Button>("nav-social"), Is.Not.Null);
             Assert.That(navigation.Q<Button>("nav-goals"), Is.Not.Null);
             var controllerSource = File.ReadAllText(ControllerPath);
-            StringAssert.Contains("openLifeSummary.clicked += ShowLifeSummary;", controllerSource);
-            StringAssert.Contains("addCash.clicked += ShowMoneyDestination;", controllerSource);
+            StringAssert.Contains("BindPersistentButton(openLifeSummary, ShowLifeSummary);", controllerSource);
+            StringAssert.Contains("BindPersistentButton(addCash, ShowMoneyDestination);", controllerSource);
             foreach (var button in navigation.Query<Button>().ToList())
             {
                 Assert.That(button.ClassListContains("stim-pack-interaction-pop"), Is.True,
