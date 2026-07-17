@@ -80,6 +80,21 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void Header_CompactsLargeMoneyValuesAndKeepsExactAccessibleTooltips()
+        {
+            session.ActiveSave.state.finances.cashMinorUnits = 254081200;
+            session.ActiveSave.state.finances.savingsMinorUnits = 100000000;
+
+            Invoke("RefreshHeader");
+
+            Assert.That(root.Q<Label>("cash-value").text, Is.EqualTo("$2.5M"));
+            Assert.That(root.Q<Label>("cash-value").tooltip, Does.Contain("$2,540,812"));
+            Assert.That(root.Q<Label>("header-net-worth-value").text, Is.EqualTo("Net $3.5M"));
+            Assert.That(root.Q<Label>("header-net-worth-value").tooltip,
+                Does.Contain("$3,540,812"));
+        }
+
+        [Test]
         public void FirstLifeOrientation_UsesOneFocusedScreenAndPersistsContinue()
         {
             session.ActiveSave.state.character.age = 0;
@@ -197,13 +212,98 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(root.Q<Label>("event-category").text, Is.EqualTo("YEAR SUMMARY"));
             Assert.That(root.Q<Label>("result-text").text, Does.Contain("Advanced 12 months"));
             Assert.That(root.Q<Label>("result-effects").text,
-                Is.EqualTo("12 monthly transactions committed"));
+                Is.EqualTo("12 of 12 monthly transactions committed"));
             Assert.That(root.Q("life-feed-list").Query<VisualElement>(className: "category-year").ToList(),
                 Has.Count.EqualTo(1));
             Assert.That(root.Q("life-feed-list").Q<VisualElement>(className: "category-year")
                 .Q<Label>(className: "st-feed-title").text,
                 Does.Contain("Advanced 12 months"));
             Assert.IsFalse(root.Q("event-sheet").ClassListContains("hidden"));
+        }
+
+        [Test]
+        public void AdvanceYear_ResumesRemainingMonthsAfterInterruptingEvent()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            var repairEvent = RepresentativeStimEvents.CreateHomeDeferredMaintenance();
+            catalog.Upsert(repairEvent);
+            session = new StimGameSessionService(
+                catalog,
+                new MemorySaveRepository(),
+                utcNow: () => DateTimeOffset.Parse("2026-07-13T20:00:00Z"));
+            var save = StimNewLifeFactory.Create(
+                new StimNewLifeRequest
+                {
+                    firstName = "Avery",
+                    lastName = "Grant",
+                    country = "USA",
+                    backgroundId = StimNewLifeFactory.MiddleIncomeBackground
+                },
+                "0.1.0",
+                DateTimeOffset.Parse("2026-07-13T19:00:00Z"),
+                1234);
+            save.state.character.age = 18;
+            save.state.character.lifeStage = StimGameSessionService.GetLifeStage(18);
+            save.state.education.stage = StimGameSessionService.GetEducationStage(18);
+            save.state.home.condition = 20;
+            save.state.finances.cashMinorUnits = 10000000;
+            save.state.transitionPresentations.Clear();
+            session.Start(save);
+            SetField("gameSession", session);
+
+            Invoke("AdvanceYear");
+
+            Assert.That(session.ActiveSave.state.character.age, Is.EqualTo(18));
+            Assert.That(root.Q<Label>("event-title").text, Is.EqualTo(repairEvent.titleKey));
+
+            Invoke("Resolve", "repair_now", StimPaymentMethod.Cash);
+            Invoke("CloseEventSheet");
+
+            Assert.That(session.ActiveSave.state.character.age, Is.EqualTo(19));
+            Assert.That(root.Q<Label>("event-category").text, Is.EqualTo("YEAR SUMMARY"));
+            Assert.That(root.Q<Label>("result-effects").text,
+                Is.EqualTo("12 of 12 monthly transactions committed"));
+        }
+
+        [Test]
+        public void AdvanceYear_ShowsCompletionAfterFinalMonthYearReviewIsResolved()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            var review = RepresentativeStimEvents.CreateYearInReview();
+            catalog.Upsert(review);
+            session = new StimGameSessionService(
+                catalog,
+                new MemorySaveRepository(),
+                utcNow: () => DateTimeOffset.Parse("2026-07-13T20:00:00Z"));
+            var save = StimNewLifeFactory.Create(
+                new StimNewLifeRequest
+                {
+                    firstName = "Avery",
+                    lastName = "Grant",
+                    country = "USA",
+                    backgroundId = StimNewLifeFactory.MiddleIncomeBackground
+                },
+                "0.1.0",
+                DateTimeOffset.Parse("2026-07-13T19:00:00Z"),
+                4321);
+            save.state.character.age = 18;
+            save.state.character.lifeStage = StimGameSessionService.GetLifeStage(18);
+            save.state.education.stage = StimGameSessionService.GetEducationStage(18);
+            save.state.transitionPresentations.Clear();
+            session.Start(save);
+            SetField("gameSession", session);
+
+            Invoke("AdvanceYear");
+
+            Assert.That(session.ActiveSave.state.character.age, Is.EqualTo(19));
+            Assert.That(root.Q<Label>("event-title").text, Is.EqualTo(review.titleKey));
+
+            Invoke("Resolve", "invest_in_growth", StimPaymentMethod.Cash);
+            Invoke("CloseEventSheet");
+
+            Assert.That(root.Q<Label>("event-category").text, Is.EqualTo("YEAR SUMMARY"));
+            Assert.That(root.Q<Label>("result-effects").text,
+                Is.EqualTo("12 of 12 monthly transactions committed"));
         }
 
         [Test]
@@ -367,6 +467,77 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(root.Q<Label>("result-text").text, Does.Contain("Learning XP +12"));
             Assert.IsFalse(root.Q("event-sheet").ClassListContains("hidden"));
             Assert.IsFalse(root.Q<Button>("education-action-homework").enabledSelf);
+        }
+
+        [Test]
+        public void EducationAction_ReopensPendingYearReviewInsteadOfShowingInternalId()
+        {
+            UseSessionWithPendingYearReview();
+            session.ActiveSave.state.character.age = 10;
+            session.ActiveSave.state.character.lifeStage = StimGameSessionService.GetLifeStage(10);
+            session.ActiveSave.state.education.stage = StimGameSessionService.GetEducationStage(10);
+            session.ActiveSave.state.pendingEventId = RepresentativeStimEvents.YearInReviewId;
+            Invoke("RefreshHeader");
+
+            Invoke("PerformEducationAction", StimEducationActionType.Homework);
+
+            Assert.That(root.Q<Label>("event-title").text,
+                Is.EqualTo(RepresentativeStimEvents.CreateYearInReview().titleKey));
+            Assert.IsFalse(root.Q("event-sheet").ClassListContains("hidden"));
+            Assert.IsFalse(root.Q("choices").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q("result-card").ClassListContains("hidden"));
+            Assert.That(root.Q<Label>("result-text").text,
+                Does.Not.Contain(RepresentativeStimEvents.YearInReviewId));
+        }
+
+        [Test]
+        public void Continue_HandsOffPriorOutcomeToDeferredYearReview()
+        {
+            UseSessionWithPendingYearReview();
+            root.Q("choices").AddToClassList("hidden");
+            root.Q("result-card").RemoveFromClassList("hidden");
+            root.Q<Button>("event-continue").RemoveFromClassList("hidden");
+            root.Q("event-sheet").RemoveFromClassList("hidden");
+
+            Invoke("CloseEventSheet");
+
+            Assert.That(root.Q<Label>("event-title").text,
+                Is.EqualTo(RepresentativeStimEvents.CreateYearInReview().titleKey));
+            Assert.IsFalse(root.Q("event-sheet").ClassListContains("hidden"));
+            Assert.IsFalse(root.Q("choices").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q("result-card").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q<Button>("event-continue").ClassListContains("hidden"));
+        }
+
+        [Test]
+        public void DestinationNavigation_ReopensPendingYearReview()
+        {
+            UseSessionWithPendingYearReview();
+
+            Invoke("ShowMoneyDestination");
+
+            Assert.IsTrue(root.Q<Button>("nav-money").ClassListContains("active"));
+            Assert.That(root.Q<Label>("event-title").text,
+                Is.EqualTo(RepresentativeStimEvents.CreateYearInReview().titleKey));
+            Assert.IsFalse(root.Q("choices").ClassListContains("hidden"));
+        }
+
+        [Test]
+        public void UnknownPendingEvent_ShowsSafeRecoveryWithoutLeakingId()
+        {
+            session.ActiveSave.state.pendingEventId = "removed_internal_event_001";
+
+            Invoke("PerformEducationAction", StimEducationActionType.Homework);
+
+            Assert.That(root.Q<Label>("event-category").text, Is.EqualTo("CONTENT RECOVERY"));
+            Assert.That(root.Q<Label>("event-title").text,
+                Is.EqualTo("A pending life event could not be loaded"));
+            Assert.That(root.Q<Label>("event-body").text, Does.Contain("Update or restore"));
+            Assert.That(root.Q<Label>("result-text").text,
+                Does.Not.Contain("removed_internal_event_001"));
+            Assert.IsTrue(root.Q<Button>("event-continue").ClassListContains("hidden"));
+            Assert.That(session.ActiveSave.state.pendingEventId,
+                Is.EqualTo("removed_internal_event_001"));
         }
 
         [Test]
@@ -966,6 +1137,20 @@ namespace StimTycoon.Tests.Domain.UI
             var field = typeof(StimVerticalSliceController).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(field, Is.Not.Null, $"Controller field '{name}' was not found.");
             field.SetValue(controller, value);
+        }
+
+        private void UseSessionWithPendingYearReview()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreateYearInReview());
+            var pendingSession = new StimGameSessionService(
+                catalog,
+                new MemorySaveRepository(),
+                utcNow: () => DateTimeOffset.Parse("2026-07-13T20:00:00Z"));
+            session.ActiveSave.state.pendingEventId = RepresentativeStimEvents.YearInReviewId;
+            pendingSession.Start(session.ActiveSave);
+            session = pendingSession;
+            SetField("gameSession", session);
         }
 
         private void Invoke(string name, params object[] arguments)

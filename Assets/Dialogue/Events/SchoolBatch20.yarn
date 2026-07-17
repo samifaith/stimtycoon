@@ -1,0 +1,280 @@
+title: school_cafeteria_lunch_swap_001
+tags: school representative_event
+---
+Your lunch trade rumor has gone international by third period. One person wants chips, one wants fruit, and somebody is acting like yogurt is currency.
+
+-> Trade fairly. #choice:trade_fairly
+    You keep the swap simple and nobody leaves feeling robbed.
+    <<stim_resolve_choice "school_cafeteria_lunch_swap_001" "trade_fairly">>
+    <<stop>>
+-> Be the snack broker. #choice:be_the_broker
+    You start matching everyone up like a tiny lunchtime stock market.
+    <<stim_resolve_choice "school_cafeteria_lunch_swap_001" "be_the_broker">>
+    <<stop>>
+===
+title: school_group_project_roles_002
+tags: school teamwork representative_event
+---
+Your group project has a design genius, a last-minute legend, and one person who has not read the chat since Tuesday.
+
+-> Assign clear roles. #choice:assign_clear_roles
+    You split the work into real pieces instead of vibes.
+    <<stim_resolve_choice "school_group_project_roles_002" "assign_clear_roles">>
+    <<stop>>
+-> Volunteer for too much. #choice:volunteer_for_too_much
+    You grab the hard parts and hope sleep is optional.
+    <<stim_resolve_choice "school_group_project_roles_002" "volunteer_for_too_much">>
+    <<stop>>
+===
+title: school_sub_teacher_energy_003
+tags: school class representative_event
+---
+The substitute teacher walks in with calm energy and a stack of worksheets that says, "I have seen this before."
+
+-> Help set the tone. #choice:help_set_the_tone
+    You make the room less chaotic without trying to be the main character.
+    <<stim_resolve_choice "school_sub_teacher_energy_003" "help_set_the_tone">>
+    <<stop>>
+-> Test the substitute. #choice:test_the_substitute
+    You push the limits to see what the day can get away with.
+    <<stim_resolve_choice "school_sub_teacher_energy_003" "test_the_substitute">>
+    <<stop>>
+===
+title: school_science_fair_glowup_004
+tags: school science representative_event
+---
+Your science fair project works, but the poster board is doing more visual storytelling than your actual experiment.
+
+-> Explain it clearly. #choice:explain_it_clearly
+    You keep the presentation simple enough that everyone can follow the point.
+    <<stim_resolve_choice "school_science_fair_glowup_004" "explain_it_clearly">>
+    <<stop>>
+-> Add extra flair. #choice:add_extra_flair
+    You lean into the presentation and make the booth hard to ignore.
+    <<stim_resolve_choice "school_science_fair_glowup_004" "add_extra_flair">>
+    <<stop>>
+===
+title: school_club_recruitment_005
+tags: school club representative_event
+---
+A club you have never joined is suddenly offering snacks, stickers, and a future that sounds suspiciously organized.
+
+-> Try the club. #choice:try_the_club
+    You give the group a chance and see if it fits.
+    <<stim_resolve_choice "school_club_recruitment_005" "try_the_club">>
+    <<stop>>
+-> Recruit your friend too. #choice:recruit_your_friend_too
+    You bring someone along so the first day is less awkward.
+    <<stim_resolve_choice "school_club_recruitment_005" "recruit_your_friend_too">>
+    <<stop>>
+===
+title: school_exam_study_group_006
+tags: school study representative_event
+---
+The study group is half notes, half snacks, and one person keeps saying "we'll be fine" with suspicious confidence.
+
+-> Make a study plan. #choice:make_a_study_plan
+    You turn the panic into a sequence of actual next steps.
+    <<stim_resolve_choice "school_exam_study_group_006" "make_a_study_plan">>
+    <<stop>>
+-> Wing it together. #choice:wing_it_together
+    You decide shared optimism is the study method tonight.
+    <<stim_resolve_choice "school_exam_study_group_006" "wing_it_together">>
+    <<stop>>
+===
+title: school_friend_group_chat_007
+tags: school friendship representative_event
+---
+A group chat starts with homework and somehow ends with ten people arguing about a meme nobody fully understands.
+
+-> Cool it down. #choice:cool_it_down
+    You remind everyone the chat was supposed to help, not spiral.
+    <<stim_resolve_choice "school_friend_group_chat_007" "cool_it_down">>
+    <<stop>>
+-> Keep the joke going. #choice:keep_the_joke_going
+    You stay in the funny lane and let the tension slide off.
+    <<stim_resolve_choice "school_friend_group_chat_007" "keep_the_joke_going">>
+    <<stop>>
+===
+title: school_dress_code_dilemma_008
+tags: school rules representative_event
+---
+A dress code reminder lands on the same day everybody suddenly wants to dress like a music video.
+
+-> Adjust and move on. #choice:adjust_and_move_on
+    You make the simplest change and keep the day rolling.
+    <<stim_resolve_choice "school_dress_code_dilemma_008" "adjust_and_move_on">>
+    <<stop>>
+-> Question the policy. #choice:question_the_policy
+    You ask why the rule exists and whether it is actually fair.
+    <<stim_resolve_choice "school_dress_code_dilemma_008" "question_the_policy">>
+    <<stop>>
+===
+title: school_art_room_showcase_009
+tags: school art representative_event
+---
+The art room smells like paint, glue, and ambition. Someone just turned paper scraps into something that looks weirdly expensive.
+
+-> Share your work proudly. #choice:share_your_work_proudly
+    You show the piece without pretending it is more polished than it is.
+    <<stim_resolve_choice "school_art_room_showcase_009" "share_your_work_proudly">>
+    <<stop>>
+-> Ask for feedback. #choice:ask_for_feedback
+    You invite the kind of advice that makes the work better.
+    <<stim_resolve_choice "school_art_room_showcase_009" "ask_for_feedback">>
+    <<stop>>
+===
+title: school_bus_seat_shuffle_010
+tags: school commute representative_event
+---
+The bus is full and the only open seat is next to somebody who says they are "mostly quiet, sometimes loud."
+
+-> Sit and say hello. #choice:sit_and_say_hello
+    You make the ride friendlier with one low-stakes greeting.
+    <<stim_resolve_choice "school_bus_seat_shuffle_010" "sit_and_say_hello">>
+    <<stop>>
+-> Wait for another seat. #choice:wait_for_another_seat
+    You choose a little extra peace over taking the first open spot.
+    <<stim_resolve_choice "school_bus_seat_shuffle_010" "wait_for_another_seat">>
+    <<stop>>
+===
+title: school_fundraiser_cookie_booth_011
+tags: school fundraiser representative_event
+---
+The fundraiser table has cookies, flyers, and one adult who keeps saying every person you know will support the school.
+
+-> Pitch politely. #choice:pitch_politely
+    You ask without pressure and make the effort feel welcoming.
+    <<stim_resolve_choice "school_fundraiser_cookie_booth_011" "pitch_politely">>
+    <<stop>>
+-> Overcommit to sales. #choice:overcommit_to_sales
+    You turn into the loudest booth person on the sidewalk.
+    <<stim_resolve_choice "school_fundraiser_cookie_booth_011" "overcommit_to_sales">>
+    <<stop>>
+===
+title: school_lost_charger_012
+tags: school daily_life representative_event
+---
+Your charger is missing, your battery is low, and three people swear they saw it "somewhere safe."
+
+-> Ask everyone calmly. #choice:ask_everyone_calmly
+    You search without turning the whole room into a courtroom.
+    <<stim_resolve_choice "school_lost_charger_012" "ask_everyone_calmly">>
+    <<stop>>
+-> Borrow a charger. #choice:borrow_a_charger
+    You solve the problem for now and keep your phone alive.
+    <<stim_resolve_choice "school_lost_charger_012" "borrow_a_charger">>
+    <<stop>>
+===
+title: school_lunch_table_mix_013
+tags: school friendship representative_event
+---
+You end up at a lunch table where nobody knows the exact seating rules, so everyone is pretending there are no rules.
+
+-> Start a conversation. #choice:start_a_conversation
+    You make the table feel less like a waiting room.
+    <<stim_resolve_choice "school_lunch_table_mix_013" "start_a_conversation">>
+    <<stop>>
+-> Keep to yourself. #choice:keep_to_yourself
+    You protect your energy and observe the social weather.
+    <<stim_resolve_choice "school_lunch_table_mix_013" "keep_to_yourself">>
+    <<stop>>
+===
+title: school_team_tryout_nerves_014
+tags: school sports representative_event
+---
+Tryouts are about to start and everyone suddenly remembers how to stretch like their life depends on it.
+
+-> Try your best. #choice:try_your_best
+    You show up with effort even if your nerves are loud.
+    <<stim_resolve_choice "school_team_tryout_nerves_014" "try_your_best">>
+    <<stop>>
+-> Make a joke first. #choice:make_a_joke_first
+    You loosen the room by being funny before the whistle blows.
+    <<stim_resolve_choice "school_team_tryout_nerves_014" "make_a_joke_first">>
+    <<stop>>
+===
+title: school_parent_teacher_mixup_015
+tags: school family representative_event
+---
+The message home says one thing, the calendar says another, and now everybody is trying to figure out who sent what.
+
+-> Clarify the details. #choice:clarify_the_details
+    You help untangle the mix-up before it gets bigger.
+    <<stim_resolve_choice "school_parent_teacher_mixup_015" "clarify_the_details">>
+    <<stop>>
+-> Let the adults handle it. #choice:let_the_adults_handle_it
+    You step back and let the grown-ups do the confusing part.
+    <<stim_resolve_choice "school_parent_teacher_mixup_015" "let_the_adults_handle_it">>
+    <<stop>>
+===
+title: school_assembly_shuffle_016
+tags: school assembly representative_event
+---
+The assembly is equal parts inspiration and trying not to get caught checking the clock.
+
+-> Pay attention. #choice:pay_attention
+    You listen for the part that might actually matter.
+    <<stim_resolve_choice "school_assembly_shuffle_016" "pay_attention">>
+    <<stop>>
+-> Find the humor. #choice:find_the_humor
+    You survive the long speech by spotting the strange little details.
+    <<stim_resolve_choice "school_assembly_shuffle_016" "find_the_humor">>
+    <<stop>>
+===
+title: school_locker_spill_017
+tags: school accident representative_event
+---
+Your locker opens at the wrong angle and the contents make a dramatic exit into the hallway.
+
+-> Clean it up fast. #choice:clean_it_up_fast
+    You recover before the hallway gossip gets a full storyline.
+    <<stim_resolve_choice "school_locker_spill_017" "clean_it_up_fast">>
+    <<stop>>
+-> Ask for help. #choice:ask_for_help
+    You accept a hand and finish faster than you could alone.
+    <<stim_resolve_choice "school_locker_spill_017" "ask_for_help">>
+    <<stop>>
+===
+title: school_after_school_job_018
+tags: school work representative_event
+---
+You are thinking about an after-school job, and every option sounds like a grown-up sentence with a teen schedule.
+
+-> Apply carefully. #choice:apply_carefully
+    You pick the job that fits your time and energy.
+    <<stim_resolve_choice "school_after_school_job_018" "apply_carefully">>
+    <<stop>>
+-> Apply everywhere. #choice:apply_everywhere
+    You send out applications with determined chaos.
+    <<stim_resolve_choice "school_after_school_job_018" "apply_everywhere">>
+    <<stop>>
+===
+title: school_classmate_boundaries_019
+tags: school friendship representative_event
+---
+A classmate keeps pushing for your attention even after you said you were busy.
+
+-> Set a boundary. #choice:set_a_boundary
+    You say no clearly and without extra drama.
+    <<stim_resolve_choice "school_classmate_boundaries_019" "set_a_boundary">>
+    <<stop>>
+-> Keep explaining. #choice:keep_explaining
+    You try to be kind enough that they finally hear you.
+    <<stim_resolve_choice "school_classmate_boundaries_019" "keep_explaining">>
+    <<stop>>
+===
+title: school_last_period_struggle_020
+tags: school class representative_event
+---
+The final period is dragging, the room is warm, and the board has become impossible to read from the back.
+
+-> Focus and finish. #choice:focus_and_finish
+    You stay with it and make it to the end.
+    <<stim_resolve_choice "school_last_period_struggle_020" "focus_and_finish">>
+    <<stop>>
+-> Ask to regroup. #choice:ask_to_regroup
+    You admit the room needs a reset and make space for one.
+    <<stim_resolve_choice "school_last_period_struggle_020" "ask_to_regroup">>
+    <<stop>>
+===

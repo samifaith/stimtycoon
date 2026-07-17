@@ -80,6 +80,9 @@ namespace StimTycoon.Runtime
         private Button eventContinue;
         private string presentedTransitionId;
         private bool presentingFirstLifeOrientation;
+        private int queuedYearMonthsRemaining;
+        private bool queuedYearCompletionPending;
+        private string queuedYearCompletionSummary;
         private VisualElement newLifeSetup;
         private Label newLifeError;
         private Button cancelNewLife;
@@ -404,33 +407,10 @@ namespace StimTycoon.Runtime
             achievementsList = root.Q<VisualElement>("achievements-list");
 
             var catalog = new InMemoryStimEventCatalog();
-            catalog.Upsert(RepresentativeStimEvents.CreateYearInReview());
-            catalog.Upsert(RepresentativeStimEvents.CreateHomeDeferredMaintenance());
-            catalog.Upsert(RepresentativeStimEvents.CreateSalaryNegotiation());
-            catalog.Upsert(RepresentativeStimEvents.CreateHealthBurnout());
-            catalog.Upsert(RepresentativeStimEvents.CreateMoneyFastReturn());
-            catalog.Upsert(RepresentativeStimEvents.CreateSchoolGroupProject());
-            catalog.Upsert(RepresentativeStimEvents.CreateChildhoodGrownFolksTable());
-            catalog.Upsert(RepresentativeStimEvents.CreateRandomGain());
-            catalog.Upsert(RepresentativeStimEvents.CreateRandomLoss());
-            catalog.Upsert(RepresentativeStimEvents.CreateRandomGainRefund());
-            catalog.Upsert(RepresentativeStimEvents.CreateRandomLossRepair());
-            catalog.Upsert(RepresentativeStimEvents.CreateLuckCrossroads());
-            catalog.Upsert(RepresentativeStimEvents.CreateChildhoodDiscovery());
-            catalog.Upsert(RepresentativeStimEvents.CreateChildhoodComfort());
-            catalog.Upsert(RepresentativeStimEvents.CreatePeerTrustConflict());
-            catalog.Upsert(RepresentativeStimEvents.CreatePeerTrustAftermath());
-            catalog.Upsert(RepresentativeStimEvents.CreatePeerJealousy());
-            catalog.Upsert(RepresentativeStimEvents.CreateComingOfAgeGender());
-            catalog.Upsert(RepresentativeStimEvents.CreateComingOfAgeOrientation());
-            catalog.Upsert(RepresentativeStimEvents.CreatePromInvitation());
-            catalog.Upsert(RepresentativeStimEvents.CreateFirstKiss());
-            catalog.Upsert(RepresentativeStimEvents.CreateProposal());
-            catalog.Upsert(RepresentativeStimEvents.CreateWedding());
-            catalog.Upsert(RepresentativeStimEvents.CreateMarriageCrossroads());
-            catalog.Upsert(RepresentativeStimEvents.CreateAppliedFinanceChallenge());
-            catalog.Upsert(RepresentativeStimEvents.CreateCommunityHealthChallenge());
-            catalog.Upsert(RepresentativeStimEvents.CreateSustainableTradesChallenge());
+            foreach (var authoredEvent in RepresentativeStimEvents.CreateLaunchAlphaCatalog())
+            {
+                catalog.Upsert(authoredEvent);
+            }
             gameSession = new StimGameSessionService(catalog, new NativeStimSaveRepository());
             var loadedExistingLife = gameSession.TryLoadLatest(out _);
 
@@ -542,7 +522,7 @@ namespace StimTycoon.Runtime
 
             if (!string.IsNullOrEmpty(gameSession.ActiveSave.state.pendingEventId))
             {
-                catalog.TryGetEvent(gameSession.ActiveSave.state.pendingEventId, out currentEvent);
+                gameSession.TryGetPendingEvent(out currentEvent);
             }
             else if (gameSession.ActiveSave.state.character.age >= 18 &&
                      !string.IsNullOrEmpty(gameSession.ActiveSave.state.career.roleTitle) &&
@@ -563,6 +543,10 @@ namespace StimTycoon.Runtime
             if (currentEvent != null)
             {
                 PresentEvent(currentEvent);
+            }
+            else if (gameSession.HasPendingEvent)
+            {
+                PresentPendingEventIfAvailable();
             }
             else if (gameSession.GetPendingTransition() != null)
             {
@@ -730,6 +714,7 @@ namespace StimTycoon.Runtime
 
         private void AdvanceMonth()
         {
+            if (PresentPendingEventIfAvailable()) return;
             var cashBefore = gameSession.ActiveSave.state.finances.cashMinorUnits;
             var ageBefore = gameSession.ActiveSave.state.character.age;
             var happinessBefore = gameSession.ActiveSave.state.character.happiness;
@@ -784,7 +769,19 @@ namespace StimTycoon.Runtime
 
         private void AdvanceYear()
         {
-            if (!gameSession.TryAdvanceYear(out var monthsProcessed, out var nextEvent, out var summary))
+            if (PresentPendingEventIfAvailable()) return;
+            queuedYearMonthsRemaining = 12;
+            queuedYearCompletionPending = false;
+            queuedYearCompletionSummary = string.Empty;
+            ContinueQueuedYearAdvance();
+        }
+
+        private void ContinueQueuedYearAdvance()
+        {
+            if (queuedYearMonthsRemaining <= 0) return;
+            var requestedMonths = queuedYearMonthsRemaining;
+            if (!gameSession.TryAdvanceMonths(
+                    requestedMonths, out var monthsProcessed, out var nextEvent, out var summary))
             {
                 resultText.text = summary;
                 resultEffects.text = "No changes applied";
@@ -795,10 +792,11 @@ namespace StimTycoon.Runtime
                 return;
             }
 
+            queuedYearMonthsRemaining = Math.Max(0, queuedYearMonthsRemaining - monthsProcessed);
             currentEvent = nextEvent;
             resultText.text = summary;
-            resultEffects.text = $"{monthsProcessed} monthly transaction" +
-                                 (monthsProcessed == 1 ? string.Empty : "s") + " committed";
+            var totalCommitted = 12 - queuedYearMonthsRemaining;
+            resultEffects.text = $"{totalCommitted} of 12 monthly transactions committed";
             resultEffects.RemoveFromClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             RefreshHeader();
@@ -806,28 +804,39 @@ namespace StimTycoon.Runtime
 
             if (gameSession.ActiveSave.state.character.lifeStatus != "active")
             {
+                queuedYearMonthsRemaining = 0;
                 ShowFinalLifeSummary();
                 return;
             }
             if (currentEvent != null)
             {
+                if (queuedYearMonthsRemaining == 0)
+                {
+                    queuedYearCompletionPending = true;
+                    queuedYearCompletionSummary = summary;
+                }
                 PresentEvent(currentEvent);
                 return;
             }
             if (gameSession.GetPendingTransition() != null)
             {
+                if (queuedYearMonthsRemaining == 0)
+                {
+                    queuedYearCompletionPending = true;
+                    queuedYearCompletionSummary = summary;
+                }
                 PresentPendingTransition();
                 return;
             }
 
             choices.AddToClassList("hidden");
-            eventCategory.text = monthsProcessed == 12 ? "YEAR SUMMARY" : "TIME PAUSED";
-            eventTitle.text = monthsProcessed == 12
+            eventCategory.text = queuedYearMonthsRemaining == 0 ? "YEAR SUMMARY" : "TIME PAUSED";
+            eventTitle.text = queuedYearMonthsRemaining == 0
                 ? "A full year moved forward"
-                : $"Paused after {monthsProcessed} month{(monthsProcessed == 1 ? string.Empty : "s")}";
-            eventBody.text = monthsProcessed == 12
+                : $"Year advance paused · {queuedYearMonthsRemaining} month{(queuedYearMonthsRemaining == 1 ? string.Empty : "s")} remaining";
+            eventBody.text = queuedYearMonthsRemaining == 0
                 ? "Every normal monthly change was processed and autosaved in sequence."
-                : "Progress stopped because the next step requires your attention.";
+                : "Resolve the required choice, then Continue. The remaining months will resume automatically.";
             eventSheet.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
         }
@@ -885,9 +894,9 @@ namespace StimTycoon.Runtime
             var career = state.career;
             var netWorth = state.finances.cashMinorUnits + state.finances.savingsMinorUnits +
                            state.finances.indexFundMinorUnits - state.finances.debtMinorUnits;
-            cashValue.text = FormatMoney(state.finances.cashMinorUnits);
+            cashValue.text = FormatCompactMoney(state.finances.cashMinorUnits);
             netWorthValue.text = FormatMoney(netWorth);
-            headerNetWorthValue.text = $"Net {FormatMoney(netWorth)}";
+            headerNetWorthValue.text = $"Net {FormatCompactMoney(netWorth)}";
             netWorthValue.tooltip = $"Total net worth {FormatMoney(netWorth)}";
             moneyCashValue.tooltip = $"Current cash {FormatMoney(state.finances.cashMinorUnits)}";
             lifeSummary.text = string.IsNullOrEmpty(state.character.firstName)
@@ -980,7 +989,7 @@ namespace StimTycoon.Runtime
             foreach (var action in definition.actions)
                 AddHomeAction(action);
 
-            if (home.upgradeLevel < 3)
+            if (home.upgradeLevel < 3 && state.character.age >= 18)
             {
                 var cost = StimGameSessionService.GetHomeUpgradeCost(home.upgradeLevel);
                 var button = new Button
@@ -1000,7 +1009,9 @@ namespace StimTycoon.Runtime
         {
             var state = gameSession.ActiveSave.state;
             var actionType = definition.actionType;
-            var cost = definition.costMinorUnits;
+            var caregiverHandlesMaintenance =
+                actionType == StimHomeActionType.Maintain && state.character.age < 18;
+            var cost = caregiverHandlesMaintenance ? 0 : definition.costMinorUnits;
             var cooldownId = $"home_{actionType.ToString().ToLowerInvariant()}_used";
             var coolingDown = state.statuses.Exists(status => status.statusId == cooldownId);
             var hasCapacity = actionType != StimHomeActionType.Read || state.home.readingMaterialStock > 0;
@@ -1008,7 +1019,8 @@ namespace StimTycoon.Runtime
             var button = new Button
             {
                 name = $"home-action-{actionType.ToString().ToLowerInvariant()}",
-                text = $"{definition.displayName}\n{(cost == 0 ? "Free" : FormatMoney(cost))} · {definition.benefitPreview}" +
+                text = $"{(caregiverHandlesMaintenance ? "Ask caregiver to maintain" : definition.displayName)}\n" +
+                       $"{(cost == 0 ? "Free" : FormatMoney(cost))} · {definition.benefitPreview}" +
                        $" · {ToDisplayName(definition.roomObjectId)}" +
                        (coolingDown ? "\nAvailable next month" : string.Empty)
             };
@@ -1021,6 +1033,7 @@ namespace StimTycoon.Runtime
 
         private void PerformHomeAction(StimHomeActionType actionType)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformHomeAction(actionType, out var summary);
             homeUpgradeFeedback.text = summary;
             homeUpgradeFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
@@ -1032,6 +1045,7 @@ namespace StimTycoon.Runtime
 
         private void PerformHomeUpgrade()
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryUpgradeHome(out var summary);
             homeUpgradeFeedback.text = summary;
             homeUpgradeFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
@@ -1200,6 +1214,7 @@ namespace StimTycoon.Runtime
 
         private void PerformSavingsTransfer(long amountMinorUnits)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryTransferSavings(
                 savingsTransferType, amountMinorUnits, out var summary);
             savingsTransferFeedback.text = summary;
@@ -1246,6 +1261,7 @@ namespace StimTycoon.Runtime
 
         private void PerformCreditRepayment(long amountMinorUnits)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryRepayHouseholdCredit(amountMinorUnits, out var summary);
             creditRepaymentFeedback.text = summary;
             creditRepaymentFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
@@ -1258,6 +1274,7 @@ namespace StimTycoon.Runtime
 
         private void PerformIndexInvestment(long amountMinorUnits)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryInvestInIndexFund(amountMinorUnits, out var summary);
             indexInvestmentFeedback.text = summary;
             indexInvestmentFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
@@ -1290,6 +1307,7 @@ namespace StimTycoon.Runtime
                     goal.status != "claimed",
                     () =>
                 {
+                    if (PresentPendingEventIfAvailable()) return;
                     if (goal.status == "claimable")
                     {
                         gameSession.TryClaimGoalReward(capturedGoalId, out _);
@@ -1332,6 +1350,7 @@ namespace StimTycoon.Runtime
                     !achievement.rewardClaimed && reward > 0,
                     () =>
                 {
+                    if (PresentPendingEventIfAvailable()) return;
                     gameSession.TryClaimAchievementReward(capturedAchievementId, out _);
                     RefreshHeader();
                     RefreshFeed();
@@ -1631,6 +1650,7 @@ namespace StimTycoon.Runtime
 
         private void StartTimedStudySession(StimStudyDifficulty difficulty)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var instanceId = $"focused-study-{gameSession.ActiveSave.revision + 1}-{difficulty.ToString().ToLowerInvariant()}";
             var succeeded = gameSession.TryStartStudySession(difficulty, instanceId, out var summary);
             eventCategory.text = succeeded ? "STUDY IN PROGRESS" : "SESSION LOCKED";
@@ -1685,6 +1705,7 @@ namespace StimTycoon.Runtime
 
         private void ClaimTimedStudySession(string instanceId)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryClaimStudySession(instanceId, out var summary);
             eventCategory.text = succeeded ? "QUALIFICATION PROGRESS" : "SESSION NOT READY";
             eventTitle.text = "Study Session Reward";
@@ -1703,6 +1724,7 @@ namespace StimTycoon.Runtime
 
         private void PerformStudyTrackChoice(StimStudyTrack track)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryChooseStudyTrack(track, out var summary);
             eventCategory.text = succeeded ? "STUDY TRACK" : "TRACK LOCKED";
             eventTitle.text = $"{track} Track";
@@ -1723,6 +1745,7 @@ namespace StimTycoon.Runtime
 
         private void PerformSchoolPathChoice(StimSchoolPathChoice choice)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryChooseSchoolPath(choice, out var summary);
             eventCategory.text = succeeded ? "LIFE PATH" : "PATH LOCKED";
             eventTitle.text = ToDisplayName(choice.ToString());
@@ -1743,6 +1766,7 @@ namespace StimTycoon.Runtime
 
         private void PerformEducationAction(StimEducationActionType actionType)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformEducationAction(actionType, out var summary);
             eventCategory.text = succeeded ? "SCHOOL PROGRESS" : "ACTION LOCKED";
             eventTitle.text = ToDisplayName(actionType.ToString());
@@ -1990,6 +2014,7 @@ namespace StimTycoon.Runtime
 
         private void PerformCareerAction(StimCareerActionType actionType)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformCareerAction(actionType, out var summary);
             eventCategory.text = succeeded ? "CAREER UPDATE" : "CAREER ACTION LOCKED";
             eventTitle.text = ToDisplayName(actionType.ToString());
@@ -2014,6 +2039,7 @@ namespace StimTycoon.Runtime
 
         private void PerformBusinessAction(StimBusinessActionType actionType)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformBusinessAction(actionType, out var summary);
             eventCategory.text = succeeded ? "BUSINESS UPDATE" : "BUSINESS ACTION LOCKED";
             eventTitle.text = ToDisplayName(actionType.ToString());
@@ -2113,6 +2139,7 @@ namespace StimTycoon.Runtime
                     PresentPendingTransition();
                     return;
                 }
+                if (PresentPendingEventIfAvailable()) return;
                 if (gameSession.ShouldPresentFirstLifeOrientation())
                 {
                     PresentFirstLifeOrientation();
@@ -2130,9 +2157,46 @@ namespace StimTycoon.Runtime
                 presentingFirstLifeOrientation = false;
                 RefreshFeed();
             }
+            if (PresentPendingEventIfAvailable()) return;
+            if (queuedYearMonthsRemaining > 0 &&
+                !string.IsNullOrEmpty(gameSession.ActiveSave.state.education?.awaitingDecisionId))
+            {
+                eventSheet.AddToClassList("hidden");
+                resultCard.AddToClassList("hidden");
+                eventContinue.AddToClassList("hidden");
+                ShowEducationDestination();
+                return;
+            }
+            if (queuedYearMonthsRemaining > 0)
+            {
+                ContinueQueuedYearAdvance();
+                return;
+            }
+            if (queuedYearCompletionPending)
+            {
+                PresentQueuedYearCompletion();
+                return;
+            }
             eventSheet.AddToClassList("hidden");
             resultCard.AddToClassList("hidden");
             eventContinue.AddToClassList("hidden");
+        }
+
+        private void PresentQueuedYearCompletion()
+        {
+            queuedYearCompletionPending = false;
+            eventCategory.text = "YEAR SUMMARY";
+            eventTitle.text = "A full year moved forward";
+            eventBody.text = "Every normal monthly change was processed and autosaved in sequence.";
+            resultText.text = queuedYearCompletionSummary;
+            resultEffects.text = "12 of 12 monthly transactions committed";
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            resultEffects.RemoveFromClassList("hidden");
+            eventContinue.RemoveFromClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            RefreshHeader();
+            RefreshFeed();
         }
 
         private void PresentPendingTransition()
@@ -2172,6 +2236,7 @@ namespace StimTycoon.Runtime
 
         private void PerformActivity(StimActivityType activityType)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformActivity(activityType, out var summary);
             eventCategory.text = succeeded ? "FOCUS COMPLETE" : "FOCUS UNAVAILABLE";
             eventTitle.text = $"{ToDisplayName(activityType.ToString())} session";
@@ -2203,6 +2268,7 @@ namespace StimTycoon.Runtime
         private void ShowLifeDestination()
         {
             NavigateTo(StimDestination.Life);
+            PresentPendingEventIfAvailable();
         }
 
         private void ShowEducationDestination()
@@ -2210,18 +2276,21 @@ namespace StimTycoon.Runtime
             RefreshEducation();
             RefreshSkills();
             NavigateTo(StimDestination.Study);
+            PresentPendingEventIfAvailable();
         }
 
         private void ShowCareerDestination()
         {
             RefreshCareer();
             NavigateTo(StimDestination.Work);
+            PresentPendingEventIfAvailable();
         }
 
         private void ShowMoneyDestination()
         {
             RefreshMoney();
             NavigateTo(StimDestination.Bank);
+            PresentPendingEventIfAvailable();
         }
 
         private void ShowSocialDestination()
@@ -2229,12 +2298,38 @@ namespace StimTycoon.Runtime
             RefreshSocial();
             NavigateTo(StimDestination.Social);
             if (string.IsNullOrEmpty(selectedRelationshipId)) ShowRelationshipList();
+            PresentPendingEventIfAvailable();
         }
 
         private void ShowGoalsDestination()
         {
             RefreshAchievements();
             NavigateTo(StimDestination.Goals);
+            PresentPendingEventIfAvailable();
+        }
+
+        private bool PresentPendingEventIfAvailable()
+        {
+            if (gameSession.TryGetPendingEvent(out var pendingEvent))
+            {
+                currentEvent = pendingEvent;
+                PresentEvent(pendingEvent);
+                return true;
+            }
+            if (!gameSession.HasPendingEvent) return false;
+
+            currentEvent = null;
+            eventCategory.text = "CONTENT RECOVERY";
+            eventTitle.text = "A pending life event could not be loaded";
+            eventBody.text = "This save needs event content that is unavailable in the current build. Update or restore the matching build, then reopen this life.";
+            resultText.text = "No progress was changed.";
+            resultEffects.text = "The unavailable event was preserved for safe recovery.";
+            resultEffects.RemoveFromClassList("hidden");
+            choices.AddToClassList("hidden");
+            resultCard.RemoveFromClassList("hidden");
+            eventContinue.AddToClassList("hidden");
+            eventSheet.RemoveFromClassList("hidden");
+            return true;
         }
 
         private void NavigateTo(StimDestination destination, bool restoreScroll = true)
@@ -2335,6 +2430,7 @@ namespace StimTycoon.Runtime
 
         private void PerformManualWorkTap()
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformManualWorkTap(out _, out var summary);
             manualWorkFeedback.text = summary;
             if (!succeeded)
@@ -2420,6 +2516,7 @@ namespace StimTycoon.Runtime
 
         private void DiscoverCompatiblePerson()
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryDiscoverCompatiblePerson(out var relationshipId, out var summary);
             relationshipDiscoveryFeedback.text = summary;
             relationshipDiscoveryFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
@@ -2529,6 +2626,7 @@ namespace StimTycoon.Runtime
 
         private void PerformParentingAction(StimParentingAction action)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformParentingAction(selectedRelationshipId, action, out var summary);
             eventCategory.text = succeeded ? "PARENTING MOMENT" : "PARENTING ACTION UNAVAILABLE";
             eventTitle.text = ToDisplayName(action.ToString());
@@ -2576,6 +2674,7 @@ namespace StimTycoon.Runtime
 
         private void PerformFamilyPlanning(StimFamilyPlanningAction action)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryChooseFamilyPlanning(selectedRelationshipId, action, out var summary);
             eventCategory.text = succeeded ? "FAMILY DECISION" : "FAMILY PATH UNAVAILABLE";
             eventTitle.text = ToDisplayName(action.ToString());
@@ -2596,6 +2695,7 @@ namespace StimTycoon.Runtime
 
         private void PerformRelationshipInteraction(StimRelationshipInteractionType interactionType)
         {
+            if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformRelationshipInteraction(
                 selectedRelationshipId,
                 interactionType,
@@ -2697,6 +2797,17 @@ namespace StimTycoon.Runtime
         private static string FormatCompactProgress(long value, long maximum)
         {
             return $"{FormatCompactNumber(value)} / {FormatCompactNumber(maximum)}";
+        }
+
+        private static string FormatCompactMoney(long minorUnits)
+        {
+            var amount = minorUnits / 100m;
+            var absolute = Math.Abs(amount);
+            var sign = amount < 0 ? "−" : string.Empty;
+            if (absolute >= 1000000000m) return $"{sign}${absolute / 1000000000m:0.#}B";
+            if (absolute >= 1000000m) return $"{sign}${absolute / 1000000m:0.#}M";
+            if (absolute >= 10000m) return $"{sign}${absolute / 1000m:0.#}K";
+            return amount.ToString("C0");
         }
 
         private static string FormatCompactNumber(long value)

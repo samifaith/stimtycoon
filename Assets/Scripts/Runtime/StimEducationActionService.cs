@@ -138,7 +138,7 @@ namespace StimTycoon.Runtime
                 return StimTransactionMutationResult.Failure("No active save is loaded.");
             if (!string.IsNullOrEmpty(candidateSave.state.pendingEventId))
                 return StimTransactionMutationResult.Failure(
-                    $"Resolve pending event {candidateSave.state.pendingEventId} before studying.");
+                    "Resolve the pending life event before studying.");
             NormalizeCollections(candidateSave.state);
             if (!TryGetStudySessionRequirement(candidateSave.state, difficulty, out var requirement))
                 return StimTransactionMutationResult.Failure(requirement);
@@ -295,7 +295,7 @@ namespace StimTycoon.Runtime
             if (!string.IsNullOrEmpty(candidateSave.state.pendingEventId))
             {
                 return StimTransactionMutationResult.Failure(
-                    $"Resolve pending event {candidateSave.state.pendingEventId} before studying.");
+                    "Resolve the pending life event before studying.");
             }
 
             NormalizeCollections(candidateSave.state);

@@ -345,6 +345,43 @@ namespace StimTycoon.Tests.Domain.Events
         }
 
         [Test]
+        public void ValidateEvent_RejectsUnmarkedUnderageCashCost()
+        {
+            var evt = CreateValidEvent();
+            evt.ageRange = new AgeRange { minAge = 12, maxAge = 17 };
+            evt.choices[0].outcomes[0].effects.Add(new Effect
+            {
+                type = EffectType.CashDelta,
+                targetId = "cash",
+                value = -2500
+            });
+
+            var result = StimEventValidator.ValidateEvent(evt);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Matches<string>(error =>
+                error.Contains("minor_cash_agency")));
+        }
+
+        [Test]
+        public void ValidateEvent_AllowsExplicitMinorCashAgencyStory()
+        {
+            var evt = CreateValidEvent();
+            evt.ageRange = new AgeRange { minAge = 12, maxAge = 17 };
+            evt.analyticsTags.Add("minor_cash_agency");
+            evt.choices[0].outcomes[0].effects.Add(new Effect
+            {
+                type = EffectType.CashDelta,
+                targetId = "cash",
+                value = -500
+            });
+
+            var result = StimEventValidator.ValidateEvent(evt);
+
+            Assert.IsTrue(result.isValid, StimEventValidator.GetValidationSummary(result, evt.id));
+        }
+
+        [Test]
         public void ValidateEvent_RequiresConsentTagForIntimateMilestone()
         {
             var evt = CreateValidEvent();

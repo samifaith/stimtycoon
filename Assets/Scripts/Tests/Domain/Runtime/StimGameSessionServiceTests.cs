@@ -306,10 +306,29 @@ namespace StimTycoon.Tests.Domain.Runtime
             var advanced = service.TryAdvanceMonth(out var nextEvent, out var summary);
 
             Assert.IsFalse(advanced);
+            Assert.IsTrue(service.TryGetPendingEvent(out var pendingEvent));
+            Assert.That(pendingEvent.id, Is.EqualTo(RepresentativeStimEvents.SalaryNegotiationId));
             Assert.That(nextEvent, Is.Null);
-            Assert.That(summary, Contains.Substring("Resolve pending event"));
+            Assert.That(summary, Contains.Substring("pending life event"));
+            Assert.That(summary, Does.Not.Contain(RepresentativeStimEvents.SalaryNegotiationId));
             Assert.That(service.ActiveSave.state.character.age, Is.EqualTo(24));
             Assert.That(repository.CommitCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void PendingEventGuard_DoesNotLeakUnknownContentId()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.pendingEventId = "removed_internal_event_001";
+            service.Start(save);
+
+            Assert.IsFalse(service.TryGetPendingEvent(out var pendingEvent));
+            Assert.That(pendingEvent, Is.Null);
+            Assert.IsFalse(service.TryAdvanceMonth(out _, out var summary));
+            Assert.That(summary, Does.Contain("pending life event"));
+            Assert.That(summary, Does.Not.Contain("removed_internal_event_001"));
         }
 
         [Test]
@@ -334,6 +353,26 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(service.ActiveSave.state.lifeFeed[^1].category, Is.EqualTo("year"));
             Assert.That(service.ActiveSave.state.lifeFeed[^1].text,
                 Does.Contain("Advanced 12 months").And.Contain("Age +1").And.Contain("Twelve months completed"));
+        }
+
+        [Test]
+        public void AdvanceMonths_ProcessesOnlyTheRequestedRemainder()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 24;
+            save.state.calendar.monthOfYear = 5;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonths(
+                4, out var monthsProcessed, out var nextEvent, out var summary), summary);
+
+            Assert.That(monthsProcessed, Is.EqualTo(4));
+            Assert.That(nextEvent, Is.Null);
+            Assert.That(service.ActiveSave.state.character.age, Is.EqualTo(24));
+            Assert.That(service.ActiveSave.state.calendar.monthOfYear, Is.EqualTo(9));
+            Assert.That(summary, Does.Contain("Advanced 4 months").And.Contain("Requested 4 months completed"));
         }
 
         [Test]
@@ -481,6 +520,8 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.IsTrue(resumed.TryLoadLatest(out var loadSummary), loadSummary);
             Assert.That(resumed.ActiveSave.state.pendingEventId,
                 Is.EqualTo(RepresentativeStimEvents.YearInReviewId));
+            Assert.IsTrue(resumed.TryGetPendingEvent(out var resumedEvent));
+            Assert.That(resumedEvent.id, Is.EqualTo(RepresentativeStimEvents.YearInReviewId));
             Assert.IsTrue(resumed.TryResolveChoice(
                 RepresentativeStimEvents.YearInReviewId, "nurture_connections", out var claimSummary), claimSummary);
             Assert.IsFalse(resumed.TryResolveChoice(
@@ -786,6 +827,90 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.IsTrue(service.TryResolveChoice(evt.id, "repair_now", out var repairSummary), repairSummary);
             Assert.That(service.ActiveSave.state.home.condition, Is.EqualTo(49));
             Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBeforeRepair - 7500));
+        }
+
+        [Test]
+        public void HomeRepairEvent_IsUnavailableToChildrenAndUnlocksAtEighteen()
+        {
+            var evt = RepresentativeStimEvents.CreateHomeDeferredMaintenance();
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(evt);
+
+            var childSession = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var childSave = CreateValidSave();
+            childSave.state.character.age = 17;
+            childSave.state.home.condition = 20;
+            childSession.Start(childSave);
+            Assert.IsTrue(childSession.TryAdvanceMonth(out var childEvent, out var childSummary), childSummary);
+            Assert.That(childEvent, Is.Null);
+            Assert.That(string.IsNullOrEmpty(childSession.ActiveSave.state.pendingEventId), Is.True);
+
+            var adultSession = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var adultSave = CreateValidSave();
+            adultSave.state.character.age = 18;
+            adultSave.state.home.condition = 20;
+            adultSession.Start(adultSave);
+            Assert.IsTrue(adultSession.TryAdvanceMonth(out var adultEvent, out var adultSummary), adultSummary);
+            Assert.That(adultEvent?.id, Is.EqualTo(RepresentativeStimEvents.HomeDeferredMaintenanceId));
+        }
+
+        [Test]
+        public void ChildSave_DropsPreviouslyQueuedAdultHomeRepairAndCannotResolveItDirectly()
+        {
+            var evt = RepresentativeStimEvents.CreateHomeDeferredMaintenance();
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(evt);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 8;
+            save.state.pendingEventId = evt.id;
+            var cashBefore = save.state.finances.cashMinorUnits;
+
+            service.Start(save);
+
+            Assert.That(service.HasPendingEvent, Is.False);
+            Assert.That(string.IsNullOrEmpty(service.ActiveSave.state.pendingEventId), Is.True);
+            Assert.IsFalse(service.TryResolveChoice(evt.id, "repair_now", out var summary));
+            Assert.That(summary, Does.Contain("not available at age 8"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore));
+        }
+
+        [Test]
+        public void ChildHomeMaintenance_UsesCaregiverVariantAndHomeUpgradeRemainsHiddenByAuthority()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = 10;
+            save.state.home.condition = 40;
+            save.state.home.improvementProgress = 10;
+            var cashBefore = save.state.finances.cashMinorUnits;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformHomeAction(StimHomeActionType.Maintain, out var maintainSummary),
+                maintainSummary);
+            Assert.That(maintainSummary, Does.Contain("caregiver").And.Contain("No child payment"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore));
+            Assert.IsFalse(service.TryUpgradeHome(out var upgradeSummary));
+            Assert.That(upgradeSummary, Does.Contain("unlock at age 18"));
+            Assert.That(service.ActiveSave.state.finances.cashMinorUnits, Is.EqualTo(cashBefore));
+        }
+
+        [Test]
+        public void AdultFinancialAgencyEvents_BeginAtEighteen()
+        {
+            var events = new[]
+            {
+                RepresentativeStimEvents.CreateHomeDeferredMaintenance(),
+                RepresentativeStimEvents.CreateRandomLoss(),
+                RepresentativeStimEvents.CreateRandomGainRefund(),
+                RepresentativeStimEvents.CreateRandomLossRepair()
+            };
+
+            foreach (var evt in events)
+            {
+                Assert.That(evt.ageRange.minAge, Is.EqualTo(18), evt.id);
+            }
         }
 
         [Test]

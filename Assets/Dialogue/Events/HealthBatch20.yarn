@@ -1,0 +1,280 @@
+title: health_morning_stretch_001
+tags: health representative_event
+---
+Your body asks for a slower start than your calendar planned.
+
+-> Stretch gently. #choice:stretch_gently
+    You give yourself a better start before the day gets loud.
+    <<stim_resolve_choice "health_morning_stretch_001" "stretch_gently">>
+    <<stop>>
+-> Power through. #choice:power_through
+    You try to ignore the signal and keep moving.
+    <<stim_resolve_choice "health_morning_stretch_001" "power_through">>
+    <<stop>>
+===
+title: health_appointment_reminder_002
+tags: health care representative_event
+---
+A reminder for a checkup lands at the exact moment you are pretending the inbox does not exist.
+
+-> Book the appointment. #choice:book_the_appointment
+    You handle the boring thing before it gets bigger.
+    <<stim_resolve_choice "health_appointment_reminder_002" "book_the_appointment">>
+    <<stop>>
+-> Put it off. #choice:put_it_off
+    You decide next week sounds emotionally available.
+    <<stim_resolve_choice "health_appointment_reminder_002" "put_it_off">>
+    <<stop>>
+===
+title: health_workday_headache_003
+tags: health work representative_event
+---
+A headache shows up mid-day and starts negotiating with your focus like it pays rent.
+
+-> Take a break. #choice:take_a_break
+    You step away before the problem gets louder.
+    <<stim_resolve_choice "health_workday_headache_003" "take_a_break">>
+    <<stop>>
+-> Keep typing. #choice:keep_typing
+    You stay at the keyboard and hope stubbornness counts as treatment.
+    <<stim_resolve_choice "health_workday_headache_003" "keep_typing">>
+    <<stop>>
+===
+title: health_water_bottle_challenge_004
+tags: health routine representative_event
+---
+You realize you have been moving around all day with exactly one sip of water and a whole lot of confidence.
+
+-> Hydrate now. #choice:hydrate_now
+    You fix the small thing before it becomes the bigger thing.
+    <<stim_resolve_choice "health_water_bottle_challenge_004" "hydrate_now">>
+    <<stop>>
+-> Wait until later. #choice:wait_until_later
+    You push the issue down the road a little longer.
+    <<stim_resolve_choice "health_water_bottle_challenge_004" "wait_until_later">>
+    <<stop>>
+===
+title: health_sleep_schedule_005
+tags: health sleep representative_event
+---
+Your sleep schedule is starting to behave like a group chat with no moderator.
+
+-> Set a bedtime. #choice:set_a_bedtime
+    You give tomorrow a better chance by choosing a cutoff now.
+    <<stim_resolve_choice "health_sleep_schedule_005" "set_a_bedtime">>
+    <<stop>>
+-> Scroll a bit more. #choice:scroll_a_bit_more
+    You borrow tomorrow's energy for tonight's entertainment.
+    <<stim_resolve_choice "health_sleep_schedule_005" "scroll_a_bit_more">>
+    <<stop>>
+===
+title: health_meal_prep_mixup_006
+tags: health food representative_event
+---
+You planned one meal and somehow ended up with three containers of almost the same thing.
+
+-> Eat what is ready. #choice:eat_what_is_ready
+    You choose practical over perfect and stay fed.
+    <<stim_resolve_choice "health_meal_prep_mixup_006" "eat_what_is_ready">>
+    <<stop>>
+-> Order something else. #choice:order_something_else
+    You take the easier path and pay for convenience.
+    <<stim_resolve_choice "health_meal_prep_mixup_006" "order_something_else">>
+    <<stop>>
+===
+title: health_walk_break_007
+tags: health movement representative_event
+---
+A short walk could help, but your couch is making an extremely persuasive argument.
+
+-> Go outside. #choice:go_outside
+    You let a little movement reset the day.
+    <<stim_resolve_choice "health_walk_break_007" "go_outside">>
+    <<stop>>
+-> Stay seated. #choice:stay_seated
+    You choose stillness and save the energy for later.
+    <<stim_resolve_choice "health_walk_break_007" "stay_seated">>
+    <<stop>>
+===
+title: health_stress_text_008
+tags: health stress representative_event
+---
+Your phone lights up with one more message that could have been an email.
+
+-> Respond calmly. #choice:respond_calmly
+    You keep your tone steady and protect your own nerves.
+    <<stim_resolve_choice "health_stress_text_008" "respond_calmly">>
+    <<stop>>
+-> Reply fast. #choice:reply_fast
+    You clear the notification and feel better for about thirty seconds.
+    <<stim_resolve_choice "health_stress_text_008" "reply_fast">>
+    <<stop>>
+===
+title: health_burnout_warning_009
+tags: health work representative_event
+---
+You have been saying "just one more thing" for three days in a row and your body has noticed.
+
+-> Slow down. #choice:slow_down
+    You treat the warning as real before it turns into a crash.
+    <<stim_resolve_choice "health_burnout_warning_009" "slow_down">>
+    <<stop>>
+-> Push ahead. #choice:push_ahead
+    You keep the momentum even though it is costing you.
+    <<stim_resolve_choice "health_burnout_warning_009" "push_ahead">>
+    <<stop>>
+===
+title: health_community_screening_010
+tags: health community representative_event
+---
+A community screening table is offering a quick check and a very earnest clipboard.
+
+-> Get checked. #choice:get_checked
+    You take the free opportunity and learn something useful.
+    <<stim_resolve_choice "health_community_screening_010" "get_checked">>
+    <<stop>>
+-> Pass for now. #choice:pass_for_now
+    You decide to wait, but you keep the option in mind.
+    <<stim_resolve_choice "health_community_screening_010" "pass_for_now">>
+    <<stop>>
+===
+title: health_family_meal_pressure_011
+tags: health family representative_event
+---
+A family meal comes with comments about your plate, your portions, and your auntie's strong opinions.
+
+-> Keep your boundaries. #choice:keep_your_boundaries
+    You protect your own comfort without starting a fight.
+    <<stim_resolve_choice "health_family_meal_pressure_011" "keep_your_boundaries">>
+    <<stop>>
+-> Laugh it off. #choice:laugh_it_off
+    You avoid the tension and keep the table moving.
+    <<stim_resolve_choice "health_family_meal_pressure_011" "laugh_it_off">>
+    <<stop>>
+===
+title: health_posture_reset_012
+tags: health routine representative_event
+---
+You catch yourself folded over the desk like a question mark with deadlines.
+
+-> Reset your posture. #choice:reset_your_posture
+    You give your spine a little respect and keep going.
+    <<stim_resolve_choice "health_posture_reset_012" "reset_your_posture">>
+    <<stop>>
+-> Ignore it. #choice:ignore_it
+    You stay where you are and let the ache build.
+    <<stim_resolve_choice "health_posture_reset_012" "ignore_it">>
+    <<stop>>
+===
+title: health_mood_lighten_013
+tags: health mental_health representative_event
+---
+The day feels heavier than it should, and a tiny thing suddenly seems huge.
+
+-> Reach out. #choice:reach_out
+    You let another person help carry the feeling.
+    <<stim_resolve_choice "health_mood_lighten_013" "reach_out">>
+    <<stop>>
+-> Wait it out. #choice:wait_it_out
+    You give the feeling time and try not to fight it.
+    <<stim_resolve_choice "health_mood_lighten_013" "wait_it_out">>
+    <<stop>>
+===
+title: health_pharmacy_run_014
+tags: health errand representative_event
+---
+You need something simple from the pharmacy and the line is long enough to qualify as a side quest.
+
+-> Stay patient. #choice:stay_patient
+    You keep your cool and finish the errand.
+    <<stim_resolve_choice "health_pharmacy_run_014" "stay_patient">>
+    <<stop>>
+-> Leave and return later. #choice:leave_and_return_later
+    You save your energy and try again when the line clears.
+    <<stim_resolve_choice "health_pharmacy_run_014" "leave_and_return_later">>
+    <<stop>>
+===
+title: health_rest_day_plan_015
+tags: health recovery representative_event
+---
+A free day appears on the calendar and your body immediately suggests using it like an actual recovery day.
+
+-> Rest on purpose. #choice:rest_on_purpose
+    You treat recovery as part of the plan.
+    <<stim_resolve_choice "health_rest_day_plan_015" "rest_on_purpose">>
+    <<stop>>
+-> Fill it up. #choice:fill_it_up
+    You schedule too much and hope future you is okay with it.
+    <<stim_resolve_choice "health_rest_day_plan_015" "fill_it_up">>
+    <<stop>>
+===
+title: health_overdue_break_016
+tags: health work representative_event
+---
+Your calendar has been asking for a break in polite fonts for weeks.
+
+-> Take the break. #choice:take_the_break
+    You finally listen to the warning signs.
+    <<stim_resolve_choice "health_overdue_break_016" "take_the_break">>
+    <<stop>>
+-> Keep the schedule. #choice:keep_the_schedule
+    You keep the plan intact and hope the strain stays manageable.
+    <<stim_resolve_choice "health_overdue_break_016" "keep_the_schedule">>
+    <<stop>>
+===
+title: health_walk_and_talk_017
+tags: health relationship representative_event
+---
+A walk with someone you trust turns out to be easier than sitting still and explaining how the week has been.
+
+-> Talk while walking. #choice:talk_while_walking
+    You get moving and make room for an honest conversation.
+    <<stim_resolve_choice "health_walk_and_talk_017" "talk_while_walking">>
+    <<stop>>
+-> Keep it light. #choice:keep_it_light
+    You enjoy the company without opening the heavy stuff today.
+    <<stim_resolve_choice "health_walk_and_talk_017" "keep_it_light">>
+    <<stop>>
+===
+title: health_weekend_stiffness_018
+tags: health routine representative_event
+---
+You stand up after resting and discover your joints have been holding a private meeting.
+
+-> Move gently. #choice:move_gently
+    You loosen up enough to make the afternoon workable.
+    <<stim_resolve_choice "health_weekend_stiffness_018" "move_gently">>
+    <<stop>>
+-> Shrug it off. #choice:shrug_it_off
+    You pretend the stiffness is just a personality quirk.
+    <<stim_resolve_choice "health_weekend_stiffness_018" "shrug_it_off">>
+    <<stop>>
+===
+title: health_mindful_pause_019
+tags: health mental_health representative_event
+---
+Everything is moving fast, so you pause long enough to notice how you actually feel.
+
+-> Pause mindfully. #choice:pause_mindfully
+    You make space for the feeling instead of outrunning it.
+    <<stim_resolve_choice "health_mindful_pause_019" "pause_mindfully">>
+    <<stop>>
+-> Keep moving. #choice:keep_moving
+    You stay in motion and deal with it later.
+    <<stim_resolve_choice "health_mindful_pause_019" "keep_moving">>
+    <<stop>>
+===
+title: health_evening_reset_020
+tags: health routine representative_event
+---
+The evening is your last chance to decide whether tomorrow gets a better head start.
+
+-> Reset tonight. #choice:reset_tonight
+    You set yourself up for a steadier next day.
+    <<stim_resolve_choice "health_evening_reset_020" "reset_tonight">>
+    <<stop>>
+-> Wing it. #choice:wing_it
+    You leave tomorrow to solve itself.
+    <<stim_resolve_choice "health_evening_reset_020" "wing_it">>
+    <<stop>>
+===

@@ -260,6 +260,20 @@ namespace StimTycoon.Events
                 result.isValid = false;
                 result.errors.Add("Authored identity-choice events must begin at age 16 or later");
             }
+
+            var hasNegativeCashOutcome = (evt.choices ?? new List<Choice>())
+                .Where(choice => choice != null)
+                .SelectMany(choice => choice.outcomes ?? new List<Outcome>())
+                .Where(outcome => outcome != null)
+                .SelectMany(outcome => outcome.effects ?? new List<Effect>())
+                .Any(effect => effect != null && effect.type == EffectType.CashDelta && effect.value < 0f);
+            if (hasNegativeCashOutcome && evt.ageRange != null && evt.ageRange.minAge < 18 &&
+                !tags.Contains("minor_cash_agency"))
+            {
+                result.isValid = false;
+                result.errors.Add(
+                    "Events that can charge cash to a character under age 18 require an explicit minor_cash_agency tag");
+            }
         }
 
         /// <summary>

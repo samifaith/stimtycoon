@@ -1,0 +1,280 @@
+title: childhood_busy_morning_001
+tags: childhood representative_event
+---
+The morning starts with a sock crisis, a missing toy, and one adult asking if you have seen anything "important" on the floor.
+
+-> Help look. #choice:help_look
+    You turn the search into a team mission.
+    <<stim_resolve_choice "childhood_busy_morning_001" "help_look">>
+    <<stop>>
+-> Stay calm. #choice:stay_calm
+    You keep the morning from turning into a full panic.
+    <<stim_resolve_choice "childhood_busy_morning_001" "stay_calm">>
+    <<stop>>
+===
+title: childhood_playground_turn_002
+tags: childhood play representative_event
+---
+The playground has a new game nobody has explained very well, which means everyone is pretending they already know the rules.
+
+-> Join in. #choice:join_in
+    You learn the game by doing and laughing at the confusion.
+    <<stim_resolve_choice "childhood_playground_turn_002" "join_in">>
+    <<stop>>
+-> Watch first. #choice:watch_first
+    You figure out the pattern before you step in.
+    <<stim_resolve_choice "childhood_playground_turn_002" "watch_first">>
+    <<stop>>
+===
+title: childhood_story_time_request_003
+tags: childhood learning representative_event
+---
+A story is being read aloud, and you want the one with the dragon, the silly hat, or both if possible.
+
+-> Ask for the story. #choice:ask_for_the_story
+    You speak up for the version you actually want.
+    <<stim_resolve_choice "childhood_story_time_request_003" "ask_for_the_story">>
+    <<stop>>
+-> Listen quietly. #choice:listen_quietly
+    You settle in and enjoy the one that is already being told.
+    <<stim_resolve_choice "childhood_story_time_request_003" "listen_quietly">>
+    <<stop>>
+===
+title: childhood_shared_crayon_004
+tags: childhood art representative_event
+---
+One crayon is mysteriously in high demand and three people are making different claims about who had it first.
+
+-> Share it fairly. #choice:share_it_fairly
+    You keep the peace and the drawing keeps moving.
+    <<stim_resolve_choice "childhood_shared_crayon_004" "share_it_fairly">>
+    <<stop>>
+-> Protect your turn. #choice:protect_your_turn
+    You hold onto your place without making a scene.
+    <<stim_resolve_choice "childhood_shared_crayon_004" "protect_your_turn">>
+    <<stop>>
+===
+title: childhood_family_chore_song_005
+tags: childhood family representative_event
+---
+A small chore becomes easier when somebody starts singing like it is the world premiere of laundry.
+
+-> Join the song. #choice:join_the_song
+    You make the task feel lighter by adding your own voice.
+    <<stim_resolve_choice "childhood_family_chore_song_005" "join_the_song">>
+    <<stop>>
+-> Finish the task quietly. #choice:finish_the_task_quietly
+    You focus and get it done without the extra performance.
+    <<stim_resolve_choice "childhood_family_chore_song_005" "finish_the_task_quietly">>
+    <<stop>>
+===
+title: childhood_lunchbox_surprise_006
+tags: childhood food representative_event
+---
+You open your lunch and find a note, an extra snack, or something you definitely did not pack.
+
+-> Ask about it. #choice:ask_about_it
+    You check where the surprise came from before you eat it.
+    <<stim_resolve_choice "childhood_lunchbox_surprise_006" "ask_about_it">>
+    <<stop>>
+-> Enjoy the treat. #choice:enjoy_the_treat
+    You accept the small win and keep going.
+    <<stim_resolve_choice "childhood_lunchbox_surprise_006" "enjoy_the_treat">>
+    <<stop>>
+===
+title: childhood_first_team_game_007
+tags: childhood play representative_event
+---
+The game is simple until somebody decides the scoring rules are actually a philosophy.
+
+-> Play by the rules. #choice:play_by_the_rules
+    You keep it fair and easy to understand.
+    <<stim_resolve_choice "childhood_first_team_game_007" "play_by_the_rules">>
+    <<stop>>
+-> Make new rules. #choice:make_new_rules
+    You invent a version that gives everyone a chance to shine.
+    <<stim_resolve_choice "childhood_first_team_game_007" "make_new_rules">>
+    <<stop>>
+===
+title: childhood_rainy_day_window_008
+tags: childhood home representative_event
+---
+It is raining hard enough that the window becomes the best show in the house.
+
+-> Watch the rain. #choice:watch_the_rain
+    You notice tiny details and let your mind slow down.
+    <<stim_resolve_choice "childhood_rainy_day_window_008" "watch_the_rain">>
+    <<stop>>
+-> Make a project. #choice:make_a_project
+    You turn the weather into art, a story, or a game.
+    <<stim_resolve_choice "childhood_rainy_day_window_008" "make_a_project">>
+    <<stop>>
+===
+title: childhood_new_shoes_day_009
+tags: childhood family representative_event
+---
+You get new shoes, and for some reason the whole room is acting like this is a major world event.
+
+-> Say thank you. #choice:say_thank_you
+    You show appreciation and try them on carefully.
+    <<stim_resolve_choice "childhood_new_shoes_day_009" "say_thank_you">>
+    <<stop>>
+-> Test them immediately. #choice:test_them_immediately
+    You run in circles to confirm they actually work.
+    <<stim_resolve_choice "childhood_new_shoes_day_009" "test_them_immediately">>
+    <<stop>>
+===
+title: childhood_sleepy_after_school_010
+tags: childhood rest representative_event
+---
+After school, your energy drops so fast it feels like somebody flipped a switch behind your eyes.
+
+-> Rest first. #choice:rest_first
+    You take a break before the rest of the evening gets bossy.
+    <<stim_resolve_choice "childhood_sleepy_after_school_010" "rest_first">>
+    <<stop>>
+-> Keep going. #choice:keep_going
+    You try to finish everything before you slow down.
+    <<stim_resolve_choice "childhood_sleepy_after_school_010" "keep_going">>
+    <<stop>>
+===
+title: childhood_helper_role_011
+tags: childhood family representative_event
+---
+Somebody asks you to help with a simple task and suddenly you are the official assistant of the afternoon.
+
+-> Help happily. #choice:help_happily
+    You make the job easier by showing up with a good attitude.
+    <<stim_resolve_choice "childhood_helper_role_011" "help_happily">>
+    <<stop>>
+-> Ask how. #choice:ask_how
+    You learn the steps before trying to do it yourself.
+    <<stim_resolve_choice "childhood_helper_role_011" "ask_how">>
+    <<stop>>
+===
+title: childhood_shy_introduction_012
+tags: childhood friendship representative_event
+---
+A new kid says hello and the room goes a little quiet because everybody is waiting to see how this goes.
+
+-> Say hello back. #choice:say_hello_back
+    You make the first move and keep it kind.
+    <<stim_resolve_choice "childhood_shy_introduction_012" "say_hello_back">>
+    <<stop>>
+-> Introduce your friend too. #choice:introduce_your_friend_too
+    You help the new kid feel included faster.
+    <<stim_resolve_choice "childhood_shy_introduction_012" "introduce_your_friend_too">>
+    <<stop>>
+===
+title: childhood_missing_toy_013
+tags: childhood home representative_event
+---
+A favorite toy goes missing and the search becomes a household event with pockets, cushions, and under-bed archaeology.
+
+-> Search together. #choice:search_together
+    You help make the hunt feel less scary.
+    <<stim_resolve_choice "childhood_missing_toy_013" "search_together">>
+    <<stop>>
+-> Wait and remember. #choice:wait_and_remember
+    You slow down and try to recall where it was last seen.
+    <<stim_resolve_choice "childhood_missing_toy_013" "wait_and_remember">>
+    <<stop>>
+===
+title: childhood_holiday_song_014
+tags: childhood family representative_event
+---
+A holiday song starts and suddenly everybody is either singing, clapping, or pretending they were not just humming along.
+
+-> Sing too. #choice:sing_too
+    You join the moment and make it bigger.
+    <<stim_resolve_choice "childhood_holiday_song_014" "sing_too">>
+    <<stop>>
+-> Watch and smile. #choice:watch_and_smile
+    You enjoy the scene without needing to lead it.
+    <<stim_resolve_choice "childhood_holiday_song_014" "watch_and_smile">>
+    <<stop>>
+===
+title: childhood_community_fair_015
+tags: childhood community representative_event
+---
+At the neighborhood fair, every booth has a sample, a story, or a tiny prize that feels enormous when you are this age.
+
+-> Explore the booths. #choice:explore_the_booths
+    You say yes to curiosity and see what the fair offers.
+    <<stim_resolve_choice "childhood_community_fair_015" "explore_the_booths">>
+    <<stop>>
+-> Stay close to family. #choice:stay_close_to_family
+    You enjoy the fair while keeping your anchor nearby.
+    <<stim_resolve_choice "childhood_community_fair_015" "stay_close_to_family">>
+    <<stop>>
+===
+title: childhood_stuffed_animal_vote_016
+tags: childhood play representative_event
+---
+The stuffed animals need a leader, and the vote is getting more serious than anyone expected.
+
+-> Cast a vote. #choice:cast_a_vote
+    You take the pretend democracy seriously for one perfect minute.
+    <<stim_resolve_choice "childhood_stuffed_animal_vote_016" "cast_a_vote">>
+    <<stop>>
+-> Make peace. #choice:make_peace
+    You convince everyone that all the toys can be equally important.
+    <<stim_resolve_choice "childhood_stuffed_animal_vote_016" "make_peace">>
+    <<stop>>
+===
+title: childhood_lost_then_found_017
+tags: childhood luck representative_event
+---
+Something disappears, panic rises, and then you spot it in the exact place everybody already checked twice.
+
+-> Celebrate the find. #choice:celebrate_the_find
+    You let the relief turn into a tiny victory dance.
+    <<stim_resolve_choice "childhood_lost_then_found_017" "celebrate_the_find">>
+    <<stop>>
+-> Learn the lesson. #choice:learn_the_lesson
+    You remember to put things back where they belong next time.
+    <<stim_resolve_choice "childhood_lost_then_found_017" "learn_the_lesson">>
+    <<stop>>
+===
+title: childhood_sleepover_rules_018
+tags: childhood friendship representative_event
+---
+At a sleepover, the biggest question is not bedtime. It is who gets the floor pillow and whether the flashlight is telling secrets.
+
+-> Follow the rules. #choice:follow_the_rules
+    You keep the night easy for everyone.
+    <<stim_resolve_choice "childhood_sleepover_rules_018" "follow_the_rules">>
+    <<stop>>
+-> Stay up laughing. #choice:stay_up_laughing
+    You enjoy the moment and pay for it tomorrow.
+    <<stim_resolve_choice "childhood_sleepover_rules_018" "stay_up_laughing">>
+    <<stop>>
+===
+title: childhood_small_brave_moment_019
+tags: childhood courage representative_event
+---
+A small scary moment shows up, the kind that feels enormous until you take one breath and look at it directly.
+
+-> Be brave. #choice:be_brave
+    You handle the moment one step at a time.
+    <<stim_resolve_choice "childhood_small_brave_moment_019" "be_brave">>
+    <<stop>>
+-> Ask for comfort. #choice:ask_for_comfort
+    You let someone help you through it.
+    <<stim_resolve_choice "childhood_small_brave_moment_019" "ask_for_comfort">>
+    <<stop>>
+===
+title: childhood_bedtime_story_swap_020
+tags: childhood family representative_event
+---
+Bedtime story time turns into a debate because everybody wants the version with the funniest name and the least scary ending.
+
+-> Pick a funny story. #choice:pick_a_funny_story
+    You make the night lighter before sleep.
+    <<stim_resolve_choice "childhood_bedtime_story_swap_020" "pick_a_funny_story">>
+    <<stop>>
+-> Pick a calm story. #choice:pick_a_calm_story
+    You choose the one that helps everybody settle down.
+    <<stim_resolve_choice "childhood_bedtime_story_swap_020" "pick_a_calm_story">>
+    <<stop>>
+===

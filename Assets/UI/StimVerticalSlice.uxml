@@ -319,7 +319,7 @@
             </ui:VisualElement>
             <ui:VisualElement class="st-time-actions">
                 <ui:Button name="advance-month" text="ADVANCE MONTH  ›" class="st-advance-month stim-pack-foundation-button st-brand-skyden-button stim-pack-interaction-pop" tooltip="Advance time by one month" />
-                <ui:Button name="advance-year" text="YEAR  »" class="st-advance-year st-brand-skyden-secondary stim-pack-secondary-button stim-pack-interaction-pop" tooltip="Advance up to twelve normal months, stopping for decisions" />
+                <ui:Button name="advance-year" text="+ YEAR  »" class="st-advance-year st-brand-skyden-secondary stim-pack-secondary-button stim-pack-interaction-pop" tooltip="Advance twelve months; pauses for required choices and resumes after Continue" />
             </ui:VisualElement>
         </ui:VisualElement>
 

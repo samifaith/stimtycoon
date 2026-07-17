@@ -1,0 +1,280 @@
+title: money_side_hustle_pitch_001
+tags: money work representative_event
+---
+Someone says their cousin's idea is "basically guaranteed" and your wallet immediately develops feelings.
+
+-> Ask for numbers. #choice:ask_for_numbers
+    You slow the pitch down and check the facts.
+    <<stim_resolve_choice "money_side_hustle_pitch_001" "ask_for_numbers">>
+    <<stop>>
+-> Pass politely. #choice:pass_politely
+    You decline before the excitement gets expensive.
+    <<stim_resolve_choice "money_side_hustle_pitch_001" "pass_politely">>
+    <<stop>>
+===
+title: money_grocery_budget_002
+tags: money household representative_event
+---
+The grocery list is doing that thing where it starts small and becomes a personality test.
+
+-> Shop with a plan. #choice:shop_with_a_plan
+    You stick to the list and keep the budget in sight.
+    <<stim_resolve_choice "money_grocery_budget_002" "shop_with_a_plan">>
+    <<stop>>
+-> Buy the extras. #choice:buy_the_extras
+    You give in to the nice-looking snacks and pay for it later.
+    <<stim_resolve_choice "money_grocery_budget_002" "buy_the_extras">>
+    <<stop>>
+===
+title: money_broken_phone_case_003
+tags: money repair representative_event
+---
+Your phone case has surrendered and now every drop feels like a negotiation.
+
+-> Replace it now. #choice:replace_it_now
+    You pay a little to avoid a larger problem later.
+    <<stim_resolve_choice "money_broken_phone_case_003" "replace_it_now">>
+    <<stop>>
+-> Keep using it. #choice:keep_using_it
+    You stretch the old one a bit further.
+    <<stim_resolve_choice "money_broken_phone_case_003" "keep_using_it">>
+    <<stop>>
+===
+title: money_shared_lunch_tab_004
+tags: money friendship representative_event
+---
+The group lunch bill lands with dramatic timing and everyone is suddenly very interested in exact change.
+
+-> Split it fairly. #choice:split_it_fairly
+    You keep the math clean and the mood civil.
+    <<stim_resolve_choice "money_shared_lunch_tab_004" "split_it_fairly">>
+    <<stop>>
+-> Cover the table. #choice:cover_the_table
+    You treat the group and hope the generosity comes back around.
+    <<stim_resolve_choice "money_shared_lunch_tab_004" "cover_the_table">>
+    <<stop>>
+===
+title: money_unexpected_refund_005
+tags: money representative_event
+---
+A refund shows up and for once the app notification is actually good news.
+
+-> Save it. #choice:save_it
+    You tuck the money away for future you.
+    <<stim_resolve_choice "money_unexpected_refund_005" "save_it">>
+    <<stop>>
+-> Use it well. #choice:use_it_well
+    You put the money toward something useful and immediate.
+    <<stim_resolve_choice "money_unexpected_refund_005" "use_it_well">>
+    <<stop>>
+===
+title: money_commute_cost_006
+tags: money transit representative_event
+---
+The commute costs more than you expected because the universe has a sense of timing.
+
+-> Adjust the route. #choice:adjust_the_route
+    You find the cheaper path and keep the day moving.
+    <<stim_resolve_choice "money_commute_cost_006" "adjust_the_route">>
+    <<stop>>
+-> Pay and move on. #choice:pay_and_move_on
+    You absorb the cost and protect your schedule.
+    <<stim_resolve_choice "money_commute_cost_006" "pay_and_move_on">>
+    <<stop>>
+===
+title: money_family_contribution_007
+tags: money family representative_event
+---
+A family bill needs attention, and everybody is trying to be mature about it in their own way.
+
+-> Contribute what you can. #choice:contribute_what_you_can
+    You help without overextending yourself.
+    <<stim_resolve_choice "money_family_contribution_007" "contribute_what_you_can">>
+    <<stop>>
+-> Offer time instead. #choice:offer_time_instead
+    You help in a non-cash way that still matters.
+    <<stim_resolve_choice "money_family_contribution_007" "offer_time_instead">>
+    <<stop>>
+===
+title: money_late_fee_reminder_008
+tags: money bill representative_event
+---
+A late fee reminder arrives with the kind of cheer only institutions can manage.
+
+-> Pay now. #choice:pay_now
+    You stop the fee from getting any bigger.
+    <<stim_resolve_choice "money_late_fee_reminder_008" "pay_now">>
+    <<stop>>
+-> Call and ask. #choice:call_and_ask
+    You ask whether there is a better option before paying.
+    <<stim_resolve_choice "money_late_fee_reminder_008" "call_and_ask">>
+    <<stop>>
+===
+title: money_found_cash_009
+tags: money luck representative_event
+---
+You find a little money in a pocket, a bag, or a place you definitely checked before.
+
+-> Put it aside. #choice:put_it_aside
+    You save the surprise instead of spending it right away.
+    <<stim_resolve_choice "money_found_cash_009" "put_it_aside">>
+    <<stop>>
+-> Treat yourself. #choice:treat_yourself
+    You let the found money become a small joy.
+    <<stim_resolve_choice "money_found_cash_009" "treat_yourself">>
+    <<stop>>
+===
+title: money_rental_split_010
+tags: money household representative_event
+---
+A shared bill needs dividing and suddenly everybody remembers how complicated math can be when feelings are involved.
+
+-> Split it evenly. #choice:split_it_evenly
+    You keep the math straightforward.
+    <<stim_resolve_choice "money_rental_split_010" "split_it_evenly">>
+    <<stop>>
+-> Split by use. #choice:split_by_use
+    You divide the cost by who actually benefited.
+    <<stim_resolve_choice "money_rental_split_010" "split_by_use">>
+    <<stop>>
+===
+title: money_small_savings_goal_011
+tags: money savings representative_event
+---
+Your savings goal is not glamorous, but the idea of future stability is looking pretty good right now.
+
+-> Save first. #choice:save_first
+    You protect the goal before spending on extras.
+    <<stim_resolve_choice "money_small_savings_goal_011" "save_first">>
+    <<stop>>
+-> Spend a little. #choice:spend_a_little
+    You allow yourself one small comfort.
+    <<stim_resolve_choice "money_small_savings_goal_011" "spend_a_little">>
+    <<stop>>
+===
+title: money_loan_request_012
+tags: money family representative_event
+---
+A friend or relative asks to borrow money and the conversation gets serious very quickly.
+
+-> Set terms. #choice:set_terms
+    You decide the help needs boundaries.
+    <<stim_resolve_choice "money_loan_request_012" "set_terms">>
+    <<stop>>
+-> Decline kindly. #choice:decline_kindly
+    You say no without making it a moral trial.
+    <<stim_resolve_choice "money_loan_request_012" "decline_kindly">>
+    <<stop>>
+===
+title: money_coupon_confusion_013
+tags: money shopping representative_event
+---
+The store coupon works if you squint at it, rotate it, and read the fine print like a detective.
+
+-> Use it carefully. #choice:use_it_carefully
+    You save the money and avoid the trap doors.
+    <<stim_resolve_choice "money_coupon_confusion_013" "use_it_carefully">>
+    <<stop>>
+-> Skip it. #choice:skip_it
+    You decide your sanity is worth more than the discount.
+    <<stim_resolve_choice "money_coupon_confusion_013" "skip_it">>
+    <<stop>>
+===
+title: money_fast_choice_014
+tags: money risk representative_event
+---
+A fast-money idea shows up and everybody acts like it has an expiration date and a fan club.
+
+-> Wait and verify. #choice:wait_and_verify
+    You refuse to confuse urgency with opportunity.
+    <<stim_resolve_choice "money_fast_choice_014" "wait_and_verify">>
+    <<stop>>
+-> Put in a little. #choice:put_in_a_little
+    You take a measured risk and keep some safety.
+    <<stim_resolve_choice "money_fast_choice_014" "put_in_a_little">>
+    <<stop>>
+===
+title: money_household_reserve_015
+tags: money family representative_event
+---
+You are thinking about what it means to keep a little money aside for the unexpected.
+
+-> Build the reserve. #choice:build_the_reserve
+    You give yourself a buffer for later.
+    <<stim_resolve_choice "money_household_reserve_015" "build_the_reserve">>
+    <<stop>>
+-> Use it now. #choice:use_it_now
+    You choose the current need over the future cushion.
+    <<stim_resolve_choice "money_household_reserve_015" "use_it_now">>
+    <<stop>>
+===
+title: money_friend_treat_round_016
+tags: money friendship representative_event
+---
+A friend says "I got this" in the tone of someone about to discover a credit card bill.
+
+-> Offer to split. #choice:offer_to_split
+    You keep the friendship from having to carry the entire tab.
+    <<stim_resolve_choice "money_friend_treat_round_016" "offer_to_split">>
+    <<stop>>
+-> Let them treat. #choice:let_them_treat
+    You accept the gesture and promise to balance it later.
+    <<stim_resolve_choice "money_friend_treat_round_016" "let_them_treat">>
+    <<stop>>
+===
+title: money_bargain_hunt_017
+tags: money shopping representative_event
+---
+You are hunting for a bargain and the whole store seems determined to test your patience.
+
+-> Compare prices. #choice:compare_prices
+    You keep the decision grounded in numbers.
+    <<stim_resolve_choice "money_bargain_hunt_017" "compare_prices">>
+    <<stop>>
+-> Buy the nicer one. #choice:buy_the_nicer_one
+    You choose quality over the cheapest option.
+    <<stim_resolve_choice "money_bargain_hunt_017" "buy_the_nicer_one">>
+    <<stop>>
+===
+title: money_backed_out_018
+tags: money regret representative_event
+---
+You almost buy something expensive and then realize "almost" is a very underused financial strategy.
+
+-> Back out. #choice:back_out
+    You keep the money and the peace of mind.
+    <<stim_resolve_choice "money_backed_out_018" "back_out">>
+    <<stop>>
+-> Buy it anyway. #choice:buy_it_anyway
+    You decide today is the day for impulse and consequences.
+    <<stim_resolve_choice "money_backed_out_018" "buy_it_anyway">>
+    <<stop>>
+===
+title: money_payment_plan_019
+tags: money bill representative_event
+---
+A payment plan could help, but only if you actually pay attention to the terms instead of the promise of "easy."
+
+-> Read the terms. #choice:read_the_terms
+    You avoid surprise costs by slowing down.
+    <<stim_resolve_choice "money_payment_plan_019" "read_the_terms">>
+    <<stop>>
+-> Sign now. #choice:sign_now
+    You trust the shiny version and commit quickly.
+    <<stim_resolve_choice "money_payment_plan_019" "sign_now">>
+    <<stop>>
+===
+title: money_reset_budget_020
+tags: money planning representative_event
+---
+A new month is the perfect time to decide whether your money is going to be a plan or a memory.
+
+-> Reset the budget. #choice:reset_the_budget
+    You give the month a clear structure.
+    <<stim_resolve_choice "money_reset_budget_020" "reset_the_budget">>
+    <<stop>>
+-> Hope for the best. #choice:hope_for_the_best
+    You rely on optimism and a strong sense of mystery.
+    <<stim_resolve_choice "money_reset_budget_020" "hope_for_the_best">>
+    <<stop>>
+===

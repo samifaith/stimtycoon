@@ -345,6 +345,38 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void GameplayActionHandlers_PresentPendingEventsBeforeMutation()
+        {
+            var source = File.ReadAllText(ControllerPath);
+            var guardedHandlers = new[]
+            {
+                "AdvanceMonth", "AdvanceYear", "PerformHomeAction", "PerformHomeUpgrade",
+                "PerformSavingsTransfer", "PerformCreditRepayment", "PerformIndexInvestment",
+                "StartTimedStudySession", "ClaimTimedStudySession", "PerformStudyTrackChoice",
+                "PerformSchoolPathChoice", "PerformEducationAction", "PerformCareerAction",
+                "PerformBusinessAction", "PerformActivity", "PerformManualWorkTap",
+                "DiscoverCompatiblePerson", "PerformParentingAction", "PerformFamilyPlanning",
+                "PerformRelationshipInteraction"
+            };
+
+            foreach (var handler in guardedHandlers)
+            {
+                Assert.That(Regex.IsMatch(source,
+                        $@"private void {handler}\([^)]*\)\s*\{{\s*if \(PresentPendingEventIfAvailable\(\)\) return;"),
+                    Is.True, $"{handler} must present a pending event before attempting mutation.");
+            }
+        }
+
+        [Test]
+        public void PlayableController_RegistersTheCanonicalLaunchCatalogInsteadOfADuplicateList()
+        {
+            var source = File.ReadAllText(ControllerPath);
+
+            StringAssert.Contains("RepresentativeStimEvents.CreateLaunchAlphaCatalog()", source);
+            StringAssert.DoesNotContain("catalog.Upsert(RepresentativeStimEvents.Create", source);
+        }
+
+        [Test]
         public void ProductionStylesheets_UseAspectFitOrCompleteNineSliceForVendorArtwork()
         {
             var checkedBindings = 0;
@@ -534,16 +566,24 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
-        public void Header_AnchorsCashClusterToSafeTopRightCorner()
+        public void Header_UsesContainedFlexColumnsWithoutOverlayPositioning()
         {
             var shell = File.ReadAllText(ShellPath);
 
             StringAssert.Contains(".st-balance-pill {", shell);
-            StringAssert.Contains("position: absolute;", shell);
-            StringAssert.Contains("right: 10px;", shell);
-            StringAssert.Contains("top: 8px;", shell);
-            StringAssert.Contains("padding-right: 158px;", shell);
+            StringAssert.Contains("width: 196px;", shell);
+            StringAssert.Contains("flex-shrink: 0;", shell);
+            StringAssert.Contains("height: 18px;", shell);
+            StringAssert.Contains("overflow: hidden;", shell);
+            StringAssert.Contains(".st-balance-value {", shell);
+            StringAssert.Contains(".st-balance-copy {", shell);
+            StringAssert.Contains("text-overflow: ellipsis;", shell);
+            StringAssert.DoesNotContain("overflow: visible;", ExtractRule(shell, ".st-balance-value"));
+            StringAssert.DoesNotContain("overflow: visible;", ExtractRule(shell, ".st-header-net-worth"));
+            StringAssert.DoesNotContain("position: absolute;\n    right: 10px;\n    top: 8px;", shell);
+            StringAssert.DoesNotContain("padding-right: 158px;", shell);
             StringAssert.Contains(".st-compact-width .st-balance-pill", shell);
+            StringAssert.Contains("width: 154px;", shell);
         }
 
         [Test]
@@ -630,6 +670,14 @@ namespace StimTycoon.Tests.Domain.UI
             }
 
             return count;
+        }
+
+        private static string ExtractRule(string stylesheet, string selector)
+        {
+            var start = stylesheet.IndexOf(selector + " {", System.StringComparison.Ordinal);
+            if (start < 0) return string.Empty;
+            var end = stylesheet.IndexOf('}', start);
+            return end < 0 ? stylesheet.Substring(start) : stylesheet.Substring(start, end - start + 1);
         }
 
         private static void AssertTokensInOrder(string source, params string[] tokens)

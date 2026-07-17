@@ -147,6 +147,7 @@ namespace StimTycoon.Runtime
         public StimSaveEnvelope ActiveSave { get; private set; }
         public StimChoiceResolution LastResolution { get; private set; }
         public long LastFinancialImpactMinorUnits { get; private set; }
+        public bool HasPendingEvent => !string.IsNullOrEmpty(ActiveSave?.state?.pendingEventId);
 
         public StimGameSessionService(
             IStimEventCatalog eventCatalog,
@@ -173,6 +174,7 @@ namespace StimTycoon.Runtime
                     nameof(save));
             }
 
+            ClearAgeIneligiblePendingEvent(save);
             ActiveSave = save;
         }
 
@@ -218,10 +220,15 @@ namespace StimTycoon.Runtime
                 return false;
             }
 
+            var clearedAgeIneligibleEvent = ClearAgeIneligiblePendingEvent(save);
             ActiveSave = save;
             if (migration.changed)
             {
                 summary += $" Migrated {migration.changes.Count} additive v1 field(s).";
+            }
+            if (clearedAgeIneligibleEvent)
+            {
+                summary += " Removed an age-ineligible pending event.";
             }
             return true;
         }
@@ -313,6 +320,12 @@ namespace StimTycoon.Runtime
                 summary = StimEventValidator.GetValidationSummary(validation, eventId);
                 return false;
             }
+            var characterAge = ActiveSave.state.character.age;
+            if (evt.ageRange == null || characterAge < evt.ageRange.minAge || characterAge > evt.ageRange.maxAge)
+            {
+                summary = $"{evt.titleKey} is not available at age {characterAge}.";
+                return false;
+            }
 
             if (!outcomeResolver.TryResolve(
                     evt,
@@ -367,6 +380,35 @@ namespace StimTycoon.Runtime
             return true;
         }
 
+        public bool TryGetPendingEvent(out StimEvent pendingEvent)
+        {
+            pendingEvent = null;
+            var pendingEventId = ActiveSave?.state?.pendingEventId;
+            return HasPendingEvent &&
+                   eventCatalog.TryGetEvent(pendingEventId, out pendingEvent) &&
+                   pendingEvent != null;
+        }
+
+        private bool ClearAgeIneligiblePendingEvent(StimSaveEnvelope save)
+        {
+            var pendingEventId = save?.state?.pendingEventId;
+            if (string.IsNullOrEmpty(pendingEventId) ||
+                !eventCatalog.TryGetEvent(pendingEventId, out var pendingEvent) ||
+                pendingEvent?.ageRange == null)
+            {
+                return false;
+            }
+
+            var age = save.state.character.age;
+            if (age >= pendingEvent.ageRange.minAge && age <= pendingEvent.ageRange.maxAge)
+            {
+                return false;
+            }
+
+            save.state.pendingEventId = null;
+            return true;
+        }
+
         private bool TryCommitCreditDenial(
             long requestedAmount,
             string denialReason,
@@ -408,7 +450,7 @@ namespace StimTycoon.Runtime
 
             if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
             {
-                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before advancing another month.";
+                summary = "Resolve the pending life event before advancing another month.";
                 return false;
             }
             if (!string.IsNullOrEmpty(ActiveSave.state.education?.awaitingDecisionId))
@@ -849,6 +891,38 @@ namespace StimTycoon.Runtime
             out StimEvent nextEvent,
             out string summary)
         {
+            return TryAdvanceMonthsCore(
+                12, "Twelve months completed.", out monthsProcessed, out nextEvent, out summary);
+        }
+
+        public bool TryAdvanceMonths(
+            int maximumMonths,
+            out int monthsProcessed,
+            out StimEvent nextEvent,
+            out string summary)
+        {
+            if (maximumMonths < 1 || maximumMonths > 12)
+            {
+                monthsProcessed = 0;
+                nextEvent = null;
+                summary = "Advance span must be between 1 and 12 months.";
+                return false;
+            }
+
+            var completion = maximumMonths == 1
+                ? "Requested month completed."
+                : $"Requested {maximumMonths} months completed.";
+            return TryAdvanceMonthsCore(
+                maximumMonths, completion, out monthsProcessed, out nextEvent, out summary);
+        }
+
+        private bool TryAdvanceMonthsCore(
+            int maximumMonths,
+            string completionSummary,
+            out int monthsProcessed,
+            out StimEvent nextEvent,
+            out string summary)
+        {
             monthsProcessed = 0;
             nextEvent = null;
             if (ActiveSave == null)
@@ -859,7 +933,7 @@ namespace StimTycoon.Runtime
 
             var startingAge = ActiveSave.state.character.age;
             var startingCash = ActiveSave.state.finances?.cashMinorUnits ?? 0L;
-            for (var month = 0; month < 12; month++)
+            for (var month = 0; month < maximumMonths; month++)
             {
                 if (!TryAdvanceMonth(out nextEvent, out var monthlySummary))
                 {
@@ -889,7 +963,7 @@ namespace StimTycoon.Runtime
             }
 
             summary = BuildAdvanceYearSummary(
-                monthsProcessed, startingAge, startingCash, "Twelve months completed.");
+                monthsProcessed, startingAge, startingCash, completionSummary);
             TryCommitAdvanceYearFeed(summary, out summary);
             return true;
         }
@@ -1043,7 +1117,7 @@ namespace StimTycoon.Runtime
             }
             if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
             {
-                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before choosing a school path.";
+                summary = "Resolve the pending life event before choosing a school path.";
                 return false;
             }
 
@@ -1229,7 +1303,7 @@ namespace StimTycoon.Runtime
 
             if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
             {
-                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before choosing an activity.";
+                summary = "Resolve the pending life event before choosing an activity.";
                 return false;
             }
 
@@ -1393,7 +1467,7 @@ namespace StimTycoon.Runtime
             }
             if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
             {
-                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before using the home.";
+                summary = "Resolve the pending life event before using the home.";
                 return false;
             }
 
@@ -1411,7 +1485,9 @@ namespace StimTycoon.Runtime
                 summary = $"Home action {actionType} is not authored for {ActiveSave.state.home.homeId}.";
                 return false;
             }
-            var cost = actionDefinition.costMinorUnits;
+            var caregiverHandlesMaintenance =
+                actionType == StimHomeActionType.Maintain && ActiveSave.state.character.age < 18;
+            var cost = caregiverHandlesMaintenance ? 0 : actionDefinition.costMinorUnits;
             if (ActiveSave.state.finances.cashMinorUnits < cost)
             {
                 summary = $"This home action costs {FormatMoney(cost)}, but only {FormatMoney(ActiveSave.state.finances.cashMinorUnits)} is available.";
@@ -1466,7 +1542,9 @@ namespace StimTycoon.Runtime
                     candidateSave.state.home.readingMaterialStock = candidateSave.state.home.readingMaterialCapacity;
                     candidateSave.state.home.trainingEquipmentCondition = ClampStat(
                         candidateSave.state.home.trainingEquipmentCondition + 30);
-                    summary = $"Maintained the home · Cost {FormatMoney(cost)} · Home condition +20 · Supplies restocked · Equipment repaired · Improvement progress +5";
+                    summary = caregiverHandlesMaintenance
+                        ? "Asked a caregiver to maintain the home · No child payment · Home condition +20 · Supplies restocked · Equipment repaired"
+                        : $"Maintained the home · Cost {FormatMoney(cost)} · Home condition +20 · Supplies restocked · Equipment repaired · Improvement progress +5";
                     break;
                 case StimHomeActionType.HouseholdTime:
                     candidateSave.state.household.happiness = ClampStat(candidateSave.state.household.happiness + 4);
@@ -1509,7 +1587,12 @@ namespace StimTycoon.Runtime
             }
             if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
             {
-                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before upgrading the home.";
+                summary = "Resolve the pending life event before upgrading the home.";
+                return false;
+            }
+            if (ActiveSave.state.character.age < 18)
+            {
+                summary = $"Independent home upgrades unlock at age 18; age {ActiveSave.state.character.age} characters do not pay for them.";
                 return false;
             }
             var home = ActiveSave.state.home;
@@ -1613,7 +1696,7 @@ namespace StimTycoon.Runtime
             }
             if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
             {
-                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before meeting someone new.";
+                summary = "Resolve the pending life event before meeting someone new.";
                 return false;
             }
             NormalizeProgressCollections(ActiveSave.state);
@@ -1859,7 +1942,7 @@ namespace StimTycoon.Runtime
 
             if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
             {
-                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before interacting.";
+                summary = "Resolve the pending life event before interacting.";
                 return false;
             }
 
@@ -2485,7 +2568,7 @@ namespace StimTycoon.Runtime
             }
             if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
             {
-                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before taking a career action.";
+                summary = "Resolve the pending life event before taking a career action.";
                 return false;
             }
 
@@ -2613,7 +2696,7 @@ namespace StimTycoon.Runtime
             }
             if (!string.IsNullOrEmpty(ActiveSave.state.pendingEventId))
             {
-                summary = $"Resolve pending event {ActiveSave.state.pendingEventId} before working a paid hour.";
+                summary = "Resolve the pending life event before working a paid hour.";
                 return false;
             }
 

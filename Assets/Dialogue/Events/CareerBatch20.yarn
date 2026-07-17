@@ -1,0 +1,280 @@
+title: career_first_interview_001
+tags: career representative_event
+---
+Your first interview feels like your future and your nerves showed up to the same appointment.
+
+-> Answer directly. #choice:answer_directly
+    You keep your answers clear and steady.
+    <<stim_resolve_choice "career_first_interview_001" "answer_directly">>
+    <<stop>>
+-> Overprepare. #choice:overprepare
+    You bring notes, questions, and backup notes.
+    <<stim_resolve_choice "career_first_interview_001" "overprepare">>
+    <<stop>>
+===
+title: career_new_shift_002
+tags: career work representative_event
+---
+The new shift schedule is looking at you like it expects your whole life to rearrange itself around it.
+
+-> Set boundaries. #choice:set_boundaries
+    You protect the rest of your week before it disappears.
+    <<stim_resolve_choice "career_new_shift_002" "set_boundaries">>
+    <<stop>>
+-> Say yes. #choice:say_yes
+    You take the extra shift and figure it out later.
+    <<stim_resolve_choice "career_new_shift_002" "say_yes">>
+    <<stop>>
+===
+title: career_team_meeting_003
+tags: career workplace representative_event
+---
+The meeting starts with "quick update" and then everybody learns what quick means in management time.
+
+-> Share your idea. #choice:share_your_idea
+    You make your point before the agenda runs away.
+    <<stim_resolve_choice "career_team_meeting_003" "share_your_idea">>
+    <<stop>>
+-> Stay quiet. #choice:stay_quiet
+    You read the room and wait for a better opening.
+    <<stim_resolve_choice "career_team_meeting_003" "stay_quiet">>
+    <<stop>>
+===
+title: career_salary_chat_004
+tags: career pay representative_event
+---
+You get a chance to talk about pay and suddenly every sentence feels like it should come with a legal disclaimer.
+
+-> Ask confidently. #choice:ask_confidently
+    You state what your work is worth.
+    <<stim_resolve_choice "career_salary_chat_004" "ask_confidently">>
+    <<stop>>
+-> Postpone it. #choice:postpone_it
+    You decide to gather more evidence first.
+    <<stim_resolve_choice "career_salary_chat_004" "postpone_it">>
+    <<stop>>
+===
+title: career_mistake_repair_005
+tags: career accountability representative_event
+---
+A mistake slipped through and now the grown-up version of cleanup is due.
+
+-> Fix it quickly. #choice:fix_it_quickly
+    You own the problem and start repairing it.
+    <<stim_resolve_choice "career_mistake_repair_005" "fix_it_quickly">>
+    <<stop>>
+-> Ask for help. #choice:ask_for_help
+    You bring in support before the issue spreads.
+    <<stim_resolve_choice "career_mistake_repair_005" "ask_for_help">>
+    <<stop>>
+===
+title: career_late_night_deadline_006
+tags: career deadline representative_event
+---
+The deadline has a personality and it is not friendly.
+
+-> Finish now. #choice:finish_now
+    You power through and get it done.
+    <<stim_resolve_choice "career_late_night_deadline_006" "finish_now">>
+    <<stop>>
+-> Pause and plan. #choice:pause_and_plan
+    You stop before sloppy work becomes the next problem.
+    <<stim_resolve_choice "career_late_night_deadline_006" "pause_and_plan">>
+    <<stop>>
+===
+title: career_peer_presentation_007
+tags: career presentation representative_event
+---
+You are up to present and suddenly your mouth has too many thoughts and not enough sequence.
+
+-> Present clearly. #choice:present_clearly
+    You make the idea understandable for other people.
+    <<stim_resolve_choice "career_peer_presentation_007" "present_clearly">>
+    <<stop>>
+-> Wing it. #choice:wing_it
+    You trust charisma to cover the rest.
+    <<stim_resolve_choice "career_peer_presentation_007" "wing_it">>
+    <<stop>>
+===
+title: career_small_win_008
+tags: career progress representative_event
+---
+A small professional win lands in your lap and reminds you that growth is sometimes quiet.
+
+-> Celebrate it. #choice:celebrate_it
+    You take the win seriously enough to notice it.
+    <<stim_resolve_choice "career_small_win_008" "celebrate_it">>
+    <<stop>>
+-> Keep moving. #choice:keep_moving
+    You use the momentum and stay focused.
+    <<stim_resolve_choice "career_small_win_008" "keep_moving">>
+    <<stop>>
+===
+title: career_feedback_note_009
+tags: career feedback representative_event
+---
+A note of feedback arrives and it is vague enough to be interpreted as either advice or a puzzle.
+
+-> Ask for specifics. #choice:ask_for_specifics
+    You get the useful version instead of guessing.
+    <<stim_resolve_choice "career_feedback_note_009" "ask_for_specifics">>
+    <<stop>>
+-> Take the hint. #choice:take_the_hint
+    You read between the lines and adjust.
+    <<stim_resolve_choice "career_feedback_note_009" "take_the_hint">>
+    <<stop>>
+===
+title: career_new_tools_day_010
+tags: career workplace representative_event
+---
+The team gets new tools and everyone pretends they are not already behind on learning them.
+
+-> Learn them now. #choice:learn_them_now
+    You get ahead of the awkward phase.
+    <<stim_resolve_choice "career_new_tools_day_010" "learn_them_now">>
+    <<stop>>
+-> Wait and watch. #choice:wait_and_watch
+    You let someone else be the test case first.
+    <<stim_resolve_choice "career_new_tools_day_010" "wait_and_watch">>
+    <<stop>>
+===
+title: career_customer_request_011
+tags: career service representative_event
+---
+A customer wants something impossible, but says it with the kind of confidence that can move a room.
+
+-> Stay calm. #choice:stay_calm
+    You keep the exchange respectful and useful.
+    <<stim_resolve_choice "career_customer_request_011" "stay_calm">>
+    <<stop>>
+-> Escalate it. #choice:escalate_it
+    You pass the issue to someone with more authority.
+    <<stim_resolve_choice "career_customer_request_011" "escalate_it">>
+    <<stop>>
+===
+title: career_learning_curve_012
+tags: career learning representative_event
+---
+You are still new enough that every task feels like a tiny exam.
+
+-> Ask questions. #choice:ask_questions
+    You speed up your own learning by not guessing.
+    <<stim_resolve_choice "career_learning_curve_012" "ask_questions">>
+    <<stop>>
+-> Figure it out alone. #choice:figure_it_out_alone
+    You work through the confusion on your own time.
+    <<stim_resolve_choice "career_learning_curve_012" "figure_it_out_alone">>
+    <<stop>>
+===
+title: career_after_work_plan_013
+tags: career balance representative_event
+---
+Your after-work plans are looking more like a support system than a reward.
+
+-> Protect your time. #choice:protect_your_time
+    You leave room for the rest of your life.
+    <<stim_resolve_choice "career_after_work_plan_013" "protect_your_time">>
+    <<stop>>
+-> Take on more. #choice:take_on_more
+    You keep saying yes and hope the calendar behaves.
+    <<stim_resolve_choice "career_after_work_plan_013" "take_on_more">>
+    <<stop>>
+===
+title: career_cover_shift_014
+tags: career teamwork representative_event
+---
+A coworker asks you to cover a shift, and the request sounds a little like a favor and a little like a trap.
+
+-> Help out. #choice:help_out
+    You support the team and keep goodwill alive.
+    <<stim_resolve_choice "career_cover_shift_014" "help_out">>
+    <<stop>>
+-> Decline politely. #choice:decline_politely
+    You keep your boundary without creating a scene.
+    <<stim_resolve_choice "career_cover_shift_014" "decline_politely">>
+    <<stop>>
+===
+title: career_first_promotion_015
+tags: career promotion representative_event
+---
+A promotion path opens up and suddenly the job has started looking like a ladder instead of a loop.
+
+-> Reach for it. #choice:reach_for_it
+    You take the next step seriously.
+    <<stim_resolve_choice "career_first_promotion_015" "reach_for_it">>
+    <<stop>>
+-> Wait a season. #choice:wait_a_season
+    You gather more experience before making the leap.
+    <<stim_resolve_choice "career_first_promotion_015" "wait_a_season">>
+    <<stop>>
+===
+title: career_public_mistake_016
+tags: career accountability representative_event
+---
+You make a small mistake in public and now everybody has the quiet attention of a committee.
+
+-> Own it. #choice:own_it
+    You admit the issue and move to the fix.
+    <<stim_resolve_choice "career_public_mistake_016" "own_it">>
+    <<stop>>
+-> Deflect. #choice:deflect
+    You try to keep the mistake from sticking to your name.
+    <<stim_resolve_choice "career_public_mistake_016" "deflect">>
+    <<stop>>
+===
+title: career_workshop_signup_017
+tags: career skills representative_event
+---
+A workshop could make your life easier if you have the patience to sit through the sign-up form.
+
+-> Sign up. #choice:sign_up
+    You invest in a skill that will help later.
+    <<stim_resolve_choice "career_workshop_signup_017" "sign_up">>
+    <<stop>>
+-> Skip it. #choice:skip_it
+    You save your time for something else.
+    <<stim_resolve_choice "career_workshop_signup_017" "skip_it">>
+    <<stop>>
+===
+title: career_team_lunch_018
+tags: career workplace representative_event
+---
+The team lunch is technically optional, which means skipping it has social consequences and eating it has calendar consequences.
+
+-> Join the lunch. #choice:join_the_lunch
+    You build connection outside the task list.
+    <<stim_resolve_choice "career_team_lunch_018" "join_the_lunch">>
+    <<stop>>
+-> Keep working. #choice:keep_working
+    You protect your focus and your schedule.
+    <<stim_resolve_choice "career_team_lunch_018" "keep_working">>
+    <<stop>>
+===
+title: career_exit_review_019
+tags: career reflection representative_event
+---
+You are looking back at the week and noticing which parts made you stronger and which parts just made you tired.
+
+-> Review honestly. #choice:review_honestly
+    You learn something useful from the pattern.
+    <<stim_resolve_choice "career_exit_review_019" "review_honestly">>
+    <<stop>>
+-> Ignore the week. #choice:ignore_the_week
+    You decide not to think about it until Monday.
+    <<stim_resolve_choice "career_exit_review_019" "ignore_the_week">>
+    <<stop>>
+===
+title: career_skill_upgrade_020
+tags: career skills representative_event
+---
+A new skill could open a better path, but only if you make room to practice it.
+
+-> Practice now. #choice:practice_now
+    You put in the repetition that turns interest into ability.
+    <<stim_resolve_choice "career_skill_upgrade_020" "practice_now">>
+    <<stop>>
+-> Save it for later. #choice:save_it_for_later
+    You keep the possibility open and protect your energy.
+    <<stim_resolve_choice "career_skill_upgrade_020" "save_it_for_later">>
+    <<stop>>
+===
