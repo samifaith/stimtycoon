@@ -183,7 +183,8 @@ Assets/UI/
 ### M18 — Accessibility, reliability, services, and distribution
 
 - [x] Add repository CI configuration for Unity `6000.3.19f1` EditMode and PlayMode checks, coverage, NUnit/log artifacts, and scheduled deterministic simulation; add matching local headless entry points and the production scene to Build Settings.
-- [ ] Activate Unity license secrets, prove the GitHub jobs on the remote runner, and require `EditMode QA` plus `PlayMode Smoke QA` on `main`; retain event-catalog/pending-event recovery, age-boundary, save-migration, UXML-binding, stylesheet-ownership, and supported-layout contracts in the blocking suite.
+- [ ] Validate the populated Unity personal-license GitHub Actions secrets by completing remote activation; keep all values out of source control and replace the current rejected credentials/license payload.
+- [ ] Prove the GitHub jobs on the remote runner and require `EditMode quality gate` plus `PlayMode smoke gate` on `main`; retain event-catalog/pending-event recovery, age-boundary, save-migration, UXML-binding, stylesheet-ownership, and supported-layout contracts in the blocking suite.
 - [x] Establish the first production-scene PlayMode smoke layer for UIDocument/Panel Settings, the single Input System EventSystem, the six-destination/overlay binding contract, and controller disable/enable lifecycle.
 - [ ] Expand PlayMode smoke coverage into user-driven New Life, navigation, Advance Month/Year interruption and resume, event resolution, Bank transfer, timed Study claim, save/reload, and second-life callback-leak journeys.
 - [x] Add Yarn authoring-contract tests for unique node/event ownership, localization-safe resolved IDs, and exact `#choice:`/`stim_resolve_choice` parity.

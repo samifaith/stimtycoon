@@ -43,6 +43,7 @@ The repository now contains:
 - automated compact-width and 130% accessibility-text reflow rules with 44-point primary targets
 - 679 passing EditMode test cases covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, Yarn authoring contracts, UI structure, UI Builder template integration, and seeded long-run simulations, plus 3 passing production-scene PlayMode smoke tests
 - a repository-owned QA foundation with production-scene PlayMode smoke tests, Yarn authoring-contract checks, Unity Code Coverage, local headless runners, and PR/nightly GitHub Actions configuration
+- an explicit grouped UI binding manifest and disposable Shell binder that own the shared header, navigation, safe-area geometry, time controls, and enable/disable callback teardown without taking presentation ownership away from UI Builder
 
 Not yet complete:
 
@@ -56,7 +57,7 @@ Not yet complete:
 
 ## Current Focus
 
-Milestones 1–12 and the M14 Bank/Education implementation are complete and the current 679-case EditMode suite plus 3-case PlayMode smoke suite are green. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing. M13 still has device/text-scale visual gates and M14 still needs its human comprehension check; M15 is the next implementation milestone.
+Milestones 1–12 and the M14 Bank/Education implementation are complete and the current 679-case EditMode suite plus 3-case PlayMode smoke suite are green. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing. The first M13 wiring pass is complete: UI Builder is the runtime hierarchy source, the binding manifest protects named-element ownership, the Shell binder owns shared callbacks, and controller disable now unregisters persistent handlers. M13 still has shell view-state/modal extraction plus device/text-scale visual gates, and M14 still needs its human comprehension check; M15 is the next destination implementation milestone.
 
 The path to completion is:
 
@@ -119,7 +120,9 @@ The QA runner supports quick EditMode, production-scene PlayMode smoke, combined
 scripts/qa/run-unity-tests.sh all
 ```
 
-Results, logs, and coverage reports are written under ignored `Artifacts/` paths. GitHub Actions is configured in `.github/workflows/qa.yml`; Unity license secrets and required `main` checks must be activated in repository settings before CI becomes a blocking gate. See [the QA strategy](docs/QA_STRATEGY.md) for test tiers, evidence requirements, and rollout gates.
+Results, logs, and coverage reports are written under ignored `Artifacts/` paths. GitHub Actions is configured in `.github/workflows/qa.yml`, and the three expected Unity secret names are present. Remote license activation and both test jobs must pass before merge; branch protection still needs to require `EditMode quality gate` and `PlayMode smoke gate` on `main`. See [the QA strategy](docs/QA_STRATEGY.md) for test tiers, evidence requirements, and rollout gates.
+
+Odin Validator may be used as an optional licensed local serialized-asset check. Odin itself, its scripting defines, and its generated assets are not repository or CI dependencies and must not be committed to this public project.
 
 ## Packages
 
@@ -208,6 +211,7 @@ Profile save/load on physical iPhones before changing formats. If device profili
 - [Reference UI feature/state gap analysis](docs/REFERENCE_UI_GAP_ANALYSIS.md)
 - [MVP interaction and navigation map](docs/UX_MAP.md)
 - [Frontend/wiring collaboration contract](docs/FRONTEND_WIRING_WORKFLOW.md)
+- [QA strategy and merge gates](docs/QA_STRATEGY.md)
 - [Current implementation audit](docs/IMPLEMENTATION_AUDIT_2026-07-13.md)
 - [Package install checklist](docs/PACKAGE_INSTALL_CHECKLIST.md)
 - [Phase 0 architecture checklist](docs/PHASE_0_ARCHITECTURE_CHECKLIST.md)

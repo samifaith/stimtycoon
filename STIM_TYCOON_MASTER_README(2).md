@@ -8,11 +8,11 @@ A mobile life and wealth simulation game that combines a choice-driven life time
 > **Primary reference set:** Three gameplay recordings supplied by the product owner  
 > **Important:** The recordings are inspiration for interaction patterns, pacing, information hierarchy, and feature depth. Stim Tycoon must use original branding, writing, visuals, balancing, content, data, and interface components.
 
-### Implementation snapshot — July 14, 2026
+### Implementation snapshot — July 17, 2026
 
 The repository currently runs on Unity `6000.3.19f1` and has a verified clean 679-test EditMode baseline plus 3 production-scene PlayMode smoke tests as of July 17, 2026. The offline loop begins with randomized birth and now includes required school paths, contextual activities, persistent peers and drama, identity choices, friendship-gated romance, marriage and divorce, household stats, spouse-derived finances, and revolving credit before continuing through careers, achievements, health decline, and a persistent ending summary. Manual work pays one hour at annual salary divided by 2,080. The implementation retains deterministic outcome resolution, Yarn Spinner dialogue, compact native atomic JSON autosaves, additive migration, integrity validation, backup recovery, and transactional gameplay actions. A reusable transaction runner and migration-safe shared-action contract now provide stable action instances, reload-safe idempotency, availability states, signed previews, persisted completion, reusable UI Toolkit cards, interruption-safe timed-action reconciliation, and reusable monetary input/payment validation. The first Education vertical slice is complete: age-gated General, Academic, and Vocational tracks have authored costs; easy, medium, and hard monthly sessions carry visible tradeoffs; Qualification XP advances through four visible tiers; and selected tracks and tiers gate career applications and authored event eligibility with explicit locked reasons. Fitness and Professional now join Learning as visible level-based skill paths. M7 is complete: Advance Year processes ordinary monthly transactions with per-month autosaves, pauses for required input, and the UI resumes the remaining queued months after Continue; a persisted annual accumulator covers cash, savings, stats, relationships, Education, skills, career, and deterministic major-outcome highlights; and an authored Year in Review grants one transactionally claimed, duplicate-safe reward while retaining at most ten completed reviews. Automated compact-width and 130% text reflow rules cover dense controls while the visual device matrix remains pending. Sections below describe the intended product; unchecked roadmap items are not claims of current implementation.
 
-### Current phase assessment — July 15, 2026
+### Current phase assessment — July 17, 2026
 
 - **Phase 0 — Product Foundation:** offline foundation delivered. The five representative events, schemas, deterministic resolver, local-save recovery, migration boundary, and product decisions are implemented. Authentication, cloud-conflict validation, Game Center, and ads remain intentionally deferred behind offline-loop stability.
 - **Phase 1 — Complete-Life Simulation:** verified complete for the offline implementation. The current clean 679-test EditMode baseline includes a deterministic birth-to-death harness that advances every month, resolves pending events, persists transactions, unlocks achievements, and reaches the final summary without developer intervention.
@@ -21,7 +21,7 @@ The repository currently runs on Unity `6000.3.19f1` and has a verified clean 67
 - **Phase 4 — Complete-Life Alpha:** complete in automated coverage. Annual reviews, transitions, goals, achievements, retirement/death, replay, bounded histories, and seeded complete-life simulations are present.
 - **Phase 5 — Experience Convergence:** active. The broad feature set must be reorganized into focused destination workspaces, deepened with original content, and validated at production mobile quality.
 
-The active UI shell now establishes the compact six-destination hierarchy, top-right player/cash header, Life age strip, semantic timeline feed, reusable dense rows and canonical component contracts, licensed Lucide navigation icons, emoji content-art fallbacks, age-appropriate option visibility, independent destination scroll restoration, a tabbed Bank workspace, an authored three-discipline Education catalog, and focused study-session confirmation. This is an implementation checkpoint, not the Phase 5 exit: runtime visual verification at supported widths, full reusable-component adoption, qualification badge/timed-claim presentation, and reference-level Work, Social, and Goals composition remain open.
+The active UI shell now establishes the compact six-destination hierarchy, top-right player/cash header, Life age strip, semantic timeline feed, reusable dense rows and canonical component contracts, licensed Lucide navigation icons, emoji content-art fallbacks, age-appropriate option visibility, independent destination scroll restoration, a tabbed Bank workspace, an authored three-discipline Education catalog, and focused study-session confirmation. UI Builder-authored UXML is the runtime hierarchy source; a grouped binding manifest protects named-element ownership; and a disposable Shell binder owns the shared header, navigation, safe-area geometry, time-control callbacks, and deterministic disable teardown. This is an implementation checkpoint, not the Phase 5 exit: global modal/shell view-state extraction, runtime visual verification at supported widths, full reusable-component adoption, qualification badge/timed-claim presentation, and reference-level Work, Social, and Goals composition remain open.
 
 ### Deferred Phase 0 online-validation gate
 
@@ -2033,6 +2033,8 @@ Use UI Toolkit rather than the older Unity UI system for Stim Tycoon's app-like 
 
 UI Builder is the main visual authoring interface. UXML defines structure, USS defines presentation, and C# binds data and behavior.
 
+The production `UIDocument` keeps its Panel Settings and Source Asset assigned in the scene so UI Builder, scene preview, and Play Mode share one source. Runtime binders query stable names from `StimUiBindingManifest`, bind data and commands without recreating authored hierarchy, and unregister every persistent callback on disable. USS owns visual presentation and semantic state classes; C# may set data-driven geometry such as progress width and safe-area padding but does not own colors, borders, radii, fonts, or container shaping.
+
 Create a custom Stim Tycoon component layer:
 
 - `StimButton`
@@ -2556,6 +2558,7 @@ Goal: reach the reference set's clarity and interaction density using original S
 
 ### M13 — Navigation shell and destination framework
 
+- Delivered wiring checkpoint: the scene owns its `UIDocument` assets and single Input System `EventSystem`; UI Builder templates are cloned rather than rebuilt in C#; the grouped binding manifest and Shell binder protect shared names and callback lifecycle; USS semantic classes own runtime visual states.
 - Apply the approved layered UI direction: Free Casual GUI as the foundation, Space Exploration GUI Kit for layout inspiration, and Jelly UI Pack for rewarding interactions. Keep all vendor packs replaceable behind Stim-owned UXML/USS adapters and the UI asset manifest.
 - Create a persistent, safe-area-aware status header with age/calendar, cash/net worth, and only Stim's real resources.
 - Establish six clear destinations: Life/Home, Education, Career/Business, Money, Social/Family, and Goals/Legacy.
@@ -2811,6 +2814,8 @@ Completed foundation work:
 - [x] Add transactional Study and Workout actions with monthly cooldowns, autosave, skill XP, and signed feedback.
 - [x] Consolidate the playable Life shell onto reusable header and bottom-navigation templates.
 - [x] Add structural UI Toolkit tests for required bindings, navigation, and event-sheet defaults.
+- [x] Make UI Builder-authored UXML the production hierarchy source, add grouped binding ownership, and extract shared header/navigation/safe-area/time callbacks into a disposable Shell binder.
+- [x] Pair persistent enable-time UI callbacks with deterministic disable-time teardown and cover controller lifecycle in the production-scene PlayMode smoke suite.
 - [x] Establish and grow the verified automated baseline; the current 679-test EditMode run includes seeded birth-to-ending, shared-action, timed-lifecycle, monetary-input, Education, skills, responsive reflow, Yarn authoring contracts, pending-event recovery, age/financial-agency guards, and resumable Advance Year coverage, with 3 production-scene PlayMode smoke tests covering live composition and lifecycle.
 - [x] Keep Advance Month persistent outside the Life ScrollView and clamp all visual progress fills.
 - [x] Add controller interaction coverage for event presentation, activity feedback, and persistent month advancement.

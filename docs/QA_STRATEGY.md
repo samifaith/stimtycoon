@@ -62,10 +62,10 @@ Close the live Unity Editor before using the headless runner; Unity permits only
 
 `.github/workflows/qa.yml` uses GameCI's Unity Test Runner and publishes NUnit, log, and coverage artifacts. Before making the checks required on `main`:
 
-1. Add the repository secrets required by the chosen Unity license: `UNITY_LICENSE`, `UNITY_EMAIL`, and `UNITY_PASSWORD` for a personal license, or the corresponding professional-license configuration.
-2. Run **Unity QA** manually with `workflow_dispatch` and confirm both EditMode and PlayMode jobs pass.
+1. The personal-license secret names `UNITY_LICENSE`, `UNITY_EMAIL`, and `UNITY_PASSWORD` are present. Their values are not considered configured until GameCI activates Unity successfully. Keep them in GitHub Actions secrets; never write them to source, logs, artifacts, or documentation.
+2. Confirm the **Unity QA** workflow passes on the pull request and once on `main`; use `workflow_dispatch` for an explicit licensing or runner proof when needed. An HTTP 400 from Unity login, `Access token is unavailable`, or `Failed to activate ULF license` is a credential/license blocker, not a test failure.
 3. Confirm the scheduled `SlowSimulation` job completes within the available runner budget.
-4. Require `EditMode QA` and `PlayMode Smoke QA` in the `main` branch protection rules.
+4. Require the workflow job checks `EditMode quality gate` and `PlayMode smoke gate` in the `main` branch protection rules. The action's nested result labels are `EditMode QA` and `PlayMode Smoke QA`, but branch protection must use the PR-visible job names.
 5. Do not make the nightly simulation a pull-request blocker unless its runtime becomes reliably short.
 
 Account secrets and branch-protection changes are external repository administration; they are not stored in source control.
