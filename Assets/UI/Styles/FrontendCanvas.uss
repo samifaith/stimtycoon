@@ -1,0 +1,93 @@
+/*
+ * Frontend-owned presentation canvas.
+ *
+ * This stylesheet deliberately loads last. It neutralizes the inherited
+ * prototype/kit decoration without changing layout, visibility, overflow,
+ * hit targets, aspect-fit rules, or runtime binding classes. Build the final
+ * visual system here (or replace these scoped rules) while wiring continues
+ * against stable UXML names.
+ */
+
+.st-frontend-canvas.st-frontend-canvas.st-frontend-canvas {
+    --color-bg-page: rgba(0, 0, 0, 0);
+    --color-bg-header: rgba(0, 0, 0, 0);
+    --color-surface: rgba(0, 0, 0, 0);
+    --color-surface-warm: rgba(0, 0, 0, 0);
+    --color-surface-lilac: rgba(0, 0, 0, 0);
+    --color-surface-blue: rgba(0, 0, 0, 0);
+    --color-primary: rgb(32, 32, 32);
+    --color-primary-soft: rgba(0, 0, 0, 0);
+    --color-secondary: rgb(32, 32, 32);
+    --color-coral: rgb(32, 32, 32);
+    --color-yellow: rgb(32, 32, 32);
+    --color-green: rgb(32, 32, 32);
+    --color-pink: rgb(32, 32, 32);
+    --color-teal: rgb(32, 32, 32);
+    --color-border: rgba(0, 0, 0, 0);
+    --color-border-warm: rgba(0, 0, 0, 0);
+    --color-disabled: rgb(112, 112, 112);
+    --color-danger: rgb(32, 32, 32);
+    --st-cyan-500: rgb(32, 32, 32);
+    --st-cyan-600: rgb(32, 32, 32);
+    --st-purple-500: rgb(32, 32, 32);
+    --st-purple-600: rgb(32, 32, 32);
+    --st-pink-500: rgb(32, 32, 32);
+    --st-pink-600: rgb(32, 32, 32);
+    --st-yellow-400: rgb(32, 32, 32);
+    --st-yellow-500: rgb(32, 32, 32);
+    --st-success-500: rgb(32, 32, 32);
+    --st-warning-500: rgb(32, 32, 32);
+    --st-danger-500: rgb(32, 32, 32);
+    --st-info-500: rgb(32, 32, 32);
+    --st-bg-app: rgba(0, 0, 0, 0);
+    --st-bg-header: rgba(0, 0, 0, 0);
+    --st-surface-1: rgba(0, 0, 0, 0);
+    --st-surface-2: rgba(0, 0, 0, 0);
+    --st-surface-blue: rgba(0, 0, 0, 0);
+    --st-surface-purple: rgba(0, 0, 0, 0);
+    --st-surface-pink: rgba(0, 0, 0, 0);
+    --st-surface-yellow: rgba(0, 0, 0, 0);
+    --st-text-primary: rgb(32, 32, 32);
+    --st-text-secondary: rgb(32, 32, 32);
+    --st-text-muted: rgb(72, 72, 72);
+    --st-text-inverse: rgb(32, 32, 32);
+    --st-border-soft: rgba(0, 0, 0, 0);
+    --st-border-blue: rgba(0, 0, 0, 0);
+    --st-border-purple: rgba(0, 0, 0, 0);
+    --st-border-pink: rgba(0, 0, 0, 0);
+    --st-border-yellow: rgba(0, 0, 0, 0);
+    --stim-pack-foundation: rgb(32, 32, 32);
+    --stim-pack-foundation-dark: rgb(32, 32, 32);
+    --stim-pack-reward: rgb(32, 32, 32);
+    --stim-pack-reward-accent: rgb(32, 32, 32);
+    --stim-pack-panel: rgba(0, 0, 0, 0);
+}
+
+/* Three class terms intentionally outrank the legacy multi-class adapters. */
+.st-frontend-canvas.st-frontend-canvas.st-frontend-canvas * {
+    background-color: rgba(0, 0, 0, 0);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    color: rgb(32, 32, 32);
+}
+
+/* Remove shape-bearing kit art while retaining icon and illustration art. */
+.st-frontend-canvas.st-frontend-canvas.st-frontend-canvas Button,
+.st-frontend-canvas.st-frontend-canvas.st-frontend-canvas .st-brand-skyden-progress,
+.st-frontend-canvas.st-frontend-canvas.st-frontend-canvas .st-brand-jelly-progress,
+.st-frontend-canvas.st-frontend-canvas.st-frontend-canvas .st-xp-pill,
+.st-frontend-canvas.st-frontend-canvas.st-frontend-canvas .st-skill-track,
+.st-frontend-canvas.st-frontend-canvas.st-frontend-canvas .st-section-heading-icon {
+    background-image: none;
+}
+
+/* Disabled behavior remains perceivable without relying on a palette. */
+.st-frontend-canvas.st-frontend-canvas.st-frontend-canvas Button:disabled {
+    opacity: 0.45;
+}

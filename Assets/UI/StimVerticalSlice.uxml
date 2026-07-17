@@ -5,8 +5,9 @@
     <Style src="Styles/Shell.uss" />
     <Style src="Styles/Components.uss" />
     <Style src="Styles/Destinations.uss" />
+    <Style src="Styles/FrontendCanvas.uss" />
 
-    <ui:VisualElement name="screen" class="screen st-life-screen st-asset-kits-integrated">
+    <ui:VisualElement name="screen" class="screen st-life-screen st-asset-kits-integrated st-frontend-canvas">
         <ui:Instance template="AppHeader" class="st-shell-header-slot" />
 
         <ui:ScrollView name="life-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-life-scroll">

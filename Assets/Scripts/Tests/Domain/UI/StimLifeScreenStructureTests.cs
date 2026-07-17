@@ -17,6 +17,7 @@ namespace StimTycoon.Tests.Domain.UI
         private const string ShellPath = "Assets/UI/Styles/Shell.uss";
         private const string ComponentsPath = "Assets/UI/Styles/Components.uss";
         private const string DestinationsPath = "Assets/UI/Styles/Destinations.uss";
+        private const string FrontendCanvasPath = "Assets/UI/Styles/FrontendCanvas.uss";
         private const string ControllerPath = "Assets/Scripts/Runtime/StimVerticalSliceController.cs";
 
         [Test]
@@ -28,16 +29,17 @@ namespace StimTycoon.Tests.Domain.UI
             StringAssert.Contains("<Style src=\"Styles/Shell.uss\" />", source);
             StringAssert.Contains("<Style src=\"Styles/Components.uss\" />", source);
             StringAssert.Contains("<Style src=\"Styles/Destinations.uss\" />", source);
+            StringAssert.Contains("<Style src=\"Styles/FrontendCanvas.uss\" />", source);
             StringAssert.DoesNotContain("StimTycoonTheme.uss", source);
             StringAssert.DoesNotContain("StimVerticalSliceCozyCorporate.uss", source);
-            Assert.That(CountOccurrences(source, "<Style src="), Is.EqualTo(4));
+            Assert.That(CountOccurrences(source, "<Style src="), Is.EqualTo(5));
             Assert.That(File.Exists("Assets/UI/StimVerticalSlice.uss"), Is.False);
             Assert.That(File.Exists("Assets/UI/StimVerticalSliceCozyCorporate.uss"), Is.False);
             Assert.That(!Directory.Exists("Assets/StimTycoon/UI/Styles") ||
                         Directory.GetFiles("Assets/StimTycoon/UI/Styles").Length == 0, Is.True,
                 "The unused prototype style system must not remain in the production migration path.");
 
-            foreach (var stylesheetPath in new[] { ThemePath, ShellPath, ComponentsPath, DestinationsPath })
+            foreach (var stylesheetPath in new[] { ThemePath, ShellPath, ComponentsPath, DestinationsPath, FrontendCanvasPath })
             {
                 var stylesheet = File.ReadAllText(stylesheetPath);
                 StringAssert.DoesNotContain("@import", stylesheet,
@@ -328,7 +330,7 @@ namespace StimTycoon.Tests.Domain.UI
         public void ProductionStylesheets_HaveExclusiveExactSelectorOwnership()
         {
             var ownerBySelector = new Dictionary<string, string>();
-            foreach (var path in new[] { ThemePath, ShellPath, ComponentsPath, DestinationsPath })
+            foreach (var path in new[] { ThemePath, ShellPath, ComponentsPath, DestinationsPath, FrontendCanvasPath })
             {
                 var source = Regex.Replace(File.ReadAllText(path), @"/\*[\s\S]*?\*/", string.Empty);
                 foreach (Match match in Regex.Matches(source, @"([^{}]+)\{"))

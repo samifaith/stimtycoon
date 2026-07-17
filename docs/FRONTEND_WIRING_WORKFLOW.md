@@ -9,6 +9,7 @@ This is the working agreement for parallel UI production. The visual frontend ca
 Owns:
 
 - visual hierarchy, UXML composition, USS, spacing, typography, color, art, animation, and responsive presentation;
+- the last-loaded `Assets/UI/Styles/FrontendCanvas.uss` presentation layer; this neutral canvas is the canonical place to rebuild colors, surfaces, borders, radii, and decorative container art;
 - choosing and adapting approved kit components through Stim-owned UXML/USS;
 - aspect ratio, nine-slicing, text containment, safe-area composition, and visual states;
 - runtime screenshots at the supported device widths and text scales;
@@ -53,6 +54,12 @@ Rules:
 5. The binder supplies dynamic text, accessibility labels, tooltips, visibility, enabled state, classes, progress values, and callbacks.
 6. Exact financial values remain available through detail screens and accessibility/tooltips even when a compact header uses `K/M/B` formatting.
 7. Age-inappropriate actions do not exist in the visual tree. Relevant but unmet actions render an explicit locked state and actionable reason.
+
+## Neutral presentation baseline
+
+`FrontendCanvas.uss` loads after the structural styles and is scoped by `st-frontend-canvas` on the playable root. It clears the inherited prototype palette, borders, radii, and shape-bearing button/progress art while deliberately retaining layout, spacing, visibility, overflow containment, touch targets, icon/illustration art, aspect-fit rules, and all runtime binding classes.
+
+Frontend work should replace the scoped neutral rules incrementally. Do not remove `st-frontend-canvas`, reorder the five canonical stylesheet entry points, or move gameplay meaning into USS. Locked, disabled, selected, success, and failure states must continue to have a text, icon, or accessibility signal in addition to any future color treatment.
 
 ## Handoff format for each visual slice
 
