@@ -29,9 +29,10 @@ namespace StimTycoon.Runtime
     [RequireComponent(typeof(UIDocument))]
     public sealed class StimVerticalSliceController : MonoBehaviour
     {
-        [SerializeField] private PanelSettings panelSettings;
-        [SerializeField] private VisualTreeAsset visualTreeAsset;
         [SerializeField, Range(1f, 1.3f)] private float accessibilityTextScale = 1f;
+        [SerializeField] private VisualTreeAsset feedRowTemplate;
+        [SerializeField] private VisualTreeAsset achievementRowTemplate;
+        [SerializeField] private VisualTreeAsset actionCardTemplate;
 
         private StimGameSessionService gameSession;
         private Label cashValue;
@@ -217,6 +218,7 @@ namespace StimTycoon.Runtime
         private Label achievementsCount;
         private VisualElement achievementsList;
         private VisualElement rootElement;
+        private StimShellBinder shellBinder;
         private StimActivityType primaryFocusActivity;
         private StimActivityType secondaryFocusActivity;
         private StimEvent currentEvent;
@@ -225,20 +227,54 @@ namespace StimTycoon.Runtime
         private StimDestination activeDestination = StimDestination.Life;
         private readonly Dictionary<StimDestination, Vector2> destinationScrollOffsets =
             new Dictionary<StimDestination, Vector2>();
+        private readonly List<PersistentButtonBinding> persistentButtonBindings =
+            new List<PersistentButtonBinding>();
+
+        private readonly struct PersistentButtonBinding
+        {
+            public readonly Button button;
+            public readonly Action callback;
+
+            public PersistentButtonBinding(Button button, Action callback)
+            {
+                this.button = button;
+                this.callback = callback;
+            }
+        }
 
         private void OnEnable()
         {
             var document = GetComponent<UIDocument>();
-            document.panelSettings = panelSettings;
-            document.visualTreeAsset = visualTreeAsset;
+            if (document.panelSettings == null || document.visualTreeAsset == null)
+            {
+                Debug.LogError(
+                    "Stim Vertical Slice requires Panel Settings and Source Asset on its UIDocument. " +
+                    "Assign both in the scene so UI Builder and runtime use the same assets.",
+                    this);
+                return;
+            }
+            if (feedRowTemplate == null || achievementRowTemplate == null || actionCardTemplate == null)
+            {
+                Debug.LogError(
+                    "Stim Vertical Slice requires the UI Builder-authored Feed Row, Achievement Row, " +
+                    "and Action Card templates on its controller.",
+                    this);
+                return;
+            }
             var root = document.rootVisualElement;
             rootElement = root;
             ApplyAccessibilityTextLayout(root, accessibilityTextScale);
-            root.RegisterCallback<GeometryChangedEvent>(HandleRootGeometryChanged);
-            cashValue = root.Q<Label>("cash-value");
-            lifeSummary = root.Q<Label>("life-summary");
-            calendarSummary = root.Q<Label>("calendar-summary");
-            headerNetWorthValue = root.Q<Label>("header-net-worth-value");
+            if (!StimUiBindingManifest.TryValidate(root, out var bindingError))
+            {
+                Debug.LogError($"Vertical slice binding manifest failed. {bindingError}", this);
+                rootElement = null;
+                return;
+            }
+            shellBinder = new StimShellBinder(root, HandleRootGeometryChanged);
+            cashValue = shellBinder.CashValue;
+            lifeSummary = shellBinder.LifeSummary;
+            calendarSummary = shellBinder.CalendarSummary;
+            headerNetWorthValue = shellBinder.HeaderNetWorthValue;
             eventCategory = root.Q<Label>("event-category");
             eventTitle = root.Q<Label>("event-title");
             eventBody = root.Q<Label>("event-body");
@@ -252,15 +288,15 @@ namespace StimTycoon.Runtime
             smartsValue = root.Q<Label>("smarts-value");
             looksValue = root.Q<Label>("looks-value");
             luckValue = root.Q<Label>("luck-value");
-            careerProgressValue = root.Q<Label>("career-progress-value");
+            careerProgressValue = shellBinder.CareerProgressValue;
             monthlyPaycheckValue = root.Q<Label>("monthly-paycheck-value");
             annualSalaryValue = root.Q<Label>("annual-salary-value");
             netWorthValue = root.Q<Label>("net-worth-value");
-            avatarGlyph = root.Q<Label>("avatar-glyph");
+            avatarGlyph = shellBinder.AvatarGlyph;
             choices = root.Q<VisualElement>("choices");
             resultCard = root.Q<VisualElement>("result-card");
             playerOverview = root.Q<VisualElement>("player-overview");
-            careerProgressFill = root.Q<VisualElement>("career-progress-fill");
+            careerProgressFill = shellBinder.CareerProgressFill;
             eventSheet = root.Q<VisualElement>("event-sheet");
             studySessionSheet = root.Q<VisualElement>("study-session-sheet");
             studySessionTitle = root.Q<Label>("study-session-title");
@@ -292,23 +328,23 @@ namespace StimTycoon.Runtime
             homeProgress = root.Q<Label>("home-progress");
             homeActions = root.Q<VisualElement>("home-actions");
             homeUpgradeFeedback = root.Q<Label>("home-upgrade-feedback");
-            lifeScroll = root.Q<ScrollView>("life-scroll");
-            lifeSummaryView = root.Q<ScrollView>("life-summary-view");
-            socialView = root.Q<ScrollView>("social-view");
-            timeDock = root.Q<VisualElement>("time-dock");
-            openLifeSummary = root.Q<Button>("open-life-summary");
+            lifeScroll = shellBinder.LifeScroll;
+            lifeSummaryView = shellBinder.LifeSummaryView;
+            socialView = shellBinder.SocialView;
+            timeDock = shellBinder.TimeDock;
+            openLifeSummary = shellBinder.OpenLifeSummary;
             closeLifeSummary = root.Q<Button>("close-life-summary");
-            addCash = root.Q<Button>("add-cash");
-            navLife = root.Q<Button>("nav-life");
-            navEducation = root.Q<Button>("nav-education");
-            navCareer = root.Q<Button>("nav-career");
-            navMoney = root.Q<Button>("nav-money");
-            navSocial = root.Q<Button>("nav-social");
-            navGoals = root.Q<Button>("nav-goals");
-            moneyView = root.Q<ScrollView>("money-view");
-            educationView = root.Q<ScrollView>("education-view");
-            careerView = root.Q<ScrollView>("career-view");
-            goalsView = root.Q<ScrollView>("goals-view");
+            addCash = shellBinder.AddCash;
+            navLife = shellBinder.NavLife;
+            navEducation = shellBinder.NavEducation;
+            navCareer = shellBinder.NavCareer;
+            navMoney = shellBinder.NavMoney;
+            navSocial = shellBinder.NavSocial;
+            navGoals = shellBinder.NavGoals;
+            moneyView = shellBinder.MoneyView;
+            educationView = shellBinder.EducationView;
+            careerView = shellBinder.CareerView;
+            goalsView = shellBinder.GoalsView;
             summaryStageDetail = root.Q<Label>("summary-stage-detail");
             summaryCalendarDetail = root.Q<Label>("summary-calendar-detail");
             summaryCareerDetail = root.Q<Label>("summary-career-detail");
@@ -414,8 +450,8 @@ namespace StimTycoon.Runtime
             gameSession = new StimGameSessionService(catalog, new NativeStimSaveRepository());
             var loadedExistingLife = gameSession.TryLoadLatest(out _);
 
-            advanceMonth = root.Q<Button>("advance-month");
-            advanceYear = root.Q<Button>("advance-year");
+            advanceMonth = shellBinder.AdvanceMonth;
+            advanceYear = shellBinder.AdvanceYear;
             toggleOverview = root.Q<Button>("toggle-overview");
             eventContinue = root.Q<Button>("event-continue");
             if (cashValue == null || lifeSummary == null || eventCategory == null || eventTitle == null ||
@@ -483,36 +519,9 @@ namespace StimTycoon.Runtime
             }
 
             PopulateVisualPlaceholders(root);
-            ConfigureDestinationContent();
             NavigateTo(StimDestination.Life);
 
-            advanceMonth.clicked += AdvanceMonth;
-            advanceYear.clicked += AdvanceYear;
-            toggleOverview.clicked += ToggleOverview;
-            eventContinue.clicked += CloseEventSheet;
-            studySessionCancel.clicked += CloseStudySessionSheet;
-            studySessionConfirm.clicked += ConfirmSelectedStudySession;
-            focusStudy.clicked += () => PerformActivity(primaryFocusActivity);
-            focusWorkout.clicked += () => PerformActivity(secondaryFocusActivity);
-            navLife.clicked += ShowLifeDestination;
-            navEducation.clicked += ShowEducationDestination;
-            navCareer.clicked += ShowCareerDestination;
-            navMoney.clicked += ShowMoneyDestination;
-            navSocial.clicked += ShowSocialDestination;
-            navGoals.clicked += ShowGoalsDestination;
-            openLifeSummary.clicked += ShowLifeSummary;
-            closeLifeSummary.clicked += CloseLifeSummary;
-            addCash.clicked += ShowMoneyDestination;
-            manualWorkTap.clicked += PerformManualWorkTap;
-            savingsDepositMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Deposit);
-            savingsWithdrawMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Withdrawal);
-            bankTabSavings.clicked += () => SetBankTab(StimBankTab.Savings);
-            bankTabCredit.clicked += () => SetBankTab(StimBankTab.Credit);
-            bankTabInvesting.clicked += () => SetBankTab(StimBankTab.Investing);
-            relationshipBack.clicked += ShowRelationshipList;
-            discoverCompatiblePerson.clicked += DiscoverCompatiblePerson;
-            endingNewLife.clicked += OpenNewLifeFromEnding;
-            ConfigureNewLifeControls();
+            BindPersistentCallbacks();
 
             if (!loadedExistingLife)
             {
@@ -597,20 +606,114 @@ namespace StimTycoon.Runtime
         {
             var slot = root.Q<VisualElement>(slotName);
             if (slot == null) return;
-            slot.Clear();
+            if (slot.childCount > 0) return;
             slot.Add(StimVisualPlaceholderFactory.Create(definition));
-        }
-
-        private void ConfigureDestinationContent()
-        {
-            educationDestinationContent.Add(educationCard);
-            careerDestinationContent.Add(careerCard);
-            goalsDestinationContent.Add(achievementsList.parent);
         }
 
         private void OnDisable()
         {
-            rootElement?.UnregisterCallback<GeometryChangedEvent>(HandleRootGeometryChanged);
+            UnbindPersistentCallbacks();
+            shellBinder?.Dispose();
+            shellBinder = null;
+            rootElement = null;
+        }
+
+        private void BindPersistentCallbacks()
+        {
+            // Defensive teardown keeps this method idempotent if lifecycle order changes.
+            UnbindPersistentCallbacks();
+            shellBinder?.BindActions(
+                AdvanceMonth,
+                AdvanceYear,
+                ShowLifeSummary,
+                ShowMoneyDestination,
+                ShowLifeDestination,
+                ShowEducationDestination,
+                ShowCareerDestination,
+                ShowSocialDestination,
+                ShowGoalsDestination);
+            BindPersistentButton(toggleOverview, ToggleOverview);
+            BindPersistentButton(eventContinue, CloseEventSheet);
+            BindPersistentButton(studySessionCancel, CloseStudySessionSheet);
+            BindPersistentButton(studySessionConfirm, ConfirmSelectedStudySession);
+            BindPersistentButton(focusStudy, PerformPrimaryFocusActivity);
+            BindPersistentButton(focusWorkout, PerformSecondaryFocusActivity);
+            BindPersistentButton(closeLifeSummary, CloseLifeSummary);
+            BindPersistentButton(manualWorkTap, PerformManualWorkTap);
+            BindPersistentButton(savingsDepositMode, SelectSavingsDeposit);
+            BindPersistentButton(savingsWithdrawMode, SelectSavingsWithdrawal);
+            BindPersistentButton(bankTabSavings, SelectSavingsBankTab);
+            BindPersistentButton(bankTabCredit, SelectCreditBankTab);
+            BindPersistentButton(bankTabInvesting, SelectInvestingBankTab);
+            BindPersistentButton(relationshipBack, ShowRelationshipList);
+            BindPersistentButton(discoverCompatiblePerson, DiscoverCompatiblePerson);
+            BindPersistentButton(endingNewLife, OpenNewLifeFromEnding);
+            BindPersistentButton(openNewLife, OpenNewLifeSetup);
+            BindPersistentButton(cancelNewLife, HideNewLifeSetup);
+            BindPersistentButton(continueCurrentLife, HideNewLifeSetup);
+            BindPersistentButton(createNewLife, CreateLifeFromSetup);
+        }
+
+        private void BindPersistentButton(Button button, Action callback)
+        {
+            if (button == null || callback == null) return;
+            button.clicked -= callback;
+            button.clicked += callback;
+            persistentButtonBindings.Add(new PersistentButtonBinding(button, callback));
+        }
+
+        private void UnbindPersistentCallbacks()
+        {
+            foreach (var binding in persistentButtonBindings)
+            {
+                if (binding.button != null) binding.button.clicked -= binding.callback;
+            }
+            persistentButtonBindings.Clear();
+        }
+
+        private void PerformPrimaryFocusActivity()
+        {
+            PerformActivity(primaryFocusActivity);
+        }
+
+        private void PerformSecondaryFocusActivity()
+        {
+            PerformActivity(secondaryFocusActivity);
+        }
+
+        private void SelectSavingsDeposit()
+        {
+            SetSavingsTransferType(StimSavingsTransferType.Deposit);
+        }
+
+        private void SelectSavingsWithdrawal()
+        {
+            SetSavingsTransferType(StimSavingsTransferType.Withdrawal);
+        }
+
+        private void SelectSavingsBankTab()
+        {
+            SetBankTab(StimBankTab.Savings);
+        }
+
+        private void SelectCreditBankTab()
+        {
+            SetBankTab(StimBankTab.Credit);
+        }
+
+        private void SelectInvestingBankTab()
+        {
+            SetBankTab(StimBankTab.Investing);
+        }
+
+        private void OpenNewLifeSetup()
+        {
+            ShowNewLifeSetup(false, true);
+        }
+
+        private void HideNewLifeSetup()
+        {
+            newLifeSetup?.AddToClassList("hidden");
         }
 
         private void HandleRootGeometryChanged(GeometryChangedEvent evt)
@@ -672,12 +775,6 @@ namespace StimTycoon.Runtime
         {
             accessibilityTextScale = Mathf.Clamp(textScale, 1f, 1.3f);
             ApplyAccessibilityTextLayout(rootElement, accessibilityTextScale);
-        }
-
-        public void Configure(PanelSettings settings, VisualTreeAsset tree)
-        {
-            panelSettings = settings;
-            visualTreeAsset = tree;
         }
 
         private void Resolve(string choiceId, StimPaymentMethod paymentMethod = StimPaymentMethod.Cash)
@@ -1036,7 +1133,7 @@ namespace StimTycoon.Runtime
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformHomeAction(actionType, out var summary);
             homeUpgradeFeedback.text = summary;
-            homeUpgradeFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            homeUpgradeFeedback.EnableInClassList("is-error", !succeeded);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -1048,7 +1145,7 @@ namespace StimTycoon.Runtime
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryUpgradeHome(out var summary);
             homeUpgradeFeedback.text = summary;
-            homeUpgradeFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            homeUpgradeFeedback.EnableInClassList("is-error", !succeeded);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -1218,7 +1315,7 @@ namespace StimTycoon.Runtime
             var succeeded = gameSession.TryTransferSavings(
                 savingsTransferType, amountMinorUnits, out var summary);
             savingsTransferFeedback.text = summary;
-            savingsTransferFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            savingsTransferFeedback.EnableInClassList("is-error", !succeeded);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -1264,7 +1361,7 @@ namespace StimTycoon.Runtime
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryRepayHouseholdCredit(amountMinorUnits, out var summary);
             creditRepaymentFeedback.text = summary;
-            creditRepaymentFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            creditRepaymentFeedback.EnableInClassList("is-error", !succeeded);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -1277,7 +1374,7 @@ namespace StimTycoon.Runtime
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryInvestInIndexFund(amountMinorUnits, out var summary);
             indexInvestmentFeedback.text = summary;
-            indexInvestmentFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            indexInvestmentFeedback.EnableInClassList("is-error", !succeeded);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -1322,7 +1419,8 @@ namespace StimTycoon.Runtime
                     else if (goal.destination == "social" || goal.destination == "family") ShowSocialDestination();
                     else ShowLifeDestination();
                 },
-                    accessibleProgress: $"{goal.progress:N0} / {goal.progressRequired:N0}");
+                    accessibleProgress: $"{goal.progress:N0} / {goal.progressRequired:N0}",
+                    template: achievementRowTemplate);
                 row.Q<Button>().name = $"goal-action-{goal.goalId}";
                 achievementsList.Add(row);
             }
@@ -1356,7 +1454,7 @@ namespace StimTycoon.Runtime
                     RefreshFeed();
                     RefreshMoney();
                     RefreshAchievements();
-                });
+                }, template: achievementRowTemplate);
                 row.Q<Button>().name = $"achievement-claim-{achievement.achievementId}";
                 achievementsList.Add(row);
             }
@@ -1437,7 +1535,8 @@ namespace StimTycoon.Runtime
                     var capturedDifficulty = difficulty;
                     educationActions.Add(StimActionCardFactory.Create(
                         definition,
-                        () => ShowStudySessionSheet(capturedDifficulty, definition)));
+                        () => ShowStudySessionSheet(capturedDifficulty, definition),
+                        actionCardTemplate));
                 }
                 return;
             }
@@ -1451,7 +1550,8 @@ namespace StimTycoon.Runtime
                 var capturedAction = action;
                 educationActions.Add(StimActionCardFactory.Create(
                     definition,
-                    () => PerformEducationAction(capturedAction)));
+                    () => PerformEducationAction(capturedAction),
+                    actionCardTemplate));
             }
         }
 
@@ -2435,12 +2535,12 @@ namespace StimTycoon.Runtime
             manualWorkFeedback.text = summary;
             if (!succeeded)
             {
-                manualWorkFeedback.style.color = new StyleColor(Color.red);
+                manualWorkFeedback.AddToClassList("is-error");
                 RefreshMoney();
                 return;
             }
 
-            manualWorkFeedback.style.color = StyleKeyword.Null;
+            manualWorkFeedback.RemoveFromClassList("is-error");
             RefreshHeader();
             RefreshFeed();
         }
@@ -2519,7 +2619,7 @@ namespace StimTycoon.Runtime
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryDiscoverCompatiblePerson(out var relationshipId, out var summary);
             relationshipDiscoveryFeedback.text = summary;
-            relationshipDiscoveryFeedback.style.color = succeeded ? StyleKeyword.Null : new StyleColor(Color.red);
+            relationshipDiscoveryFeedback.EnableInClassList("is-error", !succeeded);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -2719,14 +2819,6 @@ namespace StimTycoon.Runtime
             ShowRelationshipDetail(selectedRelationshipId);
         }
 
-        private void ConfigureNewLifeControls()
-        {
-            openNewLife.clicked += () => ShowNewLifeSetup(false, true);
-            cancelNewLife.clicked += () => newLifeSetup.AddToClassList("hidden");
-            continueCurrentLife.clicked += () => newLifeSetup.AddToClassList("hidden");
-            createNewLife.clicked += CreateLifeFromSetup;
-        }
-
         private void ShowNewLifeSetup(bool canContinue, bool canCancel)
         {
             newLifeError.AddToClassList("hidden");
@@ -2786,12 +2878,12 @@ namespace StimTycoon.Runtime
 
         private static string FormatMoney(long minorUnits)
         {
-            return (minorUnits / 100m).ToString("C0");
+            return StimMoneyFormatter.Format(minorUnits);
         }
 
         private static string FormatPreciseMoney(long minorUnits)
         {
-            return (minorUnits / 100m).ToString("C2");
+            return StimMoneyFormatter.FormatPrecise(minorUnits);
         }
 
         private static string FormatCompactProgress(long value, long maximum)
@@ -2807,7 +2899,7 @@ namespace StimTycoon.Runtime
             if (absolute >= 1000000000m) return $"{sign}${absolute / 1000000000m:0.#}B";
             if (absolute >= 1000000m) return $"{sign}${absolute / 1000000m:0.#}M";
             if (absolute >= 10000m) return $"{sign}${absolute / 1000m:0.#}K";
-            return amount.ToString("C0");
+            return StimMoneyFormatter.Format(minorUnits);
         }
 
         private static string FormatCompactNumber(long value)
@@ -2950,7 +3042,11 @@ namespace StimTycoon.Runtime
                     currentGroup.Add(header);
                     lifeFeedList.Add(currentGroup);
                 }
-                currentGroup.Add(StimUiComponentFactory.CreateFeedRow(entry, index, entries.Count));
+                currentGroup.Add(StimUiComponentFactory.CreateFeedRow(
+                    entry,
+                    index,
+                    entries.Count,
+                    feedRowTemplate));
             }
 
             if (entries.Count > visibleEntries)

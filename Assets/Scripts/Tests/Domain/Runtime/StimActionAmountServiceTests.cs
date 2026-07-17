@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using NUnit.Framework;
 using StimTycoon.Runtime;
 using UnityEngine.UIElements;
@@ -79,6 +80,23 @@ namespace StimTycoon.Tests.Domain.Runtime
             var root = StimActionInputFactory.CreatePaymentSelector(definition, _ => { });
             Assert.That(root.Q<Button>("payment-cash"), Is.Not.Null);
             Assert.That(root.Q<Button>("payment-credit"), Is.Null);
+        }
+
+        [Test]
+        public void MoneyFormatting_IsStableWhenRunnerCultureIsNotUsEnglish()
+        {
+            var previousCulture = CultureInfo.CurrentCulture;
+            try
+            {
+                CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+
+                Assert.That(StimMoneyFormatter.Format(123456), Is.EqualTo("$1,235"));
+                Assert.That(StimMoneyFormatter.FormatPrecise(1923), Is.EqualTo("$19.23"));
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = previousCulture;
+            }
         }
     }
 }

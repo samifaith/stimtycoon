@@ -55,7 +55,6 @@ namespace StimTycoon.Tests.Domain.UI
             session.Start(save);
 
             BindControllerFields();
-            Invoke("ConfigureDestinationContent");
             Invoke("RefreshHeader");
             Invoke("RefreshFeed");
         }

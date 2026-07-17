@@ -1,0 +1,141 @@
+name: Unity QA
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+
+concurrency:
+  group: unity-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  editmode:
+    name: EditMode quality gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: unity-library-${{ runner.os }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            unity-library-${{ runner.os }}-
+
+      - name: Run fast EditMode suite with coverage
+        id: editmode
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          unityVersion: auto
+          testMode: editmode
+          customParameters: -testCategory "!SlowSimulation"
+          artifactsPath: Artifacts/EditMode
+          coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+StimTycoon.Domain,+StimTycoon.Runtime
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: EditMode QA
+
+      - name: Upload EditMode evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editmode-qa-${{ github.run_number }}
+          path: |
+            ${{ steps.editmode.outputs.artifactsPath }}
+            ${{ steps.editmode.outputs.coveragePath }}
+          if-no-files-found: warn
+
+  playmode:
+    name: PlayMode smoke gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: unity-library-${{ runner.os }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            unity-library-${{ runner.os }}-
+
+      - name: Run PlayMode smoke suite with coverage
+        id: playmode
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          unityVersion: auto
+          testMode: playmode
+          customParameters: -testCategory PlayModeSmoke
+          artifactsPath: Artifacts/PlayMode
+          coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+StimTycoon.Domain,+StimTycoon.Runtime
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: PlayMode Smoke QA
+
+      - name: Upload PlayMode evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playmode-qa-${{ github.run_number }}
+          path: |
+            ${{ steps.playmode.outputs.artifactsPath }}
+            ${{ steps.playmode.outputs.coveragePath }}
+          if-no-files-found: warn
+
+  nightly-simulation:
+    name: Nightly full-life simulation
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Run slow deterministic simulations
+        id: simulation
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          unityVersion: auto
+          testMode: editmode
+          customParameters: -testCategory SlowSimulation
+          artifactsPath: Artifacts/Simulation
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Nightly Simulation QA
+
+      - name: Upload simulation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulation-qa-${{ github.run_number }}
+          path: ${{ steps.simulation.outputs.artifactsPath }}
+          if-no-files-found: warn

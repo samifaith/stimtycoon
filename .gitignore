@@ -7,6 +7,13 @@
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 /[Mm]emoryCaptures/
+/Artifacts/
+/CodeCoverage/
+/QA-temp/
+
+# Odin Inspector/Validator is a locally licensed Asset Store tool. Keep its
+# proprietary package and Unity-generated folder metadata out of this public repo.
+/Assets/Plugins/Sirenix/
 
 # Generated Unity/Yarn editor state
 /ProjectSettings/SceneTemplateSettings.json
@@ -61,6 +68,10 @@ Thumbs.db
 
 # Keep Unity metadata tracked for project assets
 !*.meta
+
+# These metadata files belong only to the ignored local Odin installation.
+/Assets/Plugins.meta
+/Assets/Plugins/Sirenix.meta
 
 # These metadata files belong only to the deferred generated artifacts above.
 /Assets/MobileDependencyResolver.meta

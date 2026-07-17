@@ -9,6 +9,7 @@ This is the working agreement for parallel UI production. The visual frontend ca
 Owns:
 
 - visual hierarchy, UXML composition, USS, spacing, typography, color, art, animation, and responsive presentation;
+- the last-loaded `Assets/UI/Styles/FrontendCanvas.uss` presentation layer; this neutral canvas is the canonical place to rebuild colors, surfaces, borders, radii, and decorative container art;
 - choosing and adapting approved kit components through Stim-owned UXML/USS;
 - aspect ratio, nine-slicing, text containment, safe-area composition, and visual states;
 - runtime screenshots at the supported device widths and text scales;
@@ -25,6 +26,7 @@ Does not need to own:
 Owns:
 
 - querying named UXML elements and binding view state to them;
+- pairing every persistent callback registered during enable/bind with deterministic disable/unbind teardown; element-owned callbacks on generated rows must leave with their discarded subtree;
 - turning taps and input into typed commands against domain/application services;
 - eligibility, age omission, relevant lock reasons, previews, confirmations, timers, cooldowns, claims, and terminal states;
 - atomic persistence, rollback, reload reconciliation, idempotency, duplicate protection, and Life Feed output;
@@ -53,6 +55,22 @@ Rules:
 5. The binder supplies dynamic text, accessibility labels, tooltips, visibility, enabled state, classes, progress values, and callbacks.
 6. Exact financial values remain available through detail screens and accessibility/tooltips even when a compact header uses `K/M/B` formatting.
 7. Age-inappropriate actions do not exist in the visual tree. Relevant but unmet actions render an explicit locked state and actionable reason.
+
+## Neutral presentation baseline
+
+`FrontendCanvas.uss` loads after the structural styles and is scoped by `st-frontend-canvas` on the playable root. It clears the inherited prototype palette, borders, radii, and shape-bearing button/progress art while deliberately retaining layout, spacing, visibility, overflow containment, touch targets, icon/illustration art, aspect-fit rules, and all runtime binding classes.
+
+Frontend work should replace the scoped neutral rules incrementally. Do not remove `st-frontend-canvas`, reorder the five canonical stylesheet entry points, or move gameplay meaning into USS. Locked, disabled, selected, success, and failure states must continue to have a text, icon, or accessibility signal in addition to any future color treatment.
+
+## UI Builder, sprites, stylesheets, and input
+
+- `Assets/UI/StimVerticalSlice.uxml` is the playable UI Builder document. Its five directly attached USS files are the canonical cascade, with `FrontendCanvas.uss` loaded last for frontend ownership.
+- The scene `UIDocument` owns its Panel Settings and Source Asset references in the Inspector. Runtime code validates those references but must not replace them, so scene preview, UI Builder, and Play mode all use the same assets.
+- Feed Row, Achievement Row, and Action Card are UI Builder-authored UXML components. Runtime factories clone those templates and only bind dynamic content, state classes, progress, and callbacks. Do not recreate their visual hierarchy in controller code.
+- Destination cards live under their real destination hosts in UXML; runtime code does not reparent them. A visual slot with an authored sprite child is preserved, while an empty slot receives a fallback placeholder at runtime.
+- `com.unity.2d.sprite` is a direct dependency. Import raster UI art as `Sprite (2D and UI)`, retain transparency, disable mipmaps unless the asset needs scaled/world rendering, and use `scale-to-fit` for unsliced art or complete nine-slice metadata for stretchable controls.
+- The playable scene has one explicit `EventSystem` with `InputSystemUIInputModule`, matching the project’s New Input System setting. Do not add `StandaloneInputModule` or a second EventSystem. UI Toolkit has a built-in runtime event path, but this explicit module is retained for inspectable/remappable input and future mixed UI requirements.
+- USS owns visual presentation. Runtime C# may set data-driven geometry such as progress width and safe-area padding, but visual states use semantic classes such as `is-error`, `locked`, `selected`, and `claimable` rather than inline colors, sprites, borders, fonts, or radii.
 
 ## Handoff format for each visual slice
 
@@ -116,9 +134,10 @@ validation → commit/rollback → Life Feed
 - [x] Treat bound UXML names as a protected API with structural tests.
 - [x] Register the playable event catalog from `CreateLaunchAlphaCatalog()` rather than a second controller-owned list.
 - [x] Keep exact header money values in accessible tooltips while compacting large visible values.
-- [ ] Create an explicit binding manifest grouped by Shell/Life/Study/Work/Bank/Social/Goals/modal ownership.
+- [x] Create an explicit binding manifest grouped by Shell/Life/Study/Work/Bank/Social/Goals/modal ownership.
 - [ ] Replace source-text regex checks with behavior tests where practical; retain structural tests for UXML/USS ownership.
-- [ ] Extract the Shell binder first, because the header, navigation, safe areas, time controls, and global modals are shared by every frontend iteration.
+- [x] Extract shared header, navigation, safe-area geometry, and time-control callback ownership into the Shell binder.
+- [ ] Complete the Shell binder by moving global modal arbitration and shell view-state rendering out of the vertical-slice controller.
 
 ### W1 — Shared UI state machine
 

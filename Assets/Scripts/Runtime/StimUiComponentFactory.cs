@@ -1,51 +1,38 @@
 using System;
 using StimTycoon.Saves;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace StimTycoon.Runtime
 {
     public static class StimUiComponentFactory
     {
-        public static VisualElement CreateFeedRow(StimLifeFeedEntry entry, int index, int total)
+        public static VisualElement CreateFeedRow(
+            StimLifeFeedEntry entry,
+            int index,
+            int total,
+            VisualTreeAsset template = null)
         {
             if (entry == null) throw new ArgumentNullException(nameof(entry));
 
             var category = string.IsNullOrWhiteSpace(entry.category) ? "life" : entry.category.ToLowerInvariant();
-            var row = new VisualElement
-            {
-                name = $"feed-item-{index + 1}",
-                tooltip = $"Item {index + 1} of {total}. {ToDisplayName(category)}. " +
-                          $"Age {entry.age}, month {entry.monthOfYear}. {entry.text}"
-            };
+            var row = CloneTemplateRoot(template, "feed-row") ?? CreateFeedRowFallback();
+            row.name = $"feed-item-{index + 1}";
+            row.tooltip = $"Item {index + 1} of {total}. {ToDisplayName(category)}. " +
+                          $"Age {entry.age}, month {entry.monthOfYear}. {entry.text}";
             row.AddToClassList("st-feed-entry");
             row.AddToClassList("st-brand-skyden-list");
             row.AddToClassList("category-" + category);
 
-            var timeline = new VisualElement();
-            timeline.AddToClassList("st-feed-timeline");
-            var dot = new VisualElement();
-            dot.AddToClassList("st-feed-dot");
-            timeline.Add(dot);
-            row.Add(timeline);
-
-            var icon = new Label(GetCategoryGlyph(category));
-            icon.AddToClassList("st-feed-icon");
-            row.Add(icon);
-
-            var copy = new VisualElement();
-            copy.AddToClassList("st-feed-copy");
-            var title = new Label(ToCompactTitle(entry.text));
-            title.AddToClassList("st-feed-title");
-            copy.Add(title);
-            var timestamp = new Label(ToCompactTimestamp(entry));
-            timestamp.AddToClassList("st-feed-timestamp");
-            copy.Add(timestamp);
-            row.Add(copy);
-
-            var chip = new Label(ToResultChip(entry.text, category));
-            chip.AddToClassList("st-feed-result-chip");
+            var icon = row.Q<Label>("feed-row-icon");
+            var title = row.Q<Label>("feed-row-title");
+            var timestamp = row.Q<Label>("feed-row-timestamp");
+            var chip = row.Q<Label>("feed-row-result");
+            icon.text = GetCategoryGlyph(category);
+            title.text = ToCompactTitle(entry.text);
+            timestamp.text = ToCompactTimestamp(entry);
+            chip.text = ToResultChip(entry.text, category);
             chip.AddToClassList("result-" + category);
-            row.Add(chip);
             return row;
         }
 
@@ -80,53 +67,100 @@ namespace StimTycoon.Runtime
             string actionText,
             bool actionEnabled,
             Action onAction,
-            string accessibleProgress = null)
+            string accessibleProgress = null,
+            VisualTreeAsset template = null)
         {
-            var row = new VisualElement
-            {
-                name = "achievement-row-" + Sanitize(stableId),
-                tooltip = $"{title}. {category}. Progress {accessibleProgress ?? progress}. Reward {reward}."
-            };
+            var row = CloneTemplateRoot(template, "achievement-row") ?? CreateAchievementRowFallback();
+            row.name = "achievement-row-" + Sanitize(stableId);
+            row.tooltip = $"{title}. {category}. Progress {accessibleProgress ?? progress}. Reward {reward}.";
             row.AddToClassList("st-achievement-row");
             row.AddToClassList("st-brand-jelly-reward-row");
 
-            var icon = new Label(string.IsNullOrEmpty(badge) ? "🏆" : badge);
-            icon.AddToClassList("st-achievement-icon");
+            var icon = row.Q<Label>("achievement-row-icon");
+            var titleLabel = row.Q<Label>("achievement-row-title");
+            var categoryLabel = row.Q<Label>("achievement-row-category");
+            var progressLabel = row.Q<Label>("achievement-row-progress");
+            var rewardLabel = row.Q<Label>("achievement-row-reward");
+            var action = row.Q<Button>("achievement-row-action");
+            icon.text = string.IsNullOrEmpty(badge) ? "🏆" : badge;
+            titleLabel.text = title;
+            categoryLabel.text = category;
+            progressLabel.text = progress;
+            rewardLabel.text = reward;
             if (actionText == "CLAIM" || string.Equals(category, "Achievement", StringComparison.OrdinalIgnoreCase))
                 icon.AddToClassList("stim-pack-reward-icon");
-            row.Add(icon);
-
-            var copy = new VisualElement();
-            copy.AddToClassList("st-achievement-copy");
-            var titleLabel = new Label(title);
-            titleLabel.AddToClassList("st-achievement-name");
-            copy.Add(titleLabel);
-            var meta = new VisualElement();
-            meta.AddToClassList("st-achievement-meta");
-            var categoryLabel = new Label(category);
-            categoryLabel.AddToClassList("st-achievement-category");
-            var progressLabel = new Label(progress);
-            progressLabel.AddToClassList("st-achievement-progress");
-            meta.Add(categoryLabel);
-            meta.Add(progressLabel);
-            copy.Add(meta);
-            row.Add(copy);
-
-            var rewardLabel = new Label(reward);
-            rewardLabel.AddToClassList("st-achievement-reward");
-            row.Add(rewardLabel);
-
-            var action = new Button(onAction)
-            {
-                name = "achievement-action-" + Sanitize(stableId),
-                text = actionText
-            };
+            action.name = "achievement-action-" + Sanitize(stableId);
+            action.text = actionText;
+            if (onAction != null) action.clicked += onAction;
+            action.RemoveFromClassList("stim-pack-reward-button");
+            action.RemoveFromClassList("stim-pack-secondary-button");
+            action.RemoveFromClassList("st-brand-jelly-claim");
+            action.RemoveFromClassList("st-brand-skyden-secondary");
             action.AddToClassList(actionText == "CLAIM" ? "stim-pack-reward-button" : "stim-pack-secondary-button");
             action.AddToClassList(actionText == "CLAIM" ? "st-brand-jelly-claim" : "st-brand-skyden-secondary");
             action.AddToClassList("stim-pack-interaction-pop");
             action.SetEnabled(actionEnabled);
+            return row;
+        }
+
+        private static VisualElement CreateFeedRowFallback()
+        {
+            var row = new VisualElement();
+            var timeline = new VisualElement();
+            timeline.AddToClassList("st-feed-timeline");
+            var dot = new VisualElement();
+            dot.AddToClassList("st-feed-dot");
+            timeline.Add(dot);
+            row.Add(timeline);
+            row.Add(NamedLabel("feed-row-icon", "st-feed-icon"));
+            var copy = new VisualElement();
+            copy.AddToClassList("st-feed-copy");
+            copy.Add(NamedLabel("feed-row-title", "st-feed-title"));
+            copy.Add(NamedLabel("feed-row-timestamp", "st-feed-timestamp"));
+            row.Add(copy);
+            row.Add(NamedLabel("feed-row-result", "st-feed-result-chip"));
+            return row;
+        }
+
+        private static VisualElement CreateAchievementRowFallback()
+        {
+            var row = new VisualElement();
+            row.Add(NamedLabel("achievement-row-icon", "st-achievement-icon"));
+            var copy = new VisualElement();
+            copy.AddToClassList("st-achievement-copy");
+            copy.Add(NamedLabel("achievement-row-title", "st-achievement-name"));
+            var meta = new VisualElement();
+            meta.AddToClassList("st-achievement-meta");
+            meta.Add(NamedLabel("achievement-row-category", "st-achievement-category"));
+            meta.Add(NamedLabel("achievement-row-progress", "st-achievement-progress"));
+            copy.Add(meta);
+            row.Add(copy);
+            row.Add(NamedLabel("achievement-row-reward", "st-achievement-reward"));
+            var action = new Button { name = "achievement-row-action" };
+            action.AddToClassList("st-achievement-action");
             row.Add(action);
             return row;
+        }
+
+        private static Label NamedLabel(string name, string className)
+        {
+            var label = new Label { name = name };
+            label.AddToClassList(className);
+            return label;
+        }
+
+        private static VisualElement CloneTemplateRoot(VisualTreeAsset template, string rootName)
+        {
+            if (template == null) return null;
+            var container = template.CloneTree();
+            var root = container.Q<VisualElement>(rootName);
+            if (root == null)
+            {
+                Debug.LogError($"UI template '{template.name}' is missing required root '{rootName}'.");
+                return null;
+            }
+            root.RemoveFromHierarchy();
+            return root;
         }
 
         public static Button CreateRelationshipRow(
