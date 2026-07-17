@@ -1,5 +1,9 @@
 # Stim Tycoon MVP Interaction Map
 
+This map defines the approved navigation and interaction model. The exhaustive comparison against the supplied screen references—including component status, branched states, deferred commerce, and stable task IDs—is maintained in `REFERENCE_UI_GAP_ANALYSIS.md`.
+
+The frontend/wiring boundary is defined in `FRONTEND_WIRING_WORKFLOW.md`: UXML/USS owns composition and presentation; binders and application/domain services own dynamic state and behavior. A bound UXML `name` is an API and must not be renamed independently.
+
 ## Visual contract
 
 The locked direction is **cozy corporate**: structured and financially literate, but warm enough to support childhood, relationships, health, failure, and recovery.
@@ -68,13 +72,18 @@ Event card
 
 Risk labels remain hidden during ordinary play. Choice wording, character preparation, and context provide the information needed to make the guess. A later optional premium fourth choice may disclose and guarantee a narrowly defined positive stat boost; it must never disguise its exact benefit.
 
-### Secondary sections
+### Destination responsibilities
 
 | Destination | Default landing content | Dominant action |
 |---|---|---|
-| Money | Cash flow, debt, assets, recent transactions | Manage money |
-| Social | Important relationships and recent changes | Interact |
-| Business | Active ventures, opportunities, staff, and efficiency | Operate or invest |
+| Life | Feed, stats, current focus, upcoming decision, time controls | Choose an activity or advance time |
+| Study | Education progress, disciplines, study sessions, path requirements | Learn and qualify |
+| Work | Career paths, current role, work actions, business operations | Work, apply, or operate |
+| Bank | Net worth, savings, cash flow/credit, investing, transaction history | Manage money |
+| Social | Relationships, discovery, profiles, family state | Interact |
+| Goals | Pinned goals, Main/Daily/Life boards, achievements | Navigate or claim |
+
+The alternate five-tab navigation, action quota/`End Turn`, Stim Coins, and season progression shown in exploratory references are not part of this contract. They remain unplanned until separately approved.
 
 ## Reusable component order
 

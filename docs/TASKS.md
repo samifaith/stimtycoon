@@ -1,6 +1,6 @@
 # Stim Tycoon — Completion Plan
 
-This is the operational roadmap after the July 16, 2026 code/documentation audit. Milestones 1–12 and the M14 Bank/Education implementation are in place; M13 retains physical-layout gates and M15 is the next implementation milestone. The master README remains the product definition.
+This is the operational roadmap after the July 16, 2026 code/documentation audit. Milestones 1–12 and the M14 Bank/Education implementation are in place; M13 retains physical-layout gates and M15 is the next implementation milestone. The master README remains the product definition. `REFERENCE_UI_GAP_ANALYSIS.md` is the detailed, deduplicated screen/component/behavior/branch-state comparison behind the task IDs used here.
 
 ## Current position
 
@@ -12,8 +12,18 @@ This is the operational roadmap after the July 16, 2026 code/documentation audit
 - [x] M11 — three career industries and one complete operational business
 - [x] M12 — Main/Daily/Life goals, achievement rewards, transition records, orientation, and alpha content validation
 - [x] M14 implementation — persistent Bank/Education workspaces, timed study claims, progression standards, discipline consequences, and portfolio contribution/performance reporting
-- [x] Clean Unity Run All result: 655 / 655 EditMode test cases passed on July 16, 2026
+- [x] Clean Unity Run All result: 672 / 672 EditMode test cases passed on July 16, 2026
 - [ ] M13 exit verification — 320/390/430/768 widths, 100%/130% text, safe areas, touch targets, and live Play Mode visual approval
+
+## Parallel ownership and immediate wiring track
+
+The frontend owner controls UXML/USS/art/responsive presentation and runtime screenshots. The wiring owner controls stable named-element contracts, binders/view state, callbacks, domain/application services, age and requirement behavior, persistence/rollback, Yarn/catalog parity, accessibility semantics, and automated tests. Follow `FRONTEND_WIRING_WORKFLOW.md`; do not move gameplay rules into UXML/USS or rename bound elements without a coordinated contract change.
+
+- [x] W0 — use one canonical launch catalog in the playable controller; compact large header money values while preserving exact accessible values.
+- [ ] W0 — add a grouped binding manifest and extract the shared Shell binder before destination binders.
+- [ ] W1 — implement the shared visual state machine, modal arbitration, confirmation/error/retry behavior, and reload-safe multi-step workflows.
+- [ ] W2 — wire the 100 staged Childhood/School/Career/Health/Money Yarn nodes to validated C# event definitions and add Yarn-to-catalog event/choice parity tests before random selection.
+- [ ] W3 — wire destination slices in this order: Shell → Life → Home/Social → Work → Goals → reusable mini-games → Settings/services.
 
 ## Phase 5 — Experience Convergence
 
@@ -45,6 +55,8 @@ Specification execution phases:
 **Phase 2 wireframe contract:** the approved six-screen grayscale wireframe defines composition and density. Life uses an age strip, 4–6 compact timeline feed rows, compact stat tiles, and one aging-action row. Study and Work use progress/path modules plus one mini-game slot. Bank uses balance, quick actions, and compact accounts. Social uses compact relationship rows. Goals uses pinned goals and 48–58 point achievement rows. Monetization and mini-game areas remain labeled placeholders until their systems are implemented; they must not imply working purchases, ads, or rewards.
 
 **Commerce wireframe boundary:** Store, Stim+, rewarded-ad, and season-pass wireframes are approved as future composition references only. Do not add Stim Coins, energy, purchasable progression, subscriptions, ad rewards, prices, or purchase buttons until M18 service/product configuration and a separate economy approval define their real behavior. Before then, only disabled, explicitly labeled placeholders with stable slot IDs are allowed, and baseline progression/recovery must remain unaffected.
+
+**Reference-only concepts:** the alternate Home/School/Activities/City/Menu shell, per-turn action quota, `End Turn`, Stim Coins, season XP, and premium reward lanes do not replace the approved six-destination monthly loop. They require an explicit product decision before entering implementation.
 
 ### Unity Device Simulator targets
 
@@ -96,6 +108,7 @@ Assets/UI/
 - [ ] Add reusable destination headers, segmented tabs, modal sheets, requirement chips, action states, progress bars, timer/cooldown rows, and selected-navigation styling.
 - [ ] Replace default/placeholder scrollbars throughout the application with one polished Stim scrollbar and scroll-affordance system for page, list, sheet, tab, and nested-scroll contexts; do not solve visual quality by hiding required position feedback.
 - [ ] Complete the shared UI-detail pass for spacing, dividers, shadows, borders, pressed/hover/focus/disabled states, empty/loading/locked states, truncation/wrapping, and consistent icon/text alignment.
+- [ ] Implement and test the shared branch-state vocabulary from `REFERENCE_UI_GAP_ANALYSIS.md`: age-absent, relevant-locked, available/selected, insufficient resources, confirming, active, cooldown, claimable, claimed, empty/exhausted, loading/offline/error/retry, saving/rollback, terminal, and restored navigation state.
 - [ ] Restore destination, tab, scroll position, and selected object/person after sheets and action resolution. Per-destination scroll offsets, Life Summary return state, selected Social profiles, and Bank tab state are implemented; broader tab and post-action restoration remain.
 - [x] Omit options that are not yet age-appropriate from destination UI; once relevant by age, show other unmet requirements as explicit locks rather than leaking future-life actions early.
 - [ ] Keep Advance Month/Year, pending decisions, transition presentations, and endings reachable and unobscured.
@@ -103,6 +116,7 @@ Assets/UI/
 - [x] Render Life Feed updates as a deterministic semantic ordered list with age/month/revision ordering, category context, numbered accessible item context, and no in-place save reordering.
 - [x] Add a reusable Stim-owned visual-placeholder definition/factory with stable IDs, roles, aspect ratios, accessibility/decorative metadata, fallbacks, theme tokens, and development labeling.
 - [ ] Place the reusable visual slots into destination heroes, event art, avatars, icons, objects, badges, and backgrounds; add bounded Life Feed archival behavior.
+- [ ] Complete reference tasks LIFE-01–LIFE-07: compact signed feed rows with archive/`See all`, canonical age-strip placement, recently changed stat semantics, common action states, time-control scenario QA, `Next Up`, and a compact goal preview. LIFE-08 Settings/notification entry points remain M18 work; no action-energy quota is approved.
 
 **Exit gate:** the live playable shell—not only mockups, manifests, imported folders, or unused style definitions—visibly renders the approved three-pack asset direction across its header, navigation, destination surfaces, controls, and reward feedback. It also passes 320/390/430/768 widths at 100% and 130% text, maintains 44-point primary targets, respects safe areas, has no navigation dead ends, and uses the approved scrollbar/scroll-affordance and shared UI-detail system in every implemented destination and overlay.
 
@@ -117,6 +131,7 @@ Assets/UI/
 - [x] Build a focused study sheet with easy/medium/hard sessions, clear benefits/costs, duration/cooldown, progress, and single-claim completion. Persisted 60/120/180-second sessions expose numeric previews, reserve the monthly action, show in-progress/claimable state in Education, withhold rewards until completion, and grant them through one transactional claim.
 - [x] Add at least three original disciplines with distinct career/event consequences using reusable content definitions. Applied Finance, Community Health, and Sustainable Trades now map to distinct career outcomes and track-gated annual education challenges.
 - [x] Apply the documented stat, skill, qualification, wealth, task-reward, and locked-requirement thresholds; add reachability and pacing tests. `StimProgressionStandards` now owns the core-stat bands, cumulative skill curve through Level 7, `50/125/250` qualification tiers, investing age/Smarts/emergency-savings boundary, `25/50/75` Finance ladder, level-scaled business progress, and Daily/Main/Life reward bands. Exact-boundary tests cover the shared contract and business locks; seeded pacing proves the easy-study route reaches Advanced within the teen window and the Finance ladder reaches Manager within two years of monthly actions.
+- [ ] Complete the remaining reference presentation/edge-state tasks without reopening the finished domain foundation: STUDY-02/03/05 path detail, session-state consistency, and graduated/no-path/error states; BANK-01/03/05/06/07 extreme/negative values, account-detail routing, debt/investment edge states, and contextual financial tips. STUDY-04 is the shared mini-game work scheduled with M16.
 
 **Exit gate:** players can explain where money went, what interest/risk means, why a financial or education action is locked, and what each commitment changes.
 
@@ -130,6 +145,7 @@ Assets/UI/
 - [ ] Build compatible-person discovery as a bounded list with deterministic persistent candidates and explicit refresh/cap behavior.
 - [ ] Build relationship profiles with warmth, stage, history, cooldowns, requirements, consent state, and available actions.
 - [ ] Surface partner, child, parenting, dependent-cost, and custody state in a family workspace.
+- [ ] Complete SOCIAL-01–SOCIAL-05 terminal states: compact/filterable rows, no candidates/no match/cap/refresh, no available actions, deceased/unavailable NPC, consent/relationship-end handling, cooldown presentation, and state restoration.
 - [ ] Add persistent NPC event triggers with deterministic priority, timing windows, cooldowns, cancellation rules, and death/consent/role/reload coverage.
 
 **Exit gate:** every visible object/person has durable state, every action previews consequences, and reload/interruption cannot duplicate progress, inventory, relationships, or child outcomes.
@@ -139,6 +155,7 @@ Assets/UI/
 - [ ] Build a career workspace for industries, requirements, applications/interviews, performance, promotion, retraining, firing, unemployment, and retirement.
 - [ ] Build the Local Services Co. dashboard for action points, work, revenue/expenses, staff, payroll, upgrades, locations, disruptions, valuation, failure, and sale.
 - [ ] Build Main/Daily/Life goal boards with visible progress, `Go` navigation, and transactionally claimed non-premium rewards.
+- [ ] Complete WORK-01–WORK-06 and GOAL-01–GOAL-03: persistent work-path routing, manual-work states, reusable Study Match/Shift Match lifecycle, pinned-goal management, compact categorized achievements, and locked/active/claimable/claimed presentation.
 - [ ] Give birth/new life, graduation, marriage, parenthood, retirement, death, and legacy focused original presentations with concise durable consequences.
 - [ ] Ensure all Phase 2–4 systems are reachable without searching a long mixed-purpose scroll.
 - [ ] Populate age-appropriate Main/Daily/Life tasks, events, rewards, and recoverable outcomes to the per-stage minimums in the content standards.
@@ -165,6 +182,7 @@ Assets/UI/
 
 ### M18 — Accessibility, reliability, services, and distribution
 
+- [ ] Add a blocking Unity `6000.3.19f1` CI gate for the complete EditMode suite, publish NUnit results as artifacts, and require it on `main`; the gate must include event-catalog/pending-event recovery, age-boundary, save-migration, UXML-binding, stylesheet-ownership, and supported-layout contract tests.
 - [ ] Add Settings for text scale, reduced motion, sound/music, captions/text alternatives, haptics, and destructive-action confirmation.
 - [ ] Complete VoiceOver labels, focus order, contrast, readable charts, dynamic text, fallback fonts, and pseudo-localization.
 - [ ] Validate every scroll container with touch drag, momentum, mouse/trackpad wheel, keyboard/focus scrolling, VoiceOver, reduced motion, nested containers, and 130% text; confirm position/overflow remains perceivable without obstructing content.
@@ -174,6 +192,7 @@ Assets/UI/
 - [ ] Install on supported physical iPhones; profile save/load latency, save size, memory, safe areas, touch, thermal behavior, and complete-life stability.
 - [ ] Freeze beta save semantics, then implement Authentication, Game Center, Cloud Save and conflict fixtures before account-enabled TestFlight.
 - [ ] Configure the enabled Unity LevelPlay `9.5.0` and Unity IAP `5.4.1` packages behind Stim-owned adapters: use environment-specific app/ad-unit IDs and store product IDs, keep development builds in test mode, and define consent/ATT, privacy, age treatment, purchase restore/validation, cancellation, and offline/failure behavior. Ads and purchases must remain optional and must never gate baseline progression or recovery.
+- [ ] Keep COM-01–COM-05 inactive until separate product/economy/legal approval. If approved, implement the documented Store, Stim+, rewarded-ad, season/event, and reward-claim branches including localized product loading, restore, cancellation, failure, entitlement, expiry, offline, duplicate-callback, cooldown/cap, and age-treatment states.
 - [ ] Prepare build/signing, entitlements, privacy manifest/disclosures, licenses, known issues, rollback build, tester instructions, and TestFlight checklist.
 - [ ] Resolve all critical/high defects and complete one clean physical-device birth-to-ending run.
 

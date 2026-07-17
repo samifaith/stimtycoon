@@ -41,7 +41,7 @@ The repository now contains:
 - visible Fitness and Professional skill paths with level/XP progress and downstream overtime and career-work benefits
 - a safe Advance Year control that reuses ordinary monthly transactions, autosaves every month, summarizes progress, and stops for events, decisions, failures, or endings
 - automated compact-width and 130% accessibility-text reflow rules with 44-point primary targets
-- 655 passing EditMode test cases covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, UI structure, and seeded long-run simulations
+- 672 passing EditMode test cases covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, UI structure, and seeded long-run simulations
 
 Not yet complete:
 
@@ -55,7 +55,7 @@ Not yet complete:
 
 ## Current Focus
 
-Milestones 1–12 and the M14 Bank/Education implementation are complete and the current 655-case EditMode suite is green. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing. M13 still has device/text-scale visual gates and M14 still needs its human comprehension check; M15 is the next implementation milestone.
+Milestones 1–12 and the M14 Bank/Education implementation are complete and the current 672-case EditMode suite is green. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing. M13 still has device/text-scale visual gates and M14 still needs its human comprehension check; M15 is the next implementation milestone.
 
 The path to completion is:
 
@@ -68,7 +68,15 @@ The path to completion is:
 
 Every milestone also carries shared gates for save migration and rollback, bounded history growth, deterministic economy balance, authored-content validation, localization keys, accessibility, and offline-safe service boundaries.
 
+### Frontend and wiring workflow
+
+UI production is intentionally split. The frontend owner controls UXML composition, USS, art, responsive presentation, and runtime visual approval. The wiring owner controls named-element binding, view states, callbacks, domain/application services, age and requirement rules, persistence, rollback, content registration, accessibility semantics, and automated tests. Bound UXML `name` values are the API between those tracks; visual containers and classes may evolve without moving game rules into UXML or USS.
+
+The full handoff format, clean-branch workflow, controller-extraction direction, and immediate W0–W3 wiring backlog are in [the frontend/wiring collaboration contract](docs/FRONTEND_WIRING_WORKFLOW.md).
+
 See [the active task list](docs/TASKS.md) for milestone acceptance criteria and shared completion gates.
+
+The supplied screen references have also been decomposed into a screen-by-screen inventory of components, behaviors, branch states, current implementation status, and stable task IDs. See [the reference UI gap analysis](docs/REFERENCE_UI_GAP_ANALYSIS.md). That analysis preserves future commerce concepts without approving Stim Coins, action-energy quotas, alternate five-tab navigation, subscriptions, ads, or season passes as current gameplay.
 
 The approved M13 UI direction is a compact, light mobile interface based on the supplied wireframes: an 88–96 point status header, dense list rows, and six icon-over-label navigation items. The imported kits are integrated through Stim-owned UXML/USS without editing vendor folders: Free Casual GUI supplies calibrated nine-sliced SVG controls, the palette, Baloo display type, and aspect-contained progress accents; Space Exploration GUI Kit supplies navigation, destination, section, and information identity; Jelly UI Pack supplies aspect-contained achievement and outcome marks while its palette informs claim, qualification, and input surfaces. `StimPanelSettings.asset` provides UI Toolkit's screen-size scaling equivalent to the Skyden uGUI demo. Production tests require `scale-to-fit` for unsliced art and complete approved slice values for responsive Skyden controls. Complex native-ratio panels, baked-copy panels, and fixed HUD decoration remain quarantined from responsive layouts. Independent destination scroll restoration, Bank tab restoration, and the review gallery support the migration. M13 still requires runtime width/text-scale visual approval and interaction-detail completion. The selected dependencies and release checks are recorded in [the UI asset manifest](Assets/UI/Art/ASSET_MANIFEST.md).
 
@@ -98,7 +106,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The repository has a clean **655 / 655 EditMode test-case** Unity Run All baseline recorded on July 16, 2026, including the seeded birth-to-ending harness and M13/M14 coverage. The full-life harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full verification run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
+The repository has a clean **672 / 672 EditMode test-case** Unity Run All baseline recorded on July 16, 2026, including the seeded birth-to-ending harness, pending-event recovery, resumable Advance Year, age/financial-agency guards, and M13/M14 coverage. The full-life harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full verification run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
 
 The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. Transactional autosaves now use compact rather than pretty-printed JSON to avoid unnecessary formatting allocation and whitespace. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
 
@@ -167,7 +175,7 @@ docs/                      # Architecture and gameplay specifications
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 655 / 655 EditMode test cases with a clean Unity Run All baseline recorded July 16, 2026
+- [x] 672 / 672 EditMode test cases with a clean Unity Run All baseline recorded July 16, 2026
 - [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests
@@ -185,6 +193,9 @@ Profile save/load on physical iPhones before changing formats. If device profili
 
 - [Master product definition and roadmap](<STIM_TYCOON_MASTER_README(2).md>)
 - [Active next task list](docs/TASKS.md)
+- [Reference UI feature/state gap analysis](docs/REFERENCE_UI_GAP_ANALYSIS.md)
+- [MVP interaction and navigation map](docs/UX_MAP.md)
+- [Frontend/wiring collaboration contract](docs/FRONTEND_WIRING_WORKFLOW.md)
 - [Current implementation audit](docs/IMPLEMENTATION_AUDIT_2026-07-13.md)
 - [Package install checklist](docs/PACKAGE_INSTALL_CHECKLIST.md)
 - [Phase 0 architecture checklist](docs/PHASE_0_ARCHITECTURE_CHECKLIST.md)
