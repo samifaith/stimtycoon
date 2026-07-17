@@ -26,6 +26,7 @@ Does not need to own:
 Owns:
 
 - querying named UXML elements and binding view state to them;
+- pairing every persistent callback registered during enable/bind with deterministic disable/unbind teardown; element-owned callbacks on generated rows must leave with their discarded subtree;
 - turning taps and input into typed commands against domain/application services;
 - eligibility, age omission, relevant lock reasons, previews, confirmations, timers, cooldowns, claims, and terminal states;
 - atomic persistence, rollback, reload reconciliation, idempotency, duplicate protection, and Life Feed output;

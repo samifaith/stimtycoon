@@ -225,6 +225,20 @@ namespace StimTycoon.Runtime
         private StimDestination activeDestination = StimDestination.Life;
         private readonly Dictionary<StimDestination, Vector2> destinationScrollOffsets =
             new Dictionary<StimDestination, Vector2>();
+        private readonly List<PersistentButtonBinding> persistentButtonBindings =
+            new List<PersistentButtonBinding>();
+
+        private readonly struct PersistentButtonBinding
+        {
+            public readonly Button button;
+            public readonly Action callback;
+
+            public PersistentButtonBinding(Button button, Action callback)
+            {
+                this.button = button;
+                this.callback = callback;
+            }
+        }
 
         private void OnEnable()
         {
@@ -486,33 +500,7 @@ namespace StimTycoon.Runtime
             ConfigureDestinationContent();
             NavigateTo(StimDestination.Life);
 
-            advanceMonth.clicked += AdvanceMonth;
-            advanceYear.clicked += AdvanceYear;
-            toggleOverview.clicked += ToggleOverview;
-            eventContinue.clicked += CloseEventSheet;
-            studySessionCancel.clicked += CloseStudySessionSheet;
-            studySessionConfirm.clicked += ConfirmSelectedStudySession;
-            focusStudy.clicked += () => PerformActivity(primaryFocusActivity);
-            focusWorkout.clicked += () => PerformActivity(secondaryFocusActivity);
-            navLife.clicked += ShowLifeDestination;
-            navEducation.clicked += ShowEducationDestination;
-            navCareer.clicked += ShowCareerDestination;
-            navMoney.clicked += ShowMoneyDestination;
-            navSocial.clicked += ShowSocialDestination;
-            navGoals.clicked += ShowGoalsDestination;
-            openLifeSummary.clicked += ShowLifeSummary;
-            closeLifeSummary.clicked += CloseLifeSummary;
-            addCash.clicked += ShowMoneyDestination;
-            manualWorkTap.clicked += PerformManualWorkTap;
-            savingsDepositMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Deposit);
-            savingsWithdrawMode.clicked += () => SetSavingsTransferType(StimSavingsTransferType.Withdrawal);
-            bankTabSavings.clicked += () => SetBankTab(StimBankTab.Savings);
-            bankTabCredit.clicked += () => SetBankTab(StimBankTab.Credit);
-            bankTabInvesting.clicked += () => SetBankTab(StimBankTab.Investing);
-            relationshipBack.clicked += ShowRelationshipList;
-            discoverCompatiblePerson.clicked += DiscoverCompatiblePerson;
-            endingNewLife.clicked += OpenNewLifeFromEnding;
-            ConfigureNewLifeControls();
+            BindPersistentCallbacks();
 
             if (!loadedExistingLife)
             {
@@ -610,7 +598,107 @@ namespace StimTycoon.Runtime
 
         private void OnDisable()
         {
+            UnbindPersistentCallbacks();
             rootElement?.UnregisterCallback<GeometryChangedEvent>(HandleRootGeometryChanged);
+            rootElement = null;
+        }
+
+        private void BindPersistentCallbacks()
+        {
+            // Defensive teardown keeps this method idempotent if lifecycle order changes.
+            UnbindPersistentCallbacks();
+            BindPersistentButton(advanceMonth, AdvanceMonth);
+            BindPersistentButton(advanceYear, AdvanceYear);
+            BindPersistentButton(toggleOverview, ToggleOverview);
+            BindPersistentButton(eventContinue, CloseEventSheet);
+            BindPersistentButton(studySessionCancel, CloseStudySessionSheet);
+            BindPersistentButton(studySessionConfirm, ConfirmSelectedStudySession);
+            BindPersistentButton(focusStudy, PerformPrimaryFocusActivity);
+            BindPersistentButton(focusWorkout, PerformSecondaryFocusActivity);
+            BindPersistentButton(navLife, ShowLifeDestination);
+            BindPersistentButton(navEducation, ShowEducationDestination);
+            BindPersistentButton(navCareer, ShowCareerDestination);
+            BindPersistentButton(navMoney, ShowMoneyDestination);
+            BindPersistentButton(navSocial, ShowSocialDestination);
+            BindPersistentButton(navGoals, ShowGoalsDestination);
+            BindPersistentButton(openLifeSummary, ShowLifeSummary);
+            BindPersistentButton(closeLifeSummary, CloseLifeSummary);
+            BindPersistentButton(addCash, ShowMoneyDestination);
+            BindPersistentButton(manualWorkTap, PerformManualWorkTap);
+            BindPersistentButton(savingsDepositMode, SelectSavingsDeposit);
+            BindPersistentButton(savingsWithdrawMode, SelectSavingsWithdrawal);
+            BindPersistentButton(bankTabSavings, SelectSavingsBankTab);
+            BindPersistentButton(bankTabCredit, SelectCreditBankTab);
+            BindPersistentButton(bankTabInvesting, SelectInvestingBankTab);
+            BindPersistentButton(relationshipBack, ShowRelationshipList);
+            BindPersistentButton(discoverCompatiblePerson, DiscoverCompatiblePerson);
+            BindPersistentButton(endingNewLife, OpenNewLifeFromEnding);
+            BindPersistentButton(openNewLife, OpenNewLifeSetup);
+            BindPersistentButton(cancelNewLife, HideNewLifeSetup);
+            BindPersistentButton(continueCurrentLife, HideNewLifeSetup);
+            BindPersistentButton(createNewLife, CreateLifeFromSetup);
+        }
+
+        private void BindPersistentButton(Button button, Action callback)
+        {
+            if (button == null || callback == null) return;
+            button.clicked -= callback;
+            button.clicked += callback;
+            persistentButtonBindings.Add(new PersistentButtonBinding(button, callback));
+        }
+
+        private void UnbindPersistentCallbacks()
+        {
+            foreach (var binding in persistentButtonBindings)
+            {
+                if (binding.button != null) binding.button.clicked -= binding.callback;
+            }
+            persistentButtonBindings.Clear();
+        }
+
+        private void PerformPrimaryFocusActivity()
+        {
+            PerformActivity(primaryFocusActivity);
+        }
+
+        private void PerformSecondaryFocusActivity()
+        {
+            PerformActivity(secondaryFocusActivity);
+        }
+
+        private void SelectSavingsDeposit()
+        {
+            SetSavingsTransferType(StimSavingsTransferType.Deposit);
+        }
+
+        private void SelectSavingsWithdrawal()
+        {
+            SetSavingsTransferType(StimSavingsTransferType.Withdrawal);
+        }
+
+        private void SelectSavingsBankTab()
+        {
+            SetBankTab(StimBankTab.Savings);
+        }
+
+        private void SelectCreditBankTab()
+        {
+            SetBankTab(StimBankTab.Credit);
+        }
+
+        private void SelectInvestingBankTab()
+        {
+            SetBankTab(StimBankTab.Investing);
+        }
+
+        private void OpenNewLifeSetup()
+        {
+            ShowNewLifeSetup(false, true);
+        }
+
+        private void HideNewLifeSetup()
+        {
+            newLifeSetup?.AddToClassList("hidden");
         }
 
         private void HandleRootGeometryChanged(GeometryChangedEvent evt)
@@ -2717,14 +2805,6 @@ namespace StimTycoon.Runtime
             RefreshFeed();
             RefreshSocial();
             ShowRelationshipDetail(selectedRelationshipId);
-        }
-
-        private void ConfigureNewLifeControls()
-        {
-            openNewLife.clicked += () => ShowNewLifeSetup(false, true);
-            cancelNewLife.clicked += () => newLifeSetup.AddToClassList("hidden");
-            continueCurrentLife.clicked += () => newLifeSetup.AddToClassList("hidden");
-            createNewLife.clicked += CreateLifeFromSetup;
         }
 
         private void ShowNewLifeSetup(bool canContinue, bool canCancel)

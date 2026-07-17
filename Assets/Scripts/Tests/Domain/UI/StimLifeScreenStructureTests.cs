@@ -347,6 +347,29 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void PlayableController_UnbindsEveryPersistentButtonCallbackWhenDisabled()
+        {
+            var source = File.ReadAllText(ControllerPath);
+            var bindBody = ExtractMethodBody(source, "private void BindPersistentCallbacks()");
+            var bindButtonBody = ExtractMethodBody(source, "private void BindPersistentButton(Button button, Action callback)");
+            var unbindBody = ExtractMethodBody(source, "private void UnbindPersistentCallbacks()");
+            var enableBody = ExtractMethodBody(source, "private void OnEnable()");
+            var disableBody = ExtractMethodBody(source, "private void OnDisable()");
+
+            Assert.That(CountOccurrences(bindBody, "BindPersistentButton("), Is.EqualTo(30));
+            StringAssert.Contains("UnbindPersistentCallbacks();", bindBody);
+            AssertTokensInOrder(bindButtonBody,
+                "button.clicked -= callback;",
+                "button.clicked += callback;",
+                "persistentButtonBindings.Add");
+            StringAssert.Contains("binding.button.clicked -= binding.callback;", unbindBody);
+            StringAssert.Contains("persistentButtonBindings.Clear();", unbindBody);
+            StringAssert.Contains("BindPersistentCallbacks();", enableBody);
+            StringAssert.Contains("UnbindPersistentCallbacks();", disableBody);
+            StringAssert.Contains("UnregisterCallback<GeometryChangedEvent>(HandleRootGeometryChanged)", disableBody);
+        }
+
+        [Test]
         public void GameplayActionHandlers_PresentPendingEventsBeforeMutation()
         {
             var source = File.ReadAllText(ControllerPath);
@@ -680,6 +703,24 @@ namespace StimTycoon.Tests.Domain.UI
             if (start < 0) return string.Empty;
             var end = stylesheet.IndexOf('}', start);
             return end < 0 ? stylesheet.Substring(start) : stylesheet.Substring(start, end - start + 1);
+        }
+
+        private static string ExtractMethodBody(string source, string signature)
+        {
+            var signatureIndex = source.IndexOf(signature, System.StringComparison.Ordinal);
+            Assert.That(signatureIndex, Is.GreaterThanOrEqualTo(0), $"Could not find {signature}.");
+            var openingBrace = source.IndexOf('{', signatureIndex);
+            Assert.That(openingBrace, Is.GreaterThanOrEqualTo(0));
+            var depth = 0;
+            for (var index = openingBrace; index < source.Length; index++)
+            {
+                if (source[index] == '{') depth++;
+                else if (source[index] == '}' && --depth == 0)
+                    return source.Substring(openingBrace + 1, index - openingBrace - 1);
+            }
+
+            Assert.Fail($"Method body for {signature} was not balanced.");
+            return string.Empty;
         }
 
         private static void AssertTokensInOrder(string source, params string[] tokens)
