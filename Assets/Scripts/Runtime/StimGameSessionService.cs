@@ -4707,12 +4707,12 @@ namespace StimTycoon.Runtime
 
         private static string FormatMoney(long minorUnits)
         {
-            return (minorUnits / 100m).ToString("C0");
+            return StimMoneyFormatter.Format(minorUnits);
         }
 
         private static string FormatPreciseMoney(long minorUnits)
         {
-            return (minorUnits / 100m).ToString("C2");
+            return StimMoneyFormatter.FormatPrecise(minorUnits);
         }
 
         private static string FormatSignedMoney(long minorUnits)

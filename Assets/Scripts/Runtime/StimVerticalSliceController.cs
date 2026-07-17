@@ -2878,12 +2878,12 @@ namespace StimTycoon.Runtime
 
         private static string FormatMoney(long minorUnits)
         {
-            return (minorUnits / 100m).ToString("C0");
+            return StimMoneyFormatter.Format(minorUnits);
         }
 
         private static string FormatPreciseMoney(long minorUnits)
         {
-            return (minorUnits / 100m).ToString("C2");
+            return StimMoneyFormatter.FormatPrecise(minorUnits);
         }
 
         private static string FormatCompactProgress(long value, long maximum)
@@ -2899,7 +2899,7 @@ namespace StimTycoon.Runtime
             if (absolute >= 1000000000m) return $"{sign}${absolute / 1000000000m:0.#}B";
             if (absolute >= 1000000m) return $"{sign}${absolute / 1000000m:0.#}M";
             if (absolute >= 10000m) return $"{sign}${absolute / 1000m:0.#}K";
-            return amount.ToString("C0");
+            return StimMoneyFormatter.Format(minorUnits);
         }
 
         private static string FormatCompactNumber(long value)
