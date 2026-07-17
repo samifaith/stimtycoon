@@ -41,7 +41,8 @@ The repository now contains:
 - visible Fitness and Professional skill paths with level/XP progress and downstream overtime and career-work benefits
 - a safe Advance Year control that reuses ordinary monthly transactions, autosaves every month, summarizes progress, and stops for events, decisions, failures, or endings
 - automated compact-width and 130% accessibility-text reflow rules with 44-point primary targets
-- 676 passing EditMode test cases covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, UI structure, UI Builder template integration, and seeded long-run simulations
+- 679 passing EditMode test cases covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, Yarn authoring contracts, UI structure, UI Builder template integration, and seeded long-run simulations, plus 3 passing production-scene PlayMode smoke tests
+- a repository-owned QA foundation with production-scene PlayMode smoke tests, Yarn authoring-contract checks, Unity Code Coverage, local headless runners, and PR/nightly GitHub Actions configuration
 
 Not yet complete:
 
@@ -55,7 +56,7 @@ Not yet complete:
 
 ## Current Focus
 
-Milestones 1–12 and the M14 Bank/Education implementation are complete and the current 676-case EditMode suite is green. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing. M13 still has device/text-scale visual gates and M14 still needs its human comprehension check; M15 is the next implementation milestone.
+Milestones 1–12 and the M14 Bank/Education implementation are complete and the current 679-case EditMode suite plus 3-case PlayMode smoke suite are green. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing. M13 still has device/text-scale visual gates and M14 still needs its human comprehension check; M15 is the next implementation milestone.
 
 The path to completion is:
 
@@ -108,9 +109,17 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The repository has a clean **676 / 676 EditMode test-case** Unity Run All baseline recorded on July 16, 2026, including the seeded birth-to-ending harness, pending-event recovery, resumable Advance Year, age/financial-agency guards, and M13/M14 coverage. The full-life harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full verification run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
+The repository has a clean **679 / 679 EditMode test-case** baseline and **3 / 3 PlayMode smoke** baseline recorded on July 17, 2026. EditMode includes the seeded birth-to-ending harness, pending-event recovery, resumable Advance Year, age/financial-agency guards, Yarn node/choice contracts, and M13/M14 coverage. PlayMode boots the production scene and verifies its UIDocument, Input System EventSystem, navigation/overlay contract, and controller lifecycle. The full-life harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full verification run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
 
 The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. Transactional autosaves now use compact rather than pretty-printed JSON to avoid unnecessary formatting allocation and whitespace. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
+
+The QA runner supports quick EditMode, production-scene PlayMode smoke, combined, full, and simulation-only runs:
+
+```sh
+scripts/qa/run-unity-tests.sh all
+```
+
+Results, logs, and coverage reports are written under ignored `Artifacts/` paths. GitHub Actions is configured in `.github/workflows/qa.yml`; Unity license secrets and required `main` checks must be activated in repository settings before CI becomes a blocking gate. See [the QA strategy](docs/QA_STRATEGY.md) for test tiers, evidence requirements, and rollout gates.
 
 ## Packages
 
@@ -144,13 +153,14 @@ Assets/
 │   ├── Runtime/           # Sessions, persistence, composition, UI binding
 │   ├── Editor/            # Setup checks and scene tooling
 │   ├── Vendors/           # Isolated vendor integrations
-│   └── Tests/             # EditMode test suite
+│   └── Tests/             # EditMode contracts/simulations and PlayMode smoke suite
 ├── DeviceSimulatorDevices/ # Stim-owned iPhone 17 simulation definitions
 └── UI/                    # Canonical UXML, USS, icons, and panel settings
 
 Packages/                  # Pinned Unity dependencies
 ProjectSettings/           # Unity project configuration
 docs/                      # Architecture and gameplay specifications
+scripts/qa/                # Headless local QA entry points
 ```
 
 ## Architecture Rules
@@ -177,7 +187,7 @@ docs/                      # Architecture and gameplay specifications
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 676 / 676 EditMode test cases with a clean Unity Run All baseline recorded July 16, 2026
+- [x] 679 / 679 EditMode and 3 / 3 PlayMode smoke test cases with clean headless baselines recorded July 17, 2026
 - [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests

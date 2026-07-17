@@ -12,7 +12,7 @@ This is the operational roadmap after the July 16, 2026 code/documentation audit
 - [x] M11 — three career industries and one complete operational business
 - [x] M12 — Main/Daily/Life goals, achievement rewards, transition records, orientation, and alpha content validation
 - [x] M14 implementation — persistent Bank/Education workspaces, timed study claims, progression standards, discipline consequences, and portfolio contribution/performance reporting
-- [x] Clean Unity Run All result: 676 / 676 EditMode test cases passed on July 16, 2026
+- [x] Clean headless result: 679 / 679 EditMode and 3 / 3 production-scene PlayMode smoke test cases passed on July 17, 2026
 - [ ] M13 exit verification — 320/390/430/768 widths, 100%/130% text, safe areas, touch targets, and live Play Mode visual approval
 
 ## Parallel ownership and immediate wiring track
@@ -20,7 +20,7 @@ This is the operational roadmap after the July 16, 2026 code/documentation audit
 The frontend owner controls UXML/USS/art/responsive presentation and runtime screenshots. The wiring owner controls stable named-element contracts, binders/view state, callbacks, domain/application services, age and requirement behavior, persistence/rollback, Yarn/catalog parity, accessibility semantics, and automated tests. Follow `FRONTEND_WIRING_WORKFLOW.md`; do not move gameplay rules into UXML/USS or rename bound elements without a coordinated contract change.
 
 - [x] W0 — use one canonical launch catalog in the playable controller; compact large header money values while preserving exact accessible values.
-- [ ] W0 — add a grouped binding manifest and extract the shared Shell binder before destination binders.
+- [ ] W0 — grouped binding manifest plus header/navigation/safe-area/time-control Shell binder are live; finish shell view-state rendering, global modal arbitration, and behavior-first lifecycle coverage before destination binders.
 - [ ] W1 — implement the shared visual state machine, modal arbitration, confirmation/error/retry behavior, and reload-safe multi-step workflows.
 - [ ] W2 — wire the 100 staged Childhood/School/Career/Health/Money Yarn nodes to validated C# event definitions and add Yarn-to-catalog event/choice parity tests before random selection.
 - [ ] W3 — wire destination slices in this order: Shell → Life → Home/Social → Work → Goals → reusable mini-games → Settings/services.
@@ -182,7 +182,11 @@ Assets/UI/
 
 ### M18 — Accessibility, reliability, services, and distribution
 
-- [ ] Add a blocking Unity `6000.3.19f1` CI gate for the complete EditMode suite, publish NUnit results as artifacts, and require it on `main`; the gate must include event-catalog/pending-event recovery, age-boundary, save-migration, UXML-binding, stylesheet-ownership, and supported-layout contract tests.
+- [x] Add repository CI configuration for Unity `6000.3.19f1` EditMode and PlayMode checks, coverage, NUnit/log artifacts, and scheduled deterministic simulation; add matching local headless entry points and the production scene to Build Settings.
+- [ ] Activate Unity license secrets, prove the GitHub jobs on the remote runner, and require `EditMode QA` plus `PlayMode Smoke QA` on `main`; retain event-catalog/pending-event recovery, age-boundary, save-migration, UXML-binding, stylesheet-ownership, and supported-layout contracts in the blocking suite.
+- [x] Establish the first production-scene PlayMode smoke layer for UIDocument/Panel Settings, the single Input System EventSystem, the six-destination/overlay binding contract, and controller disable/enable lifecycle.
+- [ ] Expand PlayMode smoke coverage into user-driven New Life, navigation, Advance Month/Year interruption and resume, event resolution, Bank transfer, timed Study claim, save/reload, and second-life callback-leak journeys.
+- [x] Add Yarn authoring-contract tests for unique node/event ownership, localization-safe resolved IDs, and exact `#choice:`/`stim_resolve_choice` parity.
 - [ ] Add Settings for text scale, reduced motion, sound/music, captions/text alternatives, haptics, and destructive-action confirmation.
 - [ ] Complete VoiceOver labels, focus order, contrast, readable charts, dynamic text, fallback fonts, and pseudo-localization.
 - [ ] Validate every scroll container with touch drag, momentum, mouse/trackpad wheel, keyboard/focus scrolling, VoiceOver, reduced motion, nested containers, and 130% text; confirm position/overflow remains perceivable without obstructing content.

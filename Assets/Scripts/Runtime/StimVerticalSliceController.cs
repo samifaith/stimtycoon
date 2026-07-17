@@ -218,6 +218,7 @@ namespace StimTycoon.Runtime
         private Label achievementsCount;
         private VisualElement achievementsList;
         private VisualElement rootElement;
+        private StimShellBinder shellBinder;
         private StimActivityType primaryFocusActivity;
         private StimActivityType secondaryFocusActivity;
         private StimEvent currentEvent;
@@ -263,11 +264,17 @@ namespace StimTycoon.Runtime
             var root = document.rootVisualElement;
             rootElement = root;
             ApplyAccessibilityTextLayout(root, accessibilityTextScale);
-            root.RegisterCallback<GeometryChangedEvent>(HandleRootGeometryChanged);
-            cashValue = root.Q<Label>("cash-value");
-            lifeSummary = root.Q<Label>("life-summary");
-            calendarSummary = root.Q<Label>("calendar-summary");
-            headerNetWorthValue = root.Q<Label>("header-net-worth-value");
+            if (!StimUiBindingManifest.TryValidate(root, out var bindingError))
+            {
+                Debug.LogError($"Vertical slice binding manifest failed. {bindingError}", this);
+                rootElement = null;
+                return;
+            }
+            shellBinder = new StimShellBinder(root, HandleRootGeometryChanged);
+            cashValue = shellBinder.CashValue;
+            lifeSummary = shellBinder.LifeSummary;
+            calendarSummary = shellBinder.CalendarSummary;
+            headerNetWorthValue = shellBinder.HeaderNetWorthValue;
             eventCategory = root.Q<Label>("event-category");
             eventTitle = root.Q<Label>("event-title");
             eventBody = root.Q<Label>("event-body");
@@ -281,15 +288,15 @@ namespace StimTycoon.Runtime
             smartsValue = root.Q<Label>("smarts-value");
             looksValue = root.Q<Label>("looks-value");
             luckValue = root.Q<Label>("luck-value");
-            careerProgressValue = root.Q<Label>("career-progress-value");
+            careerProgressValue = shellBinder.CareerProgressValue;
             monthlyPaycheckValue = root.Q<Label>("monthly-paycheck-value");
             annualSalaryValue = root.Q<Label>("annual-salary-value");
             netWorthValue = root.Q<Label>("net-worth-value");
-            avatarGlyph = root.Q<Label>("avatar-glyph");
+            avatarGlyph = shellBinder.AvatarGlyph;
             choices = root.Q<VisualElement>("choices");
             resultCard = root.Q<VisualElement>("result-card");
             playerOverview = root.Q<VisualElement>("player-overview");
-            careerProgressFill = root.Q<VisualElement>("career-progress-fill");
+            careerProgressFill = shellBinder.CareerProgressFill;
             eventSheet = root.Q<VisualElement>("event-sheet");
             studySessionSheet = root.Q<VisualElement>("study-session-sheet");
             studySessionTitle = root.Q<Label>("study-session-title");
@@ -321,23 +328,23 @@ namespace StimTycoon.Runtime
             homeProgress = root.Q<Label>("home-progress");
             homeActions = root.Q<VisualElement>("home-actions");
             homeUpgradeFeedback = root.Q<Label>("home-upgrade-feedback");
-            lifeScroll = root.Q<ScrollView>("life-scroll");
-            lifeSummaryView = root.Q<ScrollView>("life-summary-view");
-            socialView = root.Q<ScrollView>("social-view");
-            timeDock = root.Q<VisualElement>("time-dock");
-            openLifeSummary = root.Q<Button>("open-life-summary");
+            lifeScroll = shellBinder.LifeScroll;
+            lifeSummaryView = shellBinder.LifeSummaryView;
+            socialView = shellBinder.SocialView;
+            timeDock = shellBinder.TimeDock;
+            openLifeSummary = shellBinder.OpenLifeSummary;
             closeLifeSummary = root.Q<Button>("close-life-summary");
-            addCash = root.Q<Button>("add-cash");
-            navLife = root.Q<Button>("nav-life");
-            navEducation = root.Q<Button>("nav-education");
-            navCareer = root.Q<Button>("nav-career");
-            navMoney = root.Q<Button>("nav-money");
-            navSocial = root.Q<Button>("nav-social");
-            navGoals = root.Q<Button>("nav-goals");
-            moneyView = root.Q<ScrollView>("money-view");
-            educationView = root.Q<ScrollView>("education-view");
-            careerView = root.Q<ScrollView>("career-view");
-            goalsView = root.Q<ScrollView>("goals-view");
+            addCash = shellBinder.AddCash;
+            navLife = shellBinder.NavLife;
+            navEducation = shellBinder.NavEducation;
+            navCareer = shellBinder.NavCareer;
+            navMoney = shellBinder.NavMoney;
+            navSocial = shellBinder.NavSocial;
+            navGoals = shellBinder.NavGoals;
+            moneyView = shellBinder.MoneyView;
+            educationView = shellBinder.EducationView;
+            careerView = shellBinder.CareerView;
+            goalsView = shellBinder.GoalsView;
             summaryStageDetail = root.Q<Label>("summary-stage-detail");
             summaryCalendarDetail = root.Q<Label>("summary-calendar-detail");
             summaryCareerDetail = root.Q<Label>("summary-career-detail");
@@ -443,8 +450,8 @@ namespace StimTycoon.Runtime
             gameSession = new StimGameSessionService(catalog, new NativeStimSaveRepository());
             var loadedExistingLife = gameSession.TryLoadLatest(out _);
 
-            advanceMonth = root.Q<Button>("advance-month");
-            advanceYear = root.Q<Button>("advance-year");
+            advanceMonth = shellBinder.AdvanceMonth;
+            advanceYear = shellBinder.AdvanceYear;
             toggleOverview = root.Q<Button>("toggle-overview");
             eventContinue = root.Q<Button>("event-continue");
             if (cashValue == null || lifeSummary == null || eventCategory == null || eventTitle == null ||
@@ -606,7 +613,8 @@ namespace StimTycoon.Runtime
         private void OnDisable()
         {
             UnbindPersistentCallbacks();
-            rootElement?.UnregisterCallback<GeometryChangedEvent>(HandleRootGeometryChanged);
+            shellBinder?.Dispose();
+            shellBinder = null;
             rootElement = null;
         }
 
@@ -614,23 +622,23 @@ namespace StimTycoon.Runtime
         {
             // Defensive teardown keeps this method idempotent if lifecycle order changes.
             UnbindPersistentCallbacks();
-            BindPersistentButton(advanceMonth, AdvanceMonth);
-            BindPersistentButton(advanceYear, AdvanceYear);
+            shellBinder?.BindActions(
+                AdvanceMonth,
+                AdvanceYear,
+                ShowLifeSummary,
+                ShowMoneyDestination,
+                ShowLifeDestination,
+                ShowEducationDestination,
+                ShowCareerDestination,
+                ShowSocialDestination,
+                ShowGoalsDestination);
             BindPersistentButton(toggleOverview, ToggleOverview);
             BindPersistentButton(eventContinue, CloseEventSheet);
             BindPersistentButton(studySessionCancel, CloseStudySessionSheet);
             BindPersistentButton(studySessionConfirm, ConfirmSelectedStudySession);
             BindPersistentButton(focusStudy, PerformPrimaryFocusActivity);
             BindPersistentButton(focusWorkout, PerformSecondaryFocusActivity);
-            BindPersistentButton(navLife, ShowLifeDestination);
-            BindPersistentButton(navEducation, ShowEducationDestination);
-            BindPersistentButton(navCareer, ShowCareerDestination);
-            BindPersistentButton(navMoney, ShowMoneyDestination);
-            BindPersistentButton(navSocial, ShowSocialDestination);
-            BindPersistentButton(navGoals, ShowGoalsDestination);
-            BindPersistentButton(openLifeSummary, ShowLifeSummary);
             BindPersistentButton(closeLifeSummary, CloseLifeSummary);
-            BindPersistentButton(addCash, ShowMoneyDestination);
             BindPersistentButton(manualWorkTap, PerformManualWorkTap);
             BindPersistentButton(savingsDepositMode, SelectSavingsDeposit);
             BindPersistentButton(savingsWithdrawMode, SelectSavingsWithdrawal);

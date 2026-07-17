@@ -134,9 +134,10 @@ validation → commit/rollback → Life Feed
 - [x] Treat bound UXML names as a protected API with structural tests.
 - [x] Register the playable event catalog from `CreateLaunchAlphaCatalog()` rather than a second controller-owned list.
 - [x] Keep exact header money values in accessible tooltips while compacting large visible values.
-- [ ] Create an explicit binding manifest grouped by Shell/Life/Study/Work/Bank/Social/Goals/modal ownership.
+- [x] Create an explicit binding manifest grouped by Shell/Life/Study/Work/Bank/Social/Goals/modal ownership.
 - [ ] Replace source-text regex checks with behavior tests where practical; retain structural tests for UXML/USS ownership.
-- [ ] Extract the Shell binder first, because the header, navigation, safe areas, time controls, and global modals are shared by every frontend iteration.
+- [x] Extract shared header, navigation, safe-area geometry, and time-control callback ownership into the Shell binder.
+- [ ] Complete the Shell binder by moving global modal arbitration and shell view-state rendering out of the vertical-slice controller.
 
 ### W1 — Shared UI state machine
 

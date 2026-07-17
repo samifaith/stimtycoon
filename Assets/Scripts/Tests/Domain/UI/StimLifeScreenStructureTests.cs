@@ -28,6 +28,7 @@ namespace StimTycoon.Tests.Domain.UI
         private const string DestinationsPath = "Assets/UI/Styles/Destinations.uss";
         private const string FrontendCanvasPath = "Assets/UI/Styles/FrontendCanvas.uss";
         private const string ControllerPath = "Assets/Scripts/Runtime/StimVerticalSliceController.cs";
+        private const string ShellBinderPath = "Assets/Scripts/Runtime/StimShellBinder.cs";
 
         [Test]
         public void PlayableRoot_UsesOnlyCanonicalStylesheetEntryPoints()
@@ -370,6 +371,39 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void BindingManifest_GroupsEveryRequiredNameWithExclusiveOwnership()
+        {
+            var root = Clone(PlayableLifePath);
+            var owners = new Dictionary<string, StimUiBindingOwner>();
+
+            Assert.That(StimUiBindingManifest.Bindings.Keys, Is.EquivalentTo(new[]
+            {
+                StimUiBindingOwner.Shell,
+                StimUiBindingOwner.Life,
+                StimUiBindingOwner.Study,
+                StimUiBindingOwner.Work,
+                StimUiBindingOwner.Bank,
+                StimUiBindingOwner.Social,
+                StimUiBindingOwner.Goals,
+                StimUiBindingOwner.Modal
+            }));
+            foreach (var group in StimUiBindingManifest.Bindings)
+            {
+                Assert.That(group.Value, Is.Not.Empty, $"{group.Key} must own at least one binding.");
+                foreach (var name in group.Value)
+                {
+                    Assert.That(owners.ContainsKey(name), Is.False,
+                        $"'{name}' is owned by both {owners.GetValueOrDefault(name)} and {group.Key}.");
+                    owners[name] = group.Key;
+                    Assert.That(root.Q(name), Is.Not.Null, $"{group.Key}/{name} is missing from playable UXML.");
+                }
+            }
+
+            Assert.That(StimUiBindingManifest.TryValidate(root, out var error), Is.True, error);
+            Assert.That(owners.Count, Is.GreaterThan(140));
+        }
+
+        [Test]
         public void PlayableLifeScreen_LeadsWithFeedAndKeepsAgeProgressionInSummary()
         {
             var root = Clone(PlayableLifePath);
@@ -450,14 +484,16 @@ namespace StimTycoon.Tests.Domain.UI
         public void PlayableController_UnbindsEveryPersistentButtonCallbackWhenDisabled()
         {
             var source = File.ReadAllText(ControllerPath);
+            var shellBinderSource = File.ReadAllText(ShellBinderPath);
             var bindBody = ExtractMethodBody(source, "private void BindPersistentCallbacks()");
             var bindButtonBody = ExtractMethodBody(source, "private void BindPersistentButton(Button button, Action callback)");
             var unbindBody = ExtractMethodBody(source, "private void UnbindPersistentCallbacks()");
             var enableBody = ExtractMethodBody(source, "private void OnEnable()");
             var disableBody = ExtractMethodBody(source, "private void OnDisable()");
 
-            Assert.That(CountOccurrences(bindBody, "BindPersistentButton("), Is.EqualTo(30));
+            Assert.That(CountOccurrences(bindBody, "BindPersistentButton("), Is.EqualTo(20));
             StringAssert.Contains("UnbindPersistentCallbacks();", bindBody);
+            StringAssert.Contains("shellBinder?.BindActions(", bindBody);
             AssertTokensInOrder(bindButtonBody,
                 "button.clicked -= callback;",
                 "button.clicked += callback;",
@@ -466,7 +502,11 @@ namespace StimTycoon.Tests.Domain.UI
             StringAssert.Contains("persistentButtonBindings.Clear();", unbindBody);
             StringAssert.Contains("BindPersistentCallbacks();", enableBody);
             StringAssert.Contains("UnbindPersistentCallbacks();", disableBody);
-            StringAssert.Contains("UnregisterCallback<GeometryChangedEvent>(HandleRootGeometryChanged)", disableBody);
+            StringAssert.Contains("shellBinder?.Dispose();", disableBody);
+            StringAssert.Contains("button.clicked -= callback;", shellBinderSource);
+            StringAssert.Contains("button.clicked += callback;", shellBinderSource);
+            StringAssert.Contains("binding.Button.clicked -= binding.Callback;", shellBinderSource);
+            StringAssert.Contains("root.UnregisterCallback(geometryChanged);", shellBinderSource);
         }
 
         [Test]
@@ -677,8 +717,10 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(navigation.Q<Button>("nav-social"), Is.Not.Null);
             Assert.That(navigation.Q<Button>("nav-goals"), Is.Not.Null);
             var controllerSource = File.ReadAllText(ControllerPath);
-            StringAssert.Contains("BindPersistentButton(openLifeSummary, ShowLifeSummary);", controllerSource);
-            StringAssert.Contains("BindPersistentButton(addCash, ShowMoneyDestination);", controllerSource);
+            StringAssert.Contains("shellBinder?.BindActions(", controllerSource);
+            var shellBinderSource = File.ReadAllText(ShellBinderPath);
+            StringAssert.Contains("Bind(OpenLifeSummary, openLifeSummary);", shellBinderSource);
+            StringAssert.Contains("Bind(AddCash, openMoney);", shellBinderSource);
             foreach (var button in navigation.Query<Button>().ToList())
             {
                 Assert.That(button.ClassListContains("stim-pack-interaction-pop"), Is.True,

@@ -1,0 +1,21 @@
+{
+  "name": "StimTycoon.PlayModeTests",
+  "rootNamespace": "StimTycoon.Tests.PlayMode",
+  "references": [
+    "StimTycoon.Domain",
+    "StimTycoon.Runtime",
+    "Unity.InputSystem"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
