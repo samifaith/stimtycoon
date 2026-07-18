@@ -54,6 +54,17 @@ run_playmode() {
     -logFile "${ARTIFACTS_DIR}/playmode-smoke.log"
 }
 
+run_visual_capture() {
+  "${UNITY_EDITOR}" \
+    -batchmode \
+    -projectPath "${ROOT_DIR}" \
+    -runTests \
+    -testPlatform PlayMode \
+    -testCategory VisualCapture \
+    -testResults "${ARTIFACTS_DIR}/m13-visual.xml" \
+    -logFile "${ARTIFACTS_DIR}/m13-visual.log"
+}
+
 case "${1:-quick}" in
   quick)
     run_editmode '!SlowSimulation' editmode-quick
@@ -72,8 +83,11 @@ case "${1:-quick}" in
   simulation)
     run_editmode SlowSimulation editmode-simulation
     ;;
+  visual)
+    run_visual_capture
+    ;;
   *)
-    print -u2 "Usage: $0 [quick|playmode|all|full|simulation]"
+    print -u2 "Usage: $0 [quick|playmode|all|full|simulation|visual]"
     exit 2
     ;;
 esac
