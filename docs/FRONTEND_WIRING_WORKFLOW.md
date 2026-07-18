@@ -4,6 +4,8 @@ This is the working agreement for parallel UI production. The visual frontend ca
 
 ## Ownership
 
+> **Active handoff note:** the checked-in UI is intentionally a stripped structural shell. The frontend/UI owner will load and place sprites directly in Unity UI Builder. Wiring and automation work must not add, replace, or restyle production sprites or independently perform a final theme pass unless the frontend owner explicitly requests it. Preserve stable named elements and behavioral seams so UI Builder changes can land without controller churn.
+
 ### Frontend/UI owner
 
 Owns:

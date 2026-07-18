@@ -21,6 +21,8 @@ This is the operational roadmap after the July 17, 2026 code/documentation audit
 
 The frontend owner controls UXML/USS/art/responsive presentation and runtime screenshots. The wiring owner controls stable named-element contracts, binders/view state, callbacks, domain/application services, age and requirement behavior, persistence/rollback, Yarn/catalog parity, accessibility semantics, and automated tests. Follow `FRONTEND_WIRING_WORKFLOW.md`; do not move gameplay rules into UXML/USS or rename bound elements without a coordinated contract change.
 
+> **Current UI handoff:** keep the repository UI as a stripped structural shell. Do not add, replace, or restyle production sprites as wiring/automation work. The frontend owner will load and place sprites directly in Unity UI Builder; code-side work should preserve named bindings, layout seams, behavior, accessibility, and testability unless a UI change is explicitly requested.
+
 - [x] W0 — use one canonical launch catalog in the playable controller; compact large header money values while preserving exact accessible values.
 - [x] W0 — grouped binding manifest plus header/navigation/safe-area/time-control Shell binder are live; destination rendering and global modal arbitration now sit behind the binder, shell actions are blocked behind modals, and behavior coverage protects the lifecycle seam.
 - [x] W1 — implement the shared visual state machine, modal arbitration, confirmation/error/retry behavior, and reload-safe multi-step workflows.
@@ -39,7 +41,7 @@ The frontend owner controls UXML/USS/art/responsive presentation and runtime scr
 
 > **Approved component direction:** the supplied colored mobile references are the visual authority and Stim-owned UI Toolkit is the responsive component system. Free Casual GUI contributes calibrated nine-sliced SVG controls plus palette/type/progress accents, Space Exploration GUI Kit contributes pictograms, and Jelly UI Pack contributes reward marks. Vendor folders stay untouched. See `Assets/UI/Art/ASSET_MANIFEST.md`.
 
-**Required implementation workflow:** GUI work is source-controlled UI Toolkit work and should be completed primarily in VS Code. UXML owns layout, USS owns presentation and vendor-sprite references, and C# owns binding, data, and behavior. Unity UI Builder is an optional preview/layout-adjustment tool for the same UXML/USS assets, not a separate source of truth.
+**Required implementation workflow:** UXML owns layout, USS owns presentation and sprite references, and C# owns binding, data, and behavior. For the current handoff, the repository provides a stripped shell and the frontend owner loads and places sprites in Unity UI Builder. Wiring work must not perform that sprite or final-presentation pass unless the frontend owner explicitly requests it; UI Builder changes still save back to the source-controlled UXML/USS assets.
 
 #### Immediate execution checklist
 
