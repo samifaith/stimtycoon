@@ -99,6 +99,14 @@ The production-scene PlayMode smoke suite now exercises that eight-case width/te
 
 Pixel comparisons begin as review artifacts. They become blocking only after render variance is measured and a stable tolerance is established.
 
+Run the retained M13 review capture locally with a graphics device:
+
+```sh
+scripts/qa/run-unity-tests.sh visual
+```
+
+The `VisualCapture` PlayMode category renders Life, Study, Work, Bank, Social, and Goals at 320×693, 390×844, 430×932, and 768×1024 points at both 100% and 130% text. It writes 48 ignored PNG files plus a review checklist to `Artifacts/M13Visual/`. This evidence suite is intentionally separate from blocking `PlayModeSmoke` CI: screenshots require human approval and the capture run must not use `-nographics`.
+
 ## Content quality contract
 
 Every Yarn option must carry a stable `#choice:` tag and resolve exactly once to the same choice ID. Each Yarn node resolves one localization-safe event ID, and node/event ownership is unique.
