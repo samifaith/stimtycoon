@@ -87,6 +87,125 @@ namespace StimTycoon.Tests.PlayMode
             Assert.That(document.rootVisualElement.Q<Button>("event-continue"), Is.Not.Null);
         }
 
+        [UnityTest]
+        public IEnumerator CommercePresentationSlots_RemainDisabledAndOutsideFocusOrder()
+        {
+            var document = Object.FindFirstObjectByType<UIDocument>();
+            Assert.That(document, Is.Not.Null);
+            var root = document.rootVisualElement;
+            var slotIds = new[]
+            {
+                "com.header.money_entry",
+                "com.study.premium_module",
+                "com.work.rewarded_module",
+                "com.bank.premium_tools",
+                "com.bank.rewarded_module",
+                "com.social.premium_module",
+                "com.goals.sponsored_challenge",
+                "com.goals.season_preview",
+                "com.goals.bonus_game_preview"
+            };
+
+            foreach (var slotId in slotIds)
+            {
+                var slot = root.Q<VisualElement>(slotId);
+                Assert.That(slot, Is.Not.Null, $"Production UI is missing {slotId}.");
+                Assert.That(slot.enabledSelf, Is.False, $"{slotId} must remain unavailable.");
+                Assert.That(slot.focusable, Is.False, $"{slotId} must not enter focus order.");
+                Assert.That(slot.ClassListContains("st-commerce-unavailable"), Is.True);
+            }
+
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ProductionScene_ReflowsAcrossSupportedWidthAndTextScaleMatrix()
+        {
+            var document = Object.FindFirstObjectByType<UIDocument>();
+            var controller = Object.FindFirstObjectByType<StimVerticalSliceController>();
+            Assert.That(document, Is.Not.Null);
+            Assert.That(controller, Is.Not.Null);
+            var root = document.rootVisualElement;
+            var screen = root.Q<VisualElement>("screen");
+            Assert.That(screen, Is.Not.Null);
+            var widths = new[] { 320f, 390f, 430f, 768f };
+            var textScales = new[] { 1f, 1.3f };
+            var persistentTargets = new[]
+            {
+                "nav-life", "nav-education", "nav-career",
+                "nav-money", "nav-social", "nav-goals"
+            };
+
+            foreach (var width in widths)
+            foreach (var textScale in textScales)
+            {
+                root.style.width = width;
+                StimVerticalSliceController.ApplyResponsiveLayout(root, width);
+                controller.SetAccessibilityTextScale(textScale);
+                yield return null;
+                yield return null;
+
+                Assert.That(root.ClassListContains("st-compact-width"), Is.EqualTo(width <= 360f),
+                    $"Compact-width state was wrong at {width} points / {textScale:P0} text.");
+                Assert.That(root.ClassListContains("st-large-text"), Is.EqualTo(textScale >= 1.3f),
+                    $"Large-text state was wrong at {width} points / {textScale:P0} text.");
+
+                var safeBounds = screen.worldBound;
+                Assert.That(safeBounds.width, Is.GreaterThan(0f));
+                foreach (var targetName in persistentTargets)
+                {
+                    var target = root.Q<Button>(targetName);
+                    Assert.That(target, Is.Not.Null);
+                    AssertTargetWithin(target, safeBounds, width, textScale);
+                }
+
+                AssertTargetWithin(root.Q<Button>("advance-month"), safeBounds, width, textScale);
+                AssertTargetWithin(root.Q<Button>("advance-year"), safeBounds, width, textScale);
+
+                var studySheet = root.Q<VisualElement>("study-session-sheet");
+                var studyWasHidden = studySheet.ClassListContains("hidden");
+                studySheet.RemoveFromClassList("hidden");
+                yield return null;
+                AssertTargetWithin(root.Q<Button>("study-session-cancel"), safeBounds, width, textScale);
+                AssertTargetWithin(root.Q<Button>("study-session-confirm"), safeBounds, width, textScale);
+                studySheet.EnableInClassList("hidden", studyWasHidden);
+
+                var eventSheet = root.Q<VisualElement>("event-sheet");
+                var eventWasHidden = eventSheet.ClassListContains("hidden");
+                var eventContinue = root.Q<Button>("event-continue");
+                var continueWasHidden = eventContinue.ClassListContains("hidden");
+                eventSheet.RemoveFromClassList("hidden");
+                eventContinue.RemoveFromClassList("hidden");
+                yield return null;
+                AssertTargetWithin(eventContinue, safeBounds, width, textScale);
+                eventContinue.EnableInClassList("hidden", continueWasHidden);
+                eventSheet.EnableInClassList("hidden", eventWasHidden);
+
+                var newLifeSetup = root.Q<VisualElement>("new-life-setup");
+                var newLifeWasHidden = newLifeSetup.ClassListContains("hidden");
+                newLifeSetup.RemoveFromClassList("hidden");
+                yield return null;
+                AssertTargetWithin(root.Q<Button>("cancel-new-life"), safeBounds, width, textScale);
+                AssertTargetWithin(root.Q<Button>("create-new-life"), safeBounds, width, textScale);
+                newLifeSetup.EnableInClassList("hidden", newLifeWasHidden);
+            }
+
+            root.style.width = StyleKeyword.Auto;
+            controller.SetAccessibilityTextScale(1f);
+        }
+
+        private static void AssertTargetWithin(
+            Button target, Rect safeBounds, float width, float textScale)
+        {
+            Assert.That(target, Is.Not.Null);
+            Assert.That(target.worldBound.height, Is.GreaterThanOrEqualTo(44f),
+                $"{target.name} fell below 44 points at {width} / {textScale:P0} text.");
+            Assert.That(target.worldBound.xMin, Is.GreaterThanOrEqualTo(safeBounds.xMin - 0.5f),
+                $"{target.name} escaped the left safe bound at {width} / {textScale:P0} text.");
+            Assert.That(target.worldBound.xMax, Is.LessThanOrEqualTo(safeBounds.xMax + 0.5f),
+                $"{target.name} escaped the right safe bound at {width} / {textScale:P0} text.");
+        }
+
         private static void AssertNamed<TElement>(VisualElement root, string name)
             where TElement : VisualElement
         {

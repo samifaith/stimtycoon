@@ -20,6 +20,7 @@
                 <ui:Label name="header-net-worth-value" text="Net $2,540,812" class="st-header-net-worth" />
             </ui:VisualElement>
             <ui:Button name="add-cash" text="+" class="st-balance-add st-brand-skyden-add stim-pack-secondary-button stim-pack-interaction-pop" tooltip="Money options" />
+            <ui:Button name="com.header.money_entry" text="◇" enabled="false" focusable="false" class="st-commerce-header-entry st-commerce-unavailable" tooltip="Legacy Gems store unavailable" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

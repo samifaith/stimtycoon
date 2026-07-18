@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using StimTycoon.Saves;
 using UnityEngine;
@@ -164,6 +165,25 @@ namespace StimTycoon.Tests.Domain.Save
 
             Assert.IsFalse(migrated);
             Assert.That(error, Contains.Substring("No migration path"));
+        }
+
+        [Test]
+        public void Migrate_AddsReloadSafeUiWorkflowStateToEstablishedSaves()
+        {
+            var legacy = CreateValidSave();
+            legacy.state.uiWorkflow = null;
+            var legacyJson = Regex.Replace(
+                JsonUtility.ToJson(legacy),
+                "\\\"uiWorkflow\\\":\\{[^{}]*\\},?",
+                string.Empty);
+            Assert.That(legacyJson, Does.Not.Contain("\"uiWorkflow\""),
+                "The fixture must represent a save written before UI workflow state existed.");
+
+            Assert.IsTrue(StimSaveMigrator.TryMigrate(
+                legacyJson, out var migrated, out var report, out var error), error);
+            Assert.That(migrated.state.uiWorkflow, Is.Not.Null);
+            Assert.That(migrated.state.uiWorkflow.queuedYearMonthsRemaining, Is.Zero);
+            Assert.That(report.changes, Has.Some.Contains("state.uiWorkflow created"));
         }
 
         private static StimSaveEnvelope CreateValidSave()

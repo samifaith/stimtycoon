@@ -1,9 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine.UIElements;
+
+[assembly: InternalsVisibleTo("StimTycoon.Tests")]
+[assembly: InternalsVisibleTo("StimTycoon.PlayModeTests")]
 
 namespace StimTycoon.Runtime
 {
+    internal enum StimShellModal
+    {
+        None,
+        Event,
+        StudySession,
+        NewLife,
+        FinalLifeSummary
+    }
+
     internal sealed class StimShellBinder : IDisposable
     {
         private readonly VisualElement root;
@@ -53,6 +66,10 @@ namespace StimTycoon.Runtime
             NavMoney = root.Q<Button>("nav-money");
             NavSocial = root.Q<Button>("nav-social");
             NavGoals = root.Q<Button>("nav-goals");
+            EventSheet = root.Q<VisualElement>("event-sheet");
+            StudySessionSheet = root.Q<VisualElement>("study-session-sheet");
+            NewLifeSetup = root.Q<VisualElement>("new-life-setup");
+            FinalLifeSummary = root.Q<VisualElement>("final-life-summary");
 
             if (geometryChanged != null) root.RegisterCallback(geometryChanged);
         }
@@ -83,6 +100,93 @@ namespace StimTycoon.Runtime
         public Button NavMoney { get; }
         public Button NavSocial { get; }
         public Button NavGoals { get; }
+        public VisualElement EventSheet { get; }
+        public VisualElement StudySessionSheet { get; }
+        public VisualElement NewLifeSetup { get; }
+        public VisualElement FinalLifeSummary { get; }
+        public StimShellModal ActiveModal { get; private set; }
+        public StimDestination ActiveDestination { get; private set; } = StimDestination.Life;
+        public StimDestination ModalReturnDestination { get; private set; } = StimDestination.Life;
+        public string ModalReturnTabId { get; private set; } = string.Empty;
+        public string ModalReturnEntityId { get; private set; } = string.Empty;
+
+        public bool HasBlockingModal => ActiveModal != StimShellModal.None;
+
+        public bool TryRunAction(Action action, StimShellModal owningModal = StimShellModal.None)
+        {
+            if (action == null) return false;
+            if (HasBlockingModal && ActiveModal != owningModal) return false;
+            action();
+            return true;
+        }
+
+        public void CaptureModalReturnContext(string tabId, string entityId)
+        {
+            if (HasBlockingModal) return;
+            ModalReturnDestination = ActiveDestination;
+            ModalReturnTabId = tabId ?? string.Empty;
+            ModalReturnEntityId = entityId ?? string.Empty;
+        }
+
+        public void OpenModal(StimShellModal modal)
+        {
+            if (modal == StimShellModal.None)
+            {
+                CloseAllModals();
+                return;
+            }
+
+            if (!HasBlockingModal) ModalReturnDestination = ActiveDestination;
+            foreach (var entry in GetModals())
+                entry.Element?.EnableInClassList("hidden", entry.Modal != modal);
+            ActiveModal = modal;
+        }
+
+        public void CloseModal(StimShellModal modal)
+        {
+            GetModal(modal)?.AddToClassList("hidden");
+            if (ActiveModal == modal) ActiveModal = StimShellModal.None;
+        }
+
+        public void CloseAllModals()
+        {
+            foreach (var entry in GetModals()) entry.Element?.AddToClassList("hidden");
+            ActiveModal = StimShellModal.None;
+        }
+
+        public ScrollView RestoreModalReturnDestination()
+        {
+            CloseAllModals();
+            return RenderDestination(ModalReturnDestination);
+        }
+
+        public ScrollView RenderDestination(StimDestination destination)
+        {
+            ActiveDestination = destination;
+            var selectedView = GetDestinationView(destination);
+            var selectedButton = GetDestinationButton(destination);
+
+            foreach (var view in GetDestinationViews(includeLifeSummary: true))
+                view?.EnableInClassList("hidden", view != selectedView);
+            foreach (var button in GetDestinationButtons())
+                button?.EnableInClassList("active", button == selectedButton);
+
+            TimeDock?.EnableInClassList("hidden", destination != StimDestination.Life);
+            return selectedView;
+        }
+
+        public void RenderLifeSummary()
+        {
+            foreach (var view in GetDestinationViews(includeLifeSummary: false))
+                view?.AddToClassList("hidden");
+            LifeSummaryView?.RemoveFromClassList("hidden");
+            TimeDock?.AddToClassList("hidden");
+        }
+
+        public bool TryRunShellAction(Action callback)
+        {
+            return TryRunAction(callback);
+        }
 
         public void BindActions(
             Action advanceMonth,
@@ -96,16 +200,16 @@ namespace StimTycoon.Runtime
             Action showGoals)
         {
             UnbindActions();
-            Bind(AdvanceMonth, advanceMonth);
-            Bind(AdvanceYear, advanceYear);
-            Bind(OpenLifeSummary, openLifeSummary);
-            Bind(AddCash, openMoney);
-            Bind(NavLife, showLife);
-            Bind(NavEducation, showEducation);
-            Bind(NavCareer, showCareer);
-            Bind(NavMoney, openMoney);
-            Bind(NavSocial, showSocial);
-            Bind(NavGoals, showGoals);
+            BindShellAction(AdvanceMonth, advanceMonth);
+            BindShellAction(AdvanceYear, advanceYear);
+            BindShellAction(OpenLifeSummary, openLifeSummary);
+            BindShellAction(AddCash, openMoney);
+            BindShellAction(NavLife, showLife);
+            BindShellAction(NavEducation, showEducation);
+            BindShellAction(NavCareer, showCareer);
+            BindShellAction(NavMoney, openMoney);
+            BindShellAction(NavSocial, showSocial);
+            BindShellAction(NavGoals, showGoals);
         }
 
         public void Dispose()
@@ -122,6 +226,16 @@ namespace StimTycoon.Runtime
             buttonBindings.Add(new ButtonBinding(button, callback));
         }
 
+        private void BindShellAction(Button button, Action callback)
+        {
+            if (button == null || callback == null) return;
+            Action guardedCallback = () =>
+            {
+                TryRunShellAction(callback);
+            };
+            Bind(button, guardedCallback);
+        }
+
         private void UnbindActions()
         {
             foreach (var binding in buttonBindings)
@@ -129,6 +243,73 @@ namespace StimTycoon.Runtime
                 if (binding.Button != null) binding.Button.clicked -= binding.Callback;
             }
             buttonBindings.Clear();
+        }
+
+        private VisualElement GetModal(StimShellModal modal)
+        {
+            switch (modal)
+            {
+                case StimShellModal.Event: return EventSheet;
+                case StimShellModal.StudySession: return StudySessionSheet;
+                case StimShellModal.NewLife: return NewLifeSetup;
+                case StimShellModal.FinalLifeSummary: return FinalLifeSummary;
+                default: return null;
+            }
+        }
+
+        private IEnumerable<(StimShellModal Modal, VisualElement Element)> GetModals()
+        {
+            yield return (StimShellModal.Event, EventSheet);
+            yield return (StimShellModal.StudySession, StudySessionSheet);
+            yield return (StimShellModal.NewLife, NewLifeSetup);
+            yield return (StimShellModal.FinalLifeSummary, FinalLifeSummary);
+        }
+
+        private ScrollView GetDestinationView(StimDestination destination)
+        {
+            switch (destination)
+            {
+                case StimDestination.Study: return EducationView;
+                case StimDestination.Work: return CareerView;
+                case StimDestination.Bank: return MoneyView;
+                case StimDestination.Social: return SocialView;
+                case StimDestination.Goals: return GoalsView;
+                default: return LifeScroll;
+            }
+        }
+
+        private Button GetDestinationButton(StimDestination destination)
+        {
+            switch (destination)
+            {
+                case StimDestination.Study: return NavEducation;
+                case StimDestination.Work: return NavCareer;
+                case StimDestination.Bank: return NavMoney;
+                case StimDestination.Social: return NavSocial;
+                case StimDestination.Goals: return NavGoals;
+                default: return NavLife;
+            }
+        }
+
+        private IEnumerable<VisualElement> GetDestinationViews(bool includeLifeSummary)
+        {
+            yield return LifeScroll;
+            yield return EducationView;
+            yield return CareerView;
+            yield return MoneyView;
+            yield return SocialView;
+            yield return GoalsView;
+            if (includeLifeSummary) yield return LifeSummaryView;
+        }
+
+        private IEnumerable<Button> GetDestinationButtons()
+        {
+            yield return NavLife;
+            yield return NavEducation;
+            yield return NavCareer;
+            yield return NavMoney;
+            yield return NavSocial;
+            yield return NavGoals;
         }
     }
 }

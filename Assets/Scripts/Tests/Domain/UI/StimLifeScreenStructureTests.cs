@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using StimTycoon.Runtime;
@@ -228,6 +229,87 @@ namespace StimTycoon.Tests.Domain.UI
             Assert.That(feed.Q<Label>("feed-row-title").text, Is.EqualTo("Saved money."));
             Assert.That(achievement.Q<Label>("achievement-row-title").text, Is.EqualTo("Template Check"));
             Assert.That(action.Q<Label>("action-card-title").text, Is.EqualTo("Template Action"));
+        }
+
+        [Test]
+        public void PresentationStateStyler_ProvidesOneExclusiveSharedStateVocabulary()
+        {
+            var element = new VisualElement();
+            foreach (StimPresentationState state in System.Enum.GetValues(typeof(StimPresentationState)))
+            {
+                StimPresentationStateStyler.Apply(element, state);
+                var expectedClass = "st-state-" + state.ToString().ToLowerInvariant();
+                Assert.That(element.ClassListContains(expectedClass), Is.True);
+                Assert.That(element.GetClasses().Count(className => className.StartsWith("st-state-")),
+                    Is.EqualTo(1), $"{state} must replace the prior presentation state.");
+            }
+        }
+
+        [TestCase(StimActionState.Ready, StimPresentationState.Available)]
+        [TestCase(StimActionState.Locked, StimPresentationState.Locked)]
+        [TestCase(StimActionState.InProgress, StimPresentationState.Active)]
+        [TestCase(StimActionState.Claimable, StimPresentationState.Claimable)]
+        [TestCase(StimActionState.Complete, StimPresentationState.Claimed)]
+        public void ActionCards_MapDomainLifecycleToSharedPresentationState(
+            StimActionState actionState,
+            StimPresentationState expectedState)
+        {
+            var card = StimActionCardFactory.Create(new StimActionDefinition
+            {
+                id = "state-test",
+                title = "State Test",
+                state = actionState,
+                lockedReason = actionState == StimActionState.Locked ? "Requirement missing" : string.Empty
+            }, null);
+
+            Assert.That(card.ClassListContains(
+                "st-state-" + expectedState.ToString().ToLowerInvariant()), Is.True);
+        }
+
+        [TestCase("Amount exceeds available balance.", StimFeedbackKind.Error)]
+        [TestCase("Autosave commit failed.", StimFeedbackKind.Rollback)]
+        [TestCase("Network is offline.", StimFeedbackKind.Offline)]
+        [TestCase("This reward was already claimed.", StimFeedbackKind.Terminal)]
+        public void FeedbackPresenter_ClassifiesRecoverableFailures(
+            string summary,
+            StimFeedbackKind expectedKind)
+        {
+            Assert.That(StimFeedbackPresenter.ClassifyFailure(summary), Is.EqualTo(expectedKind));
+        }
+
+        [Test]
+        public void FeedbackPresenter_ProvidesUniformStateRetryAndAccessibleSummary()
+        {
+            var label = new Label();
+
+            StimFeedbackPresenter.ShowTransactionResult(label, false, "Autosave commit failed.");
+            Assert.That(label.text, Is.EqualTo("Autosave commit failed. Try again."));
+            Assert.That(label.ClassListContains("st-state-error"), Is.True);
+            Assert.That(label.ClassListContains("is-error"), Is.True);
+            Assert.That(label.ClassListContains("st-feedback-retry"), Is.True);
+            Assert.That(label.tooltip, Does.Contain("Save rolled back").And.Contain("Retry is available"));
+
+            StimFeedbackPresenter.Show(label, "Review and confirm", StimFeedbackKind.Confirmation);
+            Assert.That(label.ClassListContains("st-state-selected"), Is.True);
+            Assert.That(label.ClassListContains("st-state-error"), Is.False);
+            Assert.That(label.ClassListContains("st-feedback-retry"), Is.False);
+
+            StimFeedbackPresenter.Clear(label);
+            Assert.That(label.text, Is.Empty);
+            Assert.That(label.ClassListContains("hidden"), Is.True);
+            Assert.That(label.ClassListContains("st-state-empty"), Is.True);
+        }
+
+        [Test]
+        public void FeedbackPresenter_TerminalFailuresNeverOfferRetry()
+        {
+            var label = new Label();
+            StimFeedbackPresenter.ShowTransactionResult(label, false, "This reward was already claimed.");
+
+            Assert.That(label.ClassListContains("st-state-terminal"), Is.True);
+            Assert.That(label.ClassListContains("st-feedback-retry"), Is.False);
+            Assert.That(label.text, Does.Not.Contain("Try again"));
+            Assert.That(StimFeedbackPresenter.IsRetryable(label.text), Is.False);
         }
 
         [Test]
@@ -486,17 +568,17 @@ namespace StimTycoon.Tests.Domain.UI
             var source = File.ReadAllText(ControllerPath);
             var shellBinderSource = File.ReadAllText(ShellBinderPath);
             var bindBody = ExtractMethodBody(source, "private void BindPersistentCallbacks()");
-            var bindButtonBody = ExtractMethodBody(source, "private void BindPersistentButton(Button button, Action callback)");
+            var bindButtonBody = ExtractMethodBody(source, "private void BindPersistentButton(");
             var unbindBody = ExtractMethodBody(source, "private void UnbindPersistentCallbacks()");
             var enableBody = ExtractMethodBody(source, "private void OnEnable()");
             var disableBody = ExtractMethodBody(source, "private void OnDisable()");
 
-            Assert.That(CountOccurrences(bindBody, "BindPersistentButton("), Is.EqualTo(20));
+            Assert.That(CountOccurrences(bindBody, "BindPersistentButton("), Is.EqualTo(26));
             StringAssert.Contains("UnbindPersistentCallbacks();", bindBody);
             StringAssert.Contains("shellBinder?.BindActions(", bindBody);
             AssertTokensInOrder(bindButtonBody,
-                "button.clicked -= callback;",
-                "button.clicked += callback;",
+                "shellBinder?.TryRunAction(callback, owningModal)",
+                "button.clicked += guardedCallback;",
                 "persistentButtonBindings.Add");
             StringAssert.Contains("binding.button.clicked -= binding.callback;", unbindBody);
             StringAssert.Contains("persistentButtonBindings.Clear();", unbindBody);
@@ -719,8 +801,8 @@ namespace StimTycoon.Tests.Domain.UI
             var controllerSource = File.ReadAllText(ControllerPath);
             StringAssert.Contains("shellBinder?.BindActions(", controllerSource);
             var shellBinderSource = File.ReadAllText(ShellBinderPath);
-            StringAssert.Contains("Bind(OpenLifeSummary, openLifeSummary);", shellBinderSource);
-            StringAssert.Contains("Bind(AddCash, openMoney);", shellBinderSource);
+            StringAssert.Contains("BindShellAction(OpenLifeSummary, openLifeSummary);", shellBinderSource);
+            StringAssert.Contains("BindShellAction(AddCash, openMoney);", shellBinderSource);
             foreach (var button in navigation.Query<Button>().ToList())
             {
                 Assert.That(button.ClassListContains("stim-pack-interaction-pop"), Is.True,
@@ -730,6 +812,169 @@ namespace StimTycoon.Tests.Domain.UI
                 Assert.That(button.Q<Label>(className: "st-nav-label"), Is.Not.Null,
                     $"{button.name} must expose a readable navigation label.");
             }
+        }
+
+        [Test]
+        public void CommercePresentationSlots_ArePresentDisabledAndInert()
+        {
+            var root = Clone(PlayableLifePath);
+            var header = Clone(HeaderPath);
+            var expectedSlots = new[]
+            {
+                "com.study.premium_module",
+                "com.work.rewarded_module",
+                "com.bank.premium_tools",
+                "com.bank.rewarded_module",
+                "com.social.premium_module",
+                "com.goals.sponsored_challenge",
+                "com.goals.season_preview",
+                "com.goals.bonus_game_preview"
+            };
+
+            var headerEntry = header.Q<Button>("com.header.money_entry");
+            Assert.That(headerEntry, Is.Not.Null);
+            Assert.That(headerEntry.enabledSelf, Is.False);
+            Assert.That(headerEntry.focusable, Is.False);
+            Assert.That(headerEntry.tooltip, Does.Contain("unavailable").IgnoreCase);
+
+            foreach (var slotId in expectedSlots)
+            {
+                var slot = root.Q<VisualElement>(slotId);
+                Assert.That(slot, Is.Not.Null, $"Missing required commerce presentation slot {slotId}.");
+                Assert.That(slot.enabledSelf, Is.False, $"{slotId} must remain unavailable.");
+                Assert.That(slot.focusable, Is.False, $"{slotId} must not enter keyboard/controller focus order.");
+                Assert.That(slot.ClassListContains("st-commerce-unavailable"), Is.True);
+                Assert.That(slot.Q<Label>(className: "st-commerce-status")?.text,
+                    Does.Contain("Unavailable"));
+                Assert.That(slot.Query<Button>().ToList(), Is.Empty,
+                    $"{slotId} must not expose a purchase, ad, or reward action.");
+            }
+
+            var controllerSource = File.ReadAllText(ControllerPath);
+            StringAssert.DoesNotContain("com.header.money_entry", controllerSource);
+            foreach (var slotId in expectedSlots) StringAssert.DoesNotContain(slotId, controllerSource);
+        }
+
+        [Test]
+        public void ShellModalCoordinator_EnforcesOneBlockingModalAtATime()
+        {
+            var root = Clone(PlayableLifePath);
+            using (var binder = new StimShellBinder(root, null))
+            {
+                binder.OpenModal(StimShellModal.StudySession);
+                Assert.That(binder.ActiveModal, Is.EqualTo(StimShellModal.StudySession));
+                Assert.That(binder.HasBlockingModal, Is.True);
+                Assert.That(root.Q("study-session-sheet").ClassListContains("hidden"), Is.False);
+                Assert.That(root.Q("event-sheet").ClassListContains("hidden"), Is.True);
+
+                binder.OpenModal(StimShellModal.Event);
+                Assert.That(binder.ActiveModal, Is.EqualTo(StimShellModal.Event));
+                Assert.That(root.Q("event-sheet").ClassListContains("hidden"), Is.False);
+                Assert.That(root.Q("study-session-sheet").ClassListContains("hidden"), Is.True);
+                Assert.That(root.Q("new-life-setup").ClassListContains("hidden"), Is.True);
+                Assert.That(root.Q("final-life-summary").ClassListContains("hidden"), Is.True);
+
+                binder.CloseModal(StimShellModal.Event);
+                Assert.That(binder.ActiveModal, Is.EqualTo(StimShellModal.None));
+                Assert.That(binder.HasBlockingModal, Is.False);
+                Assert.That(root.Q("event-sheet").ClassListContains("hidden"), Is.True);
+            }
+        }
+
+        [Test]
+        public void ShellViewStateRenderer_OwnsDestinationVisibilityAndBlocksShellActionsBehindModals()
+        {
+            var root = Clone(PlayableLifePath);
+            using (var binder = new StimShellBinder(root, null))
+            {
+                var selected = binder.RenderDestination(StimDestination.Bank);
+                Assert.That(selected, Is.SameAs(root.Q<ScrollView>("money-view")));
+                Assert.That(binder.ActiveDestination, Is.EqualTo(StimDestination.Bank));
+                Assert.That(root.Q("money-view").ClassListContains("hidden"), Is.False);
+                Assert.That(root.Q("life-scroll").ClassListContains("hidden"), Is.True);
+                Assert.That(root.Q<Button>("nav-money").ClassListContains("active"), Is.True);
+                Assert.That(root.Q<Button>("nav-life").ClassListContains("active"), Is.False);
+                Assert.That(root.Q("time-dock").ClassListContains("hidden"), Is.True);
+
+                binder.RenderLifeSummary();
+                Assert.That(root.Q("life-summary-view").ClassListContains("hidden"), Is.False);
+                Assert.That(root.Q("money-view").ClassListContains("hidden"), Is.True);
+
+                var invocationCount = 0;
+                Assert.That(binder.TryRunShellAction(() => invocationCount++), Is.True);
+                binder.OpenModal(StimShellModal.Event);
+                Assert.That(binder.TryRunShellAction(() => invocationCount++), Is.False);
+                Assert.That(invocationCount, Is.EqualTo(1));
+
+                binder.CloseModal(StimShellModal.Event);
+                Assert.That(binder.TryRunShellAction(() => invocationCount++), Is.True);
+                Assert.That(invocationCount, Is.EqualTo(2));
+            }
+        }
+
+        [Test]
+        public void ShellModalCoordinator_BlocksBackgroundActionsButAllowsOwningModalActions()
+        {
+            var root = Clone(PlayableLifePath);
+            using (var binder = new StimShellBinder(root, null))
+            {
+                var backgroundInvocations = 0;
+                var modalInvocations = 0;
+                binder.OpenModal(StimShellModal.StudySession);
+
+                Assert.That(binder.TryRunAction(() => backgroundInvocations++), Is.False);
+                Assert.That(binder.TryRunAction(
+                    () => modalInvocations++, StimShellModal.Event), Is.False);
+                Assert.That(binder.TryRunAction(
+                    () => modalInvocations++, StimShellModal.StudySession), Is.True);
+                Assert.That(backgroundInvocations, Is.Zero);
+                Assert.That(modalInvocations, Is.EqualTo(1));
+            }
+        }
+
+        [Test]
+        public void ShellModalCoordinator_RestoresTheCapturedDestinationContext()
+        {
+            var root = Clone(PlayableLifePath);
+            using (var binder = new StimShellBinder(root, null))
+            {
+                binder.RenderDestination(StimDestination.Social);
+                binder.CaptureModalReturnContext("relationships", "npc-42");
+                binder.OpenModal(StimShellModal.Event);
+                binder.OpenModal(StimShellModal.StudySession);
+                Assert.That(binder.ModalReturnDestination, Is.EqualTo(StimDestination.Social),
+                    "Replacing one modal with another must not overwrite the original return destination.");
+                Assert.That(binder.ModalReturnTabId, Is.EqualTo("relationships"));
+                Assert.That(binder.ModalReturnEntityId, Is.EqualTo("npc-42"));
+
+                var restored = binder.RestoreModalReturnDestination();
+                Assert.That(restored, Is.SameAs(root.Q<ScrollView>("social-view")));
+                Assert.That(binder.ActiveModal, Is.EqualTo(StimShellModal.None));
+                Assert.That(root.Q("social-view").ClassListContains("hidden"), Is.False);
+                Assert.That(root.Q<Button>("nav-social").ClassListContains("active"), Is.True);
+            }
+        }
+
+        [Test]
+        public void RetryRegistry_ReplacesCommandsAndRejectsReentrantDuplicateExecution()
+        {
+            var registry = new StimRetryCommandRegistry();
+            var firstCount = 0;
+            var replacementCount = 0;
+            registry.Register("bank.transfer", () => firstCount++);
+            registry.Register("bank.transfer", () =>
+            {
+                replacementCount++;
+                Assert.That(registry.TryExecute("bank.transfer"), Is.False,
+                    "A retry command cannot execute itself recursively.");
+            });
+
+            Assert.That(registry.TryExecute("bank.transfer"), Is.True);
+            Assert.That(firstCount, Is.Zero);
+            Assert.That(replacementCount, Is.EqualTo(1));
+            registry.Clear("bank.transfer");
+            Assert.That(registry.IsAvailable("bank.transfer"), Is.False);
+            Assert.That(registry.TryExecute("bank.transfer"), Is.False);
         }
 
         [Test]

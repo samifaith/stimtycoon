@@ -1428,3 +1428,83 @@
     -unity-background-scale-mode: scale-to-fit;
     border-width: 0;
 }
+.st-commerce-placeholder {
+    min-height: 56px;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-width: 1px;
+    border-color: rgba(42, 69, 92, 0.2);
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.55);
+}
+
+.st-commerce-unavailable {
+    opacity: 0.72;
+}
+
+.st-commerce-icon {
+    width: 32px;
+    font-size: 22px;
+    color: rgb(83, 94, 113);
+    -unity-text-align: middle-center;
+}
+
+.st-commerce-copy {
+    flex-grow: 1;
+    margin-left: 8px;
+}
+
+.st-commerce-title {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: rgb(57, 68, 87);
+}
+
+.st-commerce-status {
+    margin-top: 2px;
+    font-size: 12px;
+    white-space: normal;
+    color: rgb(83, 94, 113);
+}
+.st-state-disabled,
+.st-state-claimed,
+.st-state-empty,
+.st-state-loading,
+.st-state-offline {
+    opacity: 0.68;
+}
+
+.st-state-error {
+    border-color: rgb(190, 62, 72);
+}
+
+.st-state-terminal {
+    opacity: 0.72;
+    border-color: rgb(92, 92, 104);
+    color: rgb(72, 72, 82);
+}
+
+.st-state-cooldown .st-action-commit,
+.st-state-locked .st-action-commit,
+.st-state-claimed .st-action-commit {
+    opacity: 0.62;
+}
+
+.st-state-claimable .st-action-commit {
+    border-color: rgb(126, 78, 190);
+}
+.st-feedback-retry {
+    -unity-font-style: bold;
+}
+.st-feedback-retry-button {
+    min-height: 44px;
+    margin-top: 6px;
+    border-width: 1px;
+    border-color: rgb(190, 62, 72);
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.92);
+    color: rgb(150, 42, 55);
+    -unity-font-style: bold;
+}

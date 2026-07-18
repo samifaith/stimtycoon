@@ -19,6 +19,7 @@ namespace StimTycoon.Tests.Domain.UI
         private StimVerticalSliceController controller;
         private TemplateContainer root;
         private StimGameSessionService session;
+        private MemorySaveRepository repository;
 
         [SetUp]
         public void SetUp()
@@ -32,9 +33,10 @@ namespace StimTycoon.Tests.Domain.UI
             host.AddComponent<UIDocument>();
             controller = host.AddComponent<StimVerticalSliceController>();
 
+            repository = new MemorySaveRepository();
             session = new StimGameSessionService(
                 new InMemoryStimEventCatalog(),
-                new MemorySaveRepository(),
+                repository,
                 utcNow: () => DateTimeOffset.Parse("2026-07-13T20:00:00Z"));
             var save = StimNewLifeFactory.Create(
                 new StimNewLifeRequest
@@ -708,6 +710,35 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void AdvanceYear_SaveFailureRollsBackWorkflowAndOffersSafeRetry()
+        {
+            repository.FailWrites = true;
+
+            Invoke("AdvanceYear");
+
+            Assert.That(session.ActiveSave.state.uiWorkflow.queuedYearMonthsRemaining, Is.Zero);
+            Assert.That(root.Q<Label>("event-category").text, Is.EqualTo("SAVE REQUIRED"));
+            Assert.That(root.Q<Label>("event-body").text, Does.Contain("No further workflow steps"));
+            Assert.That(root.Q<Button>("event-continue").text, Is.EqualTo("RETRY SAVE"));
+            Assert.IsFalse(root.Q("event-sheet").ClassListContains("hidden"));
+        }
+
+        [Test]
+        public void PersistedNavigation_RestoresDestinationAndSelectedBankTab()
+        {
+            session.ActiveSave.state.uiWorkflow.activeDestination = "Bank";
+            session.ActiveSave.state.uiWorkflow.selectedTabId = "Credit";
+            session.ActiveSave.state.uiWorkflow.activeScrollY = 120f;
+
+            Invoke("RestorePersistedNavigationState");
+
+            Assert.IsFalse(root.Q("money-view").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q<Button>("bank-tab-credit").ClassListContains("active"));
+            Assert.IsFalse(root.Q("bank-panel-credit").ClassListContains("hidden"));
+            Assert.IsTrue(root.Q("life-scroll").ClassListContains("hidden"));
+        }
+
+        [Test]
         public void CareerCard_DrivesApplicationInterviewAndHiringFlow()
         {
             session.ActiveSave.state.career = new StimCareerState();
@@ -883,6 +914,49 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void EducationTerminalStates_DistinguishGraduationAndLeavingSchool()
+        {
+            session.ActiveSave.state.character.age = 18;
+            session.ActiveSave.state.education.stage = "completed_secondary";
+            session.ActiveSave.state.education.graduatedSecondary = true;
+            session.ActiveSave.state.education.studyTrack = "academic";
+            session.ActiveSave.state.education.qualificationExperience = 125;
+
+            Invoke("RefreshEducation");
+
+            Assert.That(root.Q<Label>("education-unavailable-copy").text,
+                Does.Contain("Secondary education completed")
+                    .And.Contain("Academic track").And.Contain("125 qualification XP"));
+            Assert.IsTrue(root.Q("education-empty-state").ClassListContains("st-state-claimed"));
+            Assert.IsTrue(root.Q("education-card").ClassListContains("hidden"));
+
+            session.ActiveSave.state.character.age = 16;
+            session.ActiveSave.state.education.stage = "left_school";
+            session.ActiveSave.state.education.schoolPath = "left_school";
+            session.ActiveSave.state.education.graduatedSecondary = false;
+
+            Invoke("RefreshEducation");
+
+            Assert.That(root.Q<Label>("education-unavailable-copy").text,
+                Does.Contain("left before graduation").And.Contain("paths stay locked"));
+            Assert.IsTrue(root.Q("education-empty-state").ClassListContains("st-state-terminal"));
+            Assert.IsTrue(root.Q("education-card").ClassListContains("hidden"));
+        }
+
+        [Test]
+        public void MissingEducationState_ShowsRecoverableErrorInsteadOfActions()
+        {
+            session.ActiveSave.state.education = null;
+
+            Invoke("RefreshEducation");
+
+            Assert.That(root.Q<Label>("education-unavailable-copy").text,
+                Does.Contain("Education state is unavailable").And.Contain("valid save"));
+            Assert.IsTrue(root.Q("education-empty-state").ClassListContains("st-state-error"));
+            Assert.IsTrue(root.Q("education-card").ClassListContains("hidden"));
+        }
+
+        [Test]
         public void BankTabs_AreExclusiveAndPersistAcrossDestinationNavigation()
         {
             Invoke("ShowMoneyDestination");
@@ -965,6 +1039,64 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void FailedBankTransfer_ExposesLiveRetryAndClearsItAfterSuccess()
+        {
+            session.ActiveSave.state.finances.cashMinorUnits = 0;
+            Invoke("PerformSavingsTransfer", 1000L);
+
+            Assert.That(root.Q<Button>("savings-transfer-retry").ClassListContains("hidden"), Is.False);
+            Assert.That(root.Q<Label>("savings-transfer-feedback").text, Does.Contain("Try again"));
+
+            session.ActiveSave.state.finances.cashMinorUnits = 1000;
+            Invoke("TryRetryCommand", "bank.savings-transfer");
+
+            Assert.That(root.Q<Button>("savings-transfer-retry").ClassListContains("hidden"), Is.True);
+            Assert.That(session.ActiveSave.state.finances.savingsMinorUnits, Is.EqualTo(1000));
+        }
+
+        [Test]
+        public void FailedManualWork_ExposesLiveRetryCommand()
+        {
+            session.ActiveSave.state.career.roleTitle = string.Empty;
+            Invoke("PerformManualWorkTap");
+
+            Assert.That(root.Q<Button>("manual-work-retry").ClassListContains("hidden"), Is.False);
+            Assert.That(root.Q<Label>("manual-work-feedback").text, Does.Contain("Try again"));
+        }
+
+        [Test]
+        public void ClosingModal_RestoresCapturedBankTabContext()
+        {
+            Invoke("ShowMoneyDestination");
+            Invoke("SetBankTab", StimBankTab.Investing);
+            Invoke("OpenShellModal", StimShellModal.Event);
+            Invoke("SetBankTab", StimBankTab.Savings);
+
+            Invoke("CloseEventSheet");
+
+            Assert.That(root.Q<Button>("nav-money").ClassListContains("active"), Is.True);
+            Assert.That(root.Q<Button>("bank-tab-investing").ClassListContains("active"), Is.True);
+            Assert.That(root.Q("bank-panel-investing").ClassListContains("hidden"), Is.False);
+        }
+
+        [Test]
+        public void ClosingModal_RestoresCapturedSocialProfileContext()
+        {
+            var relationshipId = session.ActiveSave.state.relationships[0].relationshipId;
+            Invoke("ShowSocialDestination");
+            Invoke("ShowRelationshipDetail", relationshipId);
+            Invoke("OpenShellModal", StimShellModal.Event);
+            Invoke("ShowRelationshipList");
+
+            Invoke("CloseEventSheet");
+
+            Assert.That(root.Q<Button>("nav-social").ClassListContains("active"), Is.True);
+            Assert.That(root.Q("relationship-detail-view").ClassListContains("hidden"), Is.False);
+            Assert.That(root.Q<Label>("relationship-name").text,
+                Is.EqualTo(session.ActiveSave.state.relationships[0].displayName));
+        }
+
+        [Test]
         public void MoneyDestination_CreditRepaymentRefreshesDebtAndHistory()
         {
             session.ActiveSave.state.finances.debtMinorUnits = 1000;
@@ -1000,6 +1132,7 @@ namespace StimTycoon.Tests.Domain.UI
         private void BindControllerFields()
         {
             SetField("gameSession", session);
+            SetField("shellBinder", new StimShellBinder(root, null));
             var bindings = new Dictionary<string, string>
             {
                 { "cashValue", "cash-value" }, { "lifeSummary", "life-summary" },
@@ -1036,6 +1169,7 @@ namespace StimTycoon.Tests.Domain.UI
                 { "contextActivities", "context-activities" },
                 { "homeCondition", "home-condition" }, { "homeProgress", "home-progress" },
                 { "homeActions", "home-actions" }, { "homeUpgradeFeedback", "home-upgrade-feedback" },
+                { "homeActionRetry", "home-action-retry" },
                 { "lifeScroll", "life-scroll" }, { "lifeSummaryView", "life-summary-view" },
                 { "openLifeSummary", "open-life-summary" }, { "closeLifeSummary", "close-life-summary" },
                 { "addCash", "add-cash" },
@@ -1072,6 +1206,7 @@ namespace StimTycoon.Tests.Domain.UI
                 { "relationshipListView", "relationship-list-view" }, { "relationshipList", "relationship-list" },
                 { "discoverCompatiblePerson", "discover-compatible-person" },
                 { "relationshipDiscoveryFeedback", "relationship-discovery-feedback" },
+                { "relationshipDiscoveryRetry", "relationship-discovery-retry" },
                 { "relationshipDetailView", "relationship-detail-view" },
                 { "relationshipBack", "relationship-back" }, { "relationshipAvatar", "relationship-avatar" },
                 { "relationshipName", "relationship-name" }, { "relationshipType", "relationship-type" },
@@ -1093,12 +1228,14 @@ namespace StimTycoon.Tests.Domain.UI
                 { "moneyView", "money-view" }, { "manualWorkRole", "manual-work-role" },
                 { "manualWorkRate", "manual-work-rate" }, { "moneyCashValue", "money-cash-value" },
                 { "manualWorkTap", "manual-work-tap" }, { "manualWorkFeedback", "manual-work-feedback" },
+                { "manualWorkRetry", "manual-work-retry" },
                 { "savingsBalanceValue", "savings-balance-value" },
                 { "savingsAvailableValue", "savings-available-value" },
                 { "savingsDepositMode", "savings-deposit-mode" },
                 { "savingsWithdrawMode", "savings-withdraw-mode" },
                 { "savingsAmountInput", "savings-amount-input" },
                 { "savingsTransferFeedback", "savings-transfer-feedback" },
+                { "savingsTransferRetry", "savings-transfer-retry" },
                 { "moneyTransactionHistory", "money-transaction-history" },
                 { "moneyAccountsList", "money-accounts-list" },
                 { "cashFlowGross", "cash-flow-gross" }, { "cashFlowTaxes", "cash-flow-taxes" },
@@ -1111,12 +1248,14 @@ namespace StimTycoon.Tests.Domain.UI
                 { "availableCreditValue", "available-credit-value" },
                 { "creditRepaymentInput", "credit-repayment-input" },
                 { "creditRepaymentFeedback", "credit-repayment-feedback" },
+                { "creditRepaymentRetry", "credit-repayment-retry" },
                 { "indexFundValue", "index-fund-value" },
                 { "indexFundContributions", "index-fund-contributions" },
                 { "indexFundPerformance", "index-fund-performance" },
                 { "indexInvestmentRequirement", "index-investment-requirement" },
                 { "indexInvestmentInput", "index-investment-input" },
                 { "indexInvestmentFeedback", "index-investment-feedback" },
+                { "indexInvestmentRetry", "index-investment-retry" },
                 { "bankTabSavings", "bank-tab-savings" },
                 { "bankTabCredit", "bank-tab-credit" },
                 { "bankTabInvesting", "bank-tab-investing" },
@@ -1162,9 +1301,15 @@ namespace StimTycoon.Tests.Domain.UI
         private sealed class MemorySaveRepository : IStimSaveRepository
         {
             private string latest;
+            public bool FailWrites { get; set; }
 
             public bool TryCommitAutosave(string serializedSave, out string persistenceSummary)
             {
+                if (FailWrites)
+                {
+                    persistenceSummary = "simulated save failure";
+                    return false;
+                }
                 latest = serializedSave;
                 persistenceSummary = "saved";
                 return true;

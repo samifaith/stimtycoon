@@ -1,6 +1,6 @@
 # Stim Tycoon
 
-**Status:** Feature-complete playable alpha foundation; Phase 5 experience convergence active
+**Status:** Broad offline gameplay foundation implemented; playable vertical slice active; Phase 5 experience convergence and production hardening incomplete
 
 **Target:** iOS 13+
 
@@ -41,7 +41,7 @@ The repository now contains:
 - visible Fitness and Professional skill paths with level/XP progress and downstream overtime and career-work benefits
 - a safe Advance Year control that reuses ordinary monthly transactions, autosaves every month, summarizes progress, and stops for events, decisions, failures, or endings
 - automated compact-width and 130% accessibility-text reflow rules with 44-point primary targets
-- 679 passing EditMode test cases covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, Yarn authoring contracts, UI structure, UI Builder template integration, and seeded long-run simulations, plus 3 passing production-scene PlayMode smoke tests
+- a recorded July 17, 2026 baseline of 679 passing EditMode test cases and 3 passing production-scene PlayMode smoke tests, covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, Yarn authoring contracts, UI structure, UI Builder template integration, and seeded long-run simulations
 - a repository-owned QA foundation with production-scene PlayMode smoke tests, Yarn authoring-contract checks, Unity Code Coverage, local headless runners, and PR/nightly GitHub Actions configuration
 - an explicit grouped UI binding manifest and disposable Shell binder that own the shared header, navigation, safe-area geometry, time controls, and enable/disable callback teardown without taking presentation ownership away from UI Builder
 
@@ -51,24 +51,28 @@ Not yet complete:
 - configured Unity LevelPlay ads and Unity IAP purchasing flows (the packages are installed, but production adapters and store/placement configuration are not implemented)
 - production navigation, accessibility, localization, art, and audio
 - iOS device build and automated play-flow coverage
-- reference-level destination UX, including focused tabbed Bank, Education, Home, Social, Business, and Goals workspaces
+- reference-level destination UX: Bank and Education have functional first workspaces but still need presentation/edge-state convergence; Home, Social, Career/Business, and Goals need focused workspace convergence
+- runtime catalog definitions for the 100 staged Childhood, School, Career, Health, and Money Yarn nodes; they import and pass authoring-form contracts but are not yet playable
+- bounded Life Feed/event-history archival and broader controller/session decomposition
 - broader portfolios and property, deeper books/equipment/inventory, additional businesses, and more authored relationship/career/event content
 - production Settings, accessibility validation, pseudo-localization, licensed art/audio, and physical-device verification
 
 ## Current Focus
 
-Milestones 1–12 and the M14 Bank/Education implementation are complete and the current 679-case EditMode suite plus 3-case PlayMode smoke suite are green. The active phase is **Phase 5 — Experience Convergence**, which turns the broad but card-heavy vertical slice into the focused, information-dense destinations demonstrated by the reference screens while preserving Stim Tycoon's original art, economy, resources, and writing. The first M13 wiring pass is complete: UI Builder is the runtime hierarchy source, the binding manifest protects named-element ownership, the Shell binder owns shared callbacks, and controller disable now unregisters persistent handlers. M13 still has shell view-state/modal extraction plus device/text-scale visual gates, and M14 still needs its human comprehension check; M15 is the next destination implementation milestone.
+Milestones 1–12 and the M14 Bank/Education domain and initial-workspace implementation are complete. The latest recorded baseline is 679 EditMode plus 3 PlayMode smoke cases from July 17, 2026; a fresh local run is still needed after the latest headless attempt was blocked by Unity licensing/package entitlement recovery. The active phase is **Phase 5 — Experience Convergence**. The M13 premium/paid-reward presentation scaffold is now present as nine disabled, explicitly unavailable slots across the six-destination shell. It does not activate purchases, subscriptions, ads, premium-currency transactions, or reward behavior, and its new structural and PlayMode safety coverage still needs a clean Unity run. W0 and W1 are complete: shared presentation states, modal arbitration, duplicate-safe retry and rollback behavior, exact modal return context, reload-safe workflows, and persisted destination/tab/entity/scroll navigation are implemented. M13 now has an automated production-scene gate for the 320/390/430/768 × 100%/130% matrix; retained screenshots and human visual approval remain required. M14 still needs presentation edge states and a human comprehension check.
 
 The path to completion is:
 
-1. **M13 — Navigation shell and destination framework:** persistent status header, six-destination navigation, reusable sheets/tabs/action cards, safe-area behavior, and destination state restoration.
-2. **M14 — Bank and Education convergence:** focused Bank tabs for savings, credit, cash flow, and index investing; Education catalog, qualification progress, session tiers, and locked-requirement navigation.
-3. **M15 — Home, Social, and inventory convergence:** room-object home interactions, books/equipment inventory and timers, relationship discovery/profile/actions, and household progress.
-4. **M16 — Career, Business, and Goals convergence:** career workspace, operational business dashboard, staff/upgrades/locations, and Main/Daily/Life goal boards with direct navigation.
-5. **M17 — Content, balance, and presentation:** more original event chains and destinations, additional investment/property and business breadth, transition scenes, economy tuning, original art/audio, and first-life pacing.
-6. **M18 — Production hardening and iOS beta:** Settings, accessibility, pseudo-localization, device matrix, save/recovery profiling, privacy/licensing, TestFlight readiness, and a clean birth-to-ending device run.
+1. **M13 — Premium scaffold, navigation shell, and destination framework:** verify the disabled premium/paid-reward slots in Study, Work, Bank, Social, Goals, and the header money entry; then continue shared shell, state, restoration, safe-area, and device work.
+2. **M14 — Bank and Education convergence:** finish Bank/Study presentation and edge states while preserving canonical APY, investment gates, qualification tiers, session durations, and stat tradeoffs instead of copying illustrative mockup values.
+3. **M15 — Home, Social, and inventory convergence:** room-object home interactions, bounded inventory/timers, persistent relationship rows/profiles, complete terminal states, and focused household/family progress.
+4. **M16 — Career, Business, Goals, and mini-games:** focused career/business workspaces, salary-consistent work actions, pinned Main/Daily/Life goals, and one persisted lifecycle shared by Study Match and Shift Match.
+5. **M17 — Content, balance, and presentation:** more original content and breadth, transition scenes, economy tuning of every adopted mockup-like reward/wage/timer, and production art/audio.
+6. **M18 — Production hardening and iOS beta:** Settings, accessibility, pseudo-localization, device/recovery profiling, and—only after separate approval—versioned commerce/service objects, privacy/licensing, and TestFlight readiness.
 
-Every milestone also carries shared gates for save migration and rollback, bounded history growth, deterministic economy balance, authored-content validation, localization keys, accessibility, and offline-safe service boundaries.
+Mockup names, ages, balances, stat/relationship values, XP totals, prices, rewards, and timers are illustrative unless `docs/TASKS.md` explicitly adopts them. The six-destination monthly loop is authoritative. **Legacy Gems** are the approved single premium currency: purchasable and occasionally earnable in small bounded amounts, separate from cash/net worth, and never required for baseline progression or recovery. Their disabled wallet/reward presentation is required immediately; transactions, Store products, subscriptions, rewarded-ad behavior, and season systems remain gated. Stim Coins, the alternate five-tab shell, and action quotas/`End Turn` are retired/reference-only.
+
+Every milestone also carries shared gates for save migration and rollback, bounded history growth, deterministic economy balance, authored-content validation, localization keys, accessibility, and offline-safe service boundaries. Money, business, annual-review, relationship, and transition histories have explicit bounds; Life Feed and event-history archival remain open work.
 
 ### Frontend and wiring workflow
 
@@ -80,7 +84,7 @@ The full handoff format, clean-branch workflow, controller-extraction direction,
 
 See [the active task list](docs/TASKS.md) for milestone acceptance criteria and shared completion gates.
 
-The supplied screen references have also been decomposed into a screen-by-screen inventory of components, behaviors, branch states, current implementation status, and stable task IDs. See [the reference UI gap analysis](docs/REFERENCE_UI_GAP_ANALYSIS.md). That analysis preserves future commerce concepts without approving Stim Coins, action-energy quotas, alternate five-tab navigation, subscriptions, ads, or season passes as current gameplay.
+The supplied screen references have also been decomposed into a screen-by-screen inventory of components, behaviors, branch states, current implementation status, and stable task IDs. See [the reference UI gap analysis](docs/REFERENCE_UI_GAP_ANALYSIS.md). That analysis adopts Legacy Gems as the single premium-currency identity while preserving the remaining commerce concepts without approving Stim Coins, action-energy quotas, alternate five-tab navigation, subscriptions, ads, or season passes as current gameplay.
 
 The approved M13 UI direction is a compact, light mobile interface based on the supplied wireframes: an 88–96 point status header, dense list rows, and six icon-over-label navigation items. The imported kits are integrated through Stim-owned UXML/USS without editing vendor folders: Free Casual GUI supplies calibrated nine-sliced SVG controls, the palette, Baloo display type, and aspect-contained progress accents; Space Exploration GUI Kit supplies navigation, destination, section, and information identity; Jelly UI Pack supplies aspect-contained achievement and outcome marks while its palette informs claim, qualification, and input surfaces. `StimPanelSettings.asset` provides UI Toolkit's screen-size scaling equivalent to the Skyden uGUI demo. Production tests require `scale-to-fit` for unsliced art and complete approved slice values for responsive Skyden controls. Complex native-ratio panels, baked-copy panels, and fixed HUD decoration remain quarantined from responsive layouts. Independent destination scroll restoration, Bank tab restoration, and the review gallery support the migration. M13 still requires runtime width/text-scale visual approval and interaction-detail completion. The selected dependencies and release checks are recorded in [the UI asset manifest](Assets/UI/Art/ASSET_MANIFEST.md).
 

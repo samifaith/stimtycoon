@@ -1,5 +1,7 @@
 # Stim Tycoon Implementation Audit — July 13, 2026
 
+> **Historical snapshot:** This audit is retained for chronology and was superseded by the July 17 code/documentation audit. Business, family planning, children, parenting, careers, goals, Bank, and Education have advanced materially since this snapshot. Use `README.md` and `TASKS.md` for current status.
+
 ## Current result
 
 The repository has a reliable Phase 0 foundation and a user-verified Phase 1 offline life loop. Phase 2 now includes persistent school decisions, peers and relationship history, authored drama follow-ups, identity and adult-romance chains, marriage maintenance, household stats, spouse finances, and revolving household credit. The cozy-corporate presentation, family/child simulation, broader careers, health depth, and physical-device validation remain active work.
@@ -29,9 +31,9 @@ The repository has a reliable Phase 0 foundation and a user-verified Phase 1 off
 | P0 | UI has not been device-checked at 320, 390, 430, and 768 widths | Clipping and large-text failures may remain |
 | P0 | Logo, avatar, icon set, and rounded production font are placeholders | The screen cannot yet reach the approved mockup’s polish |
 | P0 | Full-life test pauses the synchronous Test Runner | Repeated JSON cloning/autosaving of an expanding Life Feed makes the integration test intentionally expensive |
-| P1 | Business navigation remains visual only | Life, Money, and Social are playable; Business does not yet open a real screen |
+| Historical | Business navigation remains visual only | Resolved after this audit: one operational business and its playable actions now exist; focused destination convergence remains open |
 | P1 | Childhood/education breadth remains incomplete | Required school paths and contextual activities exist, but transfers, graduation/dropout consequences, and broader skill paths remain shallow |
-| P1 | Family simulation is not yet complete | Marriage and household finance exist, but family planning, pregnancy/adoption, children aging, custody, and inheritance do not |
+| Historical | Family simulation is not yet complete | Partially resolved after this audit: family planning, child arrival/aging, parenting, and custody exist; inheritance and focused family UX remain open |
 | P1 | Full-life breadth is still narrow | The verified loop reaches an ending, but health choices, career industries, partner drama, and branch-aware endings need expansion |
 | P1 | No first iOS development build validation | Safe area, performance, signing, and device behavior remain unproven |
 | Later | Authentication, Game Center, Cloud Save, ads | Correctly deferred until the offline loop is stable |

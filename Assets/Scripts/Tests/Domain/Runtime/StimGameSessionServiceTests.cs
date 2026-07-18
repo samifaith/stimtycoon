@@ -376,6 +376,45 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void AdvanceMonths_PersistsQueuedYearRemainderInsideEachMonthlyAutosave()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            service.Start(save);
+            Assert.IsTrue(service.TryPersistUiWorkflow(12, false, string.Empty, string.Empty, string.Empty,
+                out var persistSummary), persistSummary);
+
+            Assert.IsTrue(service.TryAdvanceMonths(
+                1, out var monthsProcessed, out _, out var summary), summary);
+
+            Assert.That(monthsProcessed, Is.EqualTo(1));
+            Assert.That(service.ActiveSave.state.uiWorkflow.queuedYearMonthsRemaining, Is.EqualTo(11));
+            Assert.That(repository.LastCommittedSave, Does.Contain("\"queuedYearMonthsRemaining\":11"));
+        }
+
+        [Test]
+        public void PersistUiNavigation_CommitsDestinationTabEntityAndScroll()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            service.Start(CreateValidSave());
+
+            Assert.IsTrue(service.TryPersistUiNavigation(
+                "Social", "relationships", "npc-42", 3f, 144f, out var summary), summary);
+
+            var navigation = service.ActiveSave.state.uiWorkflow;
+            Assert.That(navigation.activeDestination, Is.EqualTo("Social"));
+            Assert.That(navigation.selectedTabId, Is.EqualTo("relationships"));
+            Assert.That(navigation.selectedEntityId, Is.EqualTo("npc-42"));
+            Assert.That(navigation.activeScrollX, Is.EqualTo(3f));
+            Assert.That(navigation.activeScrollY, Is.EqualTo(144f));
+            Assert.That(repository.LastCommittedSave,
+                Does.Contain("\"activeDestination\":\"Social\"")
+                    .And.Contain("\"selectedEntityId\":\"npc-42\""));
+        }
+
+        [Test]
         public void AdvanceYear_StopsAtFirstAuthoredEvent()
         {
             var catalog = new InMemoryStimEventCatalog();

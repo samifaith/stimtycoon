@@ -75,6 +75,10 @@ namespace StimTycoon.Runtime
             row.tooltip = $"{title}. {category}. Progress {accessibleProgress ?? progress}. Reward {reward}.";
             row.AddToClassList("st-achievement-row");
             row.AddToClassList("st-brand-jelly-reward-row");
+            StimPresentationStateStyler.Apply(row,
+                actionText == "CLAIM"
+                    ? StimPresentationState.Claimable
+                    : actionEnabled ? StimPresentationState.Available : StimPresentationState.Disabled);
 
             var icon = row.Q<Label>("achievement-row-icon");
             var titleLabel = row.Q<Label>("achievement-row-title");
@@ -241,7 +245,8 @@ namespace StimTycoon.Runtime
             row.name = "path-row-" + Sanitize(stableId);
             row.tooltip = $"{title}. {detail}. {trailingText}";
             row.AddToClassList("st-path-row");
-            row.EnableInClassList("locked", !available);
+            StimPresentationStateStyler.Apply(row,
+                available ? StimPresentationState.Available : StimPresentationState.Locked);
             row.Add(CreateRowIcon(glyph, "st-path-icon"));
             row.Add(CreateRowCopy(title, detail, "st-path-title", "st-path-body"));
             var trailing = new Label(trailingText);

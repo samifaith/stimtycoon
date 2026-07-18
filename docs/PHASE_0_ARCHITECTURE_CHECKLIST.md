@@ -1,5 +1,7 @@
 # Phase 0 Architecture Checklist
 
+**Current interpretation:** offline foundation delivered; online validation and first-device proof deferred. Historical passing counts below are recorded baselines, not a guarantee that the current checkout was freshly rerun.
+
 ## Confirmed in the repository
 
 - [x] Unity `6000.3.19f1` project and assembly boundaries
@@ -13,7 +15,7 @@
 - [x] Yarn Spinner package and isolated bridge
 - [x] Salary-negotiation Yarn script and representative event data
 - [x] Playable UI Toolkit scene for the first vertical slice
-- [x] 340 passing EditMode tests, including seeded birth-to-ending, transactional systems, UI structure, and long-run simulation coverage (user-verified July 15, 2026)
+- [x] Recorded July 17, 2026 baseline: 679 passing EditMode and 3 passing production-scene PlayMode smoke cases (superseding the July 15 340-case baseline)
 
 ## Remaining Phase 0 work
 

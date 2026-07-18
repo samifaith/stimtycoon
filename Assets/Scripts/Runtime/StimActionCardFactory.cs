@@ -16,7 +16,8 @@ namespace StimTycoon.Runtime
             card.name = $"action-card-{definition.id.Replace('.', '-')}";
             card.AddToClassList("st-action-card");
             card.AddToClassList("st-brand-skyden-panel");
-            card.EnableInClassList("locked", definition.state == StimActionState.Locked);
+            StimPresentationStateStyler.Apply(card,
+                StimPresentationStateStyler.FromActionState(definition.state));
 
             var title = card.Q<Label>("action-card-title");
             var preview = card.Q<Label>("action-card-preview");

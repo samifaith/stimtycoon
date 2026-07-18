@@ -304,6 +304,11 @@ namespace StimTycoon.Saves
                 };
                 Record(report, "state.orientation completed for established life");
             }
+            if (save.state.uiWorkflow == null || !serializedSave.Contains("\"uiWorkflow\""))
+            {
+                save.state.uiWorkflow = new StimUiWorkflowState();
+                Record(report, "state.uiWorkflow created");
+            }
             if (save.state.transitionPresentations == null ||
                 !serializedSave.Contains("\"transitionPresentations\""))
             {

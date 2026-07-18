@@ -444,26 +444,28 @@ Then:   Turns: 2/10
 
 ## Implementation Checklist (Phase 1–4)
 
+**Current-code reconciliation:** this document describes a broader turn-based business design. The playable alpha now has one persisted operational business with action points, manual work, monthly revenue/expenses/profit, staff and location levels, ledger retention, valuation, failure pressure, sale behavior, and Life Feed feedback. It does not yet implement this document's full timer-replenished turn model, three-business breadth, equipment depth, or focused dashboard presentation.
+
 ### Phase 1 (Skeleton)
 
-- [ ] Business data model with short turn budget
-- [ ] Annual settlement calculation (revenue, expenses, taxes)
+- [x] Business data model with persisted action-point budget
+- [x] Monthly settlement calculation (revenue, expenses, profit, loss pressure)
 - [ ] Turn replenishment timer logic
-- [ ] Basic turn action UI framework
+- [x] Basic business action UI in the shared Career/Business destination
 
 ### Phase 2–3
 
-- [ ] Staff hiring, firing, morale mechanics
-- [ ] Marketing and pricing actions
-- [ ] Active earning (work a shift, personal sales)
+- [ ] Complete staff hiring, firing, payroll, and morale mechanics (staff level/count foundation exists)
+- [x] Initial marketing/business-growth actions
+- [x] Active earning through manual work
 
 ### Phase 4 (Business MVP)
 
 - [ ] All three business types fully implemented
 - [ ] Equipment and upgrade system
 - [ ] Business events integration
-- [ ] Valuation and sale mechanics
-- [ ] Turn action feedback (animations, life feed entries)
+- [x] Initial valuation and sale mechanics
+- [ ] Complete turn-action presentation; Life Feed feedback exists, animation/polish remains
 
 ---
 

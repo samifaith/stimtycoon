@@ -70,6 +70,7 @@ namespace StimTycoon.Saves
         public List<StimAchievementState> achievements = new List<StimAchievementState>();
         public List<StimGoalState> goals = new List<StimGoalState>();
         public StimOrientationState orientation = new StimOrientationState();
+        public StimUiWorkflowState uiWorkflow = new StimUiWorkflowState();
         public List<StimTransitionPresentationState> transitionPresentations = new List<StimTransitionPresentationState>();
         public List<StimLifeDecisionState> lifeDecisions = new List<StimLifeDecisionState>();
         public List<StimActionProgressState> actionProgress = new List<StimActionProgressState>();
@@ -77,6 +78,21 @@ namespace StimTycoon.Saves
         public string pendingEventId;
         public List<StimEventHistoryEntry> eventHistory = new List<StimEventHistoryEntry>();
         public List<StimScheduledEventRecord> scheduledEvents = new List<StimScheduledEventRecord>();
+    }
+
+    [Serializable]
+    public class StimUiWorkflowState
+    {
+        public int queuedYearMonthsRemaining;
+        public bool queuedYearCompletionPending;
+        public string queuedYearCompletionSummary;
+        public string pendingStudyDifficulty;
+        public string pendingStudyActionId;
+        public string activeDestination;
+        public string selectedTabId;
+        public string selectedEntityId;
+        public float activeScrollX;
+        public float activeScrollY;
     }
 
     [Serializable]

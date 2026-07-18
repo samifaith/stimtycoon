@@ -330,6 +330,8 @@ This needs review. Either:
 
 ## Implementation Checklist (Phase 1)
 
+**Current-code reconciliation:** deterministic eligibility, saved RNG, risk/reward calculation, weighted outcomes, requirements, Luck-influenced selection, and representative-event distribution tests exist. The generalized polymorphic modifier architecture proposed below has not been implemented as specified and should be treated as a future refactor/design option, not a missing prerequisite for the current resolver.
+
 - [ ] Implement `ModifierRule` interface with Evaluate() method
 - [ ] Create rule subclasses: SkillRule, StatRule, TraitRule, HistoryRule, ResourceRule, AgeRule, WorldRule
 - [ ] Create `ModifierEvaluator` with stacking and clamping logic

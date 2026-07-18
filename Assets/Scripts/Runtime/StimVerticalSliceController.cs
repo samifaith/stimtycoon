@@ -101,6 +101,7 @@ namespace StimTycoon.Runtime
         private Label homeProgress;
         private VisualElement homeActions;
         private Label homeUpgradeFeedback;
+        private Button homeActionRetry;
         private ScrollView lifeScroll;
         private ScrollView lifeSummaryView;
         private ScrollView socialView;
@@ -147,12 +148,14 @@ namespace StimTycoon.Runtime
         private Label moneyCashValue;
         private Button manualWorkTap;
         private Label manualWorkFeedback;
+        private Button manualWorkRetry;
         private Label savingsBalanceValue;
         private Label savingsAvailableValue;
         private Button savingsDepositMode;
         private Button savingsWithdrawMode;
         private VisualElement savingsAmountInput;
         private Label savingsTransferFeedback;
+        private Button savingsTransferRetry;
         private VisualElement moneyTransactionHistory;
         private VisualElement moneyAccountsList;
         private Label cashFlowGross;
@@ -167,12 +170,14 @@ namespace StimTycoon.Runtime
         private Label availableCreditValue;
         private VisualElement creditRepaymentInput;
         private Label creditRepaymentFeedback;
+        private Button creditRepaymentRetry;
         private Label indexFundValue;
         private Label indexFundContributions;
         private Label indexFundPerformance;
         private Label indexInvestmentRequirement;
         private VisualElement indexInvestmentInput;
         private Label indexInvestmentFeedback;
+        private Button indexInvestmentRetry;
         private Button bankTabSavings;
         private Button bankTabCredit;
         private Button bankTabInvesting;
@@ -185,6 +190,7 @@ namespace StimTycoon.Runtime
         private VisualElement relationshipList;
         private Button discoverCompatiblePerson;
         private Label relationshipDiscoveryFeedback;
+        private Button relationshipDiscoveryRetry;
         private VisualElement relationshipDetailView;
         private Button relationshipBack;
         private Label relationshipAvatar;
@@ -229,6 +235,8 @@ namespace StimTycoon.Runtime
             new Dictionary<StimDestination, Vector2>();
         private readonly List<PersistentButtonBinding> persistentButtonBindings =
             new List<PersistentButtonBinding>();
+        private readonly StimRetryCommandRegistry retryCommands = new StimRetryCommandRegistry();
+        private Action workflowPersistenceRetry;
 
         private readonly struct PersistentButtonBinding
         {
@@ -328,6 +336,7 @@ namespace StimTycoon.Runtime
             homeProgress = root.Q<Label>("home-progress");
             homeActions = root.Q<VisualElement>("home-actions");
             homeUpgradeFeedback = root.Q<Label>("home-upgrade-feedback");
+            homeActionRetry = root.Q<Button>("home-action-retry");
             lifeScroll = shellBinder.LifeScroll;
             lifeSummaryView = shellBinder.LifeSummaryView;
             socialView = shellBinder.SocialView;
@@ -374,12 +383,14 @@ namespace StimTycoon.Runtime
             moneyCashValue = root.Q<Label>("money-cash-value");
             manualWorkTap = root.Q<Button>("manual-work-tap");
             manualWorkFeedback = root.Q<Label>("manual-work-feedback");
+            manualWorkRetry = root.Q<Button>("manual-work-retry");
             savingsBalanceValue = root.Q<Label>("savings-balance-value");
             savingsAvailableValue = root.Q<Label>("savings-available-value");
             savingsDepositMode = root.Q<Button>("savings-deposit-mode");
             savingsWithdrawMode = root.Q<Button>("savings-withdraw-mode");
             savingsAmountInput = root.Q<VisualElement>("savings-amount-input");
             savingsTransferFeedback = root.Q<Label>("savings-transfer-feedback");
+            savingsTransferRetry = root.Q<Button>("savings-transfer-retry");
             moneyTransactionHistory = root.Q<VisualElement>("money-transaction-history");
             moneyAccountsList = root.Q<VisualElement>("money-accounts-list");
             cashFlowGross = root.Q<Label>("cash-flow-gross");
@@ -394,12 +405,14 @@ namespace StimTycoon.Runtime
             availableCreditValue = root.Q<Label>("available-credit-value");
             creditRepaymentInput = root.Q<VisualElement>("credit-repayment-input");
             creditRepaymentFeedback = root.Q<Label>("credit-repayment-feedback");
+            creditRepaymentRetry = root.Q<Button>("credit-repayment-retry");
             indexFundValue = root.Q<Label>("index-fund-value");
             indexFundContributions = root.Q<Label>("index-fund-contributions");
             indexFundPerformance = root.Q<Label>("index-fund-performance");
             indexInvestmentRequirement = root.Q<Label>("index-investment-requirement");
             indexInvestmentInput = root.Q<VisualElement>("index-investment-input");
             indexInvestmentFeedback = root.Q<Label>("index-investment-feedback");
+            indexInvestmentRetry = root.Q<Button>("index-investment-retry");
             bankTabSavings = root.Q<Button>("bank-tab-savings");
             bankTabCredit = root.Q<Button>("bank-tab-credit");
             bankTabInvesting = root.Q<Button>("bank-tab-investing");
@@ -410,6 +423,7 @@ namespace StimTycoon.Runtime
             relationshipList = root.Q<VisualElement>("relationship-list");
             discoverCompatiblePerson = root.Q<Button>("discover-compatible-person");
             relationshipDiscoveryFeedback = root.Q<Label>("relationship-discovery-feedback");
+            relationshipDiscoveryRetry = root.Q<Button>("relationship-discovery-retry");
             relationshipDetailView = root.Q<VisualElement>("relationship-detail-view");
             relationshipBack = root.Q<Button>("relationship-back");
             relationshipAvatar = root.Q<Label>("relationship-avatar");
@@ -472,7 +486,7 @@ namespace StimTycoon.Runtime
                 focusWorkoutTitle == null || focusWorkoutEffect == null || lifeScroll == null || lifeSummaryView == null ||
                 openLifeSummary == null || closeLifeSummary == null || addCash == null || socialView == null ||
                 contextActivities == null || homeCondition == null || homeProgress == null ||
-                homeActions == null || homeUpgradeFeedback == null ||
+                homeActions == null || homeUpgradeFeedback == null || homeActionRetry == null ||
                 timeDock == null || navLife == null || navEducation == null || navCareer == null ||
                 navMoney == null || navSocial == null || navGoals == null || moneyView == null ||
                 educationView == null || careerView == null || goalsView == null ||
@@ -487,22 +501,22 @@ namespace StimTycoon.Runtime
                 educationCatalog == null || educationCatalogStatus == null || educationCatalogList == null ||
                 careerContextCopy == null || careerPathPreview == null ||
                 manualWorkRole == null || manualWorkRate == null || moneyCashValue == null ||
-                manualWorkTap == null || manualWorkFeedback == null || savingsBalanceValue == null ||
+                manualWorkTap == null || manualWorkFeedback == null || manualWorkRetry == null || savingsBalanceValue == null ||
                 savingsAvailableValue == null || savingsDepositMode == null || savingsWithdrawMode == null ||
-                savingsAmountInput == null || savingsTransferFeedback == null || moneyTransactionHistory == null ||
+                savingsAmountInput == null || savingsTransferFeedback == null || savingsTransferRetry == null || moneyTransactionHistory == null ||
                 moneyAccountsList == null ||
                 cashFlowGross == null || cashFlowTaxes == null || cashFlowExpenses == null ||
                 cashFlowCreditInterest == null || cashFlowSavingsInterest == null || cashFlowNet == null ||
                 savingsProjection == null ||
                 creditBalanceValue == null || creditDetailValue == null || availableCreditValue == null ||
-                creditRepaymentInput == null || creditRepaymentFeedback == null ||
+                creditRepaymentInput == null || creditRepaymentFeedback == null || creditRepaymentRetry == null ||
                 indexFundValue == null || indexFundContributions == null || indexFundPerformance == null ||
                 indexInvestmentRequirement == null ||
-                indexInvestmentInput == null || indexInvestmentFeedback == null ||
+                indexInvestmentInput == null || indexInvestmentFeedback == null || indexInvestmentRetry == null ||
                 bankTabSavings == null || bankTabCredit == null || bankTabInvesting == null ||
                 bankPanelSavings == null || bankPanelCredit == null || bankPanelInvesting == null ||
                 relationshipListView == null ||
-                relationshipList == null || discoverCompatiblePerson == null || relationshipDiscoveryFeedback == null ||
+                relationshipList == null || discoverCompatiblePerson == null || relationshipDiscoveryFeedback == null || relationshipDiscoveryRetry == null ||
                 relationshipDetailView == null || relationshipBack == null ||
                 relationshipAvatar == null || relationshipName == null || relationshipType == null ||
                 relationshipStrength == null || relationshipFill == null || relationshipGenetics == null ||
@@ -519,9 +533,10 @@ namespace StimTycoon.Runtime
             }
 
             PopulateVisualPlaceholders(root);
-            NavigateTo(StimDestination.Life);
+            NavigateTo(StimDestination.Life, persistState: false);
 
             BindPersistentCallbacks();
+            RestorePersistedWorkflowState();
 
             if (!loadedExistingLife)
             {
@@ -544,6 +559,7 @@ namespace StimTycoon.Runtime
             RefreshHeader();
             RefreshFeed();
             RefreshSocial();
+            RestorePersistedNavigationState();
             if (gameSession.ActiveSave.state.character.lifeStatus != "active")
             {
                 ShowFinalLifeSummary();
@@ -569,9 +585,16 @@ namespace StimTycoon.Runtime
             {
                 choices.AddToClassList("hidden");
                 advanceMonth.RemoveFromClassList("hidden");
-                eventSheet.AddToClassList("hidden");
+                shellBinder.CloseModal(StimShellModal.Event);
             }
 
+            if (!shellBinder.HasBlockingModal && queuedYearMonthsRemaining > 0)
+            {
+                ContinueQueuedYearAdvance();
+                return;
+            }
+            if (!shellBinder.HasBlockingModal && TryPresentPersistedStudyConfirmation()) return;
+            if (shellBinder.HasBlockingModal) return;
             ShowNewLifeSetup(true, false);
         }
 
@@ -612,7 +635,9 @@ namespace StimTycoon.Runtime
 
         private void OnDisable()
         {
+            PersistNavigationState();
             UnbindPersistentCallbacks();
+            retryCommands.ClearAll();
             shellBinder?.Dispose();
             shellBinder = null;
             rootElement = null;
@@ -633,33 +658,40 @@ namespace StimTycoon.Runtime
                 ShowSocialDestination,
                 ShowGoalsDestination);
             BindPersistentButton(toggleOverview, ToggleOverview);
-            BindPersistentButton(eventContinue, CloseEventSheet);
-            BindPersistentButton(studySessionCancel, CloseStudySessionSheet);
-            BindPersistentButton(studySessionConfirm, ConfirmSelectedStudySession);
+            BindPersistentButton(eventContinue, CloseEventSheet, StimShellModal.Event);
+            BindPersistentButton(studySessionCancel, CloseStudySessionSheet, StimShellModal.StudySession);
+            BindPersistentButton(studySessionConfirm, ConfirmSelectedStudySession, StimShellModal.StudySession);
             BindPersistentButton(focusStudy, PerformPrimaryFocusActivity);
             BindPersistentButton(focusWorkout, PerformSecondaryFocusActivity);
             BindPersistentButton(closeLifeSummary, CloseLifeSummary);
             BindPersistentButton(manualWorkTap, PerformManualWorkTap);
+            BindPersistentButton(manualWorkRetry, () => TryRetryCommand("work.manual"));
+            BindPersistentButton(homeActionRetry, () => TryRetryCommand("home.last-action"));
             BindPersistentButton(savingsDepositMode, SelectSavingsDeposit);
             BindPersistentButton(savingsWithdrawMode, SelectSavingsWithdrawal);
+            BindPersistentButton(savingsTransferRetry, () => TryRetryCommand("bank.savings-transfer"));
+            BindPersistentButton(creditRepaymentRetry, () => TryRetryCommand("bank.credit-repayment"));
+            BindPersistentButton(indexInvestmentRetry, () => TryRetryCommand("bank.index-investment"));
             BindPersistentButton(bankTabSavings, SelectSavingsBankTab);
             BindPersistentButton(bankTabCredit, SelectCreditBankTab);
             BindPersistentButton(bankTabInvesting, SelectInvestingBankTab);
             BindPersistentButton(relationshipBack, ShowRelationshipList);
             BindPersistentButton(discoverCompatiblePerson, DiscoverCompatiblePerson);
-            BindPersistentButton(endingNewLife, OpenNewLifeFromEnding);
+            BindPersistentButton(relationshipDiscoveryRetry, () => TryRetryCommand("social.discovery"));
+            BindPersistentButton(endingNewLife, OpenNewLifeFromEnding, StimShellModal.FinalLifeSummary);
             BindPersistentButton(openNewLife, OpenNewLifeSetup);
-            BindPersistentButton(cancelNewLife, HideNewLifeSetup);
-            BindPersistentButton(continueCurrentLife, HideNewLifeSetup);
-            BindPersistentButton(createNewLife, CreateLifeFromSetup);
+            BindPersistentButton(cancelNewLife, HideNewLifeSetup, StimShellModal.NewLife);
+            BindPersistentButton(continueCurrentLife, HideNewLifeSetup, StimShellModal.NewLife);
+            BindPersistentButton(createNewLife, CreateLifeFromSetup, StimShellModal.NewLife);
         }
 
-        private void BindPersistentButton(Button button, Action callback)
+        private void BindPersistentButton(
+            Button button, Action callback, StimShellModal owningModal = StimShellModal.None)
         {
             if (button == null || callback == null) return;
-            button.clicked -= callback;
-            button.clicked += callback;
-            persistentButtonBindings.Add(new PersistentButtonBinding(button, callback));
+            Action guardedCallback = () => shellBinder?.TryRunAction(callback, owningModal);
+            button.clicked += guardedCallback;
+            persistentButtonBindings.Add(new PersistentButtonBinding(button, guardedCallback));
         }
 
         private void UnbindPersistentCallbacks()
@@ -694,16 +726,19 @@ namespace StimTycoon.Runtime
         private void SelectSavingsBankTab()
         {
             SetBankTab(StimBankTab.Savings);
+            PersistNavigationState();
         }
 
         private void SelectCreditBankTab()
         {
             SetBankTab(StimBankTab.Credit);
+            PersistNavigationState();
         }
 
         private void SelectInvestingBankTab()
         {
             SetBankTab(StimBankTab.Investing);
+            PersistNavigationState();
         }
 
         private void OpenNewLifeSetup()
@@ -713,7 +748,8 @@ namespace StimTycoon.Runtime
 
         private void HideNewLifeSetup()
         {
-            newLifeSetup?.AddToClassList("hidden");
+            shellBinder.CloseModal(StimShellModal.NewLife);
+            RestoreModalReturnContext();
         }
 
         private void HandleRootGeometryChanged(GeometryChangedEvent evt)
@@ -856,7 +892,7 @@ namespace StimTycoon.Runtime
                 eventBody.text = string.IsNullOrEmpty(gameSession.ActiveSave.state.career.roleTitle)
                     ? "Time moved forward and this month's life changes were applied."
                     : "Your income, expenses, and monthly stat changes were applied.";
-                eventSheet.RemoveFromClassList("hidden");
+                OpenShellModal(StimShellModal.Event);
                 eventContinue.RemoveFromClassList("hidden");
                 return;
             }
@@ -867,9 +903,20 @@ namespace StimTycoon.Runtime
         private void AdvanceYear()
         {
             if (PresentPendingEventIfAvailable()) return;
+            var previousMonths = queuedYearMonthsRemaining;
+            var previousCompletionPending = queuedYearCompletionPending;
+            var previousCompletionSummary = queuedYearCompletionSummary;
             queuedYearMonthsRemaining = 12;
             queuedYearCompletionPending = false;
             queuedYearCompletionSummary = string.Empty;
+            if (!TryPersistWorkflowState(out var persistSummary))
+            {
+                queuedYearMonthsRemaining = previousMonths;
+                queuedYearCompletionPending = previousCompletionPending;
+                queuedYearCompletionSummary = previousCompletionSummary;
+                PresentWorkflowPersistenceFailure(persistSummary, AdvanceYear);
+                return;
+            }
             ContinueQueuedYearAdvance();
         }
 
@@ -884,7 +931,7 @@ namespace StimTycoon.Runtime
                 resultEffects.text = "No changes applied";
                 resultEffects.RemoveFromClassList("hidden");
                 resultCard.RemoveFromClassList("hidden");
-                eventSheet.RemoveFromClassList("hidden");
+                OpenShellModal(StimShellModal.Event);
                 eventContinue.RemoveFromClassList("hidden");
                 return;
             }
@@ -911,6 +958,11 @@ namespace StimTycoon.Runtime
                 {
                     queuedYearCompletionPending = true;
                     queuedYearCompletionSummary = summary;
+                    if (!TryPersistWorkflowState(out var persistSummary))
+                    {
+                        PresentWorkflowPersistenceFailure(persistSummary, RetryQueuedYearCompletionPersistence);
+                        return;
+                    }
                 }
                 PresentEvent(currentEvent);
                 return;
@@ -921,6 +973,11 @@ namespace StimTycoon.Runtime
                 {
                     queuedYearCompletionPending = true;
                     queuedYearCompletionSummary = summary;
+                    if (!TryPersistWorkflowState(out var persistSummary))
+                    {
+                        PresentWorkflowPersistenceFailure(persistSummary, RetryQueuedYearCompletionPersistence);
+                        return;
+                    }
                 }
                 PresentPendingTransition();
                 return;
@@ -934,7 +991,7 @@ namespace StimTycoon.Runtime
             eventBody.text = queuedYearMonthsRemaining == 0
                 ? "Every normal monthly change was processed and autosaved in sequence."
                 : "Resolve the required choice, then Continue. The remaining months will resume automatically.";
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             eventContinue.RemoveFromClassList("hidden");
         }
 
@@ -962,7 +1019,7 @@ namespace StimTycoon.Runtime
             choices.RemoveFromClassList("hidden");
             resultCard.AddToClassList("hidden");
             eventContinue.AddToClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
         }
 
         private void AddEventChoiceButton(
@@ -1065,9 +1122,11 @@ namespace StimTycoon.Runtime
             for (var index = 0; index < 4; index++)
             {
                 var node = rootElement.Q<VisualElement>($"age-stage-{index}");
-                node?.EnableInClassList("complete", index < activeIndex);
-                node?.EnableInClassList("active", index == activeIndex);
-                node?.EnableInClassList("locked", index > activeIndex);
+                if (node == null) continue;
+                StimPresentationStateStyler.Apply(node,
+                    index == activeIndex ? StimPresentationState.Active :
+                    index > activeIndex ? StimPresentationState.Locked : StimPresentationState.Available);
+                node.EnableInClassList("complete", index < activeIndex);
             }
         }
 
@@ -1132,8 +1191,10 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformHomeAction(actionType, out var summary);
-            homeUpgradeFeedback.text = summary;
-            homeUpgradeFeedback.EnableInClassList("is-error", !succeeded);
+            StimFeedbackPresenter.ShowTransactionResult(homeUpgradeFeedback, succeeded, summary);
+            if (succeeded || !StimFeedbackPresenter.IsRetryable(summary)) retryCommands.Clear("home.last-action");
+            else retryCommands.Register("home.last-action", () => PerformHomeAction(actionType));
+            RefreshDestinationRetryButtons();
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -1144,8 +1205,10 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryUpgradeHome(out var summary);
-            homeUpgradeFeedback.text = summary;
-            homeUpgradeFeedback.EnableInClassList("is-error", !succeeded);
+            StimFeedbackPresenter.ShowTransactionResult(homeUpgradeFeedback, succeeded, summary);
+            if (succeeded || !StimFeedbackPresenter.IsRetryable(summary)) retryCommands.Clear("home.last-action");
+            else retryCommands.Register("home.last-action", PerformHomeUpgrade);
+            RefreshDestinationRetryButtons();
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -1241,7 +1304,7 @@ namespace StimTycoon.Runtime
             savingsAmountInput.Add(StimActionInputFactory.CreateAmountSelector(
                 available,
                 amount => PerformSavingsTransfer(amount),
-                () => savingsTransferFeedback.text = string.Empty,
+                () => StimFeedbackPresenter.Clear(savingsTransferFeedback),
                 depositing
                     ? "Quick deposit · percentage of available cash"
                     : "Quick withdrawal · percentage of savings",
@@ -1305,22 +1368,29 @@ namespace StimTycoon.Runtime
         private void SetSavingsTransferType(StimSavingsTransferType transferType)
         {
             savingsTransferType = transferType;
-            savingsTransferFeedback.text = string.Empty;
+            StimFeedbackPresenter.Clear(savingsTransferFeedback);
             RefreshMoney();
         }
 
         private void PerformSavingsTransfer(long amountMinorUnits)
         {
             if (PresentPendingEventIfAvailable()) return;
+            var requestedTransferType = savingsTransferType;
             var succeeded = gameSession.TryTransferSavings(
                 savingsTransferType, amountMinorUnits, out var summary);
-            savingsTransferFeedback.text = summary;
-            savingsTransferFeedback.EnableInClassList("is-error", !succeeded);
+            StimFeedbackPresenter.ShowTransactionResult(savingsTransferFeedback, succeeded, summary);
+            if (succeeded || !StimFeedbackPresenter.IsRetryable(summary)) retryCommands.Clear("bank.savings-transfer");
+            else retryCommands.Register("bank.savings-transfer", () =>
+            {
+                savingsTransferType = requestedTransferType;
+                PerformSavingsTransfer(amountMinorUnits);
+            });
+            RefreshBankRetryButtons();
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
             RefreshMoney();
-            savingsTransferFeedback.text = summary;
+            StimFeedbackPresenter.ShowTransactionResult(savingsTransferFeedback, true, summary);
         }
 
         private void RefreshMoneyTransactionHistory(StimGameState state)
@@ -1360,26 +1430,30 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryRepayHouseholdCredit(amountMinorUnits, out var summary);
-            creditRepaymentFeedback.text = summary;
-            creditRepaymentFeedback.EnableInClassList("is-error", !succeeded);
+            StimFeedbackPresenter.ShowTransactionResult(creditRepaymentFeedback, succeeded, summary);
+            if (succeeded || !StimFeedbackPresenter.IsRetryable(summary)) retryCommands.Clear("bank.credit-repayment");
+            else retryCommands.Register("bank.credit-repayment", () => PerformCreditRepayment(amountMinorUnits));
+            RefreshBankRetryButtons();
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
             RefreshMoney();
-            creditRepaymentFeedback.text = summary;
+            StimFeedbackPresenter.ShowTransactionResult(creditRepaymentFeedback, true, summary);
         }
 
         private void PerformIndexInvestment(long amountMinorUnits)
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryInvestInIndexFund(amountMinorUnits, out var summary);
-            indexInvestmentFeedback.text = summary;
-            indexInvestmentFeedback.EnableInClassList("is-error", !succeeded);
+            StimFeedbackPresenter.ShowTransactionResult(indexInvestmentFeedback, succeeded, summary);
+            if (succeeded || !StimFeedbackPresenter.IsRetryable(summary)) retryCommands.Clear("bank.index-investment");
+            else retryCommands.Register("bank.index-investment", () => PerformIndexInvestment(amountMinorUnits));
+            RefreshBankRetryButtons();
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
             RefreshMoney();
-            indexInvestmentFeedback.text = summary;
+            StimFeedbackPresenter.ShowTransactionResult(indexInvestmentFeedback, true, summary);
         }
 
         private void RefreshAchievements()
@@ -1463,17 +1537,55 @@ namespace StimTycoon.Runtime
         private void RefreshEducation()
         {
             var state = gameSession.ActiveSave.state;
-            var enrolled = state.character.age >= 6 && state.character.age < 18;
+            var education = state.education;
+            var educationAvailable = education != null;
+            var leftSchool = education?.stage == "left_school" || education?.schoolPath == "left_school";
+            var enrolled = educationAvailable && !leftSchool &&
+                           state.character.age >= 6 && state.character.age < 18;
             educationEmptyState.EnableInClassList("hidden", enrolled);
             educationCard.EnableInClassList("hidden", !enrolled);
             educationCatalog.EnableInClassList("hidden", !enrolled || state.character.age < 14);
             if (!enrolled)
             {
-                educationUnavailableCopy.text = state.character.age < 6
-                    ? "Formal school actions begin at age 6. Childhood choices still shape future learning."
-                    : "This life has no active school enrollment. Completed education remains part of the saved life state.";
+                if (!educationAvailable)
+                {
+                    educationUnavailableCopy.text =
+                        "Education state is unavailable. Reload this life or restore a valid save before studying.";
+                    StimPresentationStateStyler.Apply(educationEmptyState, StimPresentationState.Error);
+                }
+                else if (leftSchool)
+                {
+                    educationUnavailableCopy.text =
+                        "School was left before graduation. Completed learning remains saved, while qualification-gated paths stay locked.";
+                    StimPresentationStateStyler.Apply(educationEmptyState, StimPresentationState.Terminal);
+                }
+                else if (state.character.age < 6)
+                {
+                    educationUnavailableCopy.text =
+                        "Formal school actions begin at age 6. Childhood choices still shape future learning.";
+                    StimPresentationStateStyler.Apply(educationEmptyState, StimPresentationState.Locked);
+                }
+                else if (education.graduatedSecondary || education.stage == "completed_secondary")
+                {
+                    var qualificationXp = Math.Max(0, education.qualificationExperience);
+                    var track = string.IsNullOrEmpty(education.studyTrack)
+                        ? "No specialist track"
+                        : $"{ToDisplayName(education.studyTrack)} track";
+                    educationUnavailableCopy.text =
+                        $"Secondary education completed · {track} · " +
+                        $"{StimEducationActionService.GetQualificationTier(qualificationXp)} · {qualificationXp} qualification XP.";
+                    StimPresentationStateStyler.Apply(educationEmptyState, StimPresentationState.Claimed);
+                }
+                else
+                {
+                    educationUnavailableCopy.text =
+                        "This life has no active school enrollment. Completed learning remains part of the saved life state.";
+                    StimPresentationStateStyler.Apply(educationEmptyState, StimPresentationState.Empty);
+                }
                 return;
             }
+
+            StimPresentationStateStyler.Apply(educationCard, StimPresentationState.Active);
 
             RefreshEducationCatalog(state);
 
@@ -1605,7 +1717,7 @@ namespace StimTycoon.Runtime
                 $"study-{trackId}", "🎓", disciplineName,
                 $"{track} Track · {consequence} · {materialText}", trailing, affordable || selected, onOpen);
             row.AddToClassList("st-education-catalog-row");
-            row.EnableInClassList("selected", selected);
+            if (selected) StimPresentationStateStyler.Apply(row, StimPresentationState.Selected);
             educationCatalogList.Add(row);
         }
 
@@ -1615,7 +1727,8 @@ namespace StimTycoon.Runtime
                              gameSession.ActiveSave.state.finances.cashMinorUnits >= costMinorUnits;
             var card = new VisualElement { name = $"study-track-card-{track.ToString().ToLowerInvariant()}" };
             card.AddToClassList("st-action-card");
-            card.EnableInClassList("locked", !affordable);
+            StimPresentationStateStyler.Apply(card,
+                affordable ? StimPresentationState.Available : StimPresentationState.Locked);
 
             var discipline = StimEducationDisciplineCatalog.GetForTrack(track);
             var title = new Label(discipline == null
@@ -1707,7 +1820,8 @@ namespace StimTycoon.Runtime
             badge.AddToClassList("st-qualification-badge");
             badge.EnableInClassList("earned", earned);
             badge.EnableInClassList("current", current);
-            badge.EnableInClassList("locked", !earned);
+            StimPresentationStateStyler.Apply(badge,
+                earned ? StimPresentationState.Claimed : StimPresentationState.Locked);
             badges.Add(badge);
         }
 
@@ -1718,6 +1832,13 @@ namespace StimTycoon.Runtime
             if (definition == null) return;
             selectedStudyDifficulty = difficulty;
             selectedStudyDefinition = definition;
+            if (!TryPersistWorkflowState(out var persistSummary))
+            {
+                selectedStudyDefinition = null;
+                PresentWorkflowPersistenceFailure(
+                    persistSummary, () => ShowStudySessionSheet(difficulty, definition));
+                return;
+            }
             studySessionTitle.text = definition.title;
             studySessionDescription.text = definition.description;
             studySessionEffects.text = definition.previews == null || definition.previews.Count == 0
@@ -1727,24 +1848,44 @@ namespace StimTycoon.Runtime
             studySessionTiming.text = definition.cooldownMonths > 0
                 ? $"{definition.durationSeconds} seconds · Uses this month's school action · Available again after advancing a month"
                 : "No monthly cooldown";
-            studySessionRequirement.text = string.IsNullOrEmpty(definition.lockedReason)
-                ? "Ready to begin"
-                : definition.lockedReason;
+            StimFeedbackPresenter.Show(
+                studySessionRequirement,
+                string.IsNullOrEmpty(definition.lockedReason) ? "Ready to begin" : definition.lockedReason,
+                definition.state == StimActionState.Ready
+                    ? StimFeedbackKind.Confirmation
+                    : StimFeedbackKind.Error);
             studySessionConfirm.SetEnabled(definition.state == StimActionState.Ready);
-            studySessionSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.StudySession);
         }
 
         private void CloseStudySessionSheet()
         {
-            studySessionSheet.AddToClassList("hidden");
+            TryCloseStudySessionSheet();
+        }
+
+        private bool TryCloseStudySessionSheet()
+        {
+            var previousDefinition = selectedStudyDefinition;
             selectedStudyDefinition = null;
+            if (!TryPersistWorkflowState(out var persistSummary))
+            {
+                selectedStudyDefinition = previousDefinition;
+                StimFeedbackPresenter.Show(
+                    studySessionRequirement,
+                    $"{persistSummary} The confirmation remains open; retry Cancel.",
+                    StimFeedbackKind.Error);
+                return false;
+            }
+            shellBinder.CloseModal(StimShellModal.StudySession);
+            RestoreModalReturnContext();
+            return true;
         }
 
         private void ConfirmSelectedStudySession()
         {
             if (selectedStudyDefinition == null) return;
             var difficulty = selectedStudyDifficulty;
-            CloseStudySessionSheet();
+            if (!TryCloseStudySessionSheet()) return;
             StartTimedStudySession(difficulty);
         }
 
@@ -1764,7 +1905,7 @@ namespace StimTycoon.Runtime
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshEducation();
             RefreshHeader();
@@ -1815,7 +1956,7 @@ namespace StimTycoon.Runtime
             resultText.text = summary;
             resultCard.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshEducation();
             RefreshHeader();
@@ -1837,7 +1978,7 @@ namespace StimTycoon.Runtime
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -1858,7 +1999,7 @@ namespace StimTycoon.Runtime
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -1879,7 +2020,7 @@ namespace StimTycoon.Runtime
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -1902,13 +2043,13 @@ namespace StimTycoon.Runtime
             endingSummary.text = StimGameSessionService.BuildFinalLifeSummary(save);
             advanceMonth.SetEnabled(false);
             advanceYear.SetEnabled(false);
-            eventSheet.AddToClassList("hidden");
-            finalLifeSummary.RemoveFromClassList("hidden");
+            shellBinder.CloseModal(StimShellModal.Event);
+            OpenShellModal(StimShellModal.FinalLifeSummary);
         }
 
         private void OpenNewLifeFromEnding()
         {
-            finalLifeSummary.AddToClassList("hidden");
+            shellBinder.CloseModal(StimShellModal.FinalLifeSummary);
             ShowNewLifeSetup(false, true);
         }
 
@@ -2127,7 +2268,7 @@ namespace StimTycoon.Runtime
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -2152,7 +2293,7 @@ namespace StimTycoon.Runtime
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -2229,6 +2370,14 @@ namespace StimTycoon.Runtime
 
         private void CloseEventSheet()
         {
+            if (workflowPersistenceRetry != null)
+            {
+                var retry = workflowPersistenceRetry;
+                workflowPersistenceRetry = null;
+                eventContinue.text = "Continue";
+                retry();
+                return;
+            }
             if (!string.IsNullOrEmpty(presentedTransitionId))
             {
                 gameSession.TryAcknowledgeTransition(presentedTransitionId, out _);
@@ -2261,7 +2410,7 @@ namespace StimTycoon.Runtime
             if (queuedYearMonthsRemaining > 0 &&
                 !string.IsNullOrEmpty(gameSession.ActiveSave.state.education?.awaitingDecisionId))
             {
-                eventSheet.AddToClassList("hidden");
+                shellBinder.CloseModal(StimShellModal.Event);
                 resultCard.AddToClassList("hidden");
                 eventContinue.AddToClassList("hidden");
                 ShowEducationDestination();
@@ -2277,26 +2426,57 @@ namespace StimTycoon.Runtime
                 PresentQueuedYearCompletion();
                 return;
             }
-            eventSheet.AddToClassList("hidden");
+            shellBinder.CloseModal(StimShellModal.Event);
             resultCard.AddToClassList("hidden");
             eventContinue.AddToClassList("hidden");
+            RestoreModalReturnContext();
         }
 
         private void PresentQueuedYearCompletion()
         {
+            var completionSummary = queuedYearCompletionSummary;
             queuedYearCompletionPending = false;
+            queuedYearMonthsRemaining = 0;
+            queuedYearCompletionSummary = string.Empty;
+            if (!TryPersistWorkflowState(out var persistSummary))
+            {
+                queuedYearCompletionPending = true;
+                queuedYearCompletionSummary = completionSummary;
+                PresentWorkflowPersistenceFailure(persistSummary, PresentQueuedYearCompletion);
+                return;
+            }
             eventCategory.text = "YEAR SUMMARY";
             eventTitle.text = "A full year moved forward";
             eventBody.text = "Every normal monthly change was processed and autosaved in sequence.";
-            resultText.text = queuedYearCompletionSummary;
+            resultText.text = completionSummary;
             resultEffects.text = "12 of 12 monthly transactions committed";
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             resultEffects.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             RefreshHeader();
             RefreshFeed();
+        }
+
+        private void RetryQueuedYearCompletionPersistence()
+        {
+            if (!TryPersistWorkflowState(out var persistSummary))
+            {
+                PresentWorkflowPersistenceFailure(persistSummary, RetryQueuedYearCompletionPersistence);
+                return;
+            }
+            if (currentEvent != null)
+            {
+                PresentEvent(currentEvent);
+                return;
+            }
+            if (gameSession.GetPendingTransition() != null)
+            {
+                PresentPendingTransition();
+                return;
+            }
+            PresentQueuedYearCompletion();
         }
 
         private void PresentPendingTransition()
@@ -2314,7 +2494,7 @@ namespace StimTycoon.Runtime
             resultCard.RemoveFromClassList("hidden");
             resultEffects.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
         }
 
         private void PresentFirstLifeOrientation()
@@ -2331,7 +2511,7 @@ namespace StimTycoon.Runtime
             resultCard.RemoveFromClassList("hidden");
             resultEffects.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
         }
 
         private void PerformActivity(StimActivityType activityType)
@@ -2349,7 +2529,7 @@ namespace StimTycoon.Runtime
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             if (succeeded)
             {
                 RefreshHeader();
@@ -2428,11 +2608,12 @@ namespace StimTycoon.Runtime
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             eventContinue.AddToClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             return true;
         }
 
-        private void NavigateTo(StimDestination destination, bool restoreScroll = true)
+        private void NavigateTo(
+            StimDestination destination, bool restoreScroll = true, bool persistState = true)
         {
             if (lifeSummaryView != null && lifeSummaryView.ClassListContains("hidden") &&
                 activeDestination != destination)
@@ -2443,45 +2624,7 @@ namespace StimTycoon.Runtime
             }
 
             activeDestination = destination;
-            VisualElement selectedView;
-            Button selectedButton;
-            switch (destination)
-            {
-                case StimDestination.Study:
-                    selectedView = educationView;
-                    selectedButton = navEducation;
-                    break;
-                case StimDestination.Work:
-                    selectedView = careerView;
-                    selectedButton = navCareer;
-                    break;
-                case StimDestination.Bank:
-                    selectedView = moneyView;
-                    selectedButton = navMoney;
-                    break;
-                case StimDestination.Social:
-                    selectedView = socialView;
-                    selectedButton = navSocial;
-                    break;
-                case StimDestination.Goals:
-                    selectedView = goalsView;
-                    selectedButton = navGoals;
-                    break;
-                default:
-                    selectedView = lifeScroll;
-                    selectedButton = navLife;
-                    break;
-            }
-
-            foreach (var view in new VisualElement[]
-                     { lifeScroll, educationView, careerView, moneyView, socialView, goalsView, lifeSummaryView })
-                view.EnableInClassList("hidden", view != selectedView);
-
-            foreach (var button in new[]
-                     { navLife, navEducation, navCareer, navMoney, navSocial, navGoals })
-                button.EnableInClassList("active", button == selectedButton);
-
-            timeDock.EnableInClassList("hidden", destination != StimDestination.Life);
+            var selectedView = shellBinder.RenderDestination(destination);
 
             if (selectedView is ScrollView selectedScroll)
             {
@@ -2492,6 +2635,7 @@ namespace StimTycoon.Runtime
                 // Apply once more after display/content rebuild, when the final scroll range is known.
                 selectedScroll.schedule.Execute(() => selectedScroll.scrollOffset = targetOffset);
             }
+            if (persistState) PersistNavigationState();
         }
 
         private void ShowLifeSummary()
@@ -2501,12 +2645,7 @@ namespace StimTycoon.Runtime
             destinationScrollOffsets[activeDestination] = previousView.scrollOffset;
             RefreshHeader();
 
-            foreach (var view in new VisualElement[]
-                     { lifeScroll, educationView, careerView, moneyView, socialView, goalsView })
-                view.AddToClassList("hidden");
-
-            lifeSummaryView.RemoveFromClassList("hidden");
-            timeDock.AddToClassList("hidden");
+            shellBinder.RenderLifeSummary();
             lifeSummaryView.schedule.Execute(() => lifeSummaryView.scrollOffset = Vector2.zero);
         }
 
@@ -2532,15 +2671,16 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformManualWorkTap(out _, out var summary);
-            manualWorkFeedback.text = summary;
+            StimFeedbackPresenter.ShowTransactionResult(manualWorkFeedback, succeeded, summary);
+            if (succeeded || !StimFeedbackPresenter.IsRetryable(summary)) retryCommands.Clear("work.manual");
+            else retryCommands.Register("work.manual", PerformManualWorkTap);
+            RefreshDestinationRetryButtons();
             if (!succeeded)
             {
-                manualWorkFeedback.AddToClassList("is-error");
                 RefreshMoney();
                 return;
             }
 
-            manualWorkFeedback.RemoveFromClassList("is-error");
             RefreshHeader();
             RefreshFeed();
         }
@@ -2550,6 +2690,7 @@ namespace StimTycoon.Runtime
             selectedRelationshipId = null;
             relationshipDetailView.AddToClassList("hidden");
             relationshipListView.RemoveFromClassList("hidden");
+            PersistNavigationState();
         }
 
         private void RefreshSocial()
@@ -2584,7 +2725,7 @@ namespace StimTycoon.Runtime
             }
         }
 
-        private void ShowRelationshipDetail(string relationshipId)
+        private void ShowRelationshipDetail(string relationshipId, bool persistState = true)
         {
             var relationship = gameSession.ActiveSave.state.relationships.Find(
                 candidate => candidate != null && candidate.relationshipId == relationshipId);
@@ -2612,14 +2753,17 @@ namespace StimTycoon.Runtime
                           ? "Connected this month."
                           : $"{relationship.monthsSinceInteraction} months since focused time together.");
             BuildRelationshipActions(relationship);
+            if (persistState) PersistNavigationState();
         }
 
         private void DiscoverCompatiblePerson()
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryDiscoverCompatiblePerson(out var relationshipId, out var summary);
-            relationshipDiscoveryFeedback.text = summary;
-            relationshipDiscoveryFeedback.EnableInClassList("is-error", !succeeded);
+            StimFeedbackPresenter.ShowTransactionResult(relationshipDiscoveryFeedback, succeeded, summary);
+            if (succeeded || !StimFeedbackPresenter.IsRetryable(summary)) retryCommands.Clear("social.discovery");
+            else retryCommands.Register("social.discovery", DiscoverCompatiblePerson);
+            RefreshDestinationRetryButtons();
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -2737,7 +2881,7 @@ namespace StimTycoon.Runtime
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -2785,7 +2929,7 @@ namespace StimTycoon.Runtime
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -2811,7 +2955,7 @@ namespace StimTycoon.Runtime
             choices.AddToClassList("hidden");
             resultCard.RemoveFromClassList("hidden");
             eventContinue.RemoveFromClassList("hidden");
-            eventSheet.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
             RefreshFeed();
@@ -2821,7 +2965,7 @@ namespace StimTycoon.Runtime
 
         private void ShowNewLifeSetup(bool canContinue, bool canCancel)
         {
-            newLifeError.AddToClassList("hidden");
+            StimFeedbackPresenter.Clear(newLifeError);
             continueCurrentLife.EnableInClassList("hidden", !canContinue);
             cancelNewLife.EnableInClassList("hidden", !canCancel);
             if (canContinue && gameSession.ActiveSave != null)
@@ -2831,7 +2975,7 @@ namespace StimTycoon.Runtime
                     ? "CONTINUE CURRENT LIFE  ›"
                     : $"CONTINUE {firstName.ToUpperInvariant()}'S LIFE  ›";
             }
-            newLifeSetup.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.NewLife);
         }
 
         private void CreateLifeFromSetup()
@@ -2851,11 +2995,11 @@ namespace StimTycoon.Runtime
                 }
 
                 currentEvent = null;
-                finalLifeSummary.AddToClassList("hidden");
+                shellBinder.CloseModal(StimShellModal.FinalLifeSummary);
                 advanceMonth.SetEnabled(true);
                 advanceYear.SetEnabled(true);
-                newLifeSetup.AddToClassList("hidden");
-                eventSheet.AddToClassList("hidden");
+                shellBinder.CloseModal(StimShellModal.NewLife);
+                shellBinder.CloseModal(StimShellModal.Event);
                 choices.AddToClassList("hidden");
                 advanceMonth.RemoveFromClassList("hidden");
                 RefreshHeader();
@@ -2872,8 +3016,149 @@ namespace StimTycoon.Runtime
 
         private void ShowNewLifeError(string message)
         {
-            newLifeError.text = message;
-            newLifeError.RemoveFromClassList("hidden");
+            StimFeedbackPresenter.Show(newLifeError, message, StimFeedbackKind.Error, true);
+        }
+
+        internal bool TryRetryCommand(string commandId) => retryCommands.TryExecute(commandId);
+
+        private void OpenShellModal(StimShellModal modal)
+        {
+            shellBinder.CaptureModalReturnContext(
+                activeDestination == StimDestination.Bank ? selectedBankTab.ToString() : string.Empty,
+                activeDestination == StimDestination.Social ? selectedRelationshipId : string.Empty);
+            shellBinder.OpenModal(modal);
+        }
+
+        private void RestoreModalReturnContext()
+        {
+            var destination = shellBinder.ModalReturnDestination;
+            NavigateTo(destination);
+            if (destination == StimDestination.Bank &&
+                Enum.TryParse(shellBinder.ModalReturnTabId, out StimBankTab bankTab))
+            {
+                SetBankTab(bankTab);
+            }
+            else if (destination == StimDestination.Social)
+            {
+                var relationshipId = shellBinder.ModalReturnEntityId;
+                var relationshipExists = !string.IsNullOrEmpty(relationshipId) &&
+                    gameSession?.ActiveSave?.state?.relationships?.Exists(
+                        relationship => relationship?.relationshipId == relationshipId) == true;
+                if (relationshipExists) ShowRelationshipDetail(relationshipId);
+                else ShowRelationshipList();
+            }
+        }
+
+        private void RefreshBankRetryButtons()
+        {
+            savingsTransferRetry?.EnableInClassList("hidden", !retryCommands.IsAvailable("bank.savings-transfer"));
+            creditRepaymentRetry?.EnableInClassList("hidden", !retryCommands.IsAvailable("bank.credit-repayment"));
+            indexInvestmentRetry?.EnableInClassList("hidden", !retryCommands.IsAvailable("bank.index-investment"));
+        }
+
+        private void RefreshDestinationRetryButtons()
+        {
+            homeActionRetry?.EnableInClassList("hidden", !retryCommands.IsAvailable("home.last-action"));
+            manualWorkRetry?.EnableInClassList("hidden", !retryCommands.IsAvailable("work.manual"));
+            relationshipDiscoveryRetry?.EnableInClassList("hidden", !retryCommands.IsAvailable("social.discovery"));
+        }
+
+        private void RestorePersistedWorkflowState()
+        {
+            var workflow = gameSession?.ActiveSave?.state?.uiWorkflow;
+            queuedYearMonthsRemaining = Math.Max(0, Math.Min(12, workflow?.queuedYearMonthsRemaining ?? 0));
+            queuedYearCompletionPending = workflow?.queuedYearCompletionPending ?? false;
+            queuedYearCompletionSummary = workflow?.queuedYearCompletionSummary ?? string.Empty;
+        }
+
+        private void RestorePersistedNavigationState()
+        {
+            var navigation = gameSession?.ActiveSave?.state?.uiWorkflow;
+            if (navigation == null ||
+                !Enum.TryParse(navigation.activeDestination, out StimDestination destination))
+                return;
+
+            if (destination == StimDestination.Bank &&
+                Enum.TryParse(navigation.selectedTabId, out StimBankTab bankTab))
+                SetBankTab(bankTab);
+
+            var offset = new Vector2(
+                Math.Max(0f, navigation.activeScrollX),
+                Math.Max(0f, navigation.activeScrollY));
+            destinationScrollOffsets[destination] = offset;
+            NavigateTo(destination, persistState: false);
+
+            if (destination != StimDestination.Social || string.IsNullOrEmpty(navigation.selectedEntityId))
+                return;
+            var relationshipExists = gameSession.ActiveSave.state.relationships?.Exists(
+                relationship => relationship?.relationshipId == navigation.selectedEntityId) == true;
+            if (relationshipExists)
+                ShowRelationshipDetail(navigation.selectedEntityId, persistState: false);
+        }
+
+        private void PersistNavigationState()
+        {
+            if (gameSession?.ActiveSave == null) return;
+            var activeView = GetDestinationView(activeDestination);
+            var scrollOffset = activeView?.scrollOffset ?? Vector2.zero;
+            gameSession.TryPersistUiNavigation(
+                activeDestination.ToString(),
+                activeDestination == StimDestination.Bank ? selectedBankTab.ToString() : string.Empty,
+                activeDestination == StimDestination.Social ? selectedRelationshipId : string.Empty,
+                scrollOffset.x,
+                scrollOffset.y,
+                out _);
+        }
+
+        private bool TryPersistWorkflowState(out string summary)
+        {
+            if (gameSession?.ActiveSave == null)
+            {
+                summary = "No active save is loaded.";
+                return false;
+            }
+            return gameSession.TryPersistUiWorkflow(
+                queuedYearMonthsRemaining,
+                queuedYearCompletionPending,
+                queuedYearCompletionSummary,
+                selectedStudyDefinition == null ? string.Empty : selectedStudyDifficulty.ToString(),
+                selectedStudyDefinition?.id,
+                out summary);
+        }
+
+        private void PresentWorkflowPersistenceFailure(string summary, Action retry)
+        {
+            workflowPersistenceRetry = retry;
+            choices.AddToClassList("hidden");
+            eventCategory.text = "SAVE REQUIRED";
+            eventTitle.text = "Progress could not be saved";
+            eventBody.text = "No further workflow steps will run until this save succeeds.";
+            resultText.text = string.IsNullOrEmpty(summary) ? "The save transaction was rolled back." : summary;
+            resultEffects.text = "No workflow progress applied · Retry is safe";
+            resultCard.RemoveFromClassList("hidden");
+            resultEffects.RemoveFromClassList("hidden");
+            eventContinue.text = "RETRY SAVE";
+            eventContinue.RemoveFromClassList("hidden");
+            OpenShellModal(StimShellModal.Event);
+        }
+
+        private bool TryPresentPersistedStudyConfirmation()
+        {
+            var workflow = gameSession?.ActiveSave?.state?.uiWorkflow;
+            if (workflow == null || string.IsNullOrEmpty(workflow.pendingStudyActionId) ||
+                !Enum.TryParse(workflow.pendingStudyDifficulty, out StimStudyDifficulty difficulty))
+                return false;
+            StimActionDefinition definition = null;
+            foreach (var candidate in gameSession.GetStudySessionDefinitions())
+                if (candidate?.id == workflow.pendingStudyActionId)
+                {
+                    definition = candidate;
+                    break;
+                }
+            if (definition == null) return false;
+            ShowEducationDestination();
+            ShowStudySessionSheet(difficulty, definition);
+            return true;
         }
 
         private static string FormatMoney(long minorUnits)

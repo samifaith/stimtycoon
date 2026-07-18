@@ -137,15 +137,15 @@ validation → commit/rollback → Life Feed
 - [x] Create an explicit binding manifest grouped by Shell/Life/Study/Work/Bank/Social/Goals/modal ownership.
 - [ ] Replace source-text regex checks with behavior tests where practical; retain structural tests for UXML/USS ownership.
 - [x] Extract shared header, navigation, safe-area geometry, and time-control callback ownership into the Shell binder.
-- [ ] Complete the Shell binder by moving global modal arbitration and shell view-state rendering out of the vertical-slice controller.
+- [x] Complete the Shell binder by moving global modal arbitration and shell view-state rendering out of the vertical-slice controller; shell navigation and time actions are rejected while a blocking modal is active.
 
 ### W1 — Shared UI state machine
 
-- [ ] Implement common `available`, `locked`, `disabled`, `selected`, `active`, `cooldown`, `claimable`, `claimed`, `empty`, `loading`, `error`, and `offline` presentation helpers.
-- [ ] Centralize pending-event/transition/modal arbitration so actions cannot mutate behind a blocking decision.
-- [ ] Persist or safely reconstruct multi-step controller workflows such as resumable Advance Year after reload.
-- [ ] Add uniform confirmation, save-failure/rollback, retry, and return-context behavior.
-- [ ] Add navigation/deep-link state for `Go` actions, selected entity, tab, and scroll restoration.
+- [x] Implement common `available`, `locked`, `disabled`, `selected`, `active`, `cooldown`, `claimable`, `claimed`, `empty`, `loading`, `error`, `offline`, and `terminal` presentation helpers; action cards, achievement rows, path rows, and feedback use the shared vocabulary.
+- [x] Centralize pending-event/transition/modal arbitration so shell and destination actions cannot mutate behind a blocking decision; only callbacks owned by the active modal may run until it is resolved.
+- [x] Persist or safely reconstruct multi-step controller workflows: queued Advance Year remaining months/completion state and pending Study confirmation now live in additive save state, autosave transactionally, migrate safely, and reconstruct after reload.
+- [x] Add uniform confirmation, save-failure/rollback, retry, and return-context behavior. Bank, Home, Social discovery, and manual work expose duplicate-safe retries; irreversible terminal failures suppress retry commands; modal closes restore exact workspace context; and Advance Year/Study workflow persistence failures stop progression, retain or roll back local state, and expose safe retry behavior.
+- [x] Add reload-safe navigation/deep-link state for `Go` actions and ordinary navigation, including active destination, selected Bank tab, selected Social entity, and active-destination scroll restoration with stale-value validation.
 
 ### W2 — Authored content wiring
 

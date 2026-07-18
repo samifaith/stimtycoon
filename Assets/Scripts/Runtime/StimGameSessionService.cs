@@ -895,6 +895,59 @@ namespace StimTycoon.Runtime
                 12, "Twelve months completed.", out monthsProcessed, out nextEvent, out summary);
         }
 
+        public bool TryPersistUiWorkflow(
+            int queuedYearMonthsRemaining,
+            bool completionPending,
+            string completionSummary,
+            string pendingStudyDifficulty,
+            string pendingStudyActionId,
+            out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate =>
+                {
+                    candidate.state.uiWorkflow ??= new StimUiWorkflowState();
+                    candidate.state.uiWorkflow.queuedYearMonthsRemaining =
+                        Math.Max(0, Math.Min(12, queuedYearMonthsRemaining));
+                    candidate.state.uiWorkflow.queuedYearCompletionPending = completionPending;
+                    candidate.state.uiWorkflow.queuedYearCompletionSummary = completionSummary ?? string.Empty;
+                    candidate.state.uiWorkflow.pendingStudyDifficulty = pendingStudyDifficulty ?? string.Empty;
+                    candidate.state.uiWorkflow.pendingStudyActionId = pendingStudyActionId ?? string.Empty;
+                    return StimTransactionMutationResult.Success("UI workflow saved.");
+                },
+                out var committed,
+                out summary);
+            if (succeeded) ActiveSave = committed;
+            return succeeded;
+        }
+
+        public bool TryPersistUiNavigation(
+            string activeDestination,
+            string selectedTabId,
+            string selectedEntityId,
+            float activeScrollX,
+            float activeScrollY,
+            out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate =>
+                {
+                    candidate.state.uiWorkflow ??= new StimUiWorkflowState();
+                    candidate.state.uiWorkflow.activeDestination = activeDestination ?? string.Empty;
+                    candidate.state.uiWorkflow.selectedTabId = selectedTabId ?? string.Empty;
+                    candidate.state.uiWorkflow.selectedEntityId = selectedEntityId ?? string.Empty;
+                    candidate.state.uiWorkflow.activeScrollX = Math.Max(0f, activeScrollX);
+                    candidate.state.uiWorkflow.activeScrollY = Math.Max(0f, activeScrollY);
+                    return StimTransactionMutationResult.Success("UI navigation saved.");
+                },
+                out var committed,
+                out summary);
+            if (succeeded) ActiveSave = committed;
+            return succeeded;
+        }
+
         public bool TryAdvanceMonths(
             int maximumMonths,
             out int monthsProcessed,
@@ -935,8 +988,13 @@ namespace StimTycoon.Runtime
             var startingCash = ActiveSave.state.finances?.cashMinorUnits ?? 0L;
             for (var month = 0; month < maximumMonths; month++)
             {
+                var workflow = ActiveSave.state.uiWorkflow;
+                var queuedBeforeMonth = workflow?.queuedYearMonthsRemaining ?? 0;
+                if (workflow != null && queuedBeforeMonth > 0)
+                    workflow.queuedYearMonthsRemaining = queuedBeforeMonth - 1;
                 if (!TryAdvanceMonth(out nextEvent, out var monthlySummary))
                 {
+                    if (workflow != null) workflow.queuedYearMonthsRemaining = queuedBeforeMonth;
                     summary = monthsProcessed == 0
                         ? monthlySummary
                         : BuildAdvanceYearSummary(

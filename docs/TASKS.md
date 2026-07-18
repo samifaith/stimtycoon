@@ -1,6 +1,6 @@
 # Stim Tycoon — Completion Plan
 
-This is the operational roadmap after the July 16, 2026 code/documentation audit. Milestones 1–12 and the M14 Bank/Education implementation are in place; M13 retains physical-layout gates and M15 is the next implementation milestone. The master README remains the product definition. `REFERENCE_UI_GAP_ANALYSIS.md` is the detailed, deduplicated screen/component/behavior/branch-state comparison behind the task IDs used here.
+This is the operational roadmap after the July 17, 2026 code/documentation audit. Milestones 1–12 and the M14 Bank/Education implementation are in place. The M13 disabled premium/paid-reward presentation scaffold is implemented and awaits a clean Unity verification run; shell view state, modal arbitration, and physical-layout gates are next, and M15 begins after those gates. The master README remains the product definition. `REFERENCE_UI_GAP_ANALYSIS.md` is the detailed, deduplicated screen/component/behavior/branch-state comparison behind the task IDs used here.
 
 ## Current position
 
@@ -15,12 +15,14 @@ This is the operational roadmap after the July 16, 2026 code/documentation audit
 - [x] Clean headless result: 679 / 679 EditMode and 3 / 3 production-scene PlayMode smoke test cases passed on July 17, 2026
 - [ ] M13 exit verification — 320/390/430/768 widths, 100%/130% text, safe areas, touch targets, and live Play Mode visual approval
 
+**July 17 audit note:** treat 679/3 as a recorded baseline rather than a continuously proven green state until a fresh local or remote run produces retained NUnit evidence. The latest local headless attempt was blocked during Unity licensing/package entitlement recovery. The audit also confirmed that the offline systems are broad and real, while destination convergence, staged-content wiring, Life Feed/event-history archival, controller/session decomposition, device validation, and production services remain incomplete.
+
 ## Parallel ownership and immediate wiring track
 
 The frontend owner controls UXML/USS/art/responsive presentation and runtime screenshots. The wiring owner controls stable named-element contracts, binders/view state, callbacks, domain/application services, age and requirement behavior, persistence/rollback, Yarn/catalog parity, accessibility semantics, and automated tests. Follow `FRONTEND_WIRING_WORKFLOW.md`; do not move gameplay rules into UXML/USS or rename bound elements without a coordinated contract change.
 
 - [x] W0 — use one canonical launch catalog in the playable controller; compact large header money values while preserving exact accessible values.
-- [ ] W0 — grouped binding manifest plus header/navigation/safe-area/time-control Shell binder are live; finish shell view-state rendering, global modal arbitration, and behavior-first lifecycle coverage before destination binders.
+- [x] W0 — grouped binding manifest plus header/navigation/safe-area/time-control Shell binder are live; destination rendering and global modal arbitration now sit behind the binder, shell actions are blocked behind modals, and behavior coverage protects the lifecycle seam.
 - [ ] W1 — implement the shared visual state machine, modal arbitration, confirmation/error/retry behavior, and reload-safe multi-step workflows.
 - [ ] W2 — wire the 100 staged Childhood/School/Career/Health/Money Yarn nodes to validated C# event definitions and add Yarn-to-catalog event/choice parity tests before random selection.
 - [ ] W3 — wire destination slices in this order: Shell → Life → Home/Social → Work → Goals → reusable mini-games → Settings/services.
@@ -30,6 +32,10 @@ The frontend owner controls UXML/USS/art/responsive presentation and runtime scr
 **Objective:** turn the broad, card-heavy vertical slice into focused mobile destinations with the clarity, interaction density, and progression visibility demonstrated by the references, while retaining original Stim Tycoon visuals, content, economy, resources, and writing.
 
 ### M13 — Navigation shell and destination framework
+
+> **P0 UI priority override:** the disabled premium/paid-reward presentation scaffold shown by the approved six-destination mockups is now implemented and pending a clean Unity verification run. Presentation scaffolding does not activate purchases, ads, premium currency, subscriptions, reward multipliers, or entitlements.
+
+> **Approved premium-currency decision:** **Legacy Gems** are Stim Tycoon's single premium currency. They will be purchasable and occasionally earnable in small, bounded gameplay awards. They are whole units, remain separate from cash/net worth/debt, and may never be required for ordinary time advancement, baseline progression, event resolution, recovery, earned achievement claims, or endings. Stim Coins are retired as a reference concept; do not create a second premium currency.
 
 > **Approved component direction:** the supplied colored mobile references are the visual authority and Stim-owned UI Toolkit is the responsive component system. Free Casual GUI contributes calibrated nine-sliced SVG controls plus palette/type/progress accents, Space Exploration GUI Kit contributes pictograms, and Jelly UI Pack contributes reward marks. Vendor folders stay untouched. See `Assets/UI/Art/ASSET_MANIFEST.md`.
 
@@ -41,6 +47,22 @@ The frontend owner controls UXML/USS/art/responsive presentation and runtime scr
 
 Specification execution phases:
 
+- [x] **P0 premium presentation scaffold** — add Stim-owned premium/paid-reward icons and visibly disabled, explicitly labeled sections in the live shell: header money/store entry affordance; Study premium module; Work sponsored/rewarded module; Bank premium tools and optional reward module; Social premium module; Goals sponsored challenge, premium/season preview, and paid-reward/bonus-game preview. Nine stable COM slots now share an unavailable state and expose no price, entitlement, multiplier, transaction, or working reward.
+- [ ] Add structural and PlayMode tests proving every required premium/paid-reward slot is present, disabled, non-focus-trapping, accessibility-labeled as unavailable, omitted from baseline progression/tasks, and unable to mutate save state or invoke a vendor SDK.
+
+Required initial slot IDs:
+
+| Slot ID | Live placement | Disabled presentation role |
+|---|---|---|
+| `com.header.money_entry` | Header cash/net-worth cluster | Legacy Gem wallet/store entry icon with unavailable label |
+| `com.study.premium_module` | Study | Premium study module |
+| `com.work.rewarded_module` | Work | Sponsored/rewarded work section |
+| `com.bank.premium_tools` | Bank | Premium budgeting/tools section |
+| `com.bank.rewarded_module` | Bank | Optional paid/reward section |
+| `com.social.premium_module` | Social | Premium social section |
+| `com.goals.sponsored_challenge` | Goals | Sponsored challenge section |
+| `com.goals.season_preview` | Goals | Premium/season preview section |
+| `com.goals.bonus_game_preview` | Goals | Paid-reward/bonus-game preview section |
 - [x] Phase 1A — centralize the supplied color, spacing, radius, and compatibility tokens in `StimTheme.uss`.
 - [x] Phase 1B — establish the reusable compact player/cash header without changing its controller bindings.
 - [x] Phase 1C — rebuild six-destination navigation with licensed Lucide SVGs, icon-over-label composition, active capsules, and 44-point targets.
@@ -49,14 +71,16 @@ Specification execution phases:
 - [ ] Phase 2 — finish the custom responsive component system. `AppHeader` and `BottomNavigation` are live templates; static page composition stays in `StimVerticalSlice.uxml`; changing collections use the runtime factories. The other extracted UXML files are reviewable structure contracts until explicitly instantiated by a production screen.
 - [x] Replace temporary content-art glyphs with emoji imagery across live feed, life actions, education, career previews, goals, avatars, and reusable visual slots; retain Lucide SVGs for functional navigation.
 - [x] Add the compact four-stage age progression strip required by the Life wireframe and bind its active/completed/locked state to player age.
-- [ ] Phase 3 — add normalized original illustrations, one reusable mini-game framework with Study Match, and disabled/configurable Stim+ and sponsored placeholders.
-- [ ] Phase 4 — add Shift Match, Legacy Gems, animation, haptic/audio hooks, and final presentation polish.
+- [ ] Phase 3 — after the P0 scaffold exists, add normalized original illustrations and one reusable mini-game framework with Study Match; retain the premium/sponsored slots as disabled presentation until separately activated.
+- [ ] Phase 4 — add Shift Match, mature the Legacy Gem presentation after its wallet/economy gates, and complete animation, haptic/audio hooks, and final presentation polish.
 
 **Phase 2 wireframe contract:** the approved six-screen grayscale wireframe defines composition and density. Life uses an age strip, 4–6 compact timeline feed rows, compact stat tiles, and one aging-action row. Study and Work use progress/path modules plus one mini-game slot. Bank uses balance, quick actions, and compact accounts. Social uses compact relationship rows. Goals uses pinned goals and 48–58 point achievement rows. Monetization and mini-game areas remain labeled placeholders until their systems are implemented; they must not imply working purchases, ads, or rewards.
 
-**Commerce wireframe boundary:** Store, Stim+, rewarded-ad, and season-pass wireframes are approved as future composition references only. Do not add Stim Coins, energy, purchasable progression, subscriptions, ad rewards, prices, or purchase buttons until M18 service/product configuration and a separate economy approval define their real behavior. Before then, only disabled, explicitly labeled placeholders with stable slot IDs are allowed, and baseline progression/recovery must remain unaffected.
+**Mockup value contract:** names, ages, balances, relationship scores, stat values, XP totals, rewards, prices, and timers pictured in the references are illustrative unless a task below explicitly adopts them. Runtime values must come from the saved simulation and canonical progression standards. Do not convert the header's career-progress binding into unlabeled global player XP, use a `$120` example as a one-hour wage, grant the pictured `+10 Smarts` mini-game reward, or adopt inconsistent example Bank balances without an authored rule and seeded balance proof.
 
-**Reference-only concepts:** the alternate Home/School/Activities/City/Menu shell, per-turn action quota, `End Turn`, Stim Coins, season XP, and premium reward lanes do not replace the approved six-destination monthly loop. They require an explicit product decision before entering implementation.
+**Commerce wireframe boundary:** the placement, hierarchy, iconography roles, and disabled sections from the Store, Stim+, rewarded-ad, and season-pass wireframes are now the highest-priority M13 presentation scaffold. Legacy Gems are the approved single premium-currency identity, but their wallet transactions, purchases, grants, and spending remain disabled until the versioned economy/service work below is complete. Do not add Stim Coins, energy, subscriptions, ad rewards, prices, or enabled purchase buttons before their gates. Every inactive slot must be explicitly labeled unavailable, backed by a stable ID, and unable to affect baseline progression/recovery.
+
+**Reference-only concepts:** the alternate Home/School/Activities/City/Menu shell, per-turn action quota, `End Turn`, Stim Coins, season XP, and premium reward lanes do not replace the approved six-destination monthly loop. Legacy Gems supersede Stim Coins; season and premium-lane behavior still require their own approval and implementation gates.
 
 ### Unity Device Simulator targets
 
@@ -75,8 +99,8 @@ The native display sizes come from Apple’s published technical specifications.
 - [x] Remove the retained legacy layout imports after assigning shell, component, and destination rules to their canonical owners.
 - [x] Apply bounded Stim-owned theme-adapter surfaces to representative primary/secondary actions and reward/claim feedback without stretching large source sprites onto layout containers.
 - [x] Add structural tests that reject direct legacy stylesheet references and require the representative live vendor classes.
-- [ ] Verify the live scene in Play Mode at 320/390/430/768 widths and record results.
-- [ ] Repeat the width checks at 130% text scale and correct any clipping, overlap, or sub-44-point primary target.
+- [ ] Verify the live scene in Play Mode at 320/390/430/768 widths and record screenshots/results. An eight-case production-scene smoke test now provides an early containment and persistent-navigation target-size gate, but retained visual approval remains required.
+- [ ] Repeat the width checks at 130% text scale and correct any clipping, overlap, or sub-44-point primary target. Automated matrix coverage now verifies responsive state selection plus persistent navigation, time-control, Study-confirmation, event-continuation, and new-life target seams; destination and overlay screenshots remain open.
 - [x] Replace the retained legacy layout import with shell-, destination-, and component-owned production rules.
 
 1. Keep the imported vendor packs in their existing vendor-owned folders; place only Stim-owned derivatives, mappings, and manifest records in `Assets/UI/Art` and `Assets/UI/Icons`.
@@ -99,6 +123,7 @@ Assets/UI/
 ```
 
 - [x] Implement a safe-area-aware persistent status header for age/calendar, cash/net worth, and Stim's actual stats/resources.
+- [ ] Resolve the header XP semantic mismatch: label and bind the meter to a real contextual progression such as career or qualification progress, or define a genuine global player/legacy level before presenting it as generic XP.
 - [x] Establish six destinations with exclusive active states: Life/Home, Education, Career/Business, Bank, Social/Family, and Goals/Legacy.
 - [x] Establish the approved three-pack UI direction through a replaceable Stim-owned USS adapter and an asset/license manifest, without reorganizing vendor imports.
 - [x] Apply the imported GUI packs visibly to the live `StimVerticalSlice` UI through Stim-owned UXML/USS: Free Casual GUI supplies calibrated nine-sliced SVG controls, the responsive palette/type language, and aspect-contained progress; Space Exploration GUI Kit owns navigation/destination/information identity; Jelly UI Pack supplies aspect-contained achievement/outcome marks plus the palette for claims, qualification, and inputs. Tests reject unsliced stretching and incomplete or unapproved nine-slicing.
@@ -117,6 +142,7 @@ Assets/UI/
 - [x] Add a reusable Stim-owned visual-placeholder definition/factory with stable IDs, roles, aspect ratios, accessibility/decorative metadata, fallbacks, theme tokens, and development labeling.
 - [ ] Place the reusable visual slots into destination heroes, event art, avatars, icons, objects, badges, and backgrounds; add bounded Life Feed archival behavior.
 - [ ] Complete reference tasks LIFE-01–LIFE-07: compact signed feed rows with archive/`See all`, canonical age-strip placement, recently changed stat semantics, common action states, time-control scenario QA, `Next Up`, and a compact goal preview. LIFE-08 Settings/notification entry points remain M18 work; no action-energy quota is approved.
+- [ ] Keep age as calendar/identity state rather than a sixth mutable core stat, and retain the canonical `0–12`, `13–18`, `19–26`, and `27+` life-stage boundaries unless a separately tested progression change is approved.
 
 **Exit gate:** the live playable shell—not only mockups, manifests, imported folders, or unused style definitions—visibly renders the approved three-pack asset direction across its header, navigation, destination surfaces, controls, and reward feedback. It also passes 320/390/430/768 widths at 100% and 130% text, maintains 44-point primary targets, respects safe areas, has no navigation dead ends, and uses the approved scrollbar/scroll-affordance and shared UI-detail system in every implemented destination and overlay.
 
@@ -131,7 +157,9 @@ Assets/UI/
 - [x] Build a focused study sheet with easy/medium/hard sessions, clear benefits/costs, duration/cooldown, progress, and single-claim completion. Persisted 60/120/180-second sessions expose numeric previews, reserve the monthly action, show in-progress/claimable state in Education, withhold rewards until completion, and grant them through one transactional claim.
 - [x] Add at least three original disciplines with distinct career/event consequences using reusable content definitions. Applied Finance, Community Health, and Sustainable Trades now map to distinct career outcomes and track-gated annual education challenges.
 - [x] Apply the documented stat, skill, qualification, wealth, task-reward, and locked-requirement thresholds; add reachability and pacing tests. `StimProgressionStandards` now owns the core-stat bands, cumulative skill curve through Level 7, `50/125/250` qualification tiers, investing age/Smarts/emergency-savings boundary, `25/50/75` Finance ladder, level-scaled business progress, and Daily/Main/Life reward bands. Exact-boundary tests cover the shared contract and business locks; seeded pacing proves the easy-study route reaches Advanced within the teen window and the Finance ladder reaches Manager within two years of monthly actions.
-- [ ] Complete the remaining reference presentation/edge-state tasks without reopening the finished domain foundation: STUDY-02/03/05 path detail, session-state consistency, and graduated/no-path/error states; BANK-01/03/05/06/07 extreme/negative values, account-detail routing, debt/investment edge states, and contextual financial tips. STUDY-04 is the shared mini-game work scheduled with M16.
+- [ ] Complete the remaining reference presentation/edge-state tasks without reopening the finished domain foundation: STUDY-02/03 path detail and session-state consistency; graduated, left-school/no-path, and missing-state error presentations are now explicit. BANK-01/03/05/06/07 still needs extreme/negative values, account-detail routing, debt/investment edge states, and contextual financial tips. STUDY-04 is the shared mini-game work scheduled with M16.
+- [ ] Preserve the canonical Bank and Study values during presentation convergence: 3.50% savings APY; $10 minimum index contribution; age 18, Smarts 40, education, and emergency-savings investment gates; `50/125/250` qualification tiers; and `60/120/180`-second study sessions with `+10/+20/+35` qualification XP and bounded `+1/+1/+2` Smarts tradeoffs.
+- [ ] Treat the mockup's Checking Account as a presentation/detail route over Stim's existing cash wallet unless a separate checking product is deliberately added; Legacy Gems use a separate wallet and never enter cash, account balances, debt, or net-worth calculations.
 
 **Exit gate:** players can explain where money went, what interest/risk means, why a financial or education action is locked, and what each commitment changes.
 
@@ -139,27 +167,31 @@ Assets/UI/
 
 **Execution order:** add the bounded inventory/timer save contract first; build the room/object Home workspace on that state; then converge discovery and relationship profiles; finish with the family workspace, NPC-trigger scheduler, reload/duplicate tests, and Play Mode validation.
 
-- [ ] Build a room/object Home workspace with visible condition, improvement progress, upgrade level, and interactive reading, training, rest, maintenance, and household objects.
+- [ ] Converge the existing Home foundation into a room/object workspace with visible condition, improvement progress, upgrade level, and interactive reading, training, rest, maintenance, and household objects.
 - [ ] Add bounded books/equipment inventory with stock/capacity, active timers, offline reconciliation, consumption, and single-claim completion.
-- [ ] Do not add energy, hunger, premium currency, or countdown pressure unless separately approved as real simulation systems.
-- [ ] Build compatible-person discovery as a bounded list with deterministic persistent candidates and explicit refresh/cap behavior.
-- [ ] Build relationship profiles with warmth, stage, history, cooldowns, requirements, consent state, and available actions.
-- [ ] Surface partner, child, parenting, dependent-cost, and custody state in a family workspace.
+- [ ] Do not add energy, hunger, a second premium currency, or countdown pressure. Legacy Gems are the sole approved premium currency and cannot replace Home, relationship, inventory, or recovery requirements.
+- [ ] Converge existing compatible-person discovery into a bounded list with deterministic persistent candidates and explicit refresh/cap behavior.
+- [ ] Converge existing relationship state/actions into focused profiles with warmth, stage, history, cooldowns, requirements, consent state, and available actions.
+- [ ] Surface the implemented partner, child, parenting, dependent-cost, and custody state in a focused family workspace.
 - [ ] Complete SOCIAL-01–SOCIAL-05 terminal states: compact/filterable rows, no candidates/no match/cap/refresh, no available actions, deceased/unavailable NPC, consent/relationship-end handling, cooldown presentation, and state restoration.
+- [ ] Treat pictured people, roles, avatars, and relationship scores as display examples; populate rows only from persistent relationship IDs and saved 0–100 warmth/stage/history state.
 - [ ] Add persistent NPC event triggers with deterministic priority, timing windows, cooldowns, cancellation rules, and death/consent/role/reload coverage.
 
 **Exit gate:** every visible object/person has durable state, every action previews consequences, and reload/interruption cannot duplicate progress, inventory, relationships, or child outcomes.
 
 ### M16 — Career, Business, Goals, and transitions convergence
 
-- [ ] Build a career workspace for industries, requirements, applications/interviews, performance, promotion, retraining, firing, unemployment, and retirement.
-- [ ] Build the Local Services Co. dashboard for action points, work, revenue/expenses, staff, payroll, upgrades, locations, disruptions, valuation, failure, and sale.
-- [ ] Build Main/Daily/Life goal boards with visible progress, `Go` navigation, and transactionally claimed non-premium rewards.
+- [ ] Converge the implemented career foundation into a focused workspace for industries, requirements, applications/interviews, performance, promotion, retraining, firing, unemployment, and retirement.
+- [ ] Converge the existing operational business into a Local Services Co. dashboard for action points, work, revenue/expenses, staff, payroll, upgrades, locations, disruptions, valuation, failure, and sale.
+- [ ] Converge implemented Main/Daily/Life goals and transactional claims into focused boards with visible progress and `Go` navigation.
 - [ ] Complete WORK-01–WORK-06 and GOAL-01–GOAL-03: persistent work-path routing, manual-work states, reusable Study Match/Shift Match lifecycle, pinned-goal management, compact categorized achievements, and locked/active/claimable/claimed presentation.
+- [ ] Add one persisted reusable mini-game contract for Study Match and Shift Match with stable activity/instance ID, deterministic board seed, theme/content set, duration, start/end timestamps, score/target, reward preview, pause/reload reconciliation, timeout, success/failure, claim, replay, and cooldown state.
+- [ ] Keep manual work economically coherent: `WORK 1 HOUR` continues to pay annual salary divided by 2,080; any mockup-style `$120` action must be authored as a longer shift with explicit duration/cooldown. Standardize business ownership presentation on the implemented age-18 gate rather than the references' conflicting 18/21 labels.
+- [ ] Preserve separate Goal and Achievement objects while presenting the mockup's compact hierarchy: pinned/manageable Main/Daily/Life goals, categorized achievement rows, direct `Go`, claimable/claimed states, reset/expiry copy, and once-only transactional rewards.
 - [ ] Give birth/new life, graduation, marriage, parenthood, retirement, death, and legacy focused original presentations with concise durable consequences.
 - [ ] Ensure all Phase 2–4 systems are reachable without searching a long mixed-purpose scroll.
 - [ ] Populate age-appropriate Main/Daily/Life tasks, events, rewards, and recoverable outcomes to the per-stage minimums in the content standards.
-- [ ] Add disabled optional-ad placeholders with stable slot IDs and previews; never make ads a task, gate, baseline reward, or recovery requirement.
+- [ ] Replace the M13 disabled Work/Goals paid-reward placeholders with configured behavior only after COM approval; never make ads a task, gate, baseline reward, or recovery requirement.
 
 **Exit gate:** all major destinations are coherent playable workspaces and all completion/reward paths remain duplicate-safe and Life Feed backed.
 
@@ -174,6 +206,8 @@ Assets/UI/
 - [ ] Expand books, equipment, home upgrades, education disciplines, career roles, goals, achievement rewards, and branch-aware ending summaries.
 - [ ] Replace launch-blocking placeholder avatar, room, object, icon, font, motion, sound, and music assets; record licenses and attribution.
 - [ ] Tune constrained, middle-income, and affluent lives so no dominant strategy erases health, education, relationship, or career tradeoffs.
+- [ ] Balance every adopted mockup-like reward, wage, timer, threshold, and price against canonical progression; the pictured `$75–$250` rewards, `$1,635` balances, relationship scores, and stat totals are test fixtures/examples rather than target economy values.
+- [ ] Define and simulate the Legacy Gem earn/spend economy: bounded gameplay sources, purchase packs, transparent sinks, grant cadence, wallet caps if needed, refund/restore rules, duplicate protection, and constrained/middle-income/affluent play profiles. No source or sink may create a dominant paid progression path.
 - [ ] Run multiple seeded complete-life profiles and human comprehension/replay tests.
 
 **Exit gate:** the complete authored catalog passes automated age-boundary checks and human age-appropriateness review; lives are visibly varied, outcomes are understandable, setbacks are recoverable, content repetition is bounded, and the art/audio direction is original and cohesive.
@@ -193,11 +227,14 @@ Assets/UI/
 - [ ] Validate every scroll container with touch drag, momentum, mouse/trackpad wheel, keyboard/focus scrolling, VoiceOver, reduced motion, nested containers, and 130% text; confirm position/overflow remains perceivable without obstructing content.
 - [ ] Run every screen and overlay at 320/390/430/768 widths and 100%/130% text scale.
 - [ ] Validate migrations, corruption recovery, backup restore, downgrade behavior, bounded histories, and duplicate protection from representative old saves.
+- [ ] Add explicit Life Feed and event-history retention/archive policies with migration-safe tests; these lists are not currently bounded like money transactions, business ledger, annual reviews, relationship history, and transition records.
 - [ ] Add privacy-safe diagnostics and performance markers for save failures, event pacing, economy balance, memory, and funnels without requiring an online SDK.
 - [ ] Install on supported physical iPhones; profile save/load latency, save size, memory, safe areas, touch, thermal behavior, and complete-life stability.
 - [ ] Freeze beta save semantics, then implement Authentication, Game Center, Cloud Save and conflict fixtures before account-enabled TestFlight.
 - [ ] Configure the enabled Unity LevelPlay `9.5.0` and Unity IAP `5.4.1` packages behind Stim-owned adapters: use environment-specific app/ad-unit IDs and store product IDs, keep development builds in test mode, and define consent/ATT, privacy, age treatment, purchase restore/validation, cancellation, and offline/failure behavior. Ads and purchases must remain optional and must never gate baseline progression or recovery.
-- [ ] Keep COM-01–COM-05 inactive until separate product/economy/legal approval. If approved, implement the documented Store, Stim+, rewarded-ad, season/event, and reward-claim branches including localized product loading, restore, cancellation, failure, entitlement, expiry, offline, duplicate-callback, cooldown/cap, and age-treatment states.
+- [ ] Implement the approved Legacy Gem foundation behind additive migration: whole-unit wallet balance, append-only bounded ledger, source/sink reason codes, transaction/receipt IDs, earned-versus-purchased attribution, atomic grant/spend APIs, insufficient-balance handling, rollback, duplicate receipt/grant rejection, offline behavior, and cloud-conflict rules.
+- [ ] Keep Store products, Stim+, rewarded ads, and season/event behavior inactive until their separate product/economy/legal gates. If approved, implement localized product loading, restore, cancellation, failure, entitlement, expiry, offline, duplicate-callback, cooldown/cap, and age-treatment states using Legacy Gems as the only premium currency.
+- [ ] Introduce explicit versioned models for product catalog/localized price, entitlement and restore state, purchase transaction state, ad placement/reward/cap state, subscription expiry/grace period, season definition/XP/tracks, and duplicate-safe reward claims before enabling the corresponding commerce controls.
 - [ ] Prepare build/signing, entitlements, privacy manifest/disclosures, licenses, known issues, rollback build, tester instructions, and TestFlight checklist.
 - [ ] Resolve all critical/high defects and complete one clean physical-device birth-to-ending run.
 

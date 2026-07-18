@@ -1,7 +1,7 @@
 # Event Schema and Validator
 
 **File:** `Assets/Scripts/Domain/Events/`  
-**Status:** Phase 0 complete  
+**Status:** Schema v1 foundation complete; offline event foundation delivered; staged catalog wiring and online validation deferred
 **Version:** 1.0 (locked)
 
 ---

@@ -38,7 +38,7 @@ namespace StimTycoon.Runtime
                     "monthly-paycheck-value", "annual-salary-value", "net-worth-value", "focus-study",
                     "focus-workout", "focus-study-title", "focus-study-effect", "focus-workout-title",
                     "focus-workout-effect", "context-activities", "home-condition", "home-progress",
-                    "home-actions", "home-upgrade-feedback", "close-life-summary", "summary-stage-detail",
+                    "home-actions", "home-upgrade-feedback", "home-action-retry", "close-life-summary", "summary-stage-detail",
                     "age-stage-summary",
                     "summary-calendar-detail", "summary-career-detail", "summary-health-value",
                     "summary-happiness-value", "summary-smarts-value", "summary-looks-value",
@@ -59,25 +59,25 @@ namespace StimTycoon.Runtime
                     "career-destination-content", "career-empty-state", "career-context-copy",
                     "career-path-preview", "career-card", "career-role", "career-salary", "career-next-step",
                     "career-action-fill", "career-action-progress", "career-actions", "career-actions-card",
-                    "manual-work-role", "manual-work-rate", "manual-work-tap", "manual-work-feedback"
+                    "manual-work-role", "manual-work-rate", "manual-work-tap", "manual-work-feedback", "manual-work-retry"
                 },
                 [StimUiBindingOwner.Bank] = new[]
                 {
                     "money-cash-value", "savings-balance-value", "savings-available-value",
                     "savings-deposit-mode", "savings-withdraw-mode", "savings-amount-input",
-                    "savings-transfer-feedback", "money-transaction-history", "money-accounts-list",
+                    "savings-transfer-feedback", "savings-transfer-retry", "money-transaction-history", "money-accounts-list",
                     "cash-flow-gross", "cash-flow-taxes", "cash-flow-expenses", "cash-flow-credit-interest",
                     "cash-flow-savings-interest", "cash-flow-net", "savings-projection", "credit-balance-value",
                     "credit-detail-value", "available-credit-value", "credit-repayment-input",
-                    "credit-repayment-feedback", "index-fund-value", "index-fund-contributions",
+                    "credit-repayment-feedback", "credit-repayment-retry", "index-fund-value", "index-fund-contributions",
                     "index-fund-performance", "index-investment-requirement", "index-investment-input",
-                    "index-investment-feedback", "bank-tab-savings", "bank-tab-credit", "bank-tab-investing",
+                    "index-investment-feedback", "index-investment-retry", "bank-tab-savings", "bank-tab-credit", "bank-tab-investing",
                     "bank-panel-savings", "bank-panel-credit", "bank-panel-investing"
                 },
                 [StimUiBindingOwner.Social] = new[]
                 {
                     "relationship-list-view", "relationship-list", "discover-compatible-person",
-                    "relationship-discovery-feedback", "relationship-detail-view", "relationship-back",
+                    "relationship-discovery-feedback", "relationship-discovery-retry", "relationship-detail-view", "relationship-back",
                     "relationship-avatar", "relationship-name", "relationship-type", "relationship-strength",
                     "relationship-fill", "relationship-genetics", "relationship-actions"
                 },

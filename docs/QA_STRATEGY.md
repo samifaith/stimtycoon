@@ -19,6 +19,8 @@ This document is the executable quality contract for Stim Tycoon. It complements
 
 ## Current baseline
 
+The counts below are the recorded July 17, 2026 baseline. They remain the comparison target, but are not a claim that every checkout is continuously green: retain fresh NUnit and coverage artifacts after local or CI runs. The latest local headless attempt was blocked during Unity licensing/package entitlement recovery, and remote activation/branch-protection proof remains an open release task.
+
 - Unity `6000.3.19f1`
 - Unity Test Framework `1.6.0`
 - Unity Code Coverage `1.3.0`
@@ -28,7 +30,7 @@ This document is the executable quality contract for Stim Tycoon. It complements
 - Yarn authoring-contract coverage for unique nodes/events and exact choice-command parity
 - GitHub Actions configuration for PR/main gates and nightly deterministic simulation
 
-The full headless baseline is 679/679 EditMode in 76.8 seconds and 3/3 PlayMode smoke in 23.3 seconds on the July 17, 2026 development machine. The fast pull-request EditMode selection excludes the single `SlowSimulation` case and passes 678/678 in 11.1 seconds.
+The recorded full headless baseline is 679/679 EditMode in 76.8 seconds and 3/3 PlayMode smoke in 23.3 seconds on the July 17, 2026 development machine. The recorded fast pull-request EditMode selection excludes the single `SlowSimulation` case and passed 678/678 in 11.1 seconds.
 
 ## Test tiers
 
@@ -92,6 +94,8 @@ UI automation is layered rather than pixel-only:
 2. PlayMode tests protect scene composition, binding lifecycle, input, navigation, overlays, and restored state.
 3. Screenshot review covers 320, 390, 430, and 768-point widths at 100% and 130% text scale.
 4. Physical-device review covers safe area, touch, suspend/resume, memory, thermal behavior, VoiceOver, and final visual approval.
+
+The production-scene PlayMode smoke suite now exercises that eight-case width/text matrix as an early layout gate. It verifies responsive state selection, horizontal containment, and 44-point targets across persistent navigation, both time controls, Study confirmation, event continuation, and new-life actions. Passing it does not close screenshot review: text clipping, destination-specific overlap, visual hierarchy, and safe-area composition still require retained images and human approval.
 
 Pixel comparisons begin as review artifacts. They become blocking only after render variance is measured and a stable tolerance is established.
 
