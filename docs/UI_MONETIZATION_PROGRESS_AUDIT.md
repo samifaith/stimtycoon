@@ -1,6 +1,6 @@
 # Stim Tycoon UI and Monetization Progress Audit
 
-**Audit basis:** `main` at commit `2210bc604c07d8f8a0af75a6cf8969317ac1f169`
+**Audit basis:** `main` at commit `48419733c8700853189731461d7810b388631fc2`
 **Compared against:** Stim Tycoon Final UI, Asset, Mini-Game, Ads, and IAP Specification v2.0
 **Status date:** July 18, 2026
 
@@ -9,6 +9,7 @@
 - `[x] ~~Crossed out~~` means implemented in the playable repository and connected to runtime state.
 - `[ ] PARTIAL` means a working foundation or disabled scaffold exists, but the task is not complete.
 - `[ ]` means no production implementation was found.
+- `DEFERRED` means implementation is not authorized roadmap work until its named product, economy, legal, privacy, or service gate is approved.
 - `SUPERSEDED` means the product decision changed after the original specification.
 
 ## Product-decision corrections
@@ -19,6 +20,7 @@
 - The Store remains outside the six-item bottom navigation and opens from the header wallet entry, upsells, settings, or insufficient-balance prompts.
 - A Season Pass remains deferred and must not ship in the MVP.
 - Current commerce elements are intentionally disabled presentation scaffolds. They do not represent functioning ads, purchases, rewards, entitlements, or premium currency.
+- Store, Stim+, rewarded-ad, IAP, and LevelPlay behavior are conditional M18 work, not committed near-term implementation. They remain inactive unless their separate commerce, economy, legal, privacy, age-treatment, and service gates are approved.
 
 ## Overall progress
 
@@ -29,7 +31,7 @@
 | Not started | 12 |
 | Total audited implementation tasks | 34 |
 
-The gameplay, save, Bank, Education, goal, career, business, relationship, and life-loop foundations are substantially farther along than the final visual, mini-game, and commerce layers.
+These counts describe implementation evidence, not roadmap priority or product approval. Deferred commerce items may appear in the partial or not-started totals. The gameplay, save, Bank, Education, goal, career, business, relationship, and life-loop foundations are substantially farther along than the final visual, mini-game, and commerce layers.
 
 ---
 
@@ -85,17 +87,17 @@ The gameplay, save, Bank, Education, goal, career, business, relationship, and l
 
 No reusable match-board model, board state, tile configuration, scoring engine, mini-game screen, or persisted match session was found. Timed Study sessions are a separate commitment system and do not satisfy this phase.
 
-# Phase 5: Monetization UI
+# Phase 5: Monetization UI — Deferred Beyond the Disabled Scaffold
 
-- [ ] **SUPERSEDED NAME:** Build the **Legacy Gem Store**, replacing the earlier Spark Store concept.
+- [ ] **DEFERRED, SUPERSEDED NAME:** Build the **Legacy Gem Store**, replacing the earlier Spark Store concept, only after separate commerce approval.
   No store screen, product rows, pack catalog, cosmetic catalog, restore flow, legal area, or purchase-result UI is implemented.
-- [ ] Build the Stim+ Paywall.
+- [ ] **DEFERRED:** Build the Stim+ paywall only if subscriptions are separately approved.
   No plan selector, localized subscription offer, benefit list, entitlement state, legal links, or member state is implemented.
-- [ ] **PARTIAL:** Add rewarded-ad placements.
+- [ ] **PARTIAL SCAFFOLD; ACTIVE BEHAVIOR DEFERRED:** Add rewarded-ad placements.
   Nine stable disabled commerce slots exist in the header, Study, Work, Bank, Social, and Goals. They are correctly labeled unavailable and cannot mutate game state. A rewarded-ad prompt and active placement flow do not exist.
-- [ ] Implement all purchase and ad states.
+- [ ] **DEFERRED:** Implement purchase and ad states only after the corresponding product and service approvals.
   Loading, pending, success, cancelled, failure, restore, already-owned, expired, grace-period, duplicate callback, cap, cooldown, consent, ATT, and reward-pending states are not implemented.
-- [ ] Connect localized product metadata.
+- [ ] **DEFERRED:** Connect localized product metadata only after commerce approval.
   No runtime product catalog or store-localized title, description, price, billing period, or eligibility binding exists.
 
 ## Existing monetization foundation that must not be mistaken for completion
@@ -120,15 +122,15 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 
 `Assets/UI/Styles/FrontendCanvas.uss` is intentionally a neutral presentation baseline loaded after the structural styles. It currently clears inherited colors, borders, radii, and shape-bearing button/progress art while preserving layout and bindings. The final cozy-corporate visual pass should be implemented primarily in this file without renaming protected UXML elements or moving gameplay rules into USS.
 
-# Phase 7: Platform integration
+# Phase 7: Platform integration — Conditional M18 Work
 
-- [ ] Configure products in App Store Connect and Google Play Console.
-- [ ] **PARTIAL FOUNDATION ONLY:** Integrate Unity IAP.
+- [ ] **DEFERRED:** Configure products in App Store Connect and Google Play Console only after commerce approval.
+- [ ] **DEFERRED, PARTIAL FOUNDATION ONLY:** Integrate Unity IAP after privacy, validation, restore, failure, and offline rules are approved.
   The package is installed, but no concrete purchasing service, product catalog, callbacks, fulfillment, or entitlement storage was found.
-- [ ] **PARTIAL FOUNDATION ONLY:** Integrate the selected ad provider.
+- [ ] **DEFERRED, PARTIAL FOUNDATION ONLY:** Integrate the selected ad provider after consent, privacy, age-treatment, cap, and reward rules are approved.
   LevelPlay is installed and an interface plus no-op adapter exist, but no production adapter, placement IDs, consent flow, callbacks, caps, or rewards are connected.
-- [ ] Implement receipt validation and durable fulfillment.
-- [ ] Test sandbox purchases, restores, cancellations, failed purchases, refunds, duplicate callbacks, and offline recovery.
+- [ ] **DEFERRED:** Implement receipt validation and durable fulfillment after commerce approval.
+- [ ] **DEFERRED:** Test sandbox purchases, restores, cancellations, failed purchases, refunds, duplicate callbacks, and offline recovery after the approved service objects exist.
 
 ---
 
@@ -138,14 +140,15 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 |---|---|---|---|
 | Global shell | Reusable header, six-tab nav, modal arbitration, safe-area handling, scroll restoration | Final visuals, device matrix, settings, notifications, accessibility | Partial |
 | Life | Feed, stats, focus actions, Life Summary, time controls, age strip | Next Up, daily-goal preview, archive/See All, final density/art | Partial |
+| Home | Persistent actions, condition, maintenance, upgrades, content definitions | Bounded inventory/timer contract, room/object workspace, offline reconciliation | Partial; M15 priority |
 | Study | Progress, paths, disciplines, timed sessions, claims | Study Match, path-detail polish, production illustration | Partial |
 | Work | Career/business rules and actions, manual work, path preview | Focused dashboards, Shift Match, production hierarchy/art | Partial |
 | Bank | Savings, history, credit, cash flow, investing, rollback | Quick-action presentation, tips, account details, edge states | Partial, strongest destination |
 | Social | Relationships, discovery, profile/actions, saved family systems | Family workspace, candidate list, terminal states, portraits/history | Partial |
 | Goals | Goals, achievements, progress, routing, claims | Pinned/manage layer, separate boards, complete visual states | Partial |
-| Legacy Gem Store | Disabled header entry only | Entire store, wallet, economy, products, purchase flow | Not started |
-| Stim+ | Disabled premium slots only | Entire paywall, subscription and entitlement lifecycle | Not started |
-| Rewarded ads | Disabled placements and no-op boundary | Prompt, provider adapter, callbacks, limits, rewards, consent | Not started beyond scaffold |
+| Legacy Gem Store | Disabled header entry only | Entire store, wallet, economy, products, purchase flow | Deferred pending approval |
+| Stim+ | Disabled premium slots only | Entire paywall, subscription and entitlement lifecycle | Deferred pending approval |
+| Rewarded ads | Disabled placements and no-op boundary | Prompt, provider adapter, callbacks, limits, rewards, consent | Scaffold only; behavior deferred |
 | Mini-games | Reference placeholders only | Entire persisted reusable match framework and themes | Not started |
 
 # Acceptance-criteria audit
@@ -168,32 +171,35 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 - [ ] Primary-action hierarchy and final page density are not visually complete because the neutral frontend canvas is still active.
 - [ ] Touch targets and overflow have automated coverage, but final live-device approval remains.
 
-## Not implemented
+## Not implemented or approval-gated
 
 - [ ] One reusable match-game engine.
 - [ ] Legacy Gem wallet and ledger.
-- [ ] Legacy Gem Store.
-- [ ] Stim+ paywall and entitlements.
-- [ ] Active rewarded ads.
-- [ ] Localized product metadata.
-- [ ] Receipt validation and durable commerce fulfillment.
-- [ ] Purchase, restore, refund, cancellation, duplicate, and offline test matrix.
+- [ ] Legacy Gem Store — deferred pending commerce approval.
+- [ ] Stim+ paywall and entitlements — deferred pending subscription approval.
+- [ ] Active rewarded ads — deferred pending product, privacy, and service approval.
+- [ ] Localized product metadata — deferred pending commerce approval.
+- [ ] Receipt validation and durable commerce fulfillment — deferred pending commerce approval.
+- [ ] Purchase, restore, refund, cancellation, duplicate, and offline test matrix — deferred until approved service objects exist.
 - [ ] Production animations, haptics, sound hooks, and reduced-motion behavior.
 
 # Recommended next execution order
 
-1. Complete the cozy-corporate frontend layer in `FrontendCanvas.uss` and capture the required width/text screenshots.
-2. Finish shared visual states, scrollbars, empty/loading/error components, and generic confirmation feedback.
-3. Add Life `Next Up`, daily-goal preview, feed archive/See All, and recently changed stat treatment.
-4. Converge Social/family, Work/business, and Goals into focused workspaces.
-5. Build one persisted reusable match engine, then configure Study Match and Shift Match.
-6. Design and simulate the Legacy Gem earn/spend economy and add the additive save-schema wallet/ledger.
-7. Build the Legacy Gem Store and Stim+ paywall as disabled-data or sandbox-backed UI before enabling transactions.
-8. Add concrete IAP and LevelPlay adapters, legal/privacy gates, verification, restore, caps, and sandbox tests.
+1. Close the M13 exit gate with live Play Mode approval and retained screenshots at 320, 390, 430, and 768 points at 100% and 130% text; verify safe areas, 44-point targets, scroll affordances, representative reward/claim feedback, and unobscured time controls.
+2. Finish the remaining M13 shared visual states, scrollbars, empty/loading/error components, generic confirmation feedback, and navigation restoration details.
+3. Complete Life `Next Up`, daily-goal preview, feed archive/See All, recently changed stat treatment, and time-control branch QA.
+4. Execute M15 in its required order: bounded inventory/timer save contract, room/object Home workspace, Social discovery/profiles, then the focused family workspace and durable NPC triggers.
+5. Execute M16 convergence for Career, Business, Goals, achievements, transitions, and their focused workspace states.
+6. Build one persisted reusable match lifecycle, then configure Study Match and Shift Match on it.
+7. Execute M17 content, balance, and production-presentation work; design and simulate the Legacy Gem earn/spend economy without activating a wallet, Store, purchases, subscriptions, or ads.
+8. Execute M18 Settings, accessibility, pseudo-localization, device/recovery profiling, privacy/licensing, and iOS beta hardening.
+9. During M18, add the already approved Legacy Gem foundation behind additive migration: wallet, bounded ledger, reason and transaction IDs, earned-versus-purchased attribution, atomic grant/spend, rollback, duplicate protection, offline behavior, and conflict rules—without activating products or paid rewards.
+10. Only after their separate product, economy, legal, privacy, and service approvals, add Store, Stim+, rewarded-ad, IAP, or LevelPlay behavior with verification, restore, caps, offline handling, and sandbox tests.
 
 # Source-of-truth paths
 
-- `docs/TASKS.md`
+- `STIM_TYCOON_MASTER_README(2).md` — product definition and milestone sequence
+- `docs/TASKS.md` — authoritative ordered implementation backlog
 - `docs/REFERENCE_UI_GAP_ANALYSIS.md`
 - `docs/FRONTEND_WIRING_WORKFLOW.md`
 - `Assets/UI/StimVerticalSlice.uxml`
