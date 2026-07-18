@@ -50,6 +50,7 @@ namespace StimTycoon.Runtime
         private StimBankBinder bankBinder;
         private StimSocialBinder socialBinder;
         private StimGoalsBinder goalsBinder;
+        private StimNewLifeBinder newLifeBinder;
         private Label overviewCareer;
         private Label overviewCalendar;
         private Label healthValue;
@@ -82,10 +83,6 @@ namespace StimTycoon.Runtime
         private bool queuedYearCompletionPending;
         private string queuedYearCompletionSummary;
         private VisualElement newLifeSetup;
-        private Label newLifeError;
-        private Button cancelNewLife;
-        private Button continueCurrentLife;
-        private Button createNewLife;
         private Button openNewLife;
         private Button focusStudy;
         private Button focusWorkout;
@@ -231,6 +228,7 @@ namespace StimTycoon.Runtime
             bankBinder = new StimBankBinder(root);
             socialBinder = new StimSocialBinder(root);
             goalsBinder = new StimGoalsBinder(root, achievementRowTemplate);
+            newLifeBinder = new StimNewLifeBinder(root);
             cashValue = shellBinder.CashValue;
             lifeSummary = shellBinder.LifeSummary;
             calendarSummary = shellBinder.CalendarSummary;
@@ -263,10 +261,6 @@ namespace StimTycoon.Runtime
             looksFill = root.Q<VisualElement>("looks-fill");
             luckFill = root.Q<VisualElement>("luck-fill");
             newLifeSetup = root.Q<VisualElement>("new-life-setup");
-            newLifeError = root.Q<Label>("new-life-error");
-            cancelNewLife = root.Q<Button>("cancel-new-life");
-            continueCurrentLife = root.Q<Button>("continue-current-life");
-            createNewLife = root.Q<Button>("create-new-life");
             openNewLife = root.Q<Button>("open-new-life");
             focusStudy = root.Q<Button>("focus-study");
             focusWorkout = root.Q<Button>("focus-workout");
@@ -369,8 +363,8 @@ namespace StimTycoon.Runtime
                 netWorthValue == null || avatarGlyph == null || eventSheet == null || eventContinue == null ||
                 studyBinder == null || !studyBinder.IsValid ||
                 healthFill == null || happinessFill == null || smartsFill == null || looksFill == null ||
-                luckFill == null || newLifeSetup == null || newLifeError == null ||
-                cancelNewLife == null || continueCurrentLife == null || createNewLife == null || openNewLife == null ||
+                luckFill == null || newLifeSetup == null || newLifeBinder == null || !newLifeBinder.IsValid ||
+                openNewLife == null ||
                 focusStudy == null || focusWorkout == null || focusStudyTitle == null || focusStudyEffect == null ||
                 focusWorkoutTitle == null || focusWorkoutEffect == null || lifeScroll == null || lifeSummaryView == null ||
                 openLifeSummary == null || closeLifeSummary == null || addCash == null || socialView == null ||
@@ -519,6 +513,7 @@ namespace StimTycoon.Runtime
             bankBinder = null;
             socialBinder = null;
             goalsBinder = null;
+            newLifeBinder = null;
             rootElement = null;
         }
 
@@ -559,9 +554,9 @@ namespace StimTycoon.Runtime
             BindPersistentButton(relationshipDiscoveryRetry, () => TryRetryCommand("social.discovery"));
             BindPersistentButton(endingNewLife, OpenNewLifeFromEnding, StimShellModal.FinalLifeSummary);
             BindPersistentButton(openNewLife, OpenNewLifeSetup);
-            BindPersistentButton(cancelNewLife, HideNewLifeSetup, StimShellModal.NewLife);
-            BindPersistentButton(continueCurrentLife, HideNewLifeSetup, StimShellModal.NewLife);
-            BindPersistentButton(createNewLife, CreateLifeFromSetup, StimShellModal.NewLife);
+            BindPersistentButton(newLifeBinder.Cancel, HideNewLifeSetup, StimShellModal.NewLife);
+            BindPersistentButton(newLifeBinder.Continue, HideNewLifeSetup, StimShellModal.NewLife);
+            BindPersistentButton(newLifeBinder.Create, CreateLifeFromSetup, StimShellModal.NewLife);
         }
 
         private void BindPersistentButton(
@@ -2533,16 +2528,10 @@ namespace StimTycoon.Runtime
 
         private void ShowNewLifeSetup(bool canContinue, bool canCancel)
         {
-            StimFeedbackPresenter.Clear(newLifeError);
-            continueCurrentLife.EnableInClassList("hidden", !canContinue);
-            cancelNewLife.EnableInClassList("hidden", !canCancel);
-            if (canContinue && gameSession.ActiveSave != null)
-            {
-                var firstName = gameSession.ActiveSave.state.character.firstName;
-                continueCurrentLife.text = string.IsNullOrEmpty(firstName)
-                    ? "CONTINUE CURRENT LIFE  ›"
-                    : $"CONTINUE {firstName.ToUpperInvariant()}'S LIFE  ›";
-            }
+            var firstName = canContinue && gameSession.ActiveSave != null
+                ? gameSession.ActiveSave.state.character.firstName
+                : null;
+            newLifeBinder.Configure(canContinue, canCancel, firstName);
             OpenShellModal(StimShellModal.NewLife);
         }
 
@@ -2584,7 +2573,7 @@ namespace StimTycoon.Runtime
 
         private void ShowNewLifeError(string message)
         {
-            StimFeedbackPresenter.Show(newLifeError, message, StimFeedbackKind.Error, true);
+            newLifeBinder.ShowError(message);
         }
 
         internal bool TryRetryCommand(string commandId) => retryCommands.TryExecute(commandId);

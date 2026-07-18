@@ -1229,6 +1229,7 @@ namespace StimTycoon.Tests.Domain.UI
             SetField("bankBinder", new StimBankBinder(root));
             SetField("socialBinder", new StimSocialBinder(root));
             SetField("goalsBinder", new StimGoalsBinder(root, null));
+            SetField("newLifeBinder", new StimNewLifeBinder(root));
         }
 
         private void SetField(string name, object value)
