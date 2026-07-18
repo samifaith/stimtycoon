@@ -39,11 +39,6 @@ namespace StimTycoon.Runtime
         private Label lifeSummary;
         private Label calendarSummary;
         private Label headerNetWorthValue;
-        private Label eventCategory;
-        private Label eventTitle;
-        private Label eventBody;
-        private Label resultText;
-        private Label resultEffects;
         private StimLifeBinder lifeBinder;
         private StimStudyBinder studyBinder;
         private StimWorkBinder workBinder;
@@ -51,6 +46,7 @@ namespace StimTycoon.Runtime
         private StimSocialBinder socialBinder;
         private StimGoalsBinder goalsBinder;
         private StimNewLifeBinder newLifeBinder;
+        private StimEventSheetBinder eventSheetBinder;
         private Label overviewCareer;
         private Label overviewCalendar;
         private Label healthValue;
@@ -63,11 +59,8 @@ namespace StimTycoon.Runtime
         private Label annualSalaryValue;
         private Label netWorthValue;
         private Label avatarGlyph;
-        private VisualElement choices;
-        private VisualElement resultCard;
         private VisualElement playerOverview;
         private VisualElement careerProgressFill;
-        private VisualElement eventSheet;
         private VisualElement healthFill;
         private VisualElement happinessFill;
         private VisualElement smartsFill;
@@ -76,7 +69,6 @@ namespace StimTycoon.Runtime
         private Button advanceMonth;
         private Button advanceYear;
         private Button toggleOverview;
-        private Button eventContinue;
         private string presentedTransitionId;
         private bool presentingFirstLifeOrientation;
         private int queuedYearMonthsRemaining;
@@ -229,15 +221,11 @@ namespace StimTycoon.Runtime
             socialBinder = new StimSocialBinder(root);
             goalsBinder = new StimGoalsBinder(root, achievementRowTemplate);
             newLifeBinder = new StimNewLifeBinder(root);
+            eventSheetBinder = new StimEventSheetBinder(root);
             cashValue = shellBinder.CashValue;
             lifeSummary = shellBinder.LifeSummary;
             calendarSummary = shellBinder.CalendarSummary;
             headerNetWorthValue = shellBinder.HeaderNetWorthValue;
-            eventCategory = root.Q<Label>("event-category");
-            eventTitle = root.Q<Label>("event-title");
-            eventBody = root.Q<Label>("event-body");
-            resultText = root.Q<Label>("result-text");
-            resultEffects = root.Q<Label>("result-effects");
             overviewCareer = root.Q<Label>("overview-career");
             overviewCalendar = root.Q<Label>("overview-calendar");
             healthValue = root.Q<Label>("health-value");
@@ -250,11 +238,8 @@ namespace StimTycoon.Runtime
             annualSalaryValue = root.Q<Label>("annual-salary-value");
             netWorthValue = root.Q<Label>("net-worth-value");
             avatarGlyph = shellBinder.AvatarGlyph;
-            choices = root.Q<VisualElement>("choices");
-            resultCard = root.Q<VisualElement>("result-card");
             playerOverview = root.Q<VisualElement>("player-overview");
             careerProgressFill = shellBinder.CareerProgressFill;
-            eventSheet = root.Q<VisualElement>("event-sheet");
             healthFill = root.Q<VisualElement>("health-fill");
             happinessFill = root.Q<VisualElement>("happiness-fill");
             smartsFill = root.Q<VisualElement>("smarts-fill");
@@ -352,15 +337,14 @@ namespace StimTycoon.Runtime
             advanceMonth = shellBinder.AdvanceMonth;
             advanceYear = shellBinder.AdvanceYear;
             toggleOverview = root.Q<Button>("toggle-overview");
-            eventContinue = root.Q<Button>("event-continue");
-            if (cashValue == null || lifeSummary == null || eventCategory == null || eventTitle == null ||
-                eventBody == null || resultText == null || resultEffects == null || lifeBinder == null || !lifeBinder.IsValid || choices == null ||
-                resultCard == null || advanceMonth == null || advanceYear == null || toggleOverview == null || playerOverview == null ||
+            if (cashValue == null || lifeSummary == null || eventSheetBinder == null || !eventSheetBinder.IsValid ||
+                lifeBinder == null || !lifeBinder.IsValid ||
+                advanceMonth == null || advanceYear == null || toggleOverview == null || playerOverview == null ||
                 overviewCareer == null || overviewCalendar == null || healthValue == null ||
                 happinessValue == null || smartsValue == null || looksValue == null || luckValue == null ||
                 careerProgressValue == null ||
                 careerProgressFill == null || monthlyPaycheckValue == null || annualSalaryValue == null ||
-                netWorthValue == null || avatarGlyph == null || eventSheet == null || eventContinue == null ||
+                netWorthValue == null || avatarGlyph == null ||
                 studyBinder == null || !studyBinder.IsValid ||
                 healthFill == null || happinessFill == null || smartsFill == null || looksFill == null ||
                 luckFill == null || newLifeSetup == null || newLifeBinder == null || !newLifeBinder.IsValid ||
@@ -450,7 +434,7 @@ namespace StimTycoon.Runtime
             }
             else
             {
-                choices.AddToClassList("hidden");
+                eventSheetBinder.ChoicesVisible = false;
                 advanceMonth.RemoveFromClassList("hidden");
                 shellBinder.CloseModal(StimShellModal.Event);
             }
@@ -514,6 +498,7 @@ namespace StimTycoon.Runtime
             socialBinder = null;
             goalsBinder = null;
             newLifeBinder = null;
+            eventSheetBinder = null;
             rootElement = null;
         }
 
@@ -532,7 +517,7 @@ namespace StimTycoon.Runtime
                 ShowSocialDestination,
                 ShowGoalsDestination);
             BindPersistentButton(toggleOverview, ToggleOverview);
-            BindPersistentButton(eventContinue, CloseEventSheet, StimShellModal.Event);
+            BindPersistentButton(eventSheetBinder.Continue, CloseEventSheet, StimShellModal.Event);
             BindPersistentButton(studyBinder.Cancel, CloseStudySessionSheet, StimShellModal.StudySession);
             BindPersistentButton(studyBinder.Confirm, ConfirmSelectedStudySession, StimShellModal.StudySession);
             BindPersistentButton(focusStudy, PerformPrimaryFocusActivity);
@@ -700,19 +685,19 @@ namespace StimTycoon.Runtime
                     paymentMethod,
                     out var summary))
             {
-                resultText.text = summary;
-                resultEffects.text = "No changes applied";
-                resultEffects.RemoveFromClassList("hidden");
-                resultCard.RemoveFromClassList("hidden");
+                eventSheetBinder.ResultText = summary;
+                eventSheetBinder.EffectsText = "No changes applied";
+                eventSheetBinder.EffectsVisible = true;
+                eventSheetBinder.ResultVisible = true;
                 return;
             }
 
-            resultText.text = summary;
-            resultEffects.text = BuildEffectSummary(gameSession.LastResolution.outcome.effects);
-            resultEffects.RemoveFromClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            choices.AddToClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.EffectsText = BuildEffectSummary(gameSession.LastResolution.outcome.effects);
+            eventSheetBinder.EffectsVisible = true;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ContinueVisible = true;
             currentEvent = null;
             RefreshHeader();
             RefreshFeed();
@@ -728,22 +713,22 @@ namespace StimTycoon.Runtime
             var careerProgressBefore = gameSession.ActiveSave.state.career.careerProgress;
             if (!gameSession.TryAdvanceMonth(out var nextEvent, out var summary))
             {
-                resultText.text = summary;
-                resultEffects.text = "No changes applied";
-                resultEffects.RemoveFromClassList("hidden");
-                resultCard.RemoveFromClassList("hidden");
+                eventSheetBinder.ResultText = summary;
+                eventSheetBinder.EffectsText = "No changes applied";
+                eventSheetBinder.EffectsVisible = true;
+                eventSheetBinder.ResultVisible = true;
                 return;
             }
 
             currentEvent = nextEvent;
-            resultText.text = summary;
+            eventSheetBinder.ResultText = summary;
             var cashDelta = gameSession.ActiveSave.state.finances.cashMinorUnits - cashBefore;
             var careerDelta = gameSession.ActiveSave.state.career.careerProgress - careerProgressBefore;
             var ageDelta = gameSession.ActiveSave.state.character.age - ageBefore;
             var happinessDelta = gameSession.ActiveSave.state.character.happiness - happinessBefore;
-            resultEffects.text = BuildMonthlyEffectSummary(cashDelta, careerDelta, happinessDelta, ageDelta);
-            resultEffects.RemoveFromClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
+            eventSheetBinder.EffectsText = BuildMonthlyEffectSummary(cashDelta, careerDelta, happinessDelta, ageDelta);
+            eventSheetBinder.EffectsVisible = true;
+            eventSheetBinder.ResultVisible = true;
             RefreshHeader();
             RefreshFeed();
 
@@ -760,14 +745,14 @@ namespace StimTycoon.Runtime
                     PresentPendingTransition();
                     return;
                 }
-                choices.AddToClassList("hidden");
-                eventCategory.text = "MONTHLY SUMMARY";
-                eventTitle.text = $"Month {gameSession.ActiveSave.state.calendar.monthOfYear} complete";
-                eventBody.text = string.IsNullOrEmpty(gameSession.ActiveSave.state.career.roleTitle)
+                eventSheetBinder.ChoicesVisible = false;
+                eventSheetBinder.CategoryText = "MONTHLY SUMMARY";
+                eventSheetBinder.TitleText = $"Month {gameSession.ActiveSave.state.calendar.monthOfYear} complete";
+                eventSheetBinder.BodyText = string.IsNullOrEmpty(gameSession.ActiveSave.state.career.roleTitle)
                     ? "Time moved forward and this month's life changes were applied."
                     : "Your income, expenses, and monthly stat changes were applied.";
                 OpenShellModal(StimShellModal.Event);
-                eventContinue.RemoveFromClassList("hidden");
+                eventSheetBinder.ContinueVisible = true;
                 return;
             }
 
@@ -801,22 +786,22 @@ namespace StimTycoon.Runtime
             if (!gameSession.TryAdvanceMonths(
                     requestedMonths, out var monthsProcessed, out var nextEvent, out var summary))
             {
-                resultText.text = summary;
-                resultEffects.text = "No changes applied";
-                resultEffects.RemoveFromClassList("hidden");
-                resultCard.RemoveFromClassList("hidden");
+                eventSheetBinder.ResultText = summary;
+                eventSheetBinder.EffectsText = "No changes applied";
+                eventSheetBinder.EffectsVisible = true;
+                eventSheetBinder.ResultVisible = true;
                 OpenShellModal(StimShellModal.Event);
-                eventContinue.RemoveFromClassList("hidden");
+                eventSheetBinder.ContinueVisible = true;
                 return;
             }
 
             queuedYearMonthsRemaining = Math.Max(0, queuedYearMonthsRemaining - monthsProcessed);
             currentEvent = nextEvent;
-            resultText.text = summary;
+            eventSheetBinder.ResultText = summary;
             var totalCommitted = 12 - queuedYearMonthsRemaining;
-            resultEffects.text = $"{totalCommitted} of 12 monthly transactions committed";
-            resultEffects.RemoveFromClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
+            eventSheetBinder.EffectsText = $"{totalCommitted} of 12 monthly transactions committed";
+            eventSheetBinder.EffectsVisible = true;
+            eventSheetBinder.ResultVisible = true;
             RefreshHeader();
             RefreshFeed();
 
@@ -857,26 +842,26 @@ namespace StimTycoon.Runtime
                 return;
             }
 
-            choices.AddToClassList("hidden");
-            eventCategory.text = queuedYearMonthsRemaining == 0 ? "YEAR SUMMARY" : "TIME PAUSED";
-            eventTitle.text = queuedYearMonthsRemaining == 0
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.CategoryText = queuedYearMonthsRemaining == 0 ? "YEAR SUMMARY" : "TIME PAUSED";
+            eventSheetBinder.TitleText = queuedYearMonthsRemaining == 0
                 ? "A full year moved forward"
                 : $"Year advance paused · {queuedYearMonthsRemaining} month{(queuedYearMonthsRemaining == 1 ? string.Empty : "s")} remaining";
-            eventBody.text = queuedYearMonthsRemaining == 0
+            eventSheetBinder.BodyText = queuedYearMonthsRemaining == 0
                 ? "Every normal monthly change was processed and autosaved in sequence."
                 : "Resolve the required choice, then Continue. The remaining months will resume automatically.";
             OpenShellModal(StimShellModal.Event);
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ContinueVisible = true;
         }
 
         private void PresentEvent(StimEvent evt)
         {
-            eventCategory.text = $"{evt.category.ToString().ToUpperInvariant()} EVENT";
-            eventTitle.text = evt.titleKey;
-            eventBody.text = evt.id == RepresentativeStimEvents.YearInReviewId
+            eventSheetBinder.CategoryText = $"{evt.category.ToString().ToUpperInvariant()} EVENT";
+            eventSheetBinder.TitleText = evt.titleKey;
+            eventSheetBinder.BodyText = evt.id == RepresentativeStimEvents.YearInReviewId
                 ? StimGameSessionService.BuildAnnualReviewSummary(gameSession.ActiveSave.state)
                 : evt.bodyKey;
-            choices.Clear();
+            eventSheetBinder.ClearChoices();
             for (var index = 0; index < evt.choices.Count; index++)
             {
                 var choice = evt.choices[index];
@@ -890,9 +875,9 @@ namespace StimTycoon.Runtime
                         $" · Use credit (up to {FormatMoney(potentialCost)})");
                 }
             }
-            choices.RemoveFromClassList("hidden");
-            resultCard.AddToClassList("hidden");
-            eventContinue.AddToClassList("hidden");
+            eventSheetBinder.ChoicesVisible = true;
+            eventSheetBinder.ResultVisible = false;
+            eventSheetBinder.ContinueVisible = false;
             OpenShellModal(StimShellModal.Event);
         }
 
@@ -913,7 +898,7 @@ namespace StimTycoon.Runtime
             button.Add(title);
             var choiceId = choice.id;
             button.clicked += () => Resolve(choiceId, paymentMethod);
-            choices.Add(button);
+            eventSheetBinder.AddChoice(button);
         }
 
         private void RefreshHeader()
@@ -1541,17 +1526,17 @@ namespace StimTycoon.Runtime
             if (PresentPendingEventIfAvailable()) return;
             var instanceId = $"focused-study-{gameSession.ActiveSave.revision + 1}-{difficulty.ToString().ToLowerInvariant()}";
             var succeeded = gameSession.TryStartStudySession(difficulty, instanceId, out var summary);
-            eventCategory.text = succeeded ? "STUDY IN PROGRESS" : "SESSION LOCKED";
-            eventTitle.text = $"{difficulty} Study Session";
-            eventBody.text = succeeded
+            eventSheetBinder.CategoryText = succeeded ? "STUDY IN PROGRESS" : "SESSION LOCKED";
+            eventSheetBinder.TitleText = $"{difficulty} Study Session";
+            eventSheetBinder.BodyText = succeeded
                 ? "Your session is saved. Return to Education to claim its rewards when the timer completes."
                 : "Review the study-track, Smarts, and monthly-action requirements.";
-            resultText.text = summary;
-            resultEffects.text = string.Empty;
-            resultEffects.AddToClassList("hidden");
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.EffectsText = string.Empty;
+            eventSheetBinder.EffectsVisible = false;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshEducation();
@@ -1595,14 +1580,14 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryClaimStudySession(instanceId, out var summary);
-            eventCategory.text = succeeded ? "QUALIFICATION PROGRESS" : "SESSION NOT READY";
-            eventTitle.text = "Study Session Reward";
-            eventBody.text = succeeded
+            eventSheetBinder.CategoryText = succeeded ? "QUALIFICATION PROGRESS" : "SESSION NOT READY";
+            eventSheetBinder.TitleText = "Study Session Reward";
+            eventSheetBinder.BodyText = succeeded
                 ? "Your completed focused study advanced your selected qualification."
                 : "The session must finish before its reward can be claimed.";
-            resultText.text = summary;
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshEducation();
@@ -1614,17 +1599,17 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryChooseStudyTrack(track, out var summary);
-            eventCategory.text = succeeded ? "STUDY TRACK" : "TRACK LOCKED";
-            eventTitle.text = $"{track} Track";
-            eventBody.text = succeeded
+            eventSheetBinder.CategoryText = succeeded ? "STUDY TRACK" : "TRACK LOCKED";
+            eventSheetBinder.TitleText = $"{track} Track";
+            eventSheetBinder.BodyText = succeeded
                 ? "This track shapes the qualifications, careers, and events available later."
                 : "Review the age, cash, and previous-selection requirements.";
-            resultText.text = summary;
-            resultEffects.text = string.Empty;
-            resultEffects.AddToClassList("hidden");
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.EffectsText = string.Empty;
+            eventSheetBinder.EffectsVisible = false;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
@@ -1635,17 +1620,17 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryChooseSchoolPath(choice, out var summary);
-            eventCategory.text = succeeded ? "LIFE PATH" : "PATH LOCKED";
-            eventTitle.text = ToDisplayName(choice.ToString());
-            eventBody.text = succeeded
+            eventSheetBinder.CategoryText = succeeded ? "LIFE PATH" : "PATH LOCKED";
+            eventSheetBinder.TitleText = ToDisplayName(choice.ToString());
+            eventSheetBinder.BodyText = succeeded
                 ? "This decision is now part of your permanent life history and can affect later opportunities."
                 : "This path is not available at the current school transition.";
-            resultText.text = summary;
-            resultEffects.text = string.Empty;
-            resultEffects.AddToClassList("hidden");
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.EffectsText = string.Empty;
+            eventSheetBinder.EffectsVisible = false;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
@@ -1656,17 +1641,17 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformEducationAction(actionType, out var summary);
-            eventCategory.text = succeeded ? "SCHOOL PROGRESS" : "ACTION LOCKED";
-            eventTitle.text = ToDisplayName(actionType.ToString());
-            eventBody.text = succeeded
+            eventSheetBinder.CategoryText = succeeded ? "SCHOOL PROGRESS" : "ACTION LOCKED";
+            eventSheetBinder.TitleText = ToDisplayName(actionType.ToString());
+            eventSheetBinder.BodyText = succeeded
                 ? "Your school effort improved your learning path."
                 : "Meet the requirement or advance the month before trying again.";
-            resultText.text = summary;
-            resultEffects.text = string.Empty;
-            resultEffects.AddToClassList("hidden");
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.EffectsText = string.Empty;
+            eventSheetBinder.EffectsVisible = false;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
@@ -1867,17 +1852,17 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformCareerAction(actionType, out var summary);
-            eventCategory.text = succeeded ? "CAREER UPDATE" : "CAREER ACTION LOCKED";
-            eventTitle.text = ToDisplayName(actionType.ToString());
-            eventBody.text = succeeded
+            eventSheetBinder.CategoryText = succeeded ? "CAREER UPDATE" : "CAREER ACTION LOCKED";
+            eventSheetBinder.TitleText = ToDisplayName(actionType.ToString());
+            eventSheetBinder.BodyText = succeeded
                 ? "Your career path changed and the result was saved."
                 : "Meet the displayed requirement or advance the month before trying again.";
-            resultText.text = summary;
-            resultEffects.text = string.Empty;
-            resultEffects.AddToClassList("hidden");
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.EffectsText = string.Empty;
+            eventSheetBinder.EffectsVisible = false;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
@@ -1892,17 +1877,17 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformBusinessAction(actionType, out var summary);
-            eventCategory.text = succeeded ? "BUSINESS UPDATE" : "BUSINESS ACTION LOCKED";
-            eventTitle.text = ToDisplayName(actionType.ToString());
-            eventBody.text = succeeded
+            eventSheetBinder.CategoryText = succeeded ? "BUSINESS UPDATE" : "BUSINESS ACTION LOCKED";
+            eventSheetBinder.TitleText = ToDisplayName(actionType.ToString());
+            eventSheetBinder.BodyText = succeeded
                 ? "Your business changed and the result was saved."
                 : "Meet the displayed requirement or advance the month before trying again.";
-            resultText.text = summary;
-            resultEffects.text = string.Empty;
-            resultEffects.AddToClassList("hidden");
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.EffectsText = string.Empty;
+            eventSheetBinder.EffectsVisible = false;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
@@ -1984,7 +1969,7 @@ namespace StimTycoon.Runtime
             {
                 var retry = workflowPersistenceRetry;
                 workflowPersistenceRetry = null;
-                eventContinue.text = "Continue";
+                eventSheetBinder.ContinueText = "Continue";
                 retry();
                 return;
             }
@@ -2009,8 +1994,8 @@ namespace StimTycoon.Runtime
             {
                 if (!gameSession.TryCompleteFirstLifeOrientation(out var orientationSummary))
                 {
-                    resultText.text = orientationSummary;
-                    resultEffects.text = "Orientation remains open until progress can be saved";
+                    eventSheetBinder.ResultText = orientationSummary;
+                    eventSheetBinder.EffectsText = "Orientation remains open until progress can be saved";
                     return;
                 }
                 presentingFirstLifeOrientation = false;
@@ -2021,8 +2006,8 @@ namespace StimTycoon.Runtime
                 !string.IsNullOrEmpty(gameSession.ActiveSave.state.education?.awaitingDecisionId))
             {
                 shellBinder.CloseModal(StimShellModal.Event);
-                resultCard.AddToClassList("hidden");
-                eventContinue.AddToClassList("hidden");
+                eventSheetBinder.ResultVisible = false;
+                eventSheetBinder.ContinueVisible = false;
                 ShowEducationDestination();
                 return;
             }
@@ -2037,8 +2022,8 @@ namespace StimTycoon.Runtime
                 return;
             }
             shellBinder.CloseModal(StimShellModal.Event);
-            resultCard.AddToClassList("hidden");
-            eventContinue.AddToClassList("hidden");
+            eventSheetBinder.ResultVisible = false;
+            eventSheetBinder.ContinueVisible = false;
             RestoreModalReturnContext();
         }
 
@@ -2055,15 +2040,15 @@ namespace StimTycoon.Runtime
                 PresentWorkflowPersistenceFailure(persistSummary, PresentQueuedYearCompletion);
                 return;
             }
-            eventCategory.text = "YEAR SUMMARY";
-            eventTitle.text = "A full year moved forward";
-            eventBody.text = "Every normal monthly change was processed and autosaved in sequence.";
-            resultText.text = completionSummary;
-            resultEffects.text = "12 of 12 monthly transactions committed";
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            resultEffects.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.CategoryText = "YEAR SUMMARY";
+            eventSheetBinder.TitleText = "A full year moved forward";
+            eventSheetBinder.BodyText = "Every normal monthly change was processed and autosaved in sequence.";
+            eventSheetBinder.ResultText = completionSummary;
+            eventSheetBinder.EffectsText = "12 of 12 monthly transactions committed";
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.EffectsVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             RefreshHeader();
             RefreshFeed();
@@ -2095,15 +2080,15 @@ namespace StimTycoon.Runtime
             if (transition == null) return;
             presentedTransitionId = transition.transitionId;
             currentEvent = null;
-            eventCategory.text = "LIFE MILESTONE";
-            eventTitle.text = transition.title;
-            eventBody.text = transition.summary;
-            resultText.text = $"Age {transition.age} · {GetMonthName(transition.monthOfYear)}";
-            resultEffects.text = "Saved to your Life Feed";
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            resultEffects.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.CategoryText = "LIFE MILESTONE";
+            eventSheetBinder.TitleText = transition.title;
+            eventSheetBinder.BodyText = transition.summary;
+            eventSheetBinder.ResultText = $"Age {transition.age} · {GetMonthName(transition.monthOfYear)}";
+            eventSheetBinder.EffectsText = "Saved to your Life Feed";
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.EffectsVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
         }
 
@@ -2111,16 +2096,16 @@ namespace StimTycoon.Runtime
         {
             presentingFirstLifeOrientation = true;
             currentEvent = null;
-            eventCategory.text = "WELCOME TO STIM TYCOON";
-            eventTitle.text = "Your life, one choice at a time";
-            eventBody.text =
+            eventSheetBinder.CategoryText = "WELCOME TO STIM TYCOON";
+            eventSheetBinder.TitleText = "Your life, one choice at a time";
+            eventSheetBinder.BodyText =
                 "The Life Feed records what changes. Advance Month for detail or Advance Year for faster pacing—time always pauses for choices. Locked actions show what they require, and every completed action autosaves locally.";
-            resultText.text = "Nothing here costs premium currency, and ordinary progression remains available.";
-            resultEffects.text = "One screen · Continue when ready";
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            resultEffects.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ResultText = "Nothing here costs premium currency, and ordinary progression remains available.";
+            eventSheetBinder.EffectsText = "One screen · Continue when ready";
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.EffectsVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
         }
 
@@ -2128,17 +2113,17 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformActivity(activityType, out var summary);
-            eventCategory.text = succeeded ? "FOCUS COMPLETE" : "FOCUS UNAVAILABLE";
-            eventTitle.text = $"{ToDisplayName(activityType.ToString())} session";
-            eventBody.text = succeeded
+            eventSheetBinder.CategoryText = succeeded ? "FOCUS COMPLETE" : "FOCUS UNAVAILABLE";
+            eventSheetBinder.TitleText = $"{ToDisplayName(activityType.ToString())} session";
+            eventSheetBinder.BodyText = succeeded
                 ? "Your focused action has been applied to this month."
                 : "Choose another step after resolving the current requirement.";
-            resultText.text = summary;
-            resultEffects.text = string.Empty;
-            resultEffects.AddToClassList("hidden");
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.EffectsText = string.Empty;
+            eventSheetBinder.EffectsVisible = false;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             if (succeeded)
             {
@@ -2209,15 +2194,15 @@ namespace StimTycoon.Runtime
             if (!gameSession.HasPendingEvent) return false;
 
             currentEvent = null;
-            eventCategory.text = "CONTENT RECOVERY";
-            eventTitle.text = "A pending life event could not be loaded";
-            eventBody.text = "This save needs event content that is unavailable in the current build. Update or restore the matching build, then reopen this life.";
-            resultText.text = "No progress was changed.";
-            resultEffects.text = "The unavailable event was preserved for safe recovery.";
-            resultEffects.RemoveFromClassList("hidden");
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.AddToClassList("hidden");
+            eventSheetBinder.CategoryText = "CONTENT RECOVERY";
+            eventSheetBinder.TitleText = "A pending life event could not be loaded";
+            eventSheetBinder.BodyText = "This save needs event content that is unavailable in the current build. Update or restore the matching build, then reopen this life.";
+            eventSheetBinder.ResultText = "No progress was changed.";
+            eventSheetBinder.EffectsText = "The unavailable event was preserved for safe recovery.";
+            eventSheetBinder.EffectsVisible = true;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = false;
             OpenShellModal(StimShellModal.Event);
             return true;
         }
@@ -2435,15 +2420,15 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformParentingAction(selectedRelationshipId, action, out var summary);
-            eventCategory.text = succeeded ? "PARENTING MOMENT" : "PARENTING ACTION UNAVAILABLE";
-            eventTitle.text = ToDisplayName(action.ToString());
-            eventBody.text = "Parenting choices affect child wellbeing, learning, independence, and your relationship over time.";
-            resultText.text = summary;
-            resultEffects.text = string.Empty;
-            resultEffects.AddToClassList("hidden");
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.CategoryText = succeeded ? "PARENTING MOMENT" : "PARENTING ACTION UNAVAILABLE";
+            eventSheetBinder.TitleText = ToDisplayName(action.ToString());
+            eventSheetBinder.BodyText = "Parenting choices affect child wellbeing, learning, independence, and your relationship over time.";
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.EffectsText = string.Empty;
+            eventSheetBinder.EffectsVisible = false;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
@@ -2483,15 +2468,15 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryChooseFamilyPlanning(selectedRelationshipId, action, out var summary);
-            eventCategory.text = succeeded ? "FAMILY DECISION" : "FAMILY PATH UNAVAILABLE";
-            eventTitle.text = ToDisplayName(action.ToString());
-            eventBody.text = "Family planning requires an eligible adult partnership and mutual agreement. Choosing not now remains available.";
-            resultText.text = summary;
-            resultEffects.text = string.Empty;
-            resultEffects.AddToClassList("hidden");
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.CategoryText = succeeded ? "FAMILY DECISION" : "FAMILY PATH UNAVAILABLE";
+            eventSheetBinder.TitleText = ToDisplayName(action.ToString());
+            eventSheetBinder.BodyText = "Family planning requires an eligible adult partnership and mutual agreement. Choosing not now remains available.";
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.EffectsText = string.Empty;
+            eventSheetBinder.EffectsVisible = false;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
@@ -2507,17 +2492,17 @@ namespace StimTycoon.Runtime
                 selectedRelationshipId,
                 interactionType,
                 out var summary);
-            eventCategory.text = succeeded ? "SOCIAL MOMENT" : "INTERACTION UNAVAILABLE";
-            eventTitle.text = ToDisplayName(interactionType.ToString());
-            eventBody.text = succeeded
+            eventSheetBinder.CategoryText = succeeded ? "SOCIAL MOMENT" : "INTERACTION UNAVAILABLE";
+            eventSheetBinder.TitleText = ToDisplayName(interactionType.ToString());
+            eventSheetBinder.BodyText = succeeded
                 ? "This moment changed your relationship and became part of your life story."
                 : "Choose another step after resolving the current requirement.";
-            resultText.text = summary;
-            resultEffects.text = string.Empty;
-            resultEffects.AddToClassList("hidden");
-            choices.AddToClassList("hidden");
-            resultCard.RemoveFromClassList("hidden");
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ResultText = summary;
+            eventSheetBinder.EffectsText = string.Empty;
+            eventSheetBinder.EffectsVisible = false;
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
             if (!succeeded) return;
             RefreshHeader();
@@ -2557,7 +2542,7 @@ namespace StimTycoon.Runtime
                 advanceYear.SetEnabled(true);
                 shellBinder.CloseModal(StimShellModal.NewLife);
                 shellBinder.CloseModal(StimShellModal.Event);
-                choices.AddToClassList("hidden");
+                eventSheetBinder.ChoicesVisible = false;
                 advanceMonth.RemoveFromClassList("hidden");
                 RefreshHeader();
                 RefreshFeed();
@@ -2686,16 +2671,16 @@ namespace StimTycoon.Runtime
         private void PresentWorkflowPersistenceFailure(string summary, Action retry)
         {
             workflowPersistenceRetry = retry;
-            choices.AddToClassList("hidden");
-            eventCategory.text = "SAVE REQUIRED";
-            eventTitle.text = "Progress could not be saved";
-            eventBody.text = "No further workflow steps will run until this save succeeds.";
-            resultText.text = string.IsNullOrEmpty(summary) ? "The save transaction was rolled back." : summary;
-            resultEffects.text = "No workflow progress applied · Retry is safe";
-            resultCard.RemoveFromClassList("hidden");
-            resultEffects.RemoveFromClassList("hidden");
-            eventContinue.text = "RETRY SAVE";
-            eventContinue.RemoveFromClassList("hidden");
+            eventSheetBinder.ChoicesVisible = false;
+            eventSheetBinder.CategoryText = "SAVE REQUIRED";
+            eventSheetBinder.TitleText = "Progress could not be saved";
+            eventSheetBinder.BodyText = "No further workflow steps will run until this save succeeds.";
+            eventSheetBinder.ResultText = string.IsNullOrEmpty(summary) ? "The save transaction was rolled back." : summary;
+            eventSheetBinder.EffectsText = "No workflow progress applied · Retry is safe";
+            eventSheetBinder.ResultVisible = true;
+            eventSheetBinder.EffectsVisible = true;
+            eventSheetBinder.ContinueText = "RETRY SAVE";
+            eventSheetBinder.ContinueVisible = true;
             OpenShellModal(StimShellModal.Event);
         }
 
