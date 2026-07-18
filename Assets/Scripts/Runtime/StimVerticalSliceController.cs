@@ -253,7 +253,7 @@ namespace StimTycoon.Runtime
             careerActions = root.Q<VisualElement>("career-actions");
             careerActionsCard = root.Q<VisualElement>("career-actions-card");
             var catalog = new InMemoryStimEventCatalog();
-            foreach (var authoredEvent in RepresentativeStimEvents.CreateLaunchAlphaCatalog())
+            foreach (var authoredEvent in StimPlayableEventCatalog.Build().events)
             {
                 catalog.Upsert(authoredEvent);
             }
