@@ -115,6 +115,8 @@ The wiring return should include:
 6. Route all mutations through typed service calls; never mutate the active save from a binder.
 7. Retain one canonical launch event catalog. The controller must not duplicate an event registration list.
 
+Current extraction progress: `StimShellBinder` owns shared shell behavior; `StimLifeBinder` owns deterministic Life Feed grouping, empty state, template-row binding, and visible-count presentation; `StimStudyBinder` owns the study catalog plus confirmation-sheet presentation; `StimWorkBinder` owns the career-path preview and manual-work presentation; `StimBankBinder` owns account, transfer, cash-flow, credit, investing, history, and tab presentation; and `StimSocialBinder` owns relationship list, discovery, and detail presentation. The controller retains stable composition seams and keeps workflow persistence and gameplay commands; Goals is the next binder extraction.
+
 Proposed boundary:
 
 ```text
@@ -151,10 +153,12 @@ validation → commit/rollback → Life Feed
 
 Five staged Yarn files currently contain 100 new dialogue nodes: Childhood, School, Career, Health, and Money. Yarn Spinner imports them through `StimTycoon.yarnproject`, but a node is not playable until a matching validated `StimEvent` and every referenced choice ID exist in the canonical C# catalog.
 
-- [ ] Add data-driven `StimEvent` definitions for the 100 staged nodes without creating a 100-method controller/catalog file.
-- [ ] Assign explicit age ranges, timing, requirements, cooldown/repeat policy, locations, outcome weights, meaningful effects, feed text, and telemetry to every event.
-- [ ] Require `minor_cash_agency` only where a child truly has appropriate financial agency; otherwise move cash-charging events to age 18+ or make the caregiver/household bear the cost.
-- [ ] Add an automated Yarn-to-catalog contract test for every `stim_resolve_choice` event and choice ID.
+Current staged progress: all 100 Childhood, School, Career, Health, and Money nodes have compact data-driven definitions with explicit age ranges, requirements, effects, cooldowns, telemetry, production validation, and exact Yarn choice parity. They intentionally remain outside the launch catalog until pacing, distribution, and editorial review.
+
+- [x] Add data-driven `StimEvent` definitions for the 100 staged nodes without creating a 100-method controller/catalog file.
+- [x] Assign explicit age ranges, timing, requirements, cooldown/repeat policy, locations, outcome weights, meaningful effects, feed text, and telemetry to every event.
+- [x] Require `minor_cash_agency` only where a child truly has appropriate financial agency; all staged cash-charging outcomes are currently age 18+ and automated coverage protects that boundary.
+- [x] Add an automated Yarn-to-catalog contract test for every `stim_resolve_choice` event and choice ID.
 - [ ] Run production validation, age-boundary checks, follow-up reachability, anti-repetition coverage, seeded distribution tests, and human editorial review before adding the batches to random selection.
 - [ ] Register batches gradually by life stage/category so event pacing and balance can be measured rather than enabling all 100 at once.
 

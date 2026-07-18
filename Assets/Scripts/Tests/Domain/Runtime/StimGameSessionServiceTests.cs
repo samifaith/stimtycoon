@@ -3916,6 +3916,52 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void StagedAdultCatalog_HasBoundedSeededCategoryDistribution()
+        {
+            var categoryCounts = new Dictionary<EventCategory, int>();
+
+            for (var seed = 0; seed < 300; seed++)
+            {
+                var catalog = new InMemoryStimEventCatalog();
+                foreach (var evt in StagedStimEventCatalog.CreateAllStagedEvents())
+                    catalog.Upsert(evt);
+                var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+                var save = CreateValidSave();
+                save.state.character.age = 24;
+                save.rng.seed = seed;
+                service.Start(save);
+
+                Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
+                Assert.That(nextEvent, Is.Not.Null, $"Seed {seed} should select an adult staged event.");
+                categoryCounts.TryGetValue(nextEvent.category, out var count);
+                categoryCounts[nextEvent.category] = count + 1;
+            }
+
+            Assert.That(categoryCounts.Keys,
+                Is.EquivalentTo(new[] { EventCategory.Career, EventCategory.Health, EventCategory.Money }));
+            foreach (var category in new[] { EventCategory.Career, EventCategory.Health, EventCategory.Money })
+                Assert.That(categoryCounts[category], Is.InRange(70, 130),
+                    $"Seeded staged selection overrepresented {category}.");
+        }
+
+        [Test]
+        public void StagedNeverEvent_CannotRepeatAfterResolution()
+        {
+            var evt = StagedStimEventCatalog.CreateCareerBatch()[0];
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(evt);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            service.Start(CreateValidSave());
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var selected, out var advanceSummary), advanceSummary);
+            Assert.That(selected?.id, Is.EqualTo(evt.id));
+            Assert.IsTrue(service.TryResolveChoice(
+                evt.id, evt.choices[0].id, out var resolutionSummary), resolutionSummary);
+            Assert.IsTrue(service.TryAdvanceMonth(out var repeated, out var nextSummary), nextSummary);
+            Assert.That(repeated, Is.Null);
+        }
+
+        [Test]
         public void PlayFlow_ResolvesEventReloadsSaveAndContinuesNextMonth()
         {
             var evt = RepresentativeStimEvents.CreateHealthBurnout();

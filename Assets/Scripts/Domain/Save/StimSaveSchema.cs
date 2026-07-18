@@ -75,6 +75,7 @@ namespace StimTycoon.Saves
         public List<StimLifeDecisionState> lifeDecisions = new List<StimLifeDecisionState>();
         public List<StimActionProgressState> actionProgress = new List<StimActionProgressState>();
         public List<StimLifeFeedEntry> lifeFeed = new List<StimLifeFeedEntry>();
+        public StimHistoryArchiveState historyArchive = new StimHistoryArchiveState();
         public string pendingEventId;
         public List<StimEventHistoryEntry> eventHistory = new List<StimEventHistoryEntry>();
         public List<StimScheduledEventRecord> scheduledEvents = new List<StimScheduledEventRecord>();
@@ -475,6 +476,14 @@ namespace StimTycoon.Saves
     }
 
     [Serializable]
+    public class StimHistoryArchiveState
+    {
+        public int lifeFeedArchivedCount;
+        public int eventHistoryArchivedCount;
+        public List<string> majorSummaries = new List<string>();
+    }
+
+    [Serializable]
     public class StimScheduledEventRecord
     {
         public string eventId;
@@ -600,10 +609,51 @@ namespace StimTycoon.Saves
             ValidateGoals(result, save.state.goals);
             ValidateLifeDecisions(result, save.state.lifeDecisions);
             ValidateActionProgress(result, save.state.actionProgress);
+            ValidateHistoryRetention(result, save.state);
             ValidateEventHistory(result, save.state.eventHistory);
             ValidateScheduledEvents(result, save.state.scheduledEvents);
 
             return result;
+        }
+
+        private static void ValidateHistoryRetention(StimSaveValidationResult result, StimGameState state)
+        {
+            if (state.lifeFeed == null)
+            {
+                result.isValid = false;
+                result.errors.Add("state.lifeFeed is null");
+            }
+            else if (state.lifeFeed.Count > StimHistoryRetention.MaxLifeFeedEntries)
+            {
+                result.isValid = false;
+                result.errors.Add("state.lifeFeed exceeds retention limit");
+            }
+
+            if (state.eventHistory != null &&
+                state.eventHistory.Count > StimHistoryRetention.MaxEventHistoryEntries)
+            {
+                result.isValid = false;
+                result.errors.Add("state.eventHistory exceeds retention limit");
+            }
+
+            if (state.historyArchive == null)
+            {
+                result.isValid = false;
+                result.errors.Add("state.historyArchive is null");
+                return;
+            }
+            if (state.historyArchive.lifeFeedArchivedCount < 0 ||
+                state.historyArchive.eventHistoryArchivedCount < 0)
+            {
+                result.isValid = false;
+                result.errors.Add("state.historyArchive counts cannot be negative");
+            }
+            if (state.historyArchive.majorSummaries == null ||
+                state.historyArchive.majorSummaries.Count > StimHistoryRetention.MaxMajorArchiveSummaries)
+            {
+                result.isValid = false;
+                result.errors.Add("state.historyArchive.majorSummaries is invalid");
+            }
         }
 
         public static string GetValidationSummary(StimSaveValidationResult result, string saveId)

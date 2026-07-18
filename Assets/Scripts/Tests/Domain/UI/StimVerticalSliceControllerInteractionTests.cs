@@ -1133,6 +1133,11 @@ namespace StimTycoon.Tests.Domain.UI
         {
             SetField("gameSession", session);
             SetField("shellBinder", new StimShellBinder(root, null));
+            var feedTemplate = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                "Assets/StimTycoon/UI/Components/FeedRow/FeedRow.uxml");
+            Assert.That(feedTemplate, Is.Not.Null);
+            SetField("lifeBinder", new StimLifeBinder(root, feedTemplate));
+            SetField("studyBinder", new StimStudyBinder(root));
             var bindings = new Dictionary<string, string>
             {
                 { "cashValue", "cash-value" }, { "lifeSummary", "life-summary" },
@@ -1140,7 +1145,7 @@ namespace StimTycoon.Tests.Domain.UI
                 { "headerNetWorthValue", "header-net-worth-value" },
                 { "eventCategory", "event-category" }, { "eventTitle", "event-title" },
                 { "eventBody", "event-body" }, { "resultText", "result-text" },
-                { "resultEffects", "result-effects" }, { "lifeFeedList", "life-feed-list" },
+                { "resultEffects", "result-effects" },
                 { "overviewCareer", "overview-career" }, { "overviewCalendar", "overview-calendar" },
                 { "healthValue", "health-value" }, { "happinessValue", "happiness-value" },
                 { "smartsValue", "smarts-value" }, { "looksValue", "looks-value" },
@@ -1150,14 +1155,6 @@ namespace StimTycoon.Tests.Domain.UI
                 { "avatarGlyph", "avatar-glyph" }, { "choices", "choices" },
                 { "resultCard", "result-card" }, { "playerOverview", "player-overview" },
                 { "careerProgressFill", "career-progress-fill" }, { "eventSheet", "event-sheet" },
-                { "studySessionSheet", "study-session-sheet" },
-                { "studySessionTitle", "study-session-title" },
-                { "studySessionDescription", "study-session-description" },
-                { "studySessionEffects", "study-session-effects" },
-                { "studySessionTiming", "study-session-timing" },
-                { "studySessionRequirement", "study-session-requirement" },
-                { "studySessionCancel", "study-session-cancel" },
-                { "studySessionConfirm", "study-session-confirm" },
                 { "healthFill", "health-fill" }, { "happinessFill", "happiness-fill" },
                 { "smartsFill", "smarts-fill" }, { "looksFill", "looks-fill" },
                 { "luckFill", "luck-fill" }, { "advanceMonth", "advance-month" },
@@ -1197,21 +1194,9 @@ namespace StimTycoon.Tests.Domain.UI
                 { "goalsDestinationContent", "goals-destination-content" },
                 { "educationEmptyState", "education-empty-state" },
                 { "educationUnavailableCopy", "education-unavailable-copy" },
-                { "educationCatalog", "education-catalog" },
-                { "educationCatalogStatus", "education-catalog-status" },
-                { "educationCatalogList", "education-catalog-list" },
                 { "careerEmptyState", "career-empty-state" },
-                { "careerContextCopy", "career-context-copy" },
-                { "careerPathPreview", "career-path-preview" },
-                { "relationshipListView", "relationship-list-view" }, { "relationshipList", "relationship-list" },
-                { "discoverCompatiblePerson", "discover-compatible-person" },
                 { "relationshipDiscoveryFeedback", "relationship-discovery-feedback" },
                 { "relationshipDiscoveryRetry", "relationship-discovery-retry" },
-                { "relationshipDetailView", "relationship-detail-view" },
-                { "relationshipBack", "relationship-back" }, { "relationshipAvatar", "relationship-avatar" },
-                { "relationshipName", "relationship-name" }, { "relationshipType", "relationship-type" },
-                { "relationshipStrength", "relationship-strength" }, { "relationshipFill", "relationship-fill" },
-                { "relationshipGenetics", "relationship-genetics" }, { "relationshipActions", "relationship-actions" },
                 { "educationCard", "education-card" }, { "educationStage", "education-stage" },
                 { "learningLevel", "learning-level" }, { "learningFill", "learning-fill" },
                 { "learningProgress", "learning-progress" }, { "educationActions", "education-actions" },
@@ -1225,49 +1210,25 @@ namespace StimTycoon.Tests.Domain.UI
                 { "endingStatus", "ending-status" }, { "endingSummary", "ending-summary" },
                 { "endingNewLife", "ending-new-life" }, { "achievementsCount", "achievements-count" },
                 { "achievementsList", "achievements-list" }, { "navMoney", "nav-money" },
-                { "moneyView", "money-view" }, { "manualWorkRole", "manual-work-role" },
-                { "manualWorkRate", "manual-work-rate" }, { "moneyCashValue", "money-cash-value" },
-                { "manualWorkTap", "manual-work-tap" }, { "manualWorkFeedback", "manual-work-feedback" },
+                { "moneyView", "money-view" }, { "moneyCashValue", "money-cash-value" },
+                { "manualWorkFeedback", "manual-work-feedback" },
                 { "manualWorkRetry", "manual-work-retry" },
-                { "savingsBalanceValue", "savings-balance-value" },
-                { "savingsAvailableValue", "savings-available-value" },
-                { "savingsDepositMode", "savings-deposit-mode" },
-                { "savingsWithdrawMode", "savings-withdraw-mode" },
-                { "savingsAmountInput", "savings-amount-input" },
                 { "savingsTransferFeedback", "savings-transfer-feedback" },
                 { "savingsTransferRetry", "savings-transfer-retry" },
-                { "moneyTransactionHistory", "money-transaction-history" },
-                { "moneyAccountsList", "money-accounts-list" },
-                { "cashFlowGross", "cash-flow-gross" }, { "cashFlowTaxes", "cash-flow-taxes" },
-                { "cashFlowExpenses", "cash-flow-expenses" },
-                { "cashFlowCreditInterest", "cash-flow-credit-interest" },
-                { "cashFlowSavingsInterest", "cash-flow-savings-interest" },
-                { "cashFlowNet", "cash-flow-net" }, { "savingsProjection", "savings-projection" },
-                { "creditBalanceValue", "credit-balance-value" },
-                { "creditDetailValue", "credit-detail-value" },
-                { "availableCreditValue", "available-credit-value" },
-                { "creditRepaymentInput", "credit-repayment-input" },
                 { "creditRepaymentFeedback", "credit-repayment-feedback" },
                 { "creditRepaymentRetry", "credit-repayment-retry" },
-                { "indexFundValue", "index-fund-value" },
-                { "indexFundContributions", "index-fund-contributions" },
-                { "indexFundPerformance", "index-fund-performance" },
-                { "indexInvestmentRequirement", "index-investment-requirement" },
-                { "indexInvestmentInput", "index-investment-input" },
                 { "indexInvestmentFeedback", "index-investment-feedback" },
-                { "indexInvestmentRetry", "index-investment-retry" },
-                { "bankTabSavings", "bank-tab-savings" },
-                { "bankTabCredit", "bank-tab-credit" },
-                { "bankTabInvesting", "bank-tab-investing" },
-                { "bankPanelSavings", "bank-panel-savings" },
-                { "bankPanelCredit", "bank-panel-credit" },
-                { "bankPanelInvesting", "bank-panel-investing" }
+                { "indexInvestmentRetry", "index-investment-retry" }
             };
 
             foreach (var binding in bindings)
             {
                 SetField(binding.Key, root.Q(binding.Value));
             }
+
+            SetField("workBinder", new StimWorkBinder(root));
+            SetField("bankBinder", new StimBankBinder(root));
+            SetField("socialBinder", new StimSocialBinder(root));
         }
 
         private void SetField(string name, object value)
@@ -1295,7 +1256,26 @@ namespace StimTycoon.Tests.Domain.UI
         {
             var method = typeof(StimVerticalSliceController).GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(method, Is.Not.Null, $"Controller method '{name}' was not found.");
-            method.Invoke(controller, arguments);
+            var parameters = method.GetParameters();
+            Assert.That(arguments.Length, Is.LessThanOrEqualTo(parameters.Length),
+                $"Controller method '{name}' received too many arguments.");
+
+            if (arguments.Length == parameters.Length)
+            {
+                method.Invoke(controller, arguments);
+                return;
+            }
+
+            var invocationArguments = new object[parameters.Length];
+            Array.Copy(arguments, invocationArguments, arguments.Length);
+            for (var index = arguments.Length; index < parameters.Length; index++)
+            {
+                Assert.That(parameters[index].HasDefaultValue, Is.True,
+                    $"Controller method '{name}' is missing required argument '{parameters[index].Name}'.");
+                invocationArguments[index] = parameters[index].DefaultValue;
+            }
+
+            method.Invoke(controller, invocationArguments);
         }
 
         private sealed class MemorySaveRepository : IStimSaveRepository

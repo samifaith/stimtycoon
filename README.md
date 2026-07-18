@@ -41,7 +41,7 @@ The repository now contains:
 - visible Fitness and Professional skill paths with level/XP progress and downstream overtime and career-work benefits
 - a safe Advance Year control that reuses ordinary monthly transactions, autosaves every month, summarizes progress, and stops for events, decisions, failures, or endings
 - automated compact-width and 130% accessibility-text reflow rules with 44-point primary targets
-- a recorded July 17, 2026 baseline of 679 passing EditMode test cases and 3 passing production-scene PlayMode smoke tests, covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, Yarn authoring contracts, UI structure, UI Builder template integration, and seeded long-run simulations
+- a recorded July 18, 2026 baseline of 729 passing EditMode test cases and 5 passing production-scene PlayMode smoke tests, covering the shared action contract, annual pacing, money, home, relationships and family, careers, business, goals, transitions, save safety, the 100-node staged Yarn/catalog contract, bounded history migration, UI structure, UI Builder template integration, responsive layout, and seeded long-run simulations
 - a repository-owned QA foundation with production-scene PlayMode smoke tests, Yarn authoring-contract checks, Unity Code Coverage, local headless runners, and PR/nightly GitHub Actions configuration
 - an explicit grouped UI binding manifest and disposable Shell binder that own the shared header, navigation, safe-area geometry, time controls, and enable/disable callback teardown without taking presentation ownership away from UI Builder
 
@@ -52,14 +52,14 @@ Not yet complete:
 - production navigation, accessibility, localization, art, and audio
 - iOS device build and automated play-flow coverage
 - reference-level destination UX: Bank and Education have functional first workspaces but still need presentation/edge-state convergence; Home, Social, Career/Business, and Goals need focused workspace convergence
-- runtime catalog definitions for the 100 staged Childhood, School, Career, Health, and Money Yarn nodes; they import and pass authoring-form contracts but are not yet playable
-- bounded Life Feed/event-history archival and broader controller/session decomposition
+- pacing, distribution, and human editorial approval for the 100 staged Childhood, School, Career, Health, and Money Yarn nodes; their validated definitions intentionally remain outside random selection
+- broader controller/session decomposition
 - broader portfolios and property, deeper books/equipment/inventory, additional businesses, and more authored relationship/career/event content
 - production Settings, accessibility validation, pseudo-localization, licensed art/audio, and physical-device verification
 
 ## Current Focus
 
-Milestones 1–12 and the M14 Bank/Education domain and initial-workspace implementation are complete. The latest recorded baseline is 679 EditMode plus 3 PlayMode smoke cases from July 17, 2026; a fresh local run is still needed after the latest headless attempt was blocked by Unity licensing/package entitlement recovery. The active phase is **Phase 5 — Experience Convergence**. The M13 premium/paid-reward presentation scaffold is now present as nine disabled, explicitly unavailable slots across the six-destination shell. It does not activate purchases, subscriptions, ads, premium-currency transactions, or reward behavior, and its new structural and PlayMode safety coverage still needs a clean Unity run. W0 and W1 are complete: shared presentation states, modal arbitration, duplicate-safe retry and rollback behavior, exact modal return context, reload-safe workflows, and persisted destination/tab/entity/scroll navigation are implemented. M13 now has an automated production-scene gate for the 320/390/430/768 × 100%/130% matrix; retained screenshots and human visual approval remain required. M14 still needs presentation edge states and a human comprehension check.
+Milestones 1–12 and the M14 Bank/Education domain and initial-workspace implementation are complete. A fresh July 18, 2026 local headless run passed 729/729 EditMode plus 5/5 PlayMode smoke cases with retained NUnit and coverage artifacts. The active phase is **Phase 5 — Experience Convergence**. The M13 premium/paid-reward presentation scaffold is present as nine disabled, explicitly unavailable slots across the six-destination shell. It does not activate purchases, subscriptions, ads, premium-currency transactions, or reward behavior, and its structural and PlayMode safety coverage is green. W0 and W1 are complete: shared presentation states, modal arbitration, duplicate-safe retry and rollback behavior, exact modal return context, reload-safe workflows, and persisted destination/tab/entity/scroll navigation are implemented. M13 has an automated production-scene gate for the 320/390/430/768 × 100%/130% matrix; retained screenshots and human visual approval remain required. M14 still needs presentation edge states and a human comprehension check.
 
 The path to completion is:
 
@@ -72,7 +72,7 @@ The path to completion is:
 
 Mockup names, ages, balances, stat/relationship values, XP totals, prices, rewards, and timers are illustrative unless `docs/TASKS.md` explicitly adopts them. The six-destination monthly loop is authoritative. **Legacy Gems** are the approved single premium currency: purchasable and occasionally earnable in small bounded amounts, separate from cash/net worth, and never required for baseline progression or recovery. Their disabled wallet/reward presentation is required immediately; transactions, Store products, subscriptions, rewarded-ad behavior, and season systems remain gated. Stim Coins, the alternate five-tab shell, and action quotas/`End Turn` are retired/reference-only.
 
-Every milestone also carries shared gates for save migration and rollback, bounded history growth, deterministic economy balance, authored-content validation, localization keys, accessibility, and offline-safe service boundaries. Money, business, annual-review, relationship, and transition histories have explicit bounds; Life Feed and event-history archival remain open work.
+Every milestone also carries shared gates for save migration and rollback, bounded history growth, deterministic economy balance, authored-content validation, localization keys, accessibility, and offline-safe service boundaries. Money, business, annual-review, relationship, transition, Life Feed, and event histories now have explicit bounds; Life Feed and event archives retain compact major-outcome summaries.
 
 ### Frontend and wiring workflow
 
@@ -114,7 +114,7 @@ In Unity:
 2. Select **EditMode**.
 3. Click **Run All**.
 
-The repository has a clean **679 / 679 EditMode test-case** baseline and **3 / 3 PlayMode smoke** baseline recorded on July 17, 2026. EditMode includes the seeded birth-to-ending harness, pending-event recovery, resumable Advance Year, age/financial-agency guards, Yarn node/choice contracts, and M13/M14 coverage. PlayMode boots the production scene and verifies its UIDocument, Input System EventSystem, navigation/overlay contract, and controller lifecycle. The full-life harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full verification run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
+The repository has a clean **729 / 729 EditMode test-case** baseline and **5 / 5 PlayMode smoke** baseline recorded on July 18, 2026. EditMode includes the seeded birth-to-ending harness, pending-event recovery, resumable Advance Year, age/financial-agency guards, all 100 staged Yarn/catalog definitions, bounded history migration, and M13/M14 coverage. PlayMode boots the production scene and verifies its UIDocument, Input System EventSystem, navigation/overlay contract, controller lifecycle, disabled commerce slots, and responsive width/text-scale matrix. The full-life harness is tagged `SlowSimulation`, so it can be selected or excluded with the Test Runner category filter. A full verification run should include it; a quick development run may exclude it. Its progress output reports elapsed milliseconds, simulated months, transaction count, maximum serialized-save length, and final Life Feed size.
 
 The full-life test can pause the Test Runner briefly because it performs hundreds of transactional JSON clones and autosaves while the Life Feed grows; this is known test-path work, not a deadlock. Transactional autosaves now use compact rather than pretty-printed JSON to avoid unnecessary formatting allocation and whitespace. If tests do not appear after a code change, run `Assets → Refresh` and reopen Test Runner.
 
@@ -194,7 +194,7 @@ scripts/qa/                # Headless local QA entry points
 - [x] Playable mobile UI vertical slice
 - [x] Player overview for stats and secondary career details
 - [x] Six finalized core stats in the save model and player overview
-- [x] 679 / 679 EditMode and 3 / 3 PlayMode smoke test cases with clean headless baselines recorded July 17, 2026
+- [x] 729 / 729 EditMode and 5 / 5 PlayMode smoke test cases with clean headless baselines recorded July 18, 2026
 - [x] Seeded birth-to-ending simulation
 - [x] Save migration fixtures
 - [ ] Cloud-conflict tests

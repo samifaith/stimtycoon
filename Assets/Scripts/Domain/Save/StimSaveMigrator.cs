@@ -330,6 +330,11 @@ namespace StimTycoon.Saves
                 save.state.lifeFeed = new List<StimLifeFeedEntry>();
                 Record(report, "state.lifeFeed created");
             }
+            if (save.state.historyArchive == null || !serializedSave.Contains("\"historyArchive\""))
+            {
+                save.state.historyArchive = new StimHistoryArchiveState();
+                Record(report, "state.historyArchive created");
+            }
             if (save.state.eventHistory == null)
             {
                 save.state.eventHistory = new List<StimEventHistoryEntry>();
@@ -340,6 +345,12 @@ namespace StimTycoon.Saves
                 save.state.scheduledEvents = new List<StimScheduledEventRecord>();
                 Record(report, "state.scheduledEvents created");
             }
+            var feedCountBeforeRetention = save.state.lifeFeed.Count;
+            var eventCountBeforeRetention = save.state.eventHistory.Count;
+            StimHistoryRetention.Apply(save.state);
+            if (save.state.lifeFeed.Count != feedCountBeforeRetention ||
+                save.state.eventHistory.Count != eventCountBeforeRetention)
+                Record(report, "unbounded histories archived");
         }
 
         private static void Record(StimSaveMigrationReport report, string change)

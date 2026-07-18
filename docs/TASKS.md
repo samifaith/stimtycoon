@@ -12,10 +12,10 @@ This is the operational roadmap after the July 17, 2026 code/documentation audit
 - [x] M11 — three career industries and one complete operational business
 - [x] M12 — Main/Daily/Life goals, achievement rewards, transition records, orientation, and alpha content validation
 - [x] M14 implementation — persistent Bank/Education workspaces, timed study claims, progression standards, discipline consequences, and portfolio contribution/performance reporting
-- [x] Clean headless result: 679 / 679 EditMode and 3 / 3 production-scene PlayMode smoke test cases passed on July 17, 2026
+- [x] Clean headless result: 729 / 729 EditMode and 5 / 5 production-scene PlayMode smoke test cases passed on July 18, 2026, with retained NUnit and coverage artifacts
 - [ ] M13 exit verification — 320/390/430/768 widths, 100%/130% text, safe areas, touch targets, and live Play Mode visual approval
 
-**July 17 audit note:** treat 679/3 as a recorded baseline rather than a continuously proven green state until a fresh local or remote run produces retained NUnit evidence. The latest local headless attempt was blocked during Unity licensing/package entitlement recovery. The audit also confirmed that the offline systems are broad and real, while destination convergence, staged-content wiring, Life Feed/event-history archival, controller/session decomposition, device validation, and production services remain incomplete.
+**July 18 verification note:** a fresh local headless run passed 729/729 EditMode and 5/5 PlayMode smoke cases after adding validated definitions for all 100 staged nodes plus bounded, migration-safe Life Feed/event-history archival. The responsive smoke gate covers the 320/390/430/768 × 100%/130% matrix; retained screenshots, human visual approval, staged-content pacing/editorial approval, controller/session decomposition, physical-device validation, and production services remain incomplete.
 
 ## Parallel ownership and immediate wiring track
 
@@ -23,7 +23,7 @@ The frontend owner controls UXML/USS/art/responsive presentation and runtime scr
 
 - [x] W0 — use one canonical launch catalog in the playable controller; compact large header money values while preserving exact accessible values.
 - [x] W0 — grouped binding manifest plus header/navigation/safe-area/time-control Shell binder are live; destination rendering and global modal arbitration now sit behind the binder, shell actions are blocked behind modals, and behavior coverage protects the lifecycle seam.
-- [ ] W1 — implement the shared visual state machine, modal arbitration, confirmation/error/retry behavior, and reload-safe multi-step workflows.
+- [x] W1 — implement the shared visual state machine, modal arbitration, confirmation/error/retry behavior, and reload-safe multi-step workflows.
 - [ ] W2 — wire the 100 staged Childhood/School/Career/Health/Money Yarn nodes to validated C# event definitions and add Yarn-to-catalog event/choice parity tests before random selection.
 - [ ] W3 — wire destination slices in this order: Shell → Life → Home/Social → Work → Goals → reusable mini-games → Settings/services.
 
@@ -48,7 +48,7 @@ The frontend owner controls UXML/USS/art/responsive presentation and runtime scr
 Specification execution phases:
 
 - [x] **P0 premium presentation scaffold** — add Stim-owned premium/paid-reward icons and visibly disabled, explicitly labeled sections in the live shell: header money/store entry affordance; Study premium module; Work sponsored/rewarded module; Bank premium tools and optional reward module; Social premium module; Goals sponsored challenge, premium/season preview, and paid-reward/bonus-game preview. Nine stable COM slots now share an unavailable state and expose no price, entitlement, multiplier, transaction, or working reward.
-- [ ] Add structural and PlayMode tests proving every required premium/paid-reward slot is present, disabled, non-focus-trapping, accessibility-labeled as unavailable, omitted from baseline progression/tasks, and unable to mutate save state or invoke a vendor SDK.
+- [x] Add structural and PlayMode tests proving every required premium/paid-reward slot is present, disabled, non-focus-trapping, accessibility-labeled as unavailable, omitted from baseline progression/tasks, and unable to mutate save state or invoke a vendor SDK.
 
 Required initial slot IDs:
 
@@ -140,7 +140,7 @@ Assets/UI/
 - [ ] Add structural and interaction coverage for navigation, overlays, back/close behavior, focus order, and state restoration.
 - [x] Render Life Feed updates as a deterministic semantic ordered list with age/month/revision ordering, category context, numbered accessible item context, and no in-place save reordering.
 - [x] Add a reusable Stim-owned visual-placeholder definition/factory with stable IDs, roles, aspect ratios, accessibility/decorative metadata, fallbacks, theme tokens, and development labeling.
-- [ ] Place the reusable visual slots into destination heroes, event art, avatars, icons, objects, badges, and backgrounds; add bounded Life Feed archival behavior.
+- [ ] Place the reusable visual slots into destination heroes, event art, avatars, icons, objects, badges, and backgrounds. Bounded Life Feed archival behavior is complete.
 - [ ] Complete reference tasks LIFE-01–LIFE-07: compact signed feed rows with archive/`See all`, canonical age-strip placement, recently changed stat semantics, common action states, time-control scenario QA, `Next Up`, and a compact goal preview. LIFE-08 Settings/notification entry points remain M18 work; no action-energy quota is approved.
 - [ ] Keep age as calendar/identity state rather than a sixth mutable core stat, and retain the canonical `0–12`, `13–18`, `19–26`, and `27+` life-stage boundaries unless a separately tested progression change is approved.
 
@@ -227,7 +227,7 @@ Assets/UI/
 - [ ] Validate every scroll container with touch drag, momentum, mouse/trackpad wheel, keyboard/focus scrolling, VoiceOver, reduced motion, nested containers, and 130% text; confirm position/overflow remains perceivable without obstructing content.
 - [ ] Run every screen and overlay at 320/390/430/768 widths and 100%/130% text scale.
 - [ ] Validate migrations, corruption recovery, backup restore, downgrade behavior, bounded histories, and duplicate protection from representative old saves.
-- [ ] Add explicit Life Feed and event-history retention/archive policies with migration-safe tests; these lists are not currently bounded like money transactions, business ledger, annual reviews, relationship history, and transition records.
+- [x] Add explicit Life Feed and event-history retention/archive policies with migration-safe tests: Life Feed retains 256 entries, event history retains 128 entries, and both contribute to a bounded 32-item major-summary archive.
 - [ ] Add privacy-safe diagnostics and performance markers for save failures, event pacing, economy balance, memory, and funnels without requiring an online SDK.
 - [ ] Install on supported physical iPhones; profile save/load latency, save size, memory, safe areas, touch, thermal behavior, and complete-life stability.
 - [ ] Freeze beta save semantics, then implement Authentication, Game Center, Cloud Save and conflict fixtures before account-enabled TestFlight.

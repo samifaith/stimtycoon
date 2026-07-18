@@ -459,9 +459,10 @@ namespace StimTycoon.Runtime
 
         private static void AddLifeFeedEntry(StimSaveEnvelope save, string text)
         {
+            save.state.historyArchive ??= new StimHistoryArchiveState();
             save.state.lifeFeed.Add(new StimLifeFeedEntry
             {
-                entryId = $"{save.revision}_education_{save.state.lifeFeed.Count}",
+                entryId = $"{save.revision}_education_{save.state.historyArchive.lifeFeedArchivedCount + save.state.lifeFeed.Count}",
                 category = "education",
                 text = text,
                 age = save.state.character.age,
@@ -469,6 +470,7 @@ namespace StimTycoon.Runtime
                 revision = save.revision,
                 timestampUtc = save.updatedAtUtc
             });
+            StimHistoryRetention.Apply(save.state);
         }
 
         private static int ClampStat(int value) =>
