@@ -26,7 +26,7 @@ The frontend owner controls UXML/USS/art/responsive presentation and runtime scr
 - [x] W0 — use one canonical launch catalog in the playable controller; compact large header money values while preserving exact accessible values.
 - [x] W0 — grouped binding manifest plus header/navigation/safe-area/time-control Shell binder are live; destination rendering and global modal arbitration now sit behind the binder, shell actions are blocked behind modals, and behavior coverage protects the lifecycle seam.
 - [x] W1 — implement the shared visual state machine, modal arbitration, confirmation/error/retry behavior, and reload-safe multi-step workflows.
-- [ ] W2 — validated data-driven definitions and exact Yarn-to-catalog event/choice parity tests are complete for all 100 staged Childhood/School/Career/Health/Money nodes; finish production validation, age boundaries, follow-up reachability, seeded distribution, editorial review, and gradual measured registration before random selection.
+- [ ] W2 — validated data-driven definitions and exact Yarn-to-catalog event/choice parity tests are complete for all 100 staged Childhood/School/Career/Health/Money nodes. The launch plus staged event catalog now shares one runtime age-eligibility predicate and exercises every event at exact minimum, exact maximum, and both adjacent rejected ages. Finish non-event age boundaries, follow-up reachability, seeded distribution, editorial review, and gradual measured registration before random selection.
 - [ ] W3 — wire destination slices in this order: Shell → Life → Home/Social → Work → Goals → reusable mini-games → Settings/services.
 
 ## Phase 5 — Experience Convergence
