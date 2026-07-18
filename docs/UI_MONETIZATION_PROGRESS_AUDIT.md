@@ -1,7 +1,7 @@
 # Stim Tycoon UI and Monetization Progress Audit
 
-**Audit basis:** `main` at commit `2210bc604c07d8f8a0af75a6cf8969317ac1f169`  
-**Compared against:** Stim Tycoon Final UI, Asset, Mini-Game, Ads, and IAP Specification v2.0  
+**Audit basis:** `main` at commit `2210bc604c07d8f8a0af75a6cf8969317ac1f169`
+**Compared against:** Stim Tycoon Final UI, Asset, Mini-Game, Ads, and IAP Specification v2.0
 **Status date:** July 18, 2026
 
 ## Status legend
@@ -35,45 +35,45 @@ The gameplay, save, Bank, Education, goal, career, business, relationship, and l
 
 # Phase 1: Foundation
 
-- [x] ~~Audit current UXML, USS, and C# bindings~~  
+- [x] ~~Audit current UXML, USS, and C# bindings~~
   Protected binding names, a grouped binding manifest, structural tests, the frontend/wiring contract, and the Shell binder are present.
-- [x] ~~Create tokens and theme files~~  
+- [x] ~~Create tokens and theme files~~
   `StimTheme.uss`, `Shell.uss`, `Components.uss`, `Destinations.uss`, and the last-loaded `FrontendCanvas.uss` are canonical.
-- [x] ~~Build reusable Player Header~~  
+- [x] ~~Build reusable Player Header~~
   Implemented as `Assets/StimTycoon/UI/Components/AppHeader/AppHeader.uxml` and wired through `StimShellBinder`.
-- [x] ~~Build reusable Bottom Navigation~~  
+- [x] ~~Build reusable Bottom Navigation~~
   Implemented as `Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml` with six exclusive destinations.
-- [ ] **PARTIAL:** Fix safe areas, overlap, scrolling, and clipping.  
+- [ ] **PARTIAL:** Fix safe areas, overlap, scrolling, and clipping.
   Safe-area geometry, persistent destination scroll offsets, simulator profiles, responsive rules, and automated containment checks exist. Live visual approval at 320, 390, 430, and 768 points, 130% text, visible scroll affordances, VoiceOver, and physical-device validation remain open.
-- [ ] **PARTIAL:** Replace placeholder letter icons.  
+- [ ] **PARTIAL:** Replace placeholder letter icons.
   Navigation and functional destination icons use imported pictograms, and many content placeholders use emoji. Relationship rows still generate letter avatars, generic placeholder slots remain, and production avatar/object/badge art is unfinished.
 
 # Phase 2: Core components
 
-- [ ] **PARTIAL:** Build `DataRow`.  
+- [ ] **PARTIAL:** Build `DataRow`.
   Reusable feed, achievement, account, path, relationship, stat, and section row factories exist. They are separate variants rather than one finalized shared row contract, and several lists still build bespoke rows.
-- [ ] **PARTIAL:** Build `MetricCard`.  
+- [ ] **PARTIAL:** Build `MetricCard`.
   Net-worth, balance, stat, progress, and summary cards exist in UXML and USS, but there is no finalized reusable `MetricCard` template or factory.
-- [x] ~~Build `ActionCard`~~  
+- [x] ~~Build `ActionCard`~~
   `ActionCard.uxml`, `StimActionCardFactory`, state mapping, progress, requirements, previews, and callbacks are implemented.
-- [ ] **PARTIAL:** Build progress, chips, banners, and state components.  
+- [ ] **PARTIAL:** Build progress, chips, banners, and state components.
   Shared presentation states, progress families, requirement chips, segmented tabs, info callouts, signed result chips, and action states exist. Common visual polish, accessibility semantics, timers, cooldown rows, and complete branch coverage remain incomplete.
-- [ ] **PARTIAL:** Build feedback modals and toasts.  
+- [ ] **PARTIAL:** Build feedback modals and toasts.
   Event, Study confirmation, New Life, ending, result, rollback, retry, and return-context behavior exists. A reusable generic modal/toast system and commerce-specific feedback surfaces do not.
 
 # Phase 3: Main screens
 
-- [ ] **PARTIAL:** Refactor Life.  
+- [ ] **PARTIAL:** Refactor Life.
   Compact semantic Life Feed rows, five stat meters, focus actions, time controls, Life Summary, and a four-stage age strip are live. Dedicated `Next Up`, daily-goal preview, feed archive/See All, recently changed stat treatment, and final visual hierarchy remain open.
-- [ ] **PARTIAL:** Refactor Study.  
+- [ ] **PARTIAL:** Refactor Study.
   Education progress, path catalog, three disciplines, qualification thresholds, transactional timed sessions, claim states, and edge-state copy exist. Study Match, final path-detail presentation, full interruption QA, and production art remain open.
-- [ ] **PARTIAL:** Refactor Work.  
+- [ ] **PARTIAL:** Refactor Work.
   Age-aware path preview, career actions, promotions, retraining, firing/unemployment foundations, manual work, and Local Services business actions exist. The focused career/business dashboards, Shift Match, richer routing, and final visual hierarchy remain open.
-- [ ] **PARTIAL, FUNCTIONALLY STRONG:** Refactor Bank.  
+- [ ] **PARTIAL, FUNCTIONALLY STRONG:** Refactor Bank.
   Savings, exact and percentage transfers, transaction history, 3.50% APY, projections, cash flow, credit repayment, index investing, contribution/performance reporting, age gates, rollback, and persistent tabs are implemented. Compact quick actions, account detail routes, financial tips, extreme or negative value states, and final presentation remain open.
-- [ ] **PARTIAL:** Refactor Social.  
+- [ ] **PARTIAL:** Refactor Social.
   Relationship list, persistent selection, profiles, discovery, warmth, genetics, actions, romance, parenting, children, custody, and safety rules exist. Compact production rows, bounded candidate UX, relationship history, consent/end-state clarity, and a focused family workspace remain open.
-- [ ] **PARTIAL:** Refactor Goals.  
+- [ ] **PARTIAL:** Refactor Goals.
   Main, Daily, and Life goal models, destination routing, progress, claims, transactional rewards, achievements, and compact row templates exist. Pinned goals, Manage behavior, separate goal boards, final category hierarchy, and complete locked/active/claimable/claimed presentation remain open.
 
 # Phase 4: Mini-game engine
@@ -87,15 +87,15 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 
 # Phase 5: Monetization UI
 
-- [ ] **SUPERSEDED NAME:** Build the **Legacy Gem Store**, replacing the earlier Spark Store concept.  
+- [ ] **SUPERSEDED NAME:** Build the **Legacy Gem Store**, replacing the earlier Spark Store concept.
   No store screen, product rows, pack catalog, cosmetic catalog, restore flow, legal area, or purchase-result UI is implemented.
-- [ ] Build the Stim+ Paywall.  
+- [ ] Build the Stim+ Paywall.
   No plan selector, localized subscription offer, benefit list, entitlement state, legal links, or member state is implemented.
-- [ ] **PARTIAL:** Add rewarded-ad placements.  
+- [ ] **PARTIAL:** Add rewarded-ad placements.
   Nine stable disabled commerce slots exist in the header, Study, Work, Bank, Social, and Goals. They are correctly labeled unavailable and cannot mutate game state. A rewarded-ad prompt and active placement flow do not exist.
-- [ ] Implement all purchase and ad states.  
+- [ ] Implement all purchase and ad states.
   Loading, pending, success, cancelled, failure, restore, already-owned, expired, grace-period, duplicate callback, cap, cooldown, consent, ATT, and reward-pending states are not implemented.
-- [ ] Connect localized product metadata.  
+- [ ] Connect localized product metadata.
   No runtime product catalog or store-localized title, description, price, billing period, or eligibility binding exists.
 
 ## Existing monetization foundation that must not be mistaken for completion
@@ -109,11 +109,11 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 
 # Phase 6: Art and polish
 
-- [ ] **PARTIAL:** Replace temporary sprites.  
+- [ ] **PARTIAL:** Replace temporary sprites.
   Approved vendor assets, a license/asset manifest, nine-slice mappings, icon bindings, and placeholder contracts exist. Original avatars, rooms, businesses, school art, badges, event art, mini-game tiles, and production illustrations remain unfinished. Emoji and generic placeholders are still active.
-- [ ] Add animations, sound, haptics, and reduced-motion support.  
+- [ ] Add animations, sound, haptics, and reduced-motion support.
   No complete production motion/audio/haptic system or reduced-motion setting was found.
-- [ ] **PARTIAL:** Run device and accessibility QA.  
+- [ ] **PARTIAL:** Run device and accessibility QA.
   iPhone simulator profiles, responsive classes, text-scale code, structural tests, and PlayMode smoke tests exist. The full width/text matrix, VoiceOver, focus order, contrast, physical iPhones, touch momentum, nested scrolling, and final visual signoff remain open.
 
 ## Important visual-state note
@@ -123,9 +123,9 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 # Phase 7: Platform integration
 
 - [ ] Configure products in App Store Connect and Google Play Console.
-- [ ] **PARTIAL FOUNDATION ONLY:** Integrate Unity IAP.  
+- [ ] **PARTIAL FOUNDATION ONLY:** Integrate Unity IAP.
   The package is installed, but no concrete purchasing service, product catalog, callbacks, fulfillment, or entitlement storage was found.
-- [ ] **PARTIAL FOUNDATION ONLY:** Integrate the selected ad provider.  
+- [ ] **PARTIAL FOUNDATION ONLY:** Integrate the selected ad provider.
   LevelPlay is installed and an interface plus no-op adapter exist, but no production adapter, placement IDs, consent flow, callbacks, caps, or rewards are connected.
 - [ ] Implement receipt validation and durable fulfillment.
 - [ ] Test sandbox purchases, restores, cancellations, failed purchases, refunds, duplicate callbacks, and offline recovery.
