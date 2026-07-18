@@ -47,6 +47,7 @@ namespace StimTycoon.Runtime
         private StimGoalsBinder goalsBinder;
         private StimNewLifeBinder newLifeBinder;
         private StimEventSheetBinder eventSheetBinder;
+        private StimFinalLifeBinder finalLifeBinder;
         private Label overviewCareer;
         private Label overviewCalendar;
         private Label healthValue;
@@ -153,11 +154,6 @@ namespace StimTycoon.Runtime
         private Label careerActionProgress;
         private VisualElement careerActions;
         private VisualElement careerActionsCard;
-        private VisualElement finalLifeSummary;
-        private Label endingName;
-        private Label endingStatus;
-        private Label endingSummary;
-        private Button endingNewLife;
         private VisualElement rootElement;
         private StimShellBinder shellBinder;
         private StimActivityType primaryFocusActivity;
@@ -222,6 +218,7 @@ namespace StimTycoon.Runtime
             goalsBinder = new StimGoalsBinder(root, achievementRowTemplate);
             newLifeBinder = new StimNewLifeBinder(root);
             eventSheetBinder = new StimEventSheetBinder(root);
+            finalLifeBinder = new StimFinalLifeBinder(root);
             cashValue = shellBinder.CashValue;
             lifeSummary = shellBinder.LifeSummary;
             calendarSummary = shellBinder.CalendarSummary;
@@ -321,11 +318,6 @@ namespace StimTycoon.Runtime
             careerActionProgress = root.Q<Label>("career-action-progress");
             careerActions = root.Q<VisualElement>("career-actions");
             careerActionsCard = root.Q<VisualElement>("career-actions-card");
-            finalLifeSummary = root.Q<VisualElement>("final-life-summary");
-            endingName = root.Q<Label>("ending-name");
-            endingStatus = root.Q<Label>("ending-status");
-            endingSummary = root.Q<Label>("ending-summary");
-            endingNewLife = root.Q<Button>("ending-new-life");
             var catalog = new InMemoryStimEventCatalog();
             foreach (var authoredEvent in RepresentativeStimEvents.CreateLaunchAlphaCatalog())
             {
@@ -376,8 +368,7 @@ namespace StimTycoon.Runtime
                 learningLevel == null || learningFill == null || learningProgress == null ||
                 educationActions == null || skillsList == null || careerCard == null || careerRole == null || careerSalary == null ||
                 careerNextStep == null || careerActionFill == null || careerActionProgress == null ||
-                careerActions == null || careerActionsCard == null || finalLifeSummary == null || endingName == null || endingStatus == null ||
-                endingSummary == null || endingNewLife == null)
+                careerActions == null || careerActionsCard == null || finalLifeBinder == null || !finalLifeBinder.IsValid)
             {
                 LogMissingUiBindings();
                 return;
@@ -499,6 +490,7 @@ namespace StimTycoon.Runtime
             goalsBinder = null;
             newLifeBinder = null;
             eventSheetBinder = null;
+            finalLifeBinder = null;
             rootElement = null;
         }
 
@@ -537,7 +529,7 @@ namespace StimTycoon.Runtime
             BindPersistentButton(socialBinder.RelationshipBack, ShowRelationshipList);
             BindPersistentButton(socialBinder.DiscoverCompatiblePerson, DiscoverCompatiblePerson);
             BindPersistentButton(relationshipDiscoveryRetry, () => TryRetryCommand("social.discovery"));
-            BindPersistentButton(endingNewLife, OpenNewLifeFromEnding, StimShellModal.FinalLifeSummary);
+            BindPersistentButton(finalLifeBinder.StartNewLife, OpenNewLifeFromEnding, StimShellModal.FinalLifeSummary);
             BindPersistentButton(openNewLife, OpenNewLifeSetup);
             BindPersistentButton(newLifeBinder.Cancel, HideNewLifeSetup, StimShellModal.NewLife);
             BindPersistentButton(newLifeBinder.Continue, HideNewLifeSetup, StimShellModal.NewLife);
@@ -1666,13 +1658,13 @@ namespace StimTycoon.Runtime
         {
             var save = gameSession.ActiveSave;
             var character = save.state.character;
-            endingName.text = string.IsNullOrEmpty(character.firstName)
+            var displayName = string.IsNullOrEmpty(character.firstName)
                 ? "Your story"
                 : $"{character.firstName} {character.lastName}";
-            endingStatus.text = character.lifeStatus == "retired"
+            var status = character.lifeStatus == "retired"
                 ? $"Retired at age {character.endedAtAge}"
                 : $"Remembered at age {character.endedAtAge}";
-            endingSummary.text = StimGameSessionService.BuildFinalLifeSummary(save);
+            finalLifeBinder.Render(displayName, status, StimGameSessionService.BuildFinalLifeSummary(save));
             advanceMonth.SetEnabled(false);
             advanceYear.SetEnabled(false);
             shellBinder.CloseModal(StimShellModal.Event);

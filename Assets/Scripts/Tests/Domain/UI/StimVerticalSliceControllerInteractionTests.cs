@@ -1202,9 +1202,7 @@ namespace StimTycoon.Tests.Domain.UI
                 { "careerActionFill", "career-action-fill" },
                 { "careerActionProgress", "career-action-progress" }, { "careerActions", "career-actions" },
                 { "careerActionsCard", "career-actions-card" },
-                { "finalLifeSummary", "final-life-summary" }, { "endingName", "ending-name" },
-                { "endingStatus", "ending-status" }, { "endingSummary", "ending-summary" },
-                { "endingNewLife", "ending-new-life" }, { "navMoney", "nav-money" },
+                { "navMoney", "nav-money" },
                 { "moneyView", "money-view" }, { "moneyCashValue", "money-cash-value" },
                 { "manualWorkFeedback", "manual-work-feedback" },
                 { "manualWorkRetry", "manual-work-retry" },
@@ -1227,6 +1225,7 @@ namespace StimTycoon.Tests.Domain.UI
             SetField("goalsBinder", new StimGoalsBinder(root, null));
             SetField("newLifeBinder", new StimNewLifeBinder(root));
             SetField("eventSheetBinder", new StimEventSheetBinder(root));
+            SetField("finalLifeBinder", new StimFinalLifeBinder(root));
         }
 
         private void SetField(string name, object value)
