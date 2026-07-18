@@ -48,6 +48,7 @@ namespace StimTycoon.Runtime
         private StimNewLifeBinder newLifeBinder;
         private StimEventSheetBinder eventSheetBinder;
         private StimFinalLifeBinder finalLifeBinder;
+        private StimHomeBinder homeBinder;
         private Label overviewCareer;
         private Label overviewCalendar;
         private Label healthValue;
@@ -84,11 +85,6 @@ namespace StimTycoon.Runtime
         private Label focusWorkoutTitle;
         private Label focusWorkoutEffect;
         private VisualElement contextActivities;
-        private Label homeCondition;
-        private Label homeProgress;
-        private VisualElement homeActions;
-        private Label homeUpgradeFeedback;
-        private Button homeActionRetry;
         private ScrollView lifeScroll;
         private ScrollView lifeSummaryView;
         private ScrollView socialView;
@@ -219,6 +215,7 @@ namespace StimTycoon.Runtime
             newLifeBinder = new StimNewLifeBinder(root);
             eventSheetBinder = new StimEventSheetBinder(root);
             finalLifeBinder = new StimFinalLifeBinder(root);
+            homeBinder = new StimHomeBinder(root);
             cashValue = shellBinder.CashValue;
             lifeSummary = shellBinder.LifeSummary;
             calendarSummary = shellBinder.CalendarSummary;
@@ -251,11 +248,6 @@ namespace StimTycoon.Runtime
             focusWorkoutTitle = root.Q<Label>("focus-workout-title");
             focusWorkoutEffect = root.Q<Label>("focus-workout-effect");
             contextActivities = root.Q<VisualElement>("context-activities");
-            homeCondition = root.Q<Label>("home-condition");
-            homeProgress = root.Q<Label>("home-progress");
-            homeActions = root.Q<VisualElement>("home-actions");
-            homeUpgradeFeedback = root.Q<Label>("home-upgrade-feedback");
-            homeActionRetry = root.Q<Button>("home-action-retry");
             lifeScroll = shellBinder.LifeScroll;
             lifeSummaryView = shellBinder.LifeSummaryView;
             socialView = shellBinder.SocialView;
@@ -344,8 +336,7 @@ namespace StimTycoon.Runtime
                 focusStudy == null || focusWorkout == null || focusStudyTitle == null || focusStudyEffect == null ||
                 focusWorkoutTitle == null || focusWorkoutEffect == null || lifeScroll == null || lifeSummaryView == null ||
                 openLifeSummary == null || closeLifeSummary == null || addCash == null || socialView == null ||
-                contextActivities == null || homeCondition == null || homeProgress == null ||
-                homeActions == null || homeUpgradeFeedback == null || homeActionRetry == null ||
+                contextActivities == null || homeBinder == null || !homeBinder.IsValid ||
                 timeDock == null || navLife == null || navEducation == null || navCareer == null ||
                 navMoney == null || navSocial == null || navGoals == null || moneyView == null ||
                 educationView == null || careerView == null || goalsView == null ||
@@ -491,6 +482,7 @@ namespace StimTycoon.Runtime
             newLifeBinder = null;
             eventSheetBinder = null;
             finalLifeBinder = null;
+            homeBinder = null;
             rootElement = null;
         }
 
@@ -517,7 +509,7 @@ namespace StimTycoon.Runtime
             BindPersistentButton(closeLifeSummary, CloseLifeSummary);
             BindPersistentButton(workBinder.ManualWorkTap, PerformManualWorkTap);
             BindPersistentButton(manualWorkRetry, () => TryRetryCommand("work.manual"));
-            BindPersistentButton(homeActionRetry, () => TryRetryCommand("home.last-action"));
+            BindPersistentButton(homeBinder.Retry, () => TryRetryCommand("home.last-action"));
             BindPersistentButton(bankBinder.SavingsDepositMode, SelectSavingsDeposit);
             BindPersistentButton(bankBinder.SavingsWithdrawMode, SelectSavingsWithdrawal);
             BindPersistentButton(savingsTransferRetry, () => TryRetryCommand("bank.savings-transfer"));
@@ -988,61 +980,16 @@ namespace StimTycoon.Runtime
             var requiredProgress = StimGameSessionService.GetHomeUpgradeRequiredProgress(home.upgradeLevel);
             var definition = StimHomeContentCatalog.Get(home.homeId) ??
                              StimHomeContentCatalog.Get("starter_home");
-            homeCondition.text = $"{definition.displayName} · Condition {home.condition} / 100";
-            homeProgress.text = home.upgradeLevel >= 3
-                ? $"Level 3 · Fully upgraded · Reading stock {home.readingMaterialStock}/{home.readingMaterialCapacity} · Equipment {home.trainingEquipmentCondition}%"
-                : $"Level {home.upgradeLevel} · Improvement {home.improvementProgress}/{requiredProgress} · Reading stock {home.readingMaterialStock}/{home.readingMaterialCapacity} · Equipment {home.trainingEquipmentCondition}%";
-            homeActions.Clear();
-            foreach (var action in definition.actions)
-                AddHomeAction(action);
-
-            if (home.upgradeLevel < 3 && state.character.age >= 18)
-            {
-                var cost = StimGameSessionService.GetHomeUpgradeCost(home.upgradeLevel);
-                var button = new Button
-                {
-                    name = "home-upgrade",
-                    text = $"UPGRADE TO LEVEL {home.upgradeLevel + 1}\n{FormatMoney(cost)} · Requires {requiredProgress} progress · Improves home benefits"
-                };
-                button.AddToClassList("st-home-action");
-                button.AddToClassList("st-home-upgrade");
-                button.SetEnabled(home.improvementProgress >= requiredProgress && state.finances.cashMinorUnits >= cost);
-                button.clicked += PerformHomeUpgrade;
-                homeActions.Add(button);
-            }
-        }
-
-        private void AddHomeAction(StimHomeActionDefinition definition)
-        {
-            var state = gameSession.ActiveSave.state;
-            var actionType = definition.actionType;
-            var caregiverHandlesMaintenance =
-                actionType == StimHomeActionType.Maintain && state.character.age < 18;
-            var cost = caregiverHandlesMaintenance ? 0 : definition.costMinorUnits;
-            var cooldownId = $"home_{actionType.ToString().ToLowerInvariant()}_used";
-            var coolingDown = state.statuses.Exists(status => status.statusId == cooldownId);
-            var hasCapacity = actionType != StimHomeActionType.Read || state.home.readingMaterialStock > 0;
-            hasCapacity &= actionType != StimHomeActionType.Train || state.home.trainingEquipmentCondition >= 10;
-            var button = new Button
-            {
-                name = $"home-action-{actionType.ToString().ToLowerInvariant()}",
-                text = $"{(caregiverHandlesMaintenance ? "Ask caregiver to maintain" : definition.displayName)}\n" +
-                       $"{(cost == 0 ? "Free" : FormatMoney(cost))} · {definition.benefitPreview}" +
-                       $" · {ToDisplayName(definition.roomObjectId)}" +
-                       (coolingDown ? "\nAvailable next month" : string.Empty)
-            };
-            button.AddToClassList("st-home-action");
-            button.SetEnabled(!coolingDown && hasCapacity && state.finances.cashMinorUnits >= cost);
-            var capturedAction = actionType;
-            button.clicked += () => PerformHomeAction(capturedAction);
-            homeActions.Add(button);
+            homeBinder.Render(
+                state, definition, requiredProgress, FormatMoney, ToDisplayName,
+                PerformHomeAction, PerformHomeUpgrade);
         }
 
         private void PerformHomeAction(StimHomeActionType actionType)
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryPerformHomeAction(actionType, out var summary);
-            StimFeedbackPresenter.ShowTransactionResult(homeUpgradeFeedback, succeeded, summary);
+            homeBinder.ShowTransactionResult(succeeded, summary);
             if (succeeded || !StimFeedbackPresenter.IsRetryable(summary)) retryCommands.Clear("home.last-action");
             else retryCommands.Register("home.last-action", () => PerformHomeAction(actionType));
             RefreshDestinationRetryButtons();
@@ -1056,7 +1003,7 @@ namespace StimTycoon.Runtime
         {
             if (PresentPendingEventIfAvailable()) return;
             var succeeded = gameSession.TryUpgradeHome(out var summary);
-            StimFeedbackPresenter.ShowTransactionResult(homeUpgradeFeedback, succeeded, summary);
+            homeBinder.ShowTransactionResult(succeeded, summary);
             if (succeeded || !StimFeedbackPresenter.IsRetryable(summary)) retryCommands.Clear("home.last-action");
             else retryCommands.Register("home.last-action", PerformHomeUpgrade);
             RefreshDestinationRetryButtons();
@@ -2592,7 +2539,7 @@ namespace StimTycoon.Runtime
 
         private void RefreshDestinationRetryButtons()
         {
-            homeActionRetry?.EnableInClassList("hidden", !retryCommands.IsAvailable("home.last-action"));
+            homeBinder?.Retry.EnableInClassList("hidden", !retryCommands.IsAvailable("home.last-action"));
             manualWorkRetry?.EnableInClassList("hidden", !retryCommands.IsAvailable("work.manual"));
             relationshipDiscoveryRetry?.EnableInClassList("hidden", !retryCommands.IsAvailable("social.discovery"));
         }

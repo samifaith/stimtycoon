@@ -1160,9 +1160,6 @@ namespace StimTycoon.Tests.Domain.UI
                 { "focusStudyEffect", "focus-study-effect" }, { "focusWorkoutTitle", "focus-workout-title" },
                 { "focusWorkoutEffect", "focus-workout-effect" },
                 { "contextActivities", "context-activities" },
-                { "homeCondition", "home-condition" }, { "homeProgress", "home-progress" },
-                { "homeActions", "home-actions" }, { "homeUpgradeFeedback", "home-upgrade-feedback" },
-                { "homeActionRetry", "home-action-retry" },
                 { "lifeScroll", "life-scroll" }, { "lifeSummaryView", "life-summary-view" },
                 { "openLifeSummary", "open-life-summary" }, { "closeLifeSummary", "close-life-summary" },
                 { "addCash", "add-cash" },
@@ -1226,6 +1223,7 @@ namespace StimTycoon.Tests.Domain.UI
             SetField("newLifeBinder", new StimNewLifeBinder(root));
             SetField("eventSheetBinder", new StimEventSheetBinder(root));
             SetField("finalLifeBinder", new StimFinalLifeBinder(root));
+            SetField("homeBinder", new StimHomeBinder(root));
         }
 
         private void SetField(string name, object value)
