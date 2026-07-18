@@ -321,7 +321,7 @@ namespace StimTycoon.Runtime
                 return false;
             }
             var characterAge = ActiveSave.state.character.age;
-            if (evt.ageRange == null || characterAge < evt.ageRange.minAge || characterAge > evt.ageRange.maxAge)
+            if (!StimEventAgeEligibility.IsEligible(evt, characterAge))
             {
                 summary = $"{evt.titleKey} is not available at age {characterAge}.";
                 return false;
@@ -400,7 +400,7 @@ namespace StimTycoon.Runtime
             }
 
             var age = save.state.character.age;
-            if (age >= pendingEvent.ageRange.minAge && age <= pendingEvent.ageRange.maxAge)
+            if (StimEventAgeEligibility.IsEligible(pendingEvent, age))
             {
                 return false;
             }
@@ -4608,7 +4608,7 @@ namespace StimTycoon.Runtime
             }
 
             var age = save.state.character.age;
-            if (age < evt.ageRange.minAge || age > evt.ageRange.maxAge)
+            if (!StimEventAgeEligibility.IsEligible(evt, age))
             {
                 return false;
             }
