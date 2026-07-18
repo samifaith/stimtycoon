@@ -1143,23 +1143,19 @@ namespace StimTycoon.Tests.Domain.UI
                 { "cashValue", "cash-value" }, { "lifeSummary", "life-summary" },
                 { "calendarSummary", "calendar-summary" },
                 { "headerNetWorthValue", "header-net-worth-value" },
-                { "eventCategory", "event-category" }, { "eventTitle", "event-title" },
-                { "eventBody", "event-body" }, { "resultText", "result-text" },
-                { "resultEffects", "result-effects" },
                 { "overviewCareer", "overview-career" }, { "overviewCalendar", "overview-calendar" },
                 { "healthValue", "health-value" }, { "happinessValue", "happiness-value" },
                 { "smartsValue", "smarts-value" }, { "looksValue", "looks-value" },
                 { "luckValue", "luck-value" }, { "careerProgressValue", "career-progress-value" },
                 { "monthlyPaycheckValue", "monthly-paycheck-value" },
                 { "annualSalaryValue", "annual-salary-value" }, { "netWorthValue", "net-worth-value" },
-                { "avatarGlyph", "avatar-glyph" }, { "choices", "choices" },
-                { "resultCard", "result-card" }, { "playerOverview", "player-overview" },
-                { "careerProgressFill", "career-progress-fill" }, { "eventSheet", "event-sheet" },
+                { "avatarGlyph", "avatar-glyph" }, { "playerOverview", "player-overview" },
+                { "careerProgressFill", "career-progress-fill" },
                 { "healthFill", "health-fill" }, { "happinessFill", "happiness-fill" },
                 { "smartsFill", "smarts-fill" }, { "looksFill", "looks-fill" },
                 { "luckFill", "luck-fill" }, { "advanceMonth", "advance-month" },
                 { "advanceYear", "advance-year" },
-                { "eventContinue", "event-continue" }, { "focusStudy", "focus-study" },
+                { "focusStudy", "focus-study" },
                 { "focusWorkout", "focus-workout" }, { "focusStudyTitle", "focus-study-title" },
                 { "focusStudyEffect", "focus-study-effect" }, { "focusWorkoutTitle", "focus-workout-title" },
                 { "focusWorkoutEffect", "focus-workout-effect" },
@@ -1230,6 +1226,7 @@ namespace StimTycoon.Tests.Domain.UI
             SetField("socialBinder", new StimSocialBinder(root));
             SetField("goalsBinder", new StimGoalsBinder(root, null));
             SetField("newLifeBinder", new StimNewLifeBinder(root));
+            SetField("eventSheetBinder", new StimEventSheetBinder(root));
         }
 
         private void SetField(string name, object value)
