@@ -162,6 +162,7 @@ Current staged progress: all 100 Childhood, School, Career, Health, and Money no
 - [x] Require `minor_cash_agency` only where a child truly has appropriate financial agency; all staged cash-charging outcomes are currently age 18+ and automated coverage protects that boundary.
 - [x] Add an automated Yarn-to-catalog contract test for every `stim_resolve_choice` event and choice ID.
 - [ ] Run production validation, age-boundary checks, follow-up reachability, anti-repetition coverage, seeded distribution tests, and human editorial review before adding the batches to random selection.
+- Generate the review packet with `scripts/content/generate-staged-editorial-report.sh`. The report remains pending until a human records tone, age/cultural-context, choice-clarity, and consequence-clarity approval for every event; generation alone is not approval.
 - [ ] Register batches gradually by life stage/category so event pacing and balance can be measured rather than enabling all 100 at once.
 
 ### W3 — Destination wiring sequence
