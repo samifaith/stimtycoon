@@ -117,7 +117,7 @@ The wiring return should include:
 6. Route all mutations through typed service calls; never mutate the active save from a binder.
 7. Retain one canonical launch event catalog. The controller must not duplicate an event registration list.
 
-Current extraction progress: `StimShellBinder` owns shared shell behavior; `StimLifeBinder` owns deterministic Life Feed grouping, empty state, template-row binding, and visible-count presentation; `StimStudyBinder` owns the study catalog plus confirmation-sheet presentation; `StimWorkBinder` owns the career-path preview and manual-work presentation; `StimBankBinder` owns account, transfer, cash-flow, credit, investing, history, and tab presentation; and `StimSocialBinder` owns relationship list, discovery, and detail presentation. The controller retains stable composition seams and keeps workflow persistence and gameplay commands; Goals is the next binder extraction.
+Current extraction progress: `StimShellBinder` owns shared shell behavior; `StimLifeBinder` owns deterministic Life Feed grouping, empty state, template-row binding, and visible-count presentation; `StimStudyBinder` owns the study catalog plus confirmation-sheet presentation; `StimWorkBinder` owns the career-path preview and manual-work presentation; `StimBankBinder` owns account, transfer, cash-flow, credit, investing, history, and tab presentation; `StimSocialBinder` owns relationship list, discovery, and detail presentation; and `StimGoalsBinder` owns goal/achievement row presentation and empty state. The controller retains stable composition seams, workflow persistence, claim authority, pending-event arbitration, and destination routing; modal sheets are the next binder extraction.
 
 Proposed boundary:
 
