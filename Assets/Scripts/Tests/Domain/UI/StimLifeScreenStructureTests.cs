@@ -615,12 +615,13 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
-        public void PlayableController_RegistersTheCanonicalLaunchCatalogInsteadOfADuplicateList()
+        public void PlayableController_RegistersThroughTheCanonicalRolloutBoundary()
         {
             var source = File.ReadAllText(ControllerPath);
 
-            StringAssert.Contains("RepresentativeStimEvents.CreateLaunchAlphaCatalog()", source);
+            StringAssert.Contains("StimPlayableEventCatalog.Build().events", source);
             StringAssert.DoesNotContain("catalog.Upsert(RepresentativeStimEvents.Create", source);
+            StringAssert.DoesNotContain("StagedStimEventCatalog.Create", source);
         }
 
         [Test]
