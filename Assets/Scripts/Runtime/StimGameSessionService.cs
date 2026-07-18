@@ -143,22 +143,26 @@ namespace StimTycoon.Runtime
         private readonly StimSaveTransactionRunner transactionRunner;
         private readonly StimEducationActionService educationActionService;
         private readonly StimActionLifecycleService actionLifecycleService;
+        private readonly IStimEffectValueResolver effectValueResolver;
 
         public StimSaveEnvelope ActiveSave { get; private set; }
         public StimChoiceResolution LastResolution { get; private set; }
         public long LastFinancialImpactMinorUnits { get; private set; }
         public bool HasPendingEvent => !string.IsNullOrEmpty(ActiveSave?.state?.pendingEventId);
+        public IStimEffectValueResolver EffectValueResolver => effectValueResolver;
 
         public StimGameSessionService(
             IStimEventCatalog eventCatalog,
             IStimSaveRepository saveRepository,
             StimOutcomeResolver outcomeResolver = null,
-            Func<DateTimeOffset> utcNow = null)
+            Func<DateTimeOffset> utcNow = null,
+            IStimEffectValueResolver effectValueResolver = null)
         {
             this.eventCatalog = eventCatalog ?? throw new ArgumentNullException(nameof(eventCatalog));
             this.saveRepository = saveRepository ?? throw new ArgumentNullException(nameof(saveRepository));
             this.outcomeResolver = outcomeResolver ?? new StimOutcomeResolver();
             this.utcNow = utcNow ?? (() => DateTimeOffset.UtcNow);
+            this.effectValueResolver = effectValueResolver ?? new StimEffectValueResolver();
             transactionRunner = new StimSaveTransactionRunner(this.saveRepository, this.utcNow);
             educationActionService = new StimEducationActionService();
             actionLifecycleService = new StimActionLifecycleService();
@@ -3479,7 +3483,7 @@ namespace StimTycoon.Runtime
             foreach (var effect in resolution.outcome.effects)
             {
                 if (effect?.type == EffectType.CashDelta)
-                    authoredCashImpact += (long)Math.Round(effect.value);
+                    authoredCashImpact += (long)Math.Round(effectValueResolver.Resolve(effect));
                 else
                     ApplyEffect(save, effect);
             }
@@ -3633,9 +3637,11 @@ namespace StimTycoon.Runtime
         public static long CalculateChoicePotentialCost(
             StimEvent evt,
             Choice choice,
-            StimGameState state)
+            StimGameState state,
+            IStimEffectValueResolver effectValueResolver = null)
         {
             if (evt == null || choice == null) return 0;
+            effectValueResolver ??= new StimEffectValueResolver();
             var dynamicImpact = CalculateEventFinancialImpact(evt.id, choice.id, state);
             var largestCost = dynamicImpact < 0 ? -dynamicImpact : 0;
             foreach (var outcome in choice.outcomes)
@@ -3645,7 +3651,7 @@ namespace StimTycoon.Runtime
                 foreach (var effect in outcome.effects)
                 {
                     if (effect?.type == EffectType.CashDelta)
-                        authoredCashImpact += (long)Math.Round(effect.value);
+                        authoredCashImpact += (long)Math.Round(effectValueResolver.Resolve(effect));
                 }
                 var combinedImpact = authoredCashImpact + dynamicImpact;
                 if (combinedImpact < 0) largestCost = Math.Max(largestCost, -combinedImpact);
@@ -3795,38 +3801,39 @@ namespace StimTycoon.Runtime
                 return;
             }
 
+            var value = effectValueResolver.Resolve(effect);
             switch (effect.type)
             {
                 case EffectType.CashDelta:
                     save.state.finances.cashMinorUnits = Math.Max(
                         0,
-                        save.state.finances.cashMinorUnits + (long)Math.Round(effect.value));
+                        save.state.finances.cashMinorUnits + (long)Math.Round(value));
                     break;
                 case EffectType.SalaryDelta:
                     save.state.career.annualSalaryMinorUnits = Math.Max(
                         0,
-                        save.state.career.annualSalaryMinorUnits + (long)Math.Round(effect.value));
+                        save.state.career.annualSalaryMinorUnits + (long)Math.Round(value));
                     break;
                 case EffectType.DebtDelta:
                     save.state.finances.debtMinorUnits = Math.Max(
                         0,
-                        save.state.finances.debtMinorUnits + (long)Math.Round(effect.value));
+                        save.state.finances.debtMinorUnits + (long)Math.Round(value));
                     break;
                 case EffectType.StatDelta:
-                    ApplyStatDelta(save, effect.targetId, effect.value);
+                    ApplyStatDelta(save, effect.targetId, value);
                     break;
                 case EffectType.CareerProgressDelta:
                     save.state.career.careerProgress = ClampStat(
-                        save.state.career.careerProgress + (int)Math.Round(effect.value));
+                        save.state.career.careerProgress + (int)Math.Round(value));
                     break;
                 case EffectType.SkillXp:
-                    ApplySkillXp(save.state.skills, effect.targetId, effect.value);
+                    ApplySkillXp(save.state.skills, effect.targetId, value);
                     break;
                 case EffectType.RelationshipDelta:
-                    ApplyRelationshipDelta(save.state.relationships, effect.targetId, effect.value);
+                    ApplyRelationshipDelta(save.state.relationships, effect.targetId, value);
                     break;
                 case EffectType.StatusAdd:
-                    AddOrRefreshStatus(save.state.statuses, effect.targetId, effect.value);
+                    AddOrRefreshStatus(save.state.statuses, effect.targetId, value);
                     break;
                 case EffectType.StatusRemove:
                     save.state.statuses.RemoveAll(status => status.statusId == effect.targetId);

@@ -129,6 +129,7 @@ Visuals are optional to event resolution but required as content metadata before
 - `modifierRuleIds` – Warning if risky/extreme choice has no modifiers
 - Effects – Warning if outcome has no effects
 - `feedEntryKey` – Warning in prototype content; hard error at production-content validation
+- `Effect.valueRuleId` – Optional registered balance key. When present, runtime resolution and previews use the configured value instead of the authored fallback `value`; unknown keys are hard errors. Cash, XP, stats, and future reward adapters must remain separate typed effects. Legacy Gem rules may not be activated until the versioned wallet and ledger gate is complete.
 - Visual metadata – Warning until M17; hard error at production-art exit
 
 ---

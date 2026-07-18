@@ -3960,6 +3960,31 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void StagedRewardOverride_ChangesAppliedValueWithoutReauthoringEvent()
+        {
+            var evt = StagedStimEventCatalog.CreateHealthBatch()[0];
+            var choice = evt.choices[0];
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(evt);
+            var resolver = new StimEffectValueResolver(new Dictionary<string, float>
+            {
+                { StimEffectValueRules.StagedStatGain, 7f }
+            });
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository(),
+                effectValueResolver: resolver);
+            var save = CreateValidSave();
+            var healthBefore = save.state.character.health;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var selected, out var advanceSummary), advanceSummary);
+            Assert.That(selected?.id, Is.EqualTo(evt.id));
+            Assert.IsTrue(service.TryResolveChoice(evt.id, choice.id, out var resolutionSummary),
+                resolutionSummary);
+            Assert.That(service.ActiveSave.state.character.health, Is.EqualTo(healthBefore + 7));
+            Assert.That(choice.outcomes[0].effects[0].value, Is.EqualTo(1f));
+        }
+
+        [Test]
         public void StagedNeverEvent_CannotRepeatAfterResolution()
         {
             var evt = StagedStimEventCatalog.CreateCareerBatch()[0];

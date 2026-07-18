@@ -783,7 +783,7 @@ namespace StimTycoon.Runtime
             {
                 var choice = evt.choices[index];
                 var potentialCost = StimGameSessionService.CalculateChoicePotentialCost(
-                    evt, choice, gameSession.ActiveSave.state);
+                    evt, choice, gameSession.ActiveSave.state, gameSession.EffectValueResolver);
                 AddEventChoiceButton(choice, index, StimPaymentMethod.Cash,
                     potentialCost > 0 ? $" · Pay cash (up to {FormatMoney(potentialCost)})" : string.Empty);
                 if (potentialCost > 0 && gameSession.ActiveSave.state.character.age >= 18)
@@ -2610,18 +2610,19 @@ namespace StimTycoon.Runtime
             return summary.ToString();
         }
 
-        private static string BuildEffectSummary(IReadOnlyList<Effect> effects)
+        private string BuildEffectSummary(IReadOnlyList<Effect> effects)
         {
             var summary = new StringBuilder();
             for (var index = 0; index < effects.Count; index++)
             {
                 var effect = effects[index];
-                if (effect == null || Math.Abs(effect.value) <= float.Epsilon)
+                var value = gameSession.EffectValueResolver.Resolve(effect);
+                if (effect == null || Math.Abs(value) <= float.Epsilon)
                 {
                     continue;
                 }
 
-                var formatted = FormatEffect(effect);
+                var formatted = FormatEffect(effect, value);
                 if (string.IsNullOrEmpty(formatted))
                 {
                     continue;
@@ -2637,10 +2638,10 @@ namespace StimTycoon.Runtime
             return summary.Length > 0 ? summary.ToString() : "No stat change";
         }
 
-        private static string FormatEffect(Effect effect)
+        private static string FormatEffect(Effect effect, float value)
         {
-            var sign = effect.value >= 0 ? "+" : "−";
-            var absoluteValue = Math.Abs(effect.value);
+            var sign = value >= 0 ? "+" : "−";
+            var absoluteValue = Math.Abs(value);
             switch (effect.type)
             {
                 case EffectType.SalaryDelta:

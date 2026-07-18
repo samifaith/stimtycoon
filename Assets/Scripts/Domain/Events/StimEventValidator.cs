@@ -14,6 +14,7 @@ namespace StimTycoon.Events
     public static class StimEventValidator
     {
         private const int SUPPORTED_SCHEMA_VERSION = 1;
+        private static readonly IStimEffectValueResolver EffectValues = new StimEffectValueResolver();
 
         /// <summary>
         /// Validate a complete event against the schema.
@@ -486,6 +487,14 @@ namespace StimTycoon.Events
             if (string.IsNullOrEmpty(effect.targetId))
             {
                 result.errors.Add($"Choice {choiceIdx} Outcome {outcomeIdx} Effect {effectIdx} has no targetId");
+                result.isValid = false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(effect.valueRuleId) &&
+                !EffectValues.ContainsRule(effect.valueRuleId))
+            {
+                result.errors.Add($"Choice {choiceIdx} Outcome {outcomeIdx} Effect {effectIdx} " +
+                                  $"has unknown value rule {effect.valueRuleId}");
                 result.isValid = false;
             }
 
