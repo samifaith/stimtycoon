@@ -382,7 +382,7 @@ namespace StimTycoon.Runtime
                         resultTextKey = value >= 0f
                             ? label + " helped you through the moment."
                             : label + " left you needing a little more recovery.",
-                        feedEntryKey = label + " during a childhood moment.",
+                        feedEntryKey = label + " during a " + GetMomentLabel(spec.id) + ".",
                         weightWithinResultGroup = 1f,
                         telemetryCode = spec.id + "_" + choiceId,
                         effects = new List<Effect>
@@ -402,6 +402,16 @@ namespace StimTycoon.Runtime
             if (prefixSeparator >= 0 && prefixSeparator + 1 < withoutSequence.Length)
                 withoutSequence = withoutSequence.Substring(prefixSeparator + 1);
             return Humanize(withoutSequence);
+        }
+
+        private static string GetMomentLabel(string eventId)
+        {
+            if (eventId.StartsWith("childhood_", StringComparison.Ordinal)) return "childhood moment";
+            if (eventId.StartsWith("school_", StringComparison.Ordinal)) return "school moment";
+            if (eventId.StartsWith("career_", StringComparison.Ordinal)) return "workplace moment";
+            if (eventId.StartsWith("health_", StringComparison.Ordinal)) return "health moment";
+            if (eventId.StartsWith("money_", StringComparison.Ordinal)) return "money moment";
+            return "life moment";
         }
 
         private static string Humanize(string value)
