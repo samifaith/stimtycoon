@@ -3915,33 +3915,48 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(triggered, Is.EqualTo(1000));
         }
 
-        [Test]
-        public void StagedAdultCatalog_HasBoundedSeededCategoryDistribution()
+        [TestCase(5)]
+        [TestCase(10)]
+        [TestCase(16)]
+        [TestCase(24)]
+        [TestCase(80)]
+        public void StagedCatalog_HasDeterministicBoundedDistributionAcrossLifeStages(int age)
         {
+            const int sampleCount = 400;
+            const float tolerance = 0.08f;
+            var authored = StagedStimEventCatalog.CreateAllStagedEvents();
+            var eligible = authored.Where(evt => StimEventAgeEligibility.IsEligible(evt, age)).ToList();
             var categoryCounts = new Dictionary<EventCategory, int>();
+            var selectedEventIds = new HashSet<string>(StringComparer.Ordinal);
 
-            for (var seed = 0; seed < 300; seed++)
+            for (var seed = 0; seed < sampleCount; seed++)
             {
-                var catalog = new InMemoryStimEventCatalog();
-                foreach (var evt in StagedStimEventCatalog.CreateAllStagedEvents())
-                    catalog.Upsert(evt);
-                var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
-                var save = CreateValidSave();
-                save.state.character.age = 24;
-                save.rng.seed = seed;
-                service.Start(save);
+                var first = SelectStagedEvent(age, seed);
+                var repeated = SelectStagedEvent(age, seed);
 
-                Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
-                Assert.That(nextEvent, Is.Not.Null, $"Seed {seed} should select an adult staged event.");
-                categoryCounts.TryGetValue(nextEvent.category, out var count);
-                categoryCounts[nextEvent.category] = count + 1;
+                Assert.That(first, Is.Not.Null, $"Age {age}, seed {seed} should select a staged event.");
+                Assert.That(repeated?.id, Is.EqualTo(first.id),
+                    $"Age {age}, seed {seed} must replay the same selection.");
+                categoryCounts.TryGetValue(first.category, out var count);
+                categoryCounts[first.category] = count + 1;
+                selectedEventIds.Add(first.id);
             }
 
-            Assert.That(categoryCounts.Keys,
-                Is.EquivalentTo(new[] { EventCategory.Career, EventCategory.Health, EventCategory.Money }));
-            foreach (var category in new[] { EventCategory.Career, EventCategory.Health, EventCategory.Money })
-                Assert.That(categoryCounts[category], Is.InRange(70, 130),
-                    $"Seeded staged selection overrepresented {category}.");
+            var totalWeight = eligible.Sum(evt => Math.Max(0.01f, evt.monthlyTriggerChance));
+            foreach (var categoryGroup in eligible.GroupBy(evt => evt.category))
+            {
+                var expectedShare = categoryGroup.Sum(evt => Math.Max(0.01f, evt.monthlyTriggerChance)) /
+                                    totalWeight;
+                categoryCounts.TryGetValue(categoryGroup.Key, out var actualCount);
+                var actualShare = actualCount / (float)sampleCount;
+                Assert.That(actualShare, Is.InRange(expectedShare - tolerance, expectedShare + tolerance),
+                    $"Age {age} {categoryGroup.Key} share {actualShare:P1} deviated from " +
+                    $"authored weight {expectedShare:P1}.");
+            }
+            Assert.That(categoryCounts.Keys, Is.EquivalentTo(eligible.Select(evt => evt.category).Distinct()),
+                $"Age {age} must expose every eligible staged category.");
+            Assert.That(selectedEventIds.Count, Is.GreaterThanOrEqualTo((int)(eligible.Count * 0.8f)),
+                $"Age {age} distribution should reach most eligible authored events.");
         }
 
         [Test]
@@ -4298,6 +4313,20 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(netWorth, Is.LessThan(annualSalary * 25m));
             Assert.That(savings, Is.GreaterThanOrEqualTo(0));
             Assert.That(index, Is.GreaterThanOrEqualTo(0));
+        }
+
+        private static StimEvent SelectStagedEvent(int age, int seed)
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            foreach (var evt in StagedStimEventCatalog.CreateAllStagedEvents()) catalog.Upsert(evt);
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            var save = CreateValidSave();
+            save.state.character.age = age;
+            save.rng.seed = seed;
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var selected, out var summary), summary);
+            return selected;
         }
 
         private static StimSaveEnvelope CreateValidSave()
