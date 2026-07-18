@@ -49,6 +49,7 @@ namespace StimTycoon.Runtime
         private StimWorkBinder workBinder;
         private StimBankBinder bankBinder;
         private StimSocialBinder socialBinder;
+        private StimGoalsBinder goalsBinder;
         private Label overviewCareer;
         private Label overviewCalendar;
         private Label healthValue;
@@ -168,8 +169,6 @@ namespace StimTycoon.Runtime
         private Label endingStatus;
         private Label endingSummary;
         private Button endingNewLife;
-        private Label achievementsCount;
-        private VisualElement achievementsList;
         private VisualElement rootElement;
         private StimShellBinder shellBinder;
         private StimActivityType primaryFocusActivity;
@@ -231,6 +230,7 @@ namespace StimTycoon.Runtime
             workBinder = new StimWorkBinder(root);
             bankBinder = new StimBankBinder(root);
             socialBinder = new StimSocialBinder(root);
+            goalsBinder = new StimGoalsBinder(root, achievementRowTemplate);
             cashValue = shellBinder.CashValue;
             lifeSummary = shellBinder.LifeSummary;
             calendarSummary = shellBinder.CalendarSummary;
@@ -347,9 +347,6 @@ namespace StimTycoon.Runtime
             endingStatus = root.Q<Label>("ending-status");
             endingSummary = root.Q<Label>("ending-summary");
             endingNewLife = root.Q<Button>("ending-new-life");
-            achievementsCount = root.Q<Label>("achievements-count");
-            achievementsList = root.Q<VisualElement>("achievements-list");
-
             var catalog = new InMemoryStimEventCatalog();
             foreach (var authoredEvent in RepresentativeStimEvents.CreateLaunchAlphaCatalog())
             {
@@ -395,14 +392,14 @@ namespace StimTycoon.Runtime
                 savingsTransferFeedback == null || savingsTransferRetry == null ||
                 creditRepaymentFeedback == null || creditRepaymentRetry == null ||
                 indexInvestmentFeedback == null || indexInvestmentRetry == null ||
-                socialBinder == null || !socialBinder.IsValid || relationshipDiscoveryFeedback == null ||
+                socialBinder == null || !socialBinder.IsValid || goalsBinder == null || !goalsBinder.IsValid ||
+                relationshipDiscoveryFeedback == null ||
                 relationshipDiscoveryRetry == null || educationCard == null || educationStage == null ||
                 learningLevel == null || learningFill == null || learningProgress == null ||
                 educationActions == null || skillsList == null || careerCard == null || careerRole == null || careerSalary == null ||
                 careerNextStep == null || careerActionFill == null || careerActionProgress == null ||
                 careerActions == null || careerActionsCard == null || finalLifeSummary == null || endingName == null || endingStatus == null ||
-                endingSummary == null || endingNewLife == null || achievementsCount == null ||
-                achievementsList == null)
+                endingSummary == null || endingNewLife == null)
             {
                 LogMissingUiBindings();
                 return;
@@ -521,6 +518,7 @@ namespace StimTycoon.Runtime
             workBinder = null;
             bankBinder = null;
             socialBinder = null;
+            goalsBinder = null;
             rootElement = null;
         }
 
@@ -1216,80 +1214,42 @@ namespace StimTycoon.Runtime
 
         private void RefreshAchievements()
         {
-            achievementsList.Clear();
-            var achievements = gameSession.ActiveSave.state.achievements;
-            var goals = gameSession.GetGoals();
-            achievementsCount.text = $"{achievements.Count} unlocked";
-            foreach (var goal in goals)
-            {
-                if (goal == null || goal.status == "expired") continue;
-                var capturedGoalId = goal.goalId;
-                var actionText = goal.status == "claimable" ? "CLAIM" : goal.status == "claimed" ? "DONE" : "GO";
-                var row = StimUiComponentFactory.CreateAchievementRow(
-                    goal.goalId,
-                    goal.category == "daily" ? "📅" : goal.category == "main" ? "🎯" : "🏆",
-                    goal.title,
-                    ToDisplayName(goal.category),
-                    FormatCompactProgress(goal.progress, goal.progressRequired),
-                    FormatMoney(goal.rewardMinorUnits),
-                    actionText,
-                    goal.status != "claimed",
-                    () =>
-                {
-                    if (PresentPendingEventIfAvailable()) return;
-                    if (goal.status == "claimable")
-                    {
-                        gameSession.TryClaimGoalReward(capturedGoalId, out _);
-                        RefreshHeader();
-                        RefreshFeed();
-                        RefreshMoney();
-                        RefreshAchievements();
-                    }
-                    else if (goal.destination == "money") ShowMoneyDestination();
-                    else if (goal.destination == "education") ShowEducationDestination();
-                    else if (goal.destination == "career" || goal.destination == "business") ShowCareerDestination();
-                    else if (goal.destination == "social" || goal.destination == "family") ShowSocialDestination();
-                    else ShowLifeDestination();
-                },
-                    accessibleProgress: $"{goal.progress:N0} / {goal.progressRequired:N0}",
-                    template: achievementRowTemplate);
-                row.Q<Button>().name = $"goal-action-{goal.goalId}";
-                achievementsList.Add(row);
-            }
-            if (achievements.Count == 0 && goals.Count == 0)
-            {
-                var empty = new Label("Your goals and milestones will appear here as this life unfolds.");
-                empty.AddToClassList("st-feed-empty");
-                achievementsList.Add(empty);
-            }
+            goalsBinder.Render(
+                gameSession.ActiveSave.state.achievements,
+                gameSession.GetGoals(),
+                FormatMoney,
+                FormatCompactProgress,
+                ToDisplayName,
+                HandleGoalAction,
+                ClaimAchievementReward);
+        }
 
-            for (var index = achievements.Count - 1; index >= 0; index--)
+        private void HandleGoalAction(StimGoalState goal)
+        {
+            if (goal == null || PresentPendingEventIfAvailable()) return;
+            if (goal.status == "claimable")
             {
-                var achievement = achievements[index];
-                if (achievement == null) continue;
-                var capturedAchievementId = achievement.achievementId;
-                var reward = StimGameSessionService.GetAchievementRewardMinorUnits(achievement.achievementId);
-                var row = StimUiComponentFactory.CreateAchievementRow(
-                    achievement.achievementId,
-                    "🏆",
-                    StimGameSessionService.GetAchievementDisplayName(achievement.achievementId),
-                    "Achievement",
-                    $"Age {achievement.unlockedAtAge}",
-                    FormatMoney(reward),
-                    achievement.rewardClaimed ? "DONE" : "CLAIM",
-                    !achievement.rewardClaimed && reward > 0,
-                    () =>
-                {
-                    if (PresentPendingEventIfAvailable()) return;
-                    gameSession.TryClaimAchievementReward(capturedAchievementId, out _);
-                    RefreshHeader();
-                    RefreshFeed();
-                    RefreshMoney();
-                    RefreshAchievements();
-                }, template: achievementRowTemplate);
-                row.Q<Button>().name = $"achievement-claim-{achievement.achievementId}";
-                achievementsList.Add(row);
+                gameSession.TryClaimGoalReward(goal.goalId, out _);
+                RefreshHeader();
+                RefreshFeed();
+                RefreshMoney();
+                RefreshAchievements();
             }
+            else if (goal.destination == "money") ShowMoneyDestination();
+            else if (goal.destination == "education") ShowEducationDestination();
+            else if (goal.destination == "career" || goal.destination == "business") ShowCareerDestination();
+            else if (goal.destination == "social" || goal.destination == "family") ShowSocialDestination();
+            else ShowLifeDestination();
+        }
+
+        private void ClaimAchievementReward(string achievementId)
+        {
+            if (PresentPendingEventIfAvailable()) return;
+            gameSession.TryClaimAchievementReward(achievementId, out _);
+            RefreshHeader();
+            RefreshFeed();
+            RefreshMoney();
+            RefreshAchievements();
         }
 
         private void RefreshEducation()
