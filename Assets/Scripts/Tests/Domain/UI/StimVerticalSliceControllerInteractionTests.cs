@@ -1143,17 +1143,8 @@ namespace StimTycoon.Tests.Domain.UI
                 { "cashValue", "cash-value" }, { "lifeSummary", "life-summary" },
                 { "calendarSummary", "calendar-summary" },
                 { "headerNetWorthValue", "header-net-worth-value" },
-                { "overviewCareer", "overview-career" }, { "overviewCalendar", "overview-calendar" },
-                { "healthValue", "health-value" }, { "happinessValue", "happiness-value" },
-                { "smartsValue", "smarts-value" }, { "looksValue", "looks-value" },
-                { "luckValue", "luck-value" }, { "careerProgressValue", "career-progress-value" },
-                { "monthlyPaycheckValue", "monthly-paycheck-value" },
-                { "annualSalaryValue", "annual-salary-value" }, { "netWorthValue", "net-worth-value" },
                 { "avatarGlyph", "avatar-glyph" }, { "playerOverview", "player-overview" },
-                { "careerProgressFill", "career-progress-fill" },
-                { "healthFill", "health-fill" }, { "happinessFill", "happiness-fill" },
-                { "smartsFill", "smarts-fill" }, { "looksFill", "looks-fill" },
-                { "luckFill", "luck-fill" }, { "advanceMonth", "advance-month" },
+                { "advanceMonth", "advance-month" },
                 { "advanceYear", "advance-year" },
                 { "focusStudy", "focus-study" },
                 { "focusWorkout", "focus-workout" }, { "focusStudyTitle", "focus-study-title" },
@@ -1163,19 +1154,6 @@ namespace StimTycoon.Tests.Domain.UI
                 { "lifeScroll", "life-scroll" }, { "lifeSummaryView", "life-summary-view" },
                 { "openLifeSummary", "open-life-summary" }, { "closeLifeSummary", "close-life-summary" },
                 { "addCash", "add-cash" },
-                { "summaryStageDetail", "summary-stage-detail" },
-                { "summaryCalendarDetail", "summary-calendar-detail" },
-                { "summaryCareerDetail", "summary-career-detail" },
-                { "summaryHealthValue", "summary-health-value" },
-                { "summaryHappinessValue", "summary-happiness-value" },
-                { "summarySmartsValue", "summary-smarts-value" },
-                { "summaryLooksValue", "summary-looks-value" },
-                { "summaryLuckValue", "summary-luck-value" },
-                { "summaryHealthFill", "summary-health-fill" },
-                { "summaryHappinessFill", "summary-happiness-fill" },
-                { "summarySmartsFill", "summary-smarts-fill" },
-                { "summaryLooksFill", "summary-looks-fill" },
-                { "summaryLuckFill", "summary-luck-fill" },
                 { "socialView", "social-view" },
                 { "timeDock", "time-dock" }, { "navLife", "nav-life" },
                 { "navEducation", "nav-education" }, { "navCareer", "nav-career" },
@@ -1224,6 +1202,7 @@ namespace StimTycoon.Tests.Domain.UI
             SetField("eventSheetBinder", new StimEventSheetBinder(root));
             SetField("finalLifeBinder", new StimFinalLifeBinder(root));
             SetField("homeBinder", new StimHomeBinder(root));
+            SetField("lifeOverviewBinder", new StimLifeOverviewBinder(root));
         }
 
         private void SetField(string name, object value)

@@ -49,25 +49,9 @@ namespace StimTycoon.Runtime
         private StimEventSheetBinder eventSheetBinder;
         private StimFinalLifeBinder finalLifeBinder;
         private StimHomeBinder homeBinder;
-        private Label overviewCareer;
-        private Label overviewCalendar;
-        private Label healthValue;
-        private Label happinessValue;
-        private Label smartsValue;
-        private Label looksValue;
-        private Label luckValue;
-        private Label careerProgressValue;
-        private Label monthlyPaycheckValue;
-        private Label annualSalaryValue;
-        private Label netWorthValue;
+        private StimLifeOverviewBinder lifeOverviewBinder;
         private Label avatarGlyph;
         private VisualElement playerOverview;
-        private VisualElement careerProgressFill;
-        private VisualElement healthFill;
-        private VisualElement happinessFill;
-        private VisualElement smartsFill;
-        private VisualElement looksFill;
-        private VisualElement luckFill;
         private Button advanceMonth;
         private Button advanceYear;
         private Button toggleOverview;
@@ -102,19 +86,6 @@ namespace StimTycoon.Runtime
         private ScrollView educationView;
         private ScrollView careerView;
         private ScrollView goalsView;
-        private Label summaryStageDetail;
-        private Label summaryCalendarDetail;
-        private Label summaryCareerDetail;
-        private Label summaryHealthValue;
-        private Label summaryHappinessValue;
-        private Label summarySmartsValue;
-        private Label summaryLooksValue;
-        private Label summaryLuckValue;
-        private VisualElement summaryHealthFill;
-        private VisualElement summaryHappinessFill;
-        private VisualElement summarySmartsFill;
-        private VisualElement summaryLooksFill;
-        private VisualElement summaryLuckFill;
         private VisualElement educationDestinationContent;
         private VisualElement careerDestinationContent;
         private VisualElement goalsDestinationContent;
@@ -216,29 +187,13 @@ namespace StimTycoon.Runtime
             eventSheetBinder = new StimEventSheetBinder(root);
             finalLifeBinder = new StimFinalLifeBinder(root);
             homeBinder = new StimHomeBinder(root);
+            lifeOverviewBinder = new StimLifeOverviewBinder(root);
             cashValue = shellBinder.CashValue;
             lifeSummary = shellBinder.LifeSummary;
             calendarSummary = shellBinder.CalendarSummary;
             headerNetWorthValue = shellBinder.HeaderNetWorthValue;
-            overviewCareer = root.Q<Label>("overview-career");
-            overviewCalendar = root.Q<Label>("overview-calendar");
-            healthValue = root.Q<Label>("health-value");
-            happinessValue = root.Q<Label>("happiness-value");
-            smartsValue = root.Q<Label>("smarts-value");
-            looksValue = root.Q<Label>("looks-value");
-            luckValue = root.Q<Label>("luck-value");
-            careerProgressValue = shellBinder.CareerProgressValue;
-            monthlyPaycheckValue = root.Q<Label>("monthly-paycheck-value");
-            annualSalaryValue = root.Q<Label>("annual-salary-value");
-            netWorthValue = root.Q<Label>("net-worth-value");
             avatarGlyph = shellBinder.AvatarGlyph;
             playerOverview = root.Q<VisualElement>("player-overview");
-            careerProgressFill = shellBinder.CareerProgressFill;
-            healthFill = root.Q<VisualElement>("health-fill");
-            happinessFill = root.Q<VisualElement>("happiness-fill");
-            smartsFill = root.Q<VisualElement>("smarts-fill");
-            looksFill = root.Q<VisualElement>("looks-fill");
-            luckFill = root.Q<VisualElement>("luck-fill");
             newLifeSetup = root.Q<VisualElement>("new-life-setup");
             openNewLife = root.Q<Button>("open-new-life");
             focusStudy = root.Q<Button>("focus-study");
@@ -265,19 +220,6 @@ namespace StimTycoon.Runtime
             educationView = shellBinder.EducationView;
             careerView = shellBinder.CareerView;
             goalsView = shellBinder.GoalsView;
-            summaryStageDetail = root.Q<Label>("summary-stage-detail");
-            summaryCalendarDetail = root.Q<Label>("summary-calendar-detail");
-            summaryCareerDetail = root.Q<Label>("summary-career-detail");
-            summaryHealthValue = root.Q<Label>("summary-health-value");
-            summaryHappinessValue = root.Q<Label>("summary-happiness-value");
-            summarySmartsValue = root.Q<Label>("summary-smarts-value");
-            summaryLooksValue = root.Q<Label>("summary-looks-value");
-            summaryLuckValue = root.Q<Label>("summary-luck-value");
-            summaryHealthFill = root.Q<VisualElement>("summary-health-fill");
-            summaryHappinessFill = root.Q<VisualElement>("summary-happiness-fill");
-            summarySmartsFill = root.Q<VisualElement>("summary-smarts-fill");
-            summaryLooksFill = root.Q<VisualElement>("summary-looks-fill");
-            summaryLuckFill = root.Q<VisualElement>("summary-luck-fill");
             educationDestinationContent = root.Q<VisualElement>("education-destination-content");
             careerDestinationContent = root.Q<VisualElement>("career-destination-content");
             goalsDestinationContent = root.Q<VisualElement>("goals-destination-content");
@@ -324,14 +266,9 @@ namespace StimTycoon.Runtime
             if (cashValue == null || lifeSummary == null || eventSheetBinder == null || !eventSheetBinder.IsValid ||
                 lifeBinder == null || !lifeBinder.IsValid ||
                 advanceMonth == null || advanceYear == null || toggleOverview == null || playerOverview == null ||
-                overviewCareer == null || overviewCalendar == null || healthValue == null ||
-                happinessValue == null || smartsValue == null || looksValue == null || luckValue == null ||
-                careerProgressValue == null ||
-                careerProgressFill == null || monthlyPaycheckValue == null || annualSalaryValue == null ||
-                netWorthValue == null || avatarGlyph == null ||
+                lifeOverviewBinder == null || !lifeOverviewBinder.IsValid || avatarGlyph == null ||
                 studyBinder == null || !studyBinder.IsValid ||
-                healthFill == null || happinessFill == null || smartsFill == null || looksFill == null ||
-                luckFill == null || newLifeSetup == null || newLifeBinder == null || !newLifeBinder.IsValid ||
+                newLifeSetup == null || newLifeBinder == null || !newLifeBinder.IsValid ||
                 openNewLife == null ||
                 focusStudy == null || focusWorkout == null || focusStudyTitle == null || focusStudyEffect == null ||
                 focusWorkoutTitle == null || focusWorkoutEffect == null || lifeScroll == null || lifeSummaryView == null ||
@@ -340,11 +277,6 @@ namespace StimTycoon.Runtime
                 timeDock == null || navLife == null || navEducation == null || navCareer == null ||
                 navMoney == null || navSocial == null || navGoals == null || moneyView == null ||
                 educationView == null || careerView == null || goalsView == null ||
-                summaryStageDetail == null || summaryCalendarDetail == null || summaryCareerDetail == null ||
-                summaryHealthValue == null || summaryHappinessValue == null || summarySmartsValue == null ||
-                summaryLooksValue == null || summaryLuckValue == null || summaryHealthFill == null ||
-                summaryHappinessFill == null || summarySmartsFill == null || summaryLooksFill == null ||
-                summaryLuckFill == null ||
                 educationDestinationContent == null || careerDestinationContent == null ||
                 goalsDestinationContent == null || educationEmptyState == null || careerEmptyState == null ||
                 educationUnavailableCopy == null ||
@@ -483,6 +415,7 @@ namespace StimTycoon.Runtime
             eventSheetBinder = null;
             finalLifeBinder = null;
             homeBinder = null;
+            lifeOverviewBinder = null;
             rootElement = null;
         }
 
@@ -892,9 +825,7 @@ namespace StimTycoon.Runtime
             var netWorth = state.finances.cashMinorUnits + state.finances.savingsMinorUnits +
                            state.finances.indexFundMinorUnits - state.finances.debtMinorUnits;
             cashValue.text = FormatCompactMoney(state.finances.cashMinorUnits);
-            netWorthValue.text = FormatMoney(netWorth);
             headerNetWorthValue.text = $"Net {FormatCompactMoney(netWorth)}";
-            netWorthValue.tooltip = $"Total net worth {FormatMoney(netWorth)}";
             moneyCashValue.tooltip = $"Current cash {FormatMoney(state.finances.cashMinorUnits)}";
             lifeSummary.text = string.IsNullOrEmpty(state.character.firstName)
                 ? $"Age {state.character.age}"
@@ -907,44 +838,13 @@ namespace StimTycoon.Runtime
             avatarGlyph.text = state.character.age < 6 ? "👶" : state.character.age < 18 ? "🧒" :
                 state.character.age < 65 ? "🧑" : "🧓";
             RefreshAgeProgress(state.character.age);
-            overviewCareer.text = string.IsNullOrEmpty(career.roleTitle)
-                ? ToDisplayName(state.character.lifeStage)
-                : $"{career.roleTitle} · Stim Financial Group";
-            overviewCalendar.text = $"Age {state.character.age} · Month {state.calendar.monthOfYear} of 12";
-            summaryStageDetail.text = ToDisplayName(state.character.lifeStage);
-            summaryCalendarDetail.text = $"Age {state.character.age} · Month {state.calendar.monthOfYear} of 12";
-            summaryCareerDetail.text = string.IsNullOrEmpty(career.roleTitle)
-                ? "Not started"
-                : $"{career.roleTitle} · {FormatMoney(career.annualSalaryMinorUnits)} gross";
-            healthValue.text = $"{state.character.health} / 100";
-            happinessValue.text = $"{state.character.happiness} / 100";
-            smartsValue.text = $"{state.character.smarts} / 100";
-            looksValue.text = $"{state.character.looks} / 100";
-            luckValue.text = $"{state.character.luck} / 100";
-            summaryHealthValue.text = healthValue.text;
-            summaryHappinessValue.text = happinessValue.text;
-            summarySmartsValue.text = smartsValue.text;
-            summaryLooksValue.text = looksValue.text;
-            summaryLuckValue.text = luckValue.text;
-            healthFill.style.width = Length.Percent(ClampFillPercent(state.character.health));
-            happinessFill.style.width = Length.Percent(ClampFillPercent(state.character.happiness));
-            smartsFill.style.width = Length.Percent(ClampFillPercent(state.character.smarts));
-            looksFill.style.width = Length.Percent(ClampFillPercent(state.character.looks));
-            luckFill.style.width = Length.Percent(ClampFillPercent(state.character.luck));
-            summaryHealthFill.style.width = healthFill.style.width;
-            summaryHappinessFill.style.width = happinessFill.style.width;
-            summarySmartsFill.style.width = smartsFill.style.width;
-            summaryLooksFill.style.width = looksFill.style.width;
-            summaryLuckFill.style.width = luckFill.style.width;
-            careerProgressValue.text = $"{career.careerProgress} / 100";
-            careerProgressFill.style.width = Length.Percent(ClampFillPercent(career.careerProgress));
             var grossMonthlyPay = career.annualSalaryMinorUnits / 12;
             var estimatedTaxes = (long)Math.Round(
                 grossMonthlyPay * (state.finances.taxRateBasisPoints / 10000m),
                 MidpointRounding.AwayFromZero);
             var estimatedNet = grossMonthlyPay - estimatedTaxes - state.finances.monthlyLivingExpensesMinorUnits;
-            monthlyPaycheckValue.text = FormatSignedMoney(estimatedNet);
-            annualSalaryValue.text = $"{FormatMoney(career.annualSalaryMinorUnits)} gross · {state.finances.taxRateBasisPoints / 100m:0.#}% tax";
+            lifeOverviewBinder.Render(
+                state, netWorth, estimatedNet, FormatMoney, FormatSignedMoney, ToDisplayName);
             ConfigureAgeAppropriateActivities(state.character.age);
             RefreshEducation();
             RefreshSkills();
