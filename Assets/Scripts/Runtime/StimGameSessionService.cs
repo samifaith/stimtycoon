@@ -3511,6 +3511,7 @@ namespace StimTycoon.Runtime
                 revision = save.revision,
                 timestampUtc = save.updatedAtUtc
             });
+            StimHistoryRetention.Apply(save.state);
             AddLifeFeedEntry(save, "event", BuildOutcomeFeedText(resolution.outcome));
             if (financialImpact != 0)
             {
@@ -4407,9 +4408,10 @@ namespace StimTycoon.Runtime
         private static void AddLifeFeedEntry(StimSaveEnvelope save, string category, string text)
         {
             save.state.lifeFeed ??= new List<StimLifeFeedEntry>();
+            save.state.historyArchive ??= new StimHistoryArchiveState();
             save.state.lifeFeed.Add(new StimLifeFeedEntry
             {
-                entryId = $"{save.revision}_{category}_{save.state.lifeFeed.Count}",
+                entryId = $"{save.revision}_{category}_{save.state.historyArchive.lifeFeedArchivedCount + save.state.lifeFeed.Count}",
                 category = category,
                 text = text,
                 age = save.state.character.age,
@@ -4417,6 +4419,7 @@ namespace StimTycoon.Runtime
                 revision = save.revision,
                 timestampUtc = save.updatedAtUtc
             });
+            StimHistoryRetention.Apply(save.state);
         }
 
         private void ApplyStatDelta(StimSaveEnvelope save, string targetId, float value)

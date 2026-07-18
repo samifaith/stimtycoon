@@ -186,6 +186,35 @@ namespace StimTycoon.Tests.Domain.Save
             Assert.That(report.changes, Has.Some.Contains("state.uiWorkflow created"));
         }
 
+        [Test]
+        public void Migrate_AddsArchiveStateAndBoundsLegacyHistories()
+        {
+            var legacy = CreateValidSave();
+            for (var index = 0; index < StimHistoryRetention.MaxLifeFeedEntries + 5; index++)
+                legacy.state.lifeFeed.Add(new StimLifeFeedEntry
+                {
+                    entryId = "legacy_" + index,
+                    category = "activity",
+                    text = "Legacy entry " + index,
+                    revision = index + 1
+                });
+            legacy.state.historyArchive = null;
+            var legacyJson = Regex.Replace(
+                JsonUtility.ToJson(legacy),
+                "\"historyArchive\":(?:null|\\{[^{}]*\\}),?",
+                string.Empty);
+            Assert.That(legacyJson, Does.Not.Contain("\"historyArchive\""));
+
+            Assert.IsTrue(StimSaveMigrator.TryMigrate(
+                legacyJson, out var migrated, out var report, out var error), error);
+
+            Assert.That(migrated.state.historyArchive, Is.Not.Null);
+            Assert.That(migrated.state.historyArchive.lifeFeedArchivedCount, Is.EqualTo(5));
+            Assert.That(migrated.state.lifeFeed, Has.Count.EqualTo(StimHistoryRetention.MaxLifeFeedEntries));
+            Assert.That(report.changes, Has.Some.Contains("state.historyArchive created"));
+            Assert.That(report.changes, Has.Some.Contains("unbounded histories archived"));
+        }
+
         private static StimSaveEnvelope CreateValidSave()
         {
             return new StimSaveEnvelope

@@ -44,7 +44,11 @@ namespace StimTycoon.Runtime
         private Label eventBody;
         private Label resultText;
         private Label resultEffects;
-        private VisualElement lifeFeedList;
+        private StimLifeBinder lifeBinder;
+        private StimStudyBinder studyBinder;
+        private StimWorkBinder workBinder;
+        private StimBankBinder bankBinder;
+        private StimSocialBinder socialBinder;
         private Label overviewCareer;
         private Label overviewCalendar;
         private Label healthValue;
@@ -62,14 +66,6 @@ namespace StimTycoon.Runtime
         private VisualElement playerOverview;
         private VisualElement careerProgressFill;
         private VisualElement eventSheet;
-        private VisualElement studySessionSheet;
-        private Label studySessionTitle;
-        private Label studySessionDescription;
-        private Label studySessionEffects;
-        private Label studySessionTiming;
-        private Label studySessionRequirement;
-        private Button studySessionCancel;
-        private Button studySessionConfirm;
         private VisualElement healthFill;
         private VisualElement happinessFill;
         private VisualElement smartsFill;
@@ -137,69 +133,20 @@ namespace StimTycoon.Runtime
         private VisualElement goalsDestinationContent;
         private VisualElement educationEmptyState;
         private Label educationUnavailableCopy;
-        private VisualElement educationCatalog;
-        private Label educationCatalogStatus;
-        private VisualElement educationCatalogList;
         private VisualElement careerEmptyState;
-        private Label careerContextCopy;
-        private VisualElement careerPathPreview;
-        private Label manualWorkRole;
-        private Label manualWorkRate;
         private Label moneyCashValue;
-        private Button manualWorkTap;
         private Label manualWorkFeedback;
         private Button manualWorkRetry;
-        private Label savingsBalanceValue;
-        private Label savingsAvailableValue;
-        private Button savingsDepositMode;
-        private Button savingsWithdrawMode;
-        private VisualElement savingsAmountInput;
         private Label savingsTransferFeedback;
         private Button savingsTransferRetry;
-        private VisualElement moneyTransactionHistory;
-        private VisualElement moneyAccountsList;
-        private Label cashFlowGross;
-        private Label cashFlowTaxes;
-        private Label cashFlowExpenses;
-        private Label cashFlowCreditInterest;
-        private Label cashFlowSavingsInterest;
-        private Label cashFlowNet;
-        private Label savingsProjection;
-        private Label creditBalanceValue;
-        private Label creditDetailValue;
-        private Label availableCreditValue;
-        private VisualElement creditRepaymentInput;
         private Label creditRepaymentFeedback;
         private Button creditRepaymentRetry;
-        private Label indexFundValue;
-        private Label indexFundContributions;
-        private Label indexFundPerformance;
-        private Label indexInvestmentRequirement;
-        private VisualElement indexInvestmentInput;
         private Label indexInvestmentFeedback;
         private Button indexInvestmentRetry;
-        private Button bankTabSavings;
-        private Button bankTabCredit;
-        private Button bankTabInvesting;
-        private VisualElement bankPanelSavings;
-        private VisualElement bankPanelCredit;
-        private VisualElement bankPanelInvesting;
         private StimSavingsTransferType savingsTransferType = StimSavingsTransferType.Deposit;
         private StimBankTab selectedBankTab = StimBankTab.Savings;
-        private VisualElement relationshipListView;
-        private VisualElement relationshipList;
-        private Button discoverCompatiblePerson;
         private Label relationshipDiscoveryFeedback;
         private Button relationshipDiscoveryRetry;
-        private VisualElement relationshipDetailView;
-        private Button relationshipBack;
-        private Label relationshipAvatar;
-        private Label relationshipName;
-        private Label relationshipType;
-        private Label relationshipStrength;
-        private VisualElement relationshipFill;
-        private Label relationshipGenetics;
-        private VisualElement relationshipActions;
         private string selectedRelationshipId;
         private VisualElement educationCard;
         private Label educationStage;
@@ -279,6 +226,11 @@ namespace StimTycoon.Runtime
                 return;
             }
             shellBinder = new StimShellBinder(root, HandleRootGeometryChanged);
+            lifeBinder = new StimLifeBinder(root, feedRowTemplate);
+            studyBinder = new StimStudyBinder(root);
+            workBinder = new StimWorkBinder(root);
+            bankBinder = new StimBankBinder(root);
+            socialBinder = new StimSocialBinder(root);
             cashValue = shellBinder.CashValue;
             lifeSummary = shellBinder.LifeSummary;
             calendarSummary = shellBinder.CalendarSummary;
@@ -288,7 +240,6 @@ namespace StimTycoon.Runtime
             eventBody = root.Q<Label>("event-body");
             resultText = root.Q<Label>("result-text");
             resultEffects = root.Q<Label>("result-effects");
-            lifeFeedList = root.Q<VisualElement>("life-feed-list");
             overviewCareer = root.Q<Label>("overview-career");
             overviewCalendar = root.Q<Label>("overview-calendar");
             healthValue = root.Q<Label>("health-value");
@@ -306,14 +257,6 @@ namespace StimTycoon.Runtime
             playerOverview = root.Q<VisualElement>("player-overview");
             careerProgressFill = shellBinder.CareerProgressFill;
             eventSheet = root.Q<VisualElement>("event-sheet");
-            studySessionSheet = root.Q<VisualElement>("study-session-sheet");
-            studySessionTitle = root.Q<Label>("study-session-title");
-            studySessionDescription = root.Q<Label>("study-session-description");
-            studySessionEffects = root.Q<Label>("study-session-effects");
-            studySessionTiming = root.Q<Label>("study-session-timing");
-            studySessionRequirement = root.Q<Label>("study-session-requirement");
-            studySessionCancel = root.Q<Button>("study-session-cancel");
-            studySessionConfirm = root.Q<Button>("study-session-confirm");
             healthFill = root.Q<VisualElement>("health-fill");
             happinessFill = root.Q<VisualElement>("happiness-fill");
             smartsFill = root.Q<VisualElement>("smarts-fill");
@@ -372,67 +315,18 @@ namespace StimTycoon.Runtime
             goalsDestinationContent = root.Q<VisualElement>("goals-destination-content");
             educationEmptyState = root.Q<VisualElement>("education-empty-state");
             educationUnavailableCopy = root.Q<Label>("education-unavailable-copy");
-            educationCatalog = root.Q<VisualElement>("education-catalog");
-            educationCatalogStatus = root.Q<Label>("education-catalog-status");
-            educationCatalogList = root.Q<VisualElement>("education-catalog-list");
             careerEmptyState = root.Q<VisualElement>("career-empty-state");
-            careerContextCopy = root.Q<Label>("career-context-copy");
-            careerPathPreview = root.Q<VisualElement>("career-path-preview");
-            manualWorkRole = root.Q<Label>("manual-work-role");
-            manualWorkRate = root.Q<Label>("manual-work-rate");
             moneyCashValue = root.Q<Label>("money-cash-value");
-            manualWorkTap = root.Q<Button>("manual-work-tap");
             manualWorkFeedback = root.Q<Label>("manual-work-feedback");
             manualWorkRetry = root.Q<Button>("manual-work-retry");
-            savingsBalanceValue = root.Q<Label>("savings-balance-value");
-            savingsAvailableValue = root.Q<Label>("savings-available-value");
-            savingsDepositMode = root.Q<Button>("savings-deposit-mode");
-            savingsWithdrawMode = root.Q<Button>("savings-withdraw-mode");
-            savingsAmountInput = root.Q<VisualElement>("savings-amount-input");
             savingsTransferFeedback = root.Q<Label>("savings-transfer-feedback");
             savingsTransferRetry = root.Q<Button>("savings-transfer-retry");
-            moneyTransactionHistory = root.Q<VisualElement>("money-transaction-history");
-            moneyAccountsList = root.Q<VisualElement>("money-accounts-list");
-            cashFlowGross = root.Q<Label>("cash-flow-gross");
-            cashFlowTaxes = root.Q<Label>("cash-flow-taxes");
-            cashFlowExpenses = root.Q<Label>("cash-flow-expenses");
-            cashFlowCreditInterest = root.Q<Label>("cash-flow-credit-interest");
-            cashFlowSavingsInterest = root.Q<Label>("cash-flow-savings-interest");
-            cashFlowNet = root.Q<Label>("cash-flow-net");
-            savingsProjection = root.Q<Label>("savings-projection");
-            creditBalanceValue = root.Q<Label>("credit-balance-value");
-            creditDetailValue = root.Q<Label>("credit-detail-value");
-            availableCreditValue = root.Q<Label>("available-credit-value");
-            creditRepaymentInput = root.Q<VisualElement>("credit-repayment-input");
             creditRepaymentFeedback = root.Q<Label>("credit-repayment-feedback");
             creditRepaymentRetry = root.Q<Button>("credit-repayment-retry");
-            indexFundValue = root.Q<Label>("index-fund-value");
-            indexFundContributions = root.Q<Label>("index-fund-contributions");
-            indexFundPerformance = root.Q<Label>("index-fund-performance");
-            indexInvestmentRequirement = root.Q<Label>("index-investment-requirement");
-            indexInvestmentInput = root.Q<VisualElement>("index-investment-input");
             indexInvestmentFeedback = root.Q<Label>("index-investment-feedback");
             indexInvestmentRetry = root.Q<Button>("index-investment-retry");
-            bankTabSavings = root.Q<Button>("bank-tab-savings");
-            bankTabCredit = root.Q<Button>("bank-tab-credit");
-            bankTabInvesting = root.Q<Button>("bank-tab-investing");
-            bankPanelSavings = root.Q<VisualElement>("bank-panel-savings");
-            bankPanelCredit = root.Q<VisualElement>("bank-panel-credit");
-            bankPanelInvesting = root.Q<VisualElement>("bank-panel-investing");
-            relationshipListView = root.Q<VisualElement>("relationship-list-view");
-            relationshipList = root.Q<VisualElement>("relationship-list");
-            discoverCompatiblePerson = root.Q<Button>("discover-compatible-person");
             relationshipDiscoveryFeedback = root.Q<Label>("relationship-discovery-feedback");
             relationshipDiscoveryRetry = root.Q<Button>("relationship-discovery-retry");
-            relationshipDetailView = root.Q<VisualElement>("relationship-detail-view");
-            relationshipBack = root.Q<Button>("relationship-back");
-            relationshipAvatar = root.Q<Label>("relationship-avatar");
-            relationshipName = root.Q<Label>("relationship-name");
-            relationshipType = root.Q<Label>("relationship-type");
-            relationshipStrength = root.Q<Label>("relationship-strength");
-            relationshipFill = root.Q<VisualElement>("relationship-fill");
-            relationshipGenetics = root.Q<Label>("relationship-genetics");
-            relationshipActions = root.Q<VisualElement>("relationship-actions");
             educationCard = root.Q<VisualElement>("education-card");
             educationStage = root.Q<Label>("education-stage");
             learningLevel = root.Q<Label>("learning-level");
@@ -469,16 +363,14 @@ namespace StimTycoon.Runtime
             toggleOverview = root.Q<Button>("toggle-overview");
             eventContinue = root.Q<Button>("event-continue");
             if (cashValue == null || lifeSummary == null || eventCategory == null || eventTitle == null ||
-                eventBody == null || resultText == null || resultEffects == null || lifeFeedList == null || choices == null ||
+                eventBody == null || resultText == null || resultEffects == null || lifeBinder == null || !lifeBinder.IsValid || choices == null ||
                 resultCard == null || advanceMonth == null || advanceYear == null || toggleOverview == null || playerOverview == null ||
                 overviewCareer == null || overviewCalendar == null || healthValue == null ||
                 happinessValue == null || smartsValue == null || looksValue == null || luckValue == null ||
                 careerProgressValue == null ||
                 careerProgressFill == null || monthlyPaycheckValue == null || annualSalaryValue == null ||
                 netWorthValue == null || avatarGlyph == null || eventSheet == null || eventContinue == null ||
-                studySessionSheet == null || studySessionTitle == null || studySessionDescription == null ||
-                studySessionEffects == null || studySessionTiming == null || studySessionRequirement == null ||
-                studySessionCancel == null || studySessionConfirm == null ||
+                studyBinder == null || !studyBinder.IsValid ||
                 healthFill == null || happinessFill == null || smartsFill == null || looksFill == null ||
                 luckFill == null || newLifeSetup == null || newLifeError == null ||
                 cancelNewLife == null || continueCurrentLife == null || createNewLife == null || openNewLife == null ||
@@ -498,29 +390,13 @@ namespace StimTycoon.Runtime
                 educationDestinationContent == null || careerDestinationContent == null ||
                 goalsDestinationContent == null || educationEmptyState == null || careerEmptyState == null ||
                 educationUnavailableCopy == null ||
-                educationCatalog == null || educationCatalogStatus == null || educationCatalogList == null ||
-                careerContextCopy == null || careerPathPreview == null ||
-                manualWorkRole == null || manualWorkRate == null || moneyCashValue == null ||
-                manualWorkTap == null || manualWorkFeedback == null || manualWorkRetry == null || savingsBalanceValue == null ||
-                savingsAvailableValue == null || savingsDepositMode == null || savingsWithdrawMode == null ||
-                savingsAmountInput == null || savingsTransferFeedback == null || savingsTransferRetry == null || moneyTransactionHistory == null ||
-                moneyAccountsList == null ||
-                cashFlowGross == null || cashFlowTaxes == null || cashFlowExpenses == null ||
-                cashFlowCreditInterest == null || cashFlowSavingsInterest == null || cashFlowNet == null ||
-                savingsProjection == null ||
-                creditBalanceValue == null || creditDetailValue == null || availableCreditValue == null ||
-                creditRepaymentInput == null || creditRepaymentFeedback == null || creditRepaymentRetry == null ||
-                indexFundValue == null || indexFundContributions == null || indexFundPerformance == null ||
-                indexInvestmentRequirement == null ||
-                indexInvestmentInput == null || indexInvestmentFeedback == null || indexInvestmentRetry == null ||
-                bankTabSavings == null || bankTabCredit == null || bankTabInvesting == null ||
-                bankPanelSavings == null || bankPanelCredit == null || bankPanelInvesting == null ||
-                relationshipListView == null ||
-                relationshipList == null || discoverCompatiblePerson == null || relationshipDiscoveryFeedback == null || relationshipDiscoveryRetry == null ||
-                relationshipDetailView == null || relationshipBack == null ||
-                relationshipAvatar == null || relationshipName == null || relationshipType == null ||
-                relationshipStrength == null || relationshipFill == null || relationshipGenetics == null ||
-                relationshipActions == null || educationCard == null || educationStage == null ||
+                workBinder == null || !workBinder.IsValid || bankBinder == null || !bankBinder.IsValid ||
+                moneyCashValue == null || manualWorkFeedback == null || manualWorkRetry == null ||
+                savingsTransferFeedback == null || savingsTransferRetry == null ||
+                creditRepaymentFeedback == null || creditRepaymentRetry == null ||
+                indexInvestmentFeedback == null || indexInvestmentRetry == null ||
+                socialBinder == null || !socialBinder.IsValid || relationshipDiscoveryFeedback == null ||
+                relationshipDiscoveryRetry == null || educationCard == null || educationStage == null ||
                 learningLevel == null || learningFill == null || learningProgress == null ||
                 educationActions == null || skillsList == null || careerCard == null || careerRole == null || careerSalary == null ||
                 careerNextStep == null || careerActionFill == null || careerActionProgress == null ||
@@ -640,6 +516,11 @@ namespace StimTycoon.Runtime
             retryCommands.ClearAll();
             shellBinder?.Dispose();
             shellBinder = null;
+            lifeBinder = null;
+            studyBinder = null;
+            workBinder = null;
+            bankBinder = null;
+            socialBinder = null;
             rootElement = null;
         }
 
@@ -659,24 +540,24 @@ namespace StimTycoon.Runtime
                 ShowGoalsDestination);
             BindPersistentButton(toggleOverview, ToggleOverview);
             BindPersistentButton(eventContinue, CloseEventSheet, StimShellModal.Event);
-            BindPersistentButton(studySessionCancel, CloseStudySessionSheet, StimShellModal.StudySession);
-            BindPersistentButton(studySessionConfirm, ConfirmSelectedStudySession, StimShellModal.StudySession);
+            BindPersistentButton(studyBinder.Cancel, CloseStudySessionSheet, StimShellModal.StudySession);
+            BindPersistentButton(studyBinder.Confirm, ConfirmSelectedStudySession, StimShellModal.StudySession);
             BindPersistentButton(focusStudy, PerformPrimaryFocusActivity);
             BindPersistentButton(focusWorkout, PerformSecondaryFocusActivity);
             BindPersistentButton(closeLifeSummary, CloseLifeSummary);
-            BindPersistentButton(manualWorkTap, PerformManualWorkTap);
+            BindPersistentButton(workBinder.ManualWorkTap, PerformManualWorkTap);
             BindPersistentButton(manualWorkRetry, () => TryRetryCommand("work.manual"));
             BindPersistentButton(homeActionRetry, () => TryRetryCommand("home.last-action"));
-            BindPersistentButton(savingsDepositMode, SelectSavingsDeposit);
-            BindPersistentButton(savingsWithdrawMode, SelectSavingsWithdrawal);
+            BindPersistentButton(bankBinder.SavingsDepositMode, SelectSavingsDeposit);
+            BindPersistentButton(bankBinder.SavingsWithdrawMode, SelectSavingsWithdrawal);
             BindPersistentButton(savingsTransferRetry, () => TryRetryCommand("bank.savings-transfer"));
             BindPersistentButton(creditRepaymentRetry, () => TryRetryCommand("bank.credit-repayment"));
             BindPersistentButton(indexInvestmentRetry, () => TryRetryCommand("bank.index-investment"));
-            BindPersistentButton(bankTabSavings, SelectSavingsBankTab);
-            BindPersistentButton(bankTabCredit, SelectCreditBankTab);
-            BindPersistentButton(bankTabInvesting, SelectInvestingBankTab);
-            BindPersistentButton(relationshipBack, ShowRelationshipList);
-            BindPersistentButton(discoverCompatiblePerson, DiscoverCompatiblePerson);
+            BindPersistentButton(bankBinder.BankTabSavings, SelectSavingsBankTab);
+            BindPersistentButton(bankBinder.BankTabCredit, SelectCreditBankTab);
+            BindPersistentButton(bankBinder.BankTabInvesting, SelectInvestingBankTab);
+            BindPersistentButton(socialBinder.RelationshipBack, ShowRelationshipList);
+            BindPersistentButton(socialBinder.DiscoverCompatiblePerson, DiscoverCompatiblePerson);
             BindPersistentButton(relationshipDiscoveryRetry, () => TryRetryCommand("social.discovery"));
             BindPersistentButton(endingNewLife, OpenNewLifeFromEnding, StimShellModal.FinalLifeSummary);
             BindPersistentButton(openNewLife, OpenNewLifeSetup);
@@ -1261,108 +1142,18 @@ namespace StimTycoon.Runtime
         private void RefreshMoney()
         {
             var state = gameSession.ActiveSave.state;
-            var adult = state.character.age >= 18;
-            var career = state.career ?? new StimCareerState();
-            var employed = !string.IsNullOrEmpty(career.roleTitle) && career.roleTitle != "Retired" &&
-                           career.annualSalaryMinorUnits > 0 && state.character.lifeStatus == "active";
-            var hourlyRate = StimGameSessionService.CalculateHourlyRateMinorUnits(career.annualSalaryMinorUnits);
-            manualWorkRole.text = employed ? career.roleTitle : "Get a salaried job to begin";
-            manualWorkRate.text = employed ? $"{FormatPreciseMoney(hourlyRate)} per hour" : "$0.00 per hour";
+            workBinder.RenderManualWork(state, FormatPreciseMoney);
             moneyCashValue.text = FormatMoney(state.finances.cashMinorUnits);
-            savingsBalanceValue.text = FormatMoney(state.finances.savingsMinorUnits);
-            moneyAccountsList.Clear();
-            moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow(
-                "cash-wallet", "💵", "Cash Wallet", FormatMoney(state.finances.cashMinorUnits),
-                "Available for actions and purchases"));
-            moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow(
-                "savings", "🏦", "Savings", FormatMoney(state.finances.savingsMinorUnits),
-                $"{state.finances.savingsApyBasisPoints / 100m:0.00}% APY"));
-            moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow(
-                "revolving-credit", "▣", "Revolving Credit",
-                FormatMoney(state.finances.householdCreditBalanceMinorUnits),
-                $"{state.finances.householdCreditAprBasisPoints / 100m:0.00}% APR"));
-            if (adult)
-                moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow(
-                    "index-fund", "↗", "Index Fund", FormatMoney(state.finances.indexFundMinorUnits),
-                    "Long-term investment value"));
-            indexInvestmentInput.parent?.EnableInClassList("hidden", !adult);
-            manualWorkTap.parent?.EnableInClassList("hidden", !adult);
-            manualWorkTap.text = employed
-                ? $"WORK 1 HOUR  ·  +{FormatPreciseMoney(hourlyRate)}"
-                : "WORK 1 HOUR";
-            manualWorkTap.SetEnabled(employed && string.IsNullOrEmpty(state.pendingEventId));
-            var available = savingsTransferType == StimSavingsTransferType.Deposit
-                ? state.finances.cashMinorUnits
-                : state.finances.savingsMinorUnits;
-            savingsAvailableValue.text = savingsTransferType == StimSavingsTransferType.Deposit
-                ? $"Available cash: {FormatMoney(available)}"
-                : $"Available savings: {FormatMoney(available)}";
-            savingsDepositMode.EnableInClassList("active", savingsTransferType == StimSavingsTransferType.Deposit);
-            savingsWithdrawMode.EnableInClassList("active", savingsTransferType == StimSavingsTransferType.Withdrawal);
-            savingsAmountInput.Clear();
-            var depositing = savingsTransferType == StimSavingsTransferType.Deposit;
-            savingsAmountInput.Add(StimActionInputFactory.CreateAmountSelector(
-                available,
-                amount => PerformSavingsTransfer(amount),
+            selectedBankTab = bankBinder.Render(state, savingsTransferType, selectedBankTab,
+                FormatMoney, FormatSignedMoney, PerformSavingsTransfer,
                 () => StimFeedbackPresenter.Clear(savingsTransferFeedback),
-                depositing
-                    ? "Quick deposit · percentage of available cash"
-                    : "Quick withdrawal · percentage of savings",
-                "Or enter a custom amount",
-                depositing ? "Deposit" : "Withdraw"));
-            RefreshMoneyTransactionHistory(state);
-            cashFlowGross.text = $"Gross income: {FormatMoney(state.finances.lastGrossIncomeMinorUnits)}";
-            cashFlowTaxes.text = $"Taxes: −{FormatMoney(state.finances.lastTaxesMinorUnits)}";
-            cashFlowExpenses.text = $"Expenses: −{FormatMoney(state.finances.lastExpensesMinorUnits)}";
-            cashFlowCreditInterest.text = $"Credit interest: −{FormatMoney(state.finances.lastCreditInterestMinorUnits)}";
-            cashFlowSavingsInterest.text = $"Savings interest: +{FormatMoney(state.finances.lastSavingsInterestMinorUnits)}";
-            cashFlowNet.text = $"Net change: {FormatSignedMoney(state.finances.lastNetCashFlowMinorUnits)}";
-            var projectedInterest = StimGameSessionService.CalculateProjectedAnnualSavingsInterest(state.finances);
-            savingsProjection.text = $"{state.finances.savingsApyBasisPoints / 100m:0.00}% APY · " +
-                                     $"about {FormatMoney(projectedInterest)} interest over one year at the current balance; rate may change.";
-            var creditBalance = state.finances.householdCreditBalanceMinorUnits;
-            var creditLimit = StimGameSessionService.CalculateHouseholdCreditLimit(state);
-            var availableCredit = Math.Max(0, creditLimit - state.finances.debtMinorUnits);
-            creditBalanceValue.text = $"Balance: {FormatMoney(creditBalance)}";
-            creditDetailValue.text = creditBalance > 0
-                ? $"{state.finances.householdCreditAprBasisPoints / 100m:0.00}% APR · Total debt {FormatMoney(state.finances.debtMinorUnits)}"
-                : $"No active revolving balance · Total debt {FormatMoney(state.finances.debtMinorUnits)}";
-            availableCreditValue.text = $"Available credit: {FormatMoney(availableCredit)} of {FormatMoney(creditLimit)}";
-            creditRepaymentInput.Clear();
-            creditRepaymentInput.Add(StimActionInputFactory.CreateAmountSelector(
-                Math.Min(state.finances.cashMinorUnits, creditBalance), PerformCreditRepayment));
-            indexFundValue.text = $"Index fund: {FormatMoney(state.finances.indexFundMinorUnits)}";
-            indexFundContributions.text = $"Contributions: {FormatMoney(state.finances.indexFundContributionsMinorUnits)}";
-            var indexFundPerformanceMinorUnits =
-                state.finances.indexFundMinorUnits - state.finances.indexFundContributionsMinorUnits;
-            indexFundPerformance.text = $"Market performance: {FormatSignedMoney(indexFundPerformanceMinorUnits)}";
-            var canInvest = StimGameSessionService.TryGetIndexInvestmentRequirement(state, out var investmentRequirement);
-            indexInvestmentRequirement.text = canInvest
-                ? "Unlocked · Minimum contribution $10"
-                : $"Locked · {investmentRequirement}";
-            indexInvestmentInput.Clear();
-            if (canInvest)
-                indexInvestmentInput.Add(StimActionInputFactory.CreateAmountSelector(
-                    state.finances.cashMinorUnits, PerformIndexInvestment));
-            bankTabCredit.EnableInClassList("hidden", !adult);
-            bankTabInvesting.EnableInClassList("hidden", !adult);
-            if (!adult && selectedBankTab != StimBankTab.Savings)
-                selectedBankTab = StimBankTab.Savings;
-            SetBankTab(selectedBankTab);
+                PerformCreditRepayment, PerformIndexInvestment);
         }
 
         private void SetBankTab(StimBankTab tab)
         {
             var adult = (gameSession?.ActiveSave?.state?.character?.age ?? 0) >= 18;
-            if (!adult && tab != StimBankTab.Savings)
-                tab = StimBankTab.Savings;
-            selectedBankTab = tab;
-            bankPanelSavings.EnableInClassList("hidden", tab != StimBankTab.Savings);
-            bankPanelCredit.EnableInClassList("hidden", tab != StimBankTab.Credit);
-            bankPanelInvesting.EnableInClassList("hidden", tab != StimBankTab.Investing);
-            bankTabSavings.EnableInClassList("active", tab == StimBankTab.Savings);
-            bankTabCredit.EnableInClassList("active", tab == StimBankTab.Credit);
-            bankTabInvesting.EnableInClassList("active", tab == StimBankTab.Investing);
+            selectedBankTab = bankBinder.SelectTab(!adult ? StimBankTab.Savings : tab);
         }
 
         private void SetSavingsTransferType(StimSavingsTransferType transferType)
@@ -1391,39 +1182,6 @@ namespace StimTycoon.Runtime
             RefreshFeed();
             RefreshMoney();
             StimFeedbackPresenter.ShowTransactionResult(savingsTransferFeedback, true, summary);
-        }
-
-        private void RefreshMoneyTransactionHistory(StimGameState state)
-        {
-            moneyTransactionHistory.Clear();
-            var history = state.moneyTransactions;
-            if (history == null || history.Count == 0)
-            {
-                moneyTransactionHistory.Add(new Label("No savings transfers yet.")
-                    { name = "money-history-empty" });
-                return;
-            }
-            var first = Math.Max(0, history.Count - 10);
-            for (var index = history.Count - 1; index >= first; index--)
-            {
-                var entry = history[index];
-                var row = new VisualElement();
-                row.AddToClassList("st-money-history-row");
-                var transactionName = entry.type == "savings_deposit" ? "Deposit" :
-                    entry.type == "savings_withdrawal" ? "Withdrawal" :
-                    entry.type == "credit_repayment" ? "Credit repayment" : "Savings interest";
-                if (entry.type == "index_investment") transactionName = "Index contribution";
-                else if (entry.type == "index_gain") transactionName = "Index gain";
-                else if (entry.type == "index_loss") transactionName = "Index loss";
-                var title = new Label($"{transactionName} · {FormatMoney(entry.amountMinorUnits)}");
-                title.AddToClassList("st-money-history-title");
-                var detail = new Label(
-                    $"Age {entry.age}, month {entry.monthOfYear} · Cash {FormatMoney(entry.cashBalanceMinorUnits)} · Savings {FormatMoney(entry.savingsBalanceMinorUnits)}");
-                detail.AddToClassList("st-money-history-detail");
-                row.Add(title);
-                row.Add(detail);
-                moneyTransactionHistory.Add(row);
-            }
         }
 
         private void PerformCreditRepayment(long amountMinorUnits)
@@ -1544,7 +1302,7 @@ namespace StimTycoon.Runtime
                            state.character.age >= 6 && state.character.age < 18;
             educationEmptyState.EnableInClassList("hidden", enrolled);
             educationCard.EnableInClassList("hidden", !enrolled);
-            educationCatalog.EnableInClassList("hidden", !enrolled || state.character.age < 14);
+            studyBinder.SetCatalogVisible(enrolled && state.character.age >= 14);
             if (!enrolled)
             {
                 if (!educationAvailable)
@@ -1669,56 +1427,7 @@ namespace StimTycoon.Runtime
 
         private void RefreshEducationCatalog(StimGameState state)
         {
-            educationCatalogList.Clear();
-            if (state.character.age < 14 || state.character.age >= 18) return;
-
-            var currentTrack = state.education?.studyTrack ?? string.Empty;
-            var qualificationXp = Math.Max(0, state.education?.qualificationExperience ?? 0);
-            educationCatalogStatus.text = string.IsNullOrEmpty(currentTrack)
-                ? "Choose one path below. The choice persists and shapes later qualifications."
-                : $"Current: {ToDisplayName(currentTrack)} · {StimEducationActionService.GetQualificationTier(qualificationXp)} · {qualificationXp} XP";
-
-            foreach (var discipline in StimEducationDisciplineCatalog.GetAll())
-            {
-                var cost = discipline.studyTrack == StimStudyTrack.Academic ? 5000L :
-                    discipline.studyTrack == StimStudyTrack.Vocational ? 7500L : 0L;
-                AddEducationCatalogRow(
-                    state, discipline.studyTrack, discipline.displayName, cost,
-                    discipline.consequenceSummary, currentTrack);
-            }
-        }
-
-        private void AddEducationCatalogRow(
-            StimGameState state,
-            StimStudyTrack track,
-            string disciplineName,
-            long costMinorUnits,
-            string consequence,
-            string currentTrack)
-        {
-            var trackId = track.ToString().ToLowerInvariant();
-            var selected = string.Equals(currentTrack, trackId, StringComparison.OrdinalIgnoreCase);
-            var choiceOpen = string.IsNullOrEmpty(currentTrack) &&
-                             string.IsNullOrEmpty(state.education.awaitingDecisionId);
-            var affordable = state.finances.cashMinorUnits >= costMinorUnits;
-            var materialText = costMinorUnits == 0 ? "Free materials" : $"{FormatMoney(costMinorUnits)} materials";
-            var trailing = selected ? "CURRENT" : choiceOpen && affordable ? "GO" : materialText;
-            Action onOpen = null;
-            if (choiceOpen && affordable)
-            {
-                onOpen = () =>
-                {
-                    var target = educationActions.Q<Button>($"study-track-{trackId}");
-                    target?.Focus();
-                };
-            }
-
-            var row = StimUiComponentFactory.CreatePathRow(
-                $"study-{trackId}", "🎓", disciplineName,
-                $"{track} Track · {consequence} · {materialText}", trailing, affordable || selected, onOpen);
-            row.AddToClassList("st-education-catalog-row");
-            if (selected) StimPresentationStateStyler.Apply(row, StimPresentationState.Selected);
-            educationCatalogList.Add(row);
+            studyBinder.RenderCatalog(state, educationActions, FormatMoney);
         }
 
         private void AddStudyTrackCard(StimStudyTrack track, long costMinorUnits, string description)
@@ -1839,22 +1548,7 @@ namespace StimTycoon.Runtime
                     persistSummary, () => ShowStudySessionSheet(difficulty, definition));
                 return;
             }
-            studySessionTitle.text = definition.title;
-            studySessionDescription.text = definition.description;
-            studySessionEffects.text = definition.previews == null || definition.previews.Count == 0
-                ? "No numeric changes"
-                : string.Join(" · ", definition.previews.ConvertAll(delta =>
-                    $"{delta.targetId} {(delta.amount >= 0 ? "+" : "−")}{Math.Abs(delta.amount)}"));
-            studySessionTiming.text = definition.cooldownMonths > 0
-                ? $"{definition.durationSeconds} seconds · Uses this month's school action · Available again after advancing a month"
-                : "No monthly cooldown";
-            StimFeedbackPresenter.Show(
-                studySessionRequirement,
-                string.IsNullOrEmpty(definition.lockedReason) ? "Ready to begin" : definition.lockedReason,
-                definition.state == StimActionState.Ready
-                    ? StimFeedbackKind.Confirmation
-                    : StimFeedbackKind.Error);
-            studySessionConfirm.SetEnabled(definition.state == StimActionState.Ready);
+            studyBinder.RenderSession(definition);
             OpenShellModal(StimShellModal.StudySession);
         }
 
@@ -1870,10 +1564,8 @@ namespace StimTycoon.Runtime
             if (!TryPersistWorkflowState(out var persistSummary))
             {
                 selectedStudyDefinition = previousDefinition;
-                StimFeedbackPresenter.Show(
-                    studySessionRequirement,
-                    $"{persistSummary} The confirmation remains open; retry Cancel.",
-                    StimFeedbackKind.Error);
+                studyBinder.ShowPersistenceError(
+                    $"{persistSummary} The confirmation remains open; retry Cancel.");
                 return false;
             }
             shellBinder.CloseModal(StimShellModal.StudySession);
@@ -2060,7 +1752,7 @@ namespace StimTycoon.Runtime
             careerEmptyState.EnableInClassList("hidden", !adult);
             careerCard.EnableInClassList("hidden", !adult);
             careerActionsCard.EnableInClassList("hidden", !adult);
-            RefreshCareerPathPreview(state, adult);
+            workBinder.RenderPathPreview(state, adult);
             if (!adult) return;
 
             var career = state.career ?? new StimCareerState();
@@ -2214,43 +1906,6 @@ namespace StimTycoon.Runtime
         {
             requirement = message;
             return false;
-        }
-
-        private void RefreshCareerPathPreview(StimGameState state, bool adult)
-        {
-            careerPathPreview.Clear();
-            careerContextCopy.text = adult
-                ? "Career and business actions use the current life state. Requirements remain visible before an action is available."
-                : "Childhood choices, education, and skills shape the paths that will become relevant later.";
-
-            if (!adult) return;
-
-            var career = state.career ?? new StimCareerState();
-            var employed = !string.IsNullOrEmpty(career.roleTitle) && career.roleTitle != "Retired";
-            careerPathPreview.Add(StimUiComponentFactory.CreatePathRow(
-                "entry-career", "💼", "Entry-level Career",
-                "Apply, interview, and grow through the supported career catalog.",
-                employed ? career.roleTitle : "Available", true));
-            careerPathPreview.Add(StimUiComponentFactory.CreatePathRow(
-                "career-ladder", "↗", "Career Ladder",
-                "Build career progress to qualify for the next role.",
-                employed ? $"{career.careerProgress} progress" : "Apply first", employed));
-
-            var business = state.business ?? new StimBusinessState();
-            var professionalLevel = StimGameSessionService.GetSkillLevel(
-                StimGameSessionService.GetSkillExperience(state.skills, "professional"));
-            var canStartBusiness = business.status == "none" && professionalLevel >= 2 &&
-                                   state.finances.cashMinorUnits >= 100000;
-            var businessStatus = business.status == "operating"
-                ? $"Level {business.level}"
-                : business.status != "none" ? ToDisplayName(business.status)
-                : professionalLevel < 2 ? "Professional 2"
-                : state.finances.cashMinorUnits < 100000 ? "$1,000 needed"
-                : "Available";
-            careerPathPreview.Add(StimUiComponentFactory.CreatePathRow(
-                "local-services", "🏢", "Local Services Business",
-                "Requires age 18, Professional Level 2, and $1,000 startup cash.",
-                businessStatus, canStartBusiness || business.status == "operating"));
         }
 
         private void PerformCareerAction(StimCareerActionType actionType)
@@ -2688,41 +2343,13 @@ namespace StimTycoon.Runtime
         private void ShowRelationshipList()
         {
             selectedRelationshipId = null;
-            relationshipDetailView.AddToClassList("hidden");
-            relationshipListView.RemoveFromClassList("hidden");
+            socialBinder.ShowList();
             PersistNavigationState();
         }
 
         private void RefreshSocial()
         {
-            relationshipList.Clear();
-            var adult = (gameSession.ActiveSave?.state?.character?.age ?? 0) >= 18;
-            var discoveryUsed = gameSession.ActiveSave?.state?.statuses?.Exists(
-                status => status.statusId == "relationship_discovery_used") == true;
-            discoverCompatiblePerson.EnableInClassList("hidden", !adult);
-            discoverCompatiblePerson.SetEnabled(
-                adult && !discoveryUsed &&
-                string.IsNullOrEmpty(gameSession.ActiveSave?.state?.pendingEventId));
-            var relationships = gameSession.ActiveSave?.state?.relationships;
-            if (relationships == null || relationships.Count == 0)
-            {
-                var empty = new Label("Important people will appear here as your life grows.");
-                empty.AddToClassList("st-feed-empty");
-                relationshipList.Add(empty);
-                return;
-            }
-
-            foreach (var relationship in relationships)
-            {
-                if (relationship == null) continue;
-                var relationshipId = relationship.relationshipId;
-                relationshipList.Add(StimUiComponentFactory.CreateRelationshipRow(
-                    relationship.relationshipId,
-                    relationship.displayName,
-                    relationship.relationshipType,
-                    relationship.value,
-                    () => ShowRelationshipDetail(relationshipId)));
-            }
+            socialBinder.RenderList(gameSession.ActiveSave.state, id => ShowRelationshipDetail(id));
         }
 
         private void ShowRelationshipDetail(string relationshipId, bool persistState = true)
@@ -2732,26 +2359,7 @@ namespace StimTycoon.Runtime
             if (relationship == null) return;
 
             selectedRelationshipId = relationshipId;
-            relationshipListView.AddToClassList("hidden");
-            relationshipDetailView.RemoveFromClassList("hidden");
-            relationshipName.text = string.IsNullOrEmpty(relationship.displayName)
-                ? ToDisplayName(relationship.relationshipId)
-                : relationship.displayName;
-            relationshipAvatar.text = relationshipName.text.Substring(0, 1).ToUpperInvariant();
-            relationshipType.text = ToDisplayName(string.IsNullOrEmpty(relationship.relationshipStage)
-                ? relationship.relationshipType
-                : relationship.relationshipStage).ToUpperInvariant();
-            relationshipStrength.text = $"Relationship {relationship.value} / 100 · Warmth {relationship.warmth} / 100";
-            relationshipFill.style.width = Length.Percent(ClampFillPercent(relationship.value));
-            relationshipGenetics.text = relationship.isGeneticParent
-                ? $"Inherited profile · Health {relationship.geneticHealth} · Looks {relationship.geneticLooks} · Smarts {relationship.geneticSmarts}"
-                : string.IsNullOrEmpty(relationship.origin)
-                    ? "This relationship is part of your growing social story."
-                    : $"{(string.IsNullOrEmpty(relationship.pronouns) ? string.Empty : relationship.pronouns + " · ")}" +
-                      $"Met through {ToDisplayName(string.IsNullOrEmpty(relationship.introductionContext) ? relationship.origin : relationship.introductionContext)} at age {relationship.introducedAtAge} · " +
-                      (relationship.monthsSinceInteraction == 0
-                          ? "Connected this month."
-                          : $"{relationship.monthsSinceInteraction} months since focused time together.");
+            socialBinder.ShowDetail(relationship);
             BuildRelationshipActions(relationship);
             if (persistState) PersistNavigationState();
         }
@@ -2773,7 +2381,7 @@ namespace StimTycoon.Runtime
 
         private void BuildRelationshipActions(StimRelationshipState relationship)
         {
-            relationshipActions.Clear();
+            socialBinder.RelationshipActions.Clear();
             var interactions = new[]
             {
                 StimRelationshipInteractionType.Talk,
@@ -2825,7 +2433,7 @@ namespace StimTycoon.Runtime
                 button.SetEnabled(!usedThisMonth);
                 var capturedInteraction = interaction;
                 button.clicked += () => PerformRelationshipInteraction(capturedInteraction);
-                relationshipActions.Add(button);
+                socialBinder.RelationshipActions.Add(button);
             }
             if (age >= 18 && (relationship.relationshipType == "partner" ||
                               relationship.relationshipType == "engaged" ||
@@ -2865,7 +2473,7 @@ namespace StimTycoon.Runtime
                                         gameSession.ActiveSave.state.finances.cashMinorUnits >= 2500));
             var capturedAction = action;
             button.clicked += () => PerformParentingAction(capturedAction);
-            relationshipActions.Add(button);
+            socialBinder.RelationshipActions.Add(button);
         }
 
         private void PerformParentingAction(StimParentingAction action)
@@ -2913,7 +2521,7 @@ namespace StimTycoon.Runtime
             button.SetEnabled(enabled);
             var capturedAction = action;
             button.clicked += () => PerformFamilyPlanning(capturedAction);
-            relationshipActions.Add(button);
+            socialBinder.RelationshipActions.Add(button);
         }
 
         private void PerformFamilyPlanning(StimFamilyPlanningAction action)
@@ -3294,60 +2902,13 @@ namespace StimTycoon.Runtime
 
         private void RefreshFeed()
         {
-            lifeFeedList.Clear();
-            var entries = StimLifeFeedPresentation.GetNewestFirst(gameSession.ActiveSave.state.lifeFeed);
-            if (entries == null || entries.Count == 0)
-            {
-                var empty = new Label("Your life is ready for its next chapter.");
-                empty.AddToClassList("st-feed-empty");
-                lifeFeedList.Add(empty);
-                return;
-            }
-
-            VisualElement currentGroup = null;
-            var currentAge = -1;
-            var currentMonth = -1;
-            const int maximumVisibleEntries = 8;
-            var visibleEntries = Math.Min(maximumVisibleEntries, entries.Count);
-            for (var index = 0; index < visibleEntries; index++)
-            {
-                var entry = entries[index];
-                if (entry == null) continue;
-                if (currentGroup == null || entry.age != currentAge || entry.monthOfYear != currentMonth)
-                {
-                    currentAge = entry.age;
-                    currentMonth = entry.monthOfYear;
-                    currentGroup = new VisualElement
-                    {
-                        name = $"feed-month-{currentAge}-{currentMonth}"
-                    };
-                    currentGroup.AddToClassList("st-feed-month-group");
-                    var header = new Label($"AGE {currentAge}  ·  {GetMonthName(currentMonth).ToUpperInvariant()}");
-                    header.AddToClassList("st-feed-month-header");
-                    currentGroup.Add(header);
-                    lifeFeedList.Add(currentGroup);
-                }
-                currentGroup.Add(StimUiComponentFactory.CreateFeedRow(
-                    entry,
-                    index,
-                    entries.Count,
-                    feedRowTemplate));
-            }
-
-            if (entries.Count > visibleEntries)
-            {
-                var remaining = new Label($"Showing the latest {visibleEntries} of {entries.Count} life updates.");
-                remaining.AddToClassList("st-feed-more");
-                lifeFeedList.Add(remaining);
-            }
+            lifeBinder?.RenderFeed(gameSession?.ActiveSave?.state?.lifeFeed);
         }
 
-        private static string GetMonthName(int month)
-        {
-            return month >= 1 && month <= 12
+        private static string GetMonthName(int month) =>
+            month >= 1 && month <= 12
                 ? new DateTime(2000, month, 1).ToString("MMMM")
                 : $"Month {month}";
-        }
 
         private void LogMissingUiBindings()
         {

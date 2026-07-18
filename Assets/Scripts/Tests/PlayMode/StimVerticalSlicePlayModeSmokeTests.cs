@@ -183,10 +183,14 @@ namespace StimTycoon.Tests.PlayMode
 
                 var newLifeSetup = root.Q<VisualElement>("new-life-setup");
                 var newLifeWasHidden = newLifeSetup.ClassListContains("hidden");
+                var cancelNewLife = root.Q<Button>("cancel-new-life");
+                var cancelWasHidden = cancelNewLife.ClassListContains("hidden");
                 newLifeSetup.RemoveFromClassList("hidden");
+                cancelNewLife.RemoveFromClassList("hidden");
                 yield return null;
-                AssertTargetWithin(root.Q<Button>("cancel-new-life"), safeBounds, width, textScale);
+                AssertTargetWithin(cancelNewLife, safeBounds, width, textScale);
                 AssertTargetWithin(root.Q<Button>("create-new-life"), safeBounds, width, textScale);
+                cancelNewLife.EnableInClassList("hidden", cancelWasHidden);
                 newLifeSetup.EnableInClassList("hidden", newLifeWasHidden);
             }
 

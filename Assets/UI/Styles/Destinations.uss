@@ -876,7 +876,7 @@
 }
 
 .st-setup-cancel {
-    min-height: 46px;
+    min-height: 48px;
     margin-bottom: 7px;
     background-color: var(--st-surface-2);
     border-width: 1px;
@@ -1538,6 +1538,10 @@
     background-color: var(--st-cyan-600);
     border-color: var(--st-cyan-600);
     color: white;
+}
+
+.st-asset-kits-integrated .st-setup-cancel {
+    min-height: 48px;
 }
 
 .st-asset-kits-integrated .st-event-sheet,
