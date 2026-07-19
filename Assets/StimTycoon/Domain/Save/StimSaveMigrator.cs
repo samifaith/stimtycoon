@@ -251,6 +251,14 @@ namespace StimTycoon.Saves
                 save.state.home.trainingEquipmentCondition = 100;
                 Record(report, "state.home inventory and capacity created");
             }
+            if (save.state.home != null && !serializedSave.Contains("\"inventory\""))
+            {
+                save.state.home.inventory = StimHomeState.CreateDefaultInventory();
+                save.state.home.inventory[0].quantity = save.state.home.readingMaterialStock;
+                save.state.home.inventory[0].capacity = save.state.home.readingMaterialCapacity;
+                save.state.home.inventory[1].condition = save.state.home.trainingEquipmentCondition;
+                Record(report, "state.home stable inventory items created");
+            }
             if (save.state.skills == null)
             {
                 save.state.skills = new List<StimSkillState>();
@@ -278,7 +286,8 @@ namespace StimTycoon.Saves
                 save.state.achievements = new List<StimAchievementState>();
                 Record(report, "state.achievements created");
             }
-            else if (save.state.achievements.Count > 0 && !serializedSave.Contains("\"rewardClaimed\""))
+            else if (save.state.achievements.Count > 0 &&
+                     !JsonCollectionContainsField(serializedSave, "achievements", "rewardClaimed"))
             {
                 foreach (var achievement in save.state.achievements)
                 {
@@ -293,6 +302,13 @@ namespace StimTycoon.Saves
             {
                 save.state.goals = new List<StimGoalState>();
                 Record(report, "state.goals created");
+            }
+            else if (save.state.goals.Count > 0 && !serializedSave.Contains("\"pinned\""))
+            {
+                var goal = save.state.goals.Find(candidate => candidate != null && candidate.category == "main") ??
+                           save.state.goals[0];
+                if (goal != null) goal.pinned = true;
+                Record(report, "state.goals pin state created");
             }
             if (save.state.orientation == null || !serializedSave.Contains("\"orientation\""))
             {
@@ -324,6 +340,21 @@ namespace StimTycoon.Saves
             {
                 save.state.actionProgress = new List<StimActionProgressState>();
                 Record(report, "state.actionProgress created");
+            }
+            if (save.state.matchSession == null || !serializedSave.Contains("\"matchSession\""))
+            {
+                save.state.matchSession = new StimMatchSessionState();
+                Record(report, "state.matchSession created");
+            }
+            if (save.state.matchSession.rewardMultiplier < 1)
+            {
+                save.state.matchSession.rewardMultiplier = 1;
+                Record(report, "state.matchSession.rewardMultiplier defaulted");
+            }
+            if (save.state.matchSession.state == "active" && save.state.matchSession.remainingSeconds < 1)
+            {
+                save.state.matchSession.remainingSeconds = save.state.matchSession.durationSeconds;
+                Record(report, "state.matchSession.remainingSeconds defaulted");
             }
             if (save.state.lifeFeed == null)
             {
@@ -357,6 +388,16 @@ namespace StimTycoon.Saves
         {
             report.changed = true;
             report.changes.Add(change);
+        }
+
+        private static bool JsonCollectionContainsField(string json, string collection, string field)
+        {
+            if (string.IsNullOrEmpty(json)) return false;
+            var start = json.IndexOf($"\"{collection}\":[", StringComparison.Ordinal);
+            if (start < 0) return false;
+            var end = json.IndexOf("],", start, StringComparison.Ordinal);
+            if (end < 0) end = json.Length;
+            return json.IndexOf($"\"{field}\"", start, end - start, StringComparison.Ordinal) >= 0;
         }
     }
 }

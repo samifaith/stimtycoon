@@ -28,7 +28,8 @@ namespace StimTycoon.Tests.Domain.UI
             Render(binder, state);
 
             Assert.That(root.Q<Label>("home-condition").text, Does.StartWith("Starter Home · Condition 80 / 100"));
-            Assert.That(root.Q<VisualElement>("home-actions").childCount, Is.EqualTo(6));
+            Assert.That(root.Q<VisualElement>("home-object-list").childCount, Is.EqualTo(5));
+            Assert.That(root.Q<VisualElement>("home-actions").childCount, Is.EqualTo(2));
             Assert.That(root.Q<Button>("home-upgrade"), Is.Not.Null);
             Assert.That(root.Q<Button>("home-upgrade").enabledSelf, Is.True);
         }
@@ -40,7 +41,7 @@ namespace StimTycoon.Tests.Domain.UI
             var binder = new StimHomeBinder(root);
             var state = CreateState(12);
 
-            Render(binder, state);
+            Render(binder, state, "toolbox");
 
             Assert.That(root.Q<Button>("home-upgrade"), Is.Null);
             Assert.That(root.Q<Button>("home-action-maintain").text,
@@ -67,7 +68,7 @@ namespace StimTycoon.Tests.Domain.UI
             return state;
         }
 
-        private static void Render(StimHomeBinder binder, StimGameState state)
+        private static void Render(StimHomeBinder binder, StimGameState state, string selectedObjectId = "bookshelf")
         {
             binder.Render(
                 state,
@@ -75,6 +76,8 @@ namespace StimTycoon.Tests.Domain.UI
                 StimGameSessionService.GetHomeUpgradeRequiredProgress(state.home.upgradeLevel),
                 value => $"${value / 100m:0.00}",
                 value => value.Replace('_', ' '),
+                selectedObjectId,
+                _ => { },
                 _ => { },
                 () => { });
         }
@@ -84,6 +87,7 @@ namespace StimTycoon.Tests.Domain.UI
             var root = new VisualElement();
             root.Add(new Label { name = "home-condition" });
             root.Add(new Label { name = "home-progress" });
+            root.Add(new VisualElement { name = "home-object-list" });
             root.Add(new VisualElement { name = "home-actions" });
             root.Add(new Label { name = "home-upgrade-feedback" });
             root.Add(new Button { name = "home-action-retry" });

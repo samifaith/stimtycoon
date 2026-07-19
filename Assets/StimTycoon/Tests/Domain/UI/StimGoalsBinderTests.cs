@@ -55,11 +55,13 @@ namespace StimTycoon.Tests.Domain.UI
 
             var list = root.Q<VisualElement>("achievements-list");
             Assert.That(root.Q<Label>("achievements-count").text, Is.EqualTo("1 unlocked"));
-            Assert.That(list.childCount, Is.EqualTo(2));
+            Assert.That(list.childCount, Is.EqualTo(1));
             Assert.That(list.Q<Button>("goal-action-main-path"), Is.Not.Null);
+            Assert.That(list.Q<Button>("goal-pin-main-path"), Is.Not.Null);
             Assert.That(list.Q<Button>("goal-action-old-daily"), Is.Null);
-            Assert.That(list.Q<Button>("achievement-claim-first_job"), Is.Not.Null);
             StringAssert.Contains("1 / 3", list[0].tooltip);
+            Render(binder, achievements, goals, "achievements");
+            Assert.That(list.Q<Button>("achievement-claim-first_job"), Is.Not.Null);
         }
 
         private static VisualElement CreateRoot()
@@ -67,13 +69,19 @@ namespace StimTycoon.Tests.Domain.UI
             var root = new VisualElement();
             root.Add(new Label { name = "achievements-count" });
             root.Add(new VisualElement { name = "achievements-list" });
+            root.Add(new Label { name = "pinned-goal-summary" });
+            root.Add(new Button { name = "goals-tab-main" });
+            root.Add(new Button { name = "goals-tab-daily" });
+            root.Add(new Button { name = "goals-tab-life" });
+            root.Add(new Button { name = "goals-tab-achievements" });
             return root;
         }
 
         private static void Render(
             StimGoalsBinder binder,
             IReadOnlyList<StimAchievementState> achievements,
-            IReadOnlyList<StimGoalState> goals)
+            IReadOnlyList<StimGoalState> goals,
+            string board = "main")
         {
             binder.Render(
                 achievements,
@@ -81,6 +89,8 @@ namespace StimTycoon.Tests.Domain.UI
                 value => $"${value / 100m:0.00}",
                 (value, maximum) => $"{value} / {maximum}",
                 value => value.ToUpperInvariant(),
+                board,
+                _ => { },
                 _ => { },
                 _ => { });
         }

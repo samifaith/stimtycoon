@@ -15,13 +15,15 @@ namespace StimTycoon.Tests.Domain.Save
             save.state.skills = null;
             save.state.lifeDecisions = null;
             save.state.actionProgress = null;
+            save.state.matchSession = null;
             save.state.relationships = null;
             save.state.statuses = null;
             save.state.achievements = null;
+            var serializedHome = JsonUtility.ToJson(save.state.home);
             var json = JsonUtility.ToJson(save)
                 .Replace("\"orientation\":{\"status\":\"not_started\",\"completedRevision\":0,\"completedAtUtc\":\"\"},", string.Empty)
                 .Replace("\"family\":{\"planningPreference\":\"undiscussed\",\"planningPartnerId\":\"\",\"partnerConsent\":false,\"pendingPath\":\"\",\"monthsUntilResolution\":0,\"children\":[]},", string.Empty)
-                .Replace("\"home\":{\"homeId\":\"starter_home\",\"condition\":80,\"upgradeLevel\":0,\"improvementProgress\":0,\"readingMaterialStock\":3,\"readingMaterialCapacity\":3,\"trainingEquipmentCondition\":100},", string.Empty)
+                .Replace($"\"home\":{serializedHome},", string.Empty)
                 .Replace("\"moneyTransactions\":[],", string.Empty)
                 .Replace("\"annualReviewHistory\":[],", string.Empty)
                 .Replace("\"majorOutcomeSummaries\":[],", string.Empty)
@@ -43,6 +45,8 @@ namespace StimTycoon.Tests.Domain.Save
             Assert.That(result.state.skills, Is.Not.Null);
             Assert.That(result.state.lifeDecisions, Is.Not.Null);
             Assert.That(result.state.actionProgress, Is.Not.Null);
+            Assert.That(result.state.matchSession, Is.Not.Null);
+            Assert.That(result.state.matchSession.state, Is.EqualTo("none"));
             Assert.That(result.state.relationships, Is.Not.Null);
             Assert.That(result.state.statuses, Is.Not.Null);
             Assert.That(result.state.achievements, Is.Not.Null);
@@ -55,6 +59,8 @@ namespace StimTycoon.Tests.Domain.Save
             Assert.That(result.state.home.condition, Is.EqualTo(80));
             Assert.That(result.state.home.readingMaterialStock, Is.EqualTo(3));
             Assert.That(result.state.home.trainingEquipmentCondition, Is.EqualTo(100));
+            Assert.That(result.state.home.inventory, Has.Count.EqualTo(2));
+            Assert.That(result.state.home.inventory[0].itemId, Is.EqualTo("starter_books"));
             Assert.That(result.state.family, Is.Not.Null);
             Assert.That(result.state.family.children, Is.Not.Null.And.Empty);
             Assert.That(result.state.business, Is.Not.Null);
@@ -80,6 +86,31 @@ namespace StimTycoon.Tests.Domain.Save
             Assert.IsTrue(firstReport.changed);
             Assert.IsFalse(secondReport.changed);
             Assert.That(secondReport.changes, Is.Empty);
+        }
+
+        [Test]
+        public void Migrate_PreservesLegacyHomeCountsInStableInventory()
+        {
+            var save = CreateValidSave();
+            save.state.home.readingMaterialStock = 2;
+            save.state.home.readingMaterialCapacity = 5;
+            save.state.home.trainingEquipmentCondition = 40;
+            var json = JsonUtility.ToJson(save);
+            var inventoryJson = JsonUtility.ToJson(new InventoryWrapper { inventory = save.state.home.inventory });
+            inventoryJson = "," + inventoryJson.Substring(1, inventoryJson.Length - 2);
+            json = json.Replace(inventoryJson, string.Empty);
+
+            Assert.IsTrue(StimSaveMigrator.TryMigrate(json, out var migrated, out var report, out var error), error);
+            Assert.That(migrated.state.home.inventory.Find(item => item.itemId == "starter_books").quantity, Is.EqualTo(2));
+            Assert.That(migrated.state.home.inventory.Find(item => item.itemId == "starter_books").capacity, Is.EqualTo(5));
+            Assert.That(migrated.state.home.inventory.Find(item => item.itemId == "starter_training_kit").condition, Is.EqualTo(40));
+            Assert.That(report.changes, Has.Some.Contains("stable inventory"));
+        }
+
+        [System.Serializable]
+        private sealed class InventoryWrapper
+        {
+            public List<StimHomeInventoryItemState> inventory;
         }
 
         [Test]

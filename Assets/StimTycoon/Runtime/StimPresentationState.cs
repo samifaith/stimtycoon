@@ -55,8 +55,10 @@ namespace StimTycoon.Runtime
             {
                 case StimActionState.Locked: return StimPresentationState.Locked;
                 case StimActionState.InProgress: return StimPresentationState.Active;
+                case StimActionState.Paused: return StimPresentationState.Cooldown;
                 case StimActionState.Claimable: return StimPresentationState.Claimable;
                 case StimActionState.Complete: return StimPresentationState.Claimed;
+                case StimActionState.Expired: return StimPresentationState.Terminal;
                 default: return StimPresentationState.Available;
             }
         }

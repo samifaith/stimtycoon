@@ -49,6 +49,7 @@ namespace StimTycoon.Runtime
         private StimEventSheetBinder eventSheetBinder;
         private StimFinalLifeBinder finalLifeBinder;
         private StimHomeBinder homeBinder;
+        private StimMatchBinder matchBinder;
         private StimLifeOverviewBinder lifeOverviewBinder;
         private Label avatarGlyph;
         private VisualElement playerOverview;
@@ -106,6 +107,10 @@ namespace StimTycoon.Runtime
         private Label relationshipDiscoveryFeedback;
         private Button relationshipDiscoveryRetry;
         private string selectedRelationshipId;
+        private string selectedSocialFilter = "all";
+        private bool businessWorkspaceSelected;
+        private string selectedGoalsBoard = "main";
+        private string selectedHomeObjectId = "bookshelf";
         private VisualElement educationCard;
         private Label educationStage;
         private Label learningLevel;
@@ -187,6 +192,7 @@ namespace StimTycoon.Runtime
             eventSheetBinder = new StimEventSheetBinder(root);
             finalLifeBinder = new StimFinalLifeBinder(root);
             homeBinder = new StimHomeBinder(root);
+            matchBinder = new StimMatchBinder(root);
             lifeOverviewBinder = new StimLifeOverviewBinder(root);
             cashValue = shellBinder.CashValue;
             lifeSummary = shellBinder.LifeSummary;
@@ -274,6 +280,7 @@ namespace StimTycoon.Runtime
                 focusWorkoutTitle == null || focusWorkoutEffect == null || lifeScroll == null || lifeSummaryView == null ||
                 openLifeSummary == null || closeLifeSummary == null || addCash == null || socialView == null ||
                 contextActivities == null || homeBinder == null || !homeBinder.IsValid ||
+                matchBinder == null || !matchBinder.IsValid ||
                 timeDock == null || navLife == null || navEducation == null || navCareer == null ||
                 navMoney == null || navSocial == null || navGoals == null || moneyView == null ||
                 educationView == null || careerView == null || goalsView == null ||
@@ -437,10 +444,15 @@ namespace StimTycoon.Runtime
             BindPersistentButton(eventSheetBinder.Continue, CloseEventSheet, StimShellModal.Event);
             BindPersistentButton(studyBinder.Cancel, CloseStudySessionSheet, StimShellModal.StudySession);
             BindPersistentButton(studyBinder.Confirm, ConfirmSelectedStudySession, StimShellModal.StudySession);
+            BindPersistentButton(matchBinder.Start, StartStudyMatch);
+            BindPersistentButton(matchBinder.Pause, ToggleStudyMatchPause);
+            BindPersistentButton(matchBinder.Claim, ClaimStudyMatch);
             BindPersistentButton(focusStudy, PerformPrimaryFocusActivity);
             BindPersistentButton(focusWorkout, PerformSecondaryFocusActivity);
             BindPersistentButton(closeLifeSummary, CloseLifeSummary);
             BindPersistentButton(workBinder.ManualWorkTap, PerformManualWorkTap);
+            BindPersistentButton(workBinder.WorkTabCareer, () => SetWorkWorkspace(false));
+            BindPersistentButton(workBinder.WorkTabBusiness, () => SetWorkWorkspace(true));
             BindPersistentButton(manualWorkRetry, () => TryRetryCommand("work.manual"));
             BindPersistentButton(homeBinder.Retry, () => TryRetryCommand("home.last-action"));
             BindPersistentButton(bankBinder.SavingsDepositMode, SelectSavingsDeposit);
@@ -453,6 +465,14 @@ namespace StimTycoon.Runtime
             BindPersistentButton(bankBinder.BankTabInvesting, SelectInvestingBankTab);
             BindPersistentButton(socialBinder.RelationshipBack, ShowRelationshipList);
             BindPersistentButton(socialBinder.DiscoverCompatiblePerson, DiscoverCompatiblePerson);
+            BindPersistentButton(socialBinder.FilterAll, () => SetSocialFilter("all"));
+            BindPersistentButton(socialBinder.FilterFamily, () => SetSocialFilter("family"));
+            BindPersistentButton(socialBinder.FilterFriends, () => SetSocialFilter("friends"));
+            BindPersistentButton(socialBinder.FilterRomance, () => SetSocialFilter("romance"));
+            BindPersistentButton(goalsBinder.TabMain, () => SetGoalsBoard("main"));
+            BindPersistentButton(goalsBinder.TabDaily, () => SetGoalsBoard("daily"));
+            BindPersistentButton(goalsBinder.TabLife, () => SetGoalsBoard("life"));
+            BindPersistentButton(goalsBinder.TabAchievements, () => SetGoalsBoard("achievements"));
             BindPersistentButton(relationshipDiscoveryRetry, () => TryRetryCommand("social.discovery"));
             BindPersistentButton(finalLifeBinder.StartNewLife, OpenNewLifeFromEnding, StimShellModal.FinalLifeSummary);
             BindPersistentButton(openNewLife, OpenNewLifeSetup);
@@ -882,7 +902,15 @@ namespace StimTycoon.Runtime
                              StimHomeContentCatalog.Get("starter_home");
             homeBinder.Render(
                 state, definition, requiredProgress, FormatMoney, ToDisplayName,
+                selectedHomeObjectId, SelectHomeObject,
                 PerformHomeAction, PerformHomeUpgrade);
+        }
+
+        private void SelectHomeObject(string objectId)
+        {
+            selectedHomeObjectId = objectId;
+            RefreshHome();
+            PersistNavigationState();
         }
 
         private void PerformHomeAction(StimHomeActionType actionType)
@@ -1039,8 +1067,24 @@ namespace StimTycoon.Runtime
                 FormatMoney,
                 FormatCompactProgress,
                 ToDisplayName,
+                selectedGoalsBoard,
                 HandleGoalAction,
+                ToggleGoalPin,
                 ClaimAchievementReward);
+        }
+
+        private void SetGoalsBoard(string board)
+        {
+            selectedGoalsBoard = board;
+            RefreshAchievements();
+            PersistNavigationState();
+        }
+
+        private void ToggleGoalPin(StimGoalState goal)
+        {
+            if (goal == null) return;
+            gameSession.TryPinGoal(goal.goalId, out _);
+            RefreshAchievements();
         }
 
         private void HandleGoalAction(StimGoalState goal)
@@ -1074,6 +1118,8 @@ namespace StimTycoon.Runtime
         private void RefreshEducation()
         {
             var state = gameSession.ActiveSave.state;
+            matchBinder.Card.EnableInClassList("hidden", state.character.age < 14 || state.character.age >= 18);
+            matchBinder.Render(state.matchSession, SwapStudyMatchTiles);
             var education = state.education;
             var educationAvailable = education != null;
             var leftSchool = education?.stage == "left_school" || education?.schoolPath == "left_school";
@@ -1202,6 +1248,41 @@ namespace StimTycoon.Runtime
                     () => PerformEducationAction(capturedAction),
                     actionCardTemplate));
             }
+        }
+
+        private void StartStudyMatch()
+        {
+            if (PresentPendingEventIfAvailable()) return;
+            var instanceId = $"study-match-{gameSession.ActiveSave.lifeId}-{gameSession.ActiveSave.revision + 1}";
+            var succeeded = gameSession.TryStartMatch("study_match", instanceId, out var summary);
+            matchBinder.ShowResult(succeeded, summary);
+            RefreshEducation();
+        }
+
+        private void SwapStudyMatchTiles(int first, int second)
+        {
+            var succeeded = gameSession.TrySwapMatchTiles(first, second, out var summary);
+            matchBinder.ShowResult(succeeded, summary);
+            RefreshEducation();
+        }
+
+        private void ToggleStudyMatchPause()
+        {
+            var paused = gameSession.ActiveSave.state.matchSession?.state == "paused";
+            var succeeded = paused
+                ? gameSession.TryResumeMatch(out var summary)
+                : gameSession.TryPauseMatch(out summary);
+            matchBinder.ShowResult(succeeded, summary);
+            RefreshEducation();
+        }
+
+        private void ClaimStudyMatch()
+        {
+            var succeeded = gameSession.TryClaimMatchReward(out var summary);
+            matchBinder.ShowResult(succeeded, summary);
+            RefreshEducation();
+            RefreshHeader();
+            RefreshFeed();
         }
 
         private void RefreshEducationCatalog(StimGameState state)
@@ -1392,18 +1473,22 @@ namespace StimTycoon.Runtime
                     !action.actionId.StartsWith("education.study.", StringComparison.Ordinal) ||
                     action.state == StimActionState.Complete.ToString()) continue;
                 var ready = gameSession.IsActionReadyToClaim(action);
+                var paused = action.state == StimActionState.Paused.ToString();
+                var expired = action.state == StimActionState.Expired.ToString();
                 var card = new VisualElement { name = $"study-progress-{action.instanceId}" };
                 card.AddToClassList("st-action-card");
                 card.AddToClassList("st-study-progress-card");
                 var title = new Label(ToDisplayName(action.actionId.Substring("education.study.".Length)) + " Study Session");
                 title.AddToClassList("st-action-card-title");
-                var status = new Label(ready ? "Complete · reward ready to claim" : "In progress · rewards pending");
+                var status = new Label(expired ? "Expired · no reward granted" :
+                    paused ? "Paused · timer safely retained" :
+                    ready ? "Complete · reward ready to claim" : "In progress · rewards pending");
                 status.AddToClassList("st-action-card-progress");
                 var capturedInstanceId = action.instanceId;
                 var claim = new Button(() => ClaimTimedStudySession(capturedInstanceId))
                 {
                     name = $"study-claim-{action.instanceId}",
-                    text = ready ? "CLAIM REWARD" : "IN PROGRESS"
+                    text = expired ? "EXPIRED" : paused ? "PAUSED" : ready ? "CLAIM REWARD" : "IN PROGRESS"
                 };
                 claim.AddToClassList("st-action-commit");
                 claim.AddToClassList("st-brand-jelly-claim");
@@ -1528,8 +1613,9 @@ namespace StimTycoon.Runtime
         {
             var state = gameSession.ActiveSave.state;
             var adult = state.character.age >= 18;
+            workBinder.RenderWorkspace(state, businessWorkspaceSelected, FormatMoney);
             careerEmptyState.EnableInClassList("hidden", !adult);
-            careerCard.EnableInClassList("hidden", !adult);
+            careerCard.EnableInClassList("hidden", !adult || businessWorkspaceSelected);
             careerActionsCard.EnableInClassList("hidden", !adult);
             workBinder.RenderPathPreview(state, adult);
             if (!adult) return;
@@ -1576,7 +1662,7 @@ namespace StimTycoon.Runtime
                 StimCareerActionType.Retire
             };
             var usedThisMonth = state.statuses.Exists(status => status.statusId == "monthly_career_action_used");
-            foreach (var action in actions)
+            if (!businessWorkspaceSelected) foreach (var action in actions)
             {
                 if (action == StimCareerActionType.Retire && state.character.age < 65) continue;
                 var unlocked = StimGameSessionService.TryGetCareerActionRequirement(state, action, out var requirement);
@@ -1592,7 +1678,7 @@ namespace StimTycoon.Runtime
                 careerActions.Add(button);
             }
             var business = state.business ?? new StimBusinessState();
-            foreach (var action in new[]
+            if (businessWorkspaceSelected) foreach (var action in new[]
                      {
                          StimBusinessActionType.Start, StimBusinessActionType.Work,
                          StimBusinessActionType.Upgrade, StimBusinessActionType.HireStaff,
@@ -1623,6 +1709,13 @@ namespace StimTycoon.Runtime
                 button.clicked += () => PerformBusinessAction(capturedAction);
                 careerActions.Add(button);
             }
+        }
+
+        private void SetWorkWorkspace(bool businessSelected)
+        {
+            businessWorkspaceSelected = businessSelected;
+            RefreshCareer();
+            PersistNavigationState();
         }
 
         private static bool TryGetBusinessActionRequirement(
@@ -2128,7 +2221,14 @@ namespace StimTycoon.Runtime
 
         private void RefreshSocial()
         {
-            socialBinder.RenderList(gameSession.ActiveSave.state, id => ShowRelationshipDetail(id));
+            socialBinder.RenderList(gameSession.ActiveSave.state, selectedSocialFilter, id => ShowRelationshipDetail(id));
+        }
+
+        private void SetSocialFilter(string filter)
+        {
+            selectedSocialFilter = filter;
+            ShowRelationshipList();
+            RefreshSocial();
         }
 
         private void ShowRelationshipDetail(string relationshipId, bool persistState = true)
@@ -2140,6 +2240,8 @@ namespace StimTycoon.Runtime
             selectedRelationshipId = relationshipId;
             socialBinder.ShowDetail(relationship);
             BuildRelationshipActions(relationship);
+            if (relationship.relationshipType == "deceased" || relationship.relationshipType == "unavailable")
+                socialBinder.RelationshipActions.Clear();
             if (persistState) PersistNavigationState();
         }
 
@@ -2405,8 +2507,12 @@ namespace StimTycoon.Runtime
         private void OpenShellModal(StimShellModal modal)
         {
             shellBinder.CaptureModalReturnContext(
-                activeDestination == StimDestination.Bank ? selectedBankTab.ToString() : string.Empty,
-                activeDestination == StimDestination.Social ? selectedRelationshipId : string.Empty);
+                activeDestination == StimDestination.Bank ? selectedBankTab.ToString() :
+                activeDestination == StimDestination.Work ? (businessWorkspaceSelected ? "business" : "career") :
+                activeDestination == StimDestination.Goals ? selectedGoalsBoard :
+                activeDestination == StimDestination.Social ? selectedSocialFilter : string.Empty,
+                activeDestination == StimDestination.Social ? selectedRelationshipId :
+                activeDestination == StimDestination.Life ? selectedHomeObjectId : string.Empty);
             shellBinder.OpenModal(modal);
         }
 
@@ -2419,8 +2525,18 @@ namespace StimTycoon.Runtime
             {
                 SetBankTab(bankTab);
             }
+            else if (destination == StimDestination.Work)
+            {
+                SetWorkWorkspace(shellBinder.ModalReturnTabId == "business");
+            }
+            else if (destination == StimDestination.Goals && !string.IsNullOrEmpty(shellBinder.ModalReturnTabId))
+            {
+                SetGoalsBoard(shellBinder.ModalReturnTabId);
+            }
             else if (destination == StimDestination.Social)
             {
+                if (!string.IsNullOrEmpty(shellBinder.ModalReturnTabId))
+                    selectedSocialFilter = shellBinder.ModalReturnTabId;
                 var relationshipId = shellBinder.ModalReturnEntityId;
                 var relationshipExists = !string.IsNullOrEmpty(relationshipId) &&
                     gameSession?.ActiveSave?.state?.relationships?.Exists(
@@ -2462,6 +2578,16 @@ namespace StimTycoon.Runtime
             if (destination == StimDestination.Bank &&
                 Enum.TryParse(navigation.selectedTabId, out StimBankTab bankTab))
                 SetBankTab(bankTab);
+            else if (destination == StimDestination.Work)
+                businessWorkspaceSelected = navigation.selectedTabId == "business";
+            else if (destination == StimDestination.Goals &&
+                     (navigation.selectedTabId == "main" || navigation.selectedTabId == "daily" ||
+                      navigation.selectedTabId == "life" || navigation.selectedTabId == "achievements"))
+                selectedGoalsBoard = navigation.selectedTabId;
+            else if (destination == StimDestination.Social &&
+                     (navigation.selectedTabId == "all" || navigation.selectedTabId == "family" ||
+                      navigation.selectedTabId == "friends" || navigation.selectedTabId == "romance"))
+                selectedSocialFilter = navigation.selectedTabId;
 
             var offset = new Vector2(
                 Math.Max(0f, navigation.activeScrollX),
@@ -2470,7 +2596,16 @@ namespace StimTycoon.Runtime
             NavigateTo(destination, persistState: false);
 
             if (destination != StimDestination.Social || string.IsNullOrEmpty(navigation.selectedEntityId))
+            {
+                if (destination == StimDestination.Life && !string.IsNullOrEmpty(navigation.selectedEntityId))
+                {
+                    var definition = StimHomeContentCatalog.Get(gameSession.ActiveSave.state.home?.homeId ?? "starter_home");
+                    if (definition?.actions.Exists(action => action.roomObjectId == navigation.selectedEntityId) == true)
+                        selectedHomeObjectId = navigation.selectedEntityId;
+                    RefreshHome();
+                }
                 return;
+            }
             var relationshipExists = gameSession.ActiveSave.state.relationships?.Exists(
                 relationship => relationship?.relationshipId == navigation.selectedEntityId) == true;
             if (relationshipExists)
@@ -2484,8 +2619,12 @@ namespace StimTycoon.Runtime
             var scrollOffset = activeView?.scrollOffset ?? Vector2.zero;
             gameSession.TryPersistUiNavigation(
                 activeDestination.ToString(),
-                activeDestination == StimDestination.Bank ? selectedBankTab.ToString() : string.Empty,
-                activeDestination == StimDestination.Social ? selectedRelationshipId : string.Empty,
+                activeDestination == StimDestination.Bank ? selectedBankTab.ToString() :
+                activeDestination == StimDestination.Work ? (businessWorkspaceSelected ? "business" : "career") :
+                activeDestination == StimDestination.Goals ? selectedGoalsBoard :
+                activeDestination == StimDestination.Social ? selectedSocialFilter : string.Empty,
+                activeDestination == StimDestination.Social ? selectedRelationshipId :
+                activeDestination == StimDestination.Life ? selectedHomeObjectId : string.Empty,
                 scrollOffset.x,
                 scrollOffset.y,
                 out _);

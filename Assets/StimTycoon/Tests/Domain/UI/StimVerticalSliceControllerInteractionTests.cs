@@ -843,6 +843,7 @@ namespace StimTycoon.Tests.Domain.UI
             });
 
             Invoke("RefreshHeader");
+            Invoke("SetGoalsBoard", "achievements");
 
             Assert.That(root.Q<Label>("achievements-count").text, Is.EqualTo("1 unlocked"));
             Assert.That(root.Q("achievements-list").Query<VisualElement>(className: "st-achievement-row").ToList(), Has.Count.EqualTo(1));
@@ -1129,6 +1130,23 @@ namespace StimTycoon.Tests.Domain.UI
                 Is.EqualTo("Market performance: +$125"));
         }
 
+        [Test]
+        public void MoneyDestination_PresentsNegativeNetWorthAndCheckingDetail()
+        {
+            session.ActiveSave.state.finances.cashMinorUnits = 1000;
+            session.ActiveSave.state.finances.savingsMinorUnits = 0;
+            session.ActiveSave.state.finances.indexFundMinorUnits = 0;
+            session.ActiveSave.state.finances.debtMinorUnits = 5000;
+            session.ActiveSave.state.finances.householdCreditBalanceMinorUnits = 5000;
+
+            Invoke("ShowMoneyDestination");
+
+            var tip = root.Q<Label>("bank-context-tip");
+            Assert.That(tip.text, Does.Contain("debt exceeds assets"));
+            Assert.That(tip.ClassListContains("state-negative"), Is.True);
+            Assert.That(root.Q("account-row-cash-wallet").tooltip, Does.Contain("Checking detail"));
+        }
+
         private void BindControllerFields()
         {
             SetField("gameSession", session);
@@ -1202,6 +1220,7 @@ namespace StimTycoon.Tests.Domain.UI
             SetField("eventSheetBinder", new StimEventSheetBinder(root));
             SetField("finalLifeBinder", new StimFinalLifeBinder(root));
             SetField("homeBinder", new StimHomeBinder(root));
+            SetField("matchBinder", new StimMatchBinder(root));
             SetField("lifeOverviewBinder", new StimLifeOverviewBinder(root));
         }
 

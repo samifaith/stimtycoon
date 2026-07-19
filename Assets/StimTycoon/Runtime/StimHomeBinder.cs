@@ -9,6 +9,7 @@ namespace StimTycoon.Runtime
         private readonly Label condition;
         private readonly Label progress;
         private readonly VisualElement actions;
+        private readonly VisualElement objectList;
         private readonly Label feedback;
 
         public StimHomeBinder(VisualElement root)
@@ -17,12 +18,13 @@ namespace StimTycoon.Runtime
             condition = root.Q<Label>("home-condition");
             progress = root.Q<Label>("home-progress");
             actions = root.Q<VisualElement>("home-actions");
+            objectList = root.Q<VisualElement>("home-object-list");
             feedback = root.Q<Label>("home-upgrade-feedback");
             Retry = root.Q<Button>("home-action-retry");
         }
 
         public Button Retry { get; }
-        public bool IsValid => condition != null && progress != null && actions != null && feedback != null && Retry != null;
+        public bool IsValid => condition != null && progress != null && objectList != null && actions != null && feedback != null && Retry != null;
 
         public void Render(
             StimGameState state,
@@ -30,17 +32,38 @@ namespace StimTycoon.Runtime
             int requiredProgress,
             Func<long, string> formatMoney,
             Func<string, string> formatDisplayName,
+            string selectedObjectId,
+            Action<string> selectObject,
             Action<StimHomeActionType> performAction,
             Action performUpgrade)
         {
             var home = state.home ?? new StimHomeState();
+            var books = home.inventory?.Find(item => item != null && item.itemId == "starter_books");
+            var equipment = home.inventory?.Find(item => item != null && item.itemId == "starter_training_kit");
+            var inventorySummary = books != null && equipment != null
+                ? $"Books {books.quantity}/{books.capacity} · Equipment {equipment.condition}% · Source {formatDisplayName(books.acquisitionSource)}"
+                : $"Books {home.readingMaterialStock}/{home.readingMaterialCapacity} · Equipment {home.trainingEquipmentCondition}%";
             condition.text = $"{definition.displayName} · Condition {home.condition} / 100";
             progress.text = home.upgradeLevel >= definition.maxUpgradeLevel
-                ? $"Level {definition.maxUpgradeLevel} · Fully upgraded · Reading stock {home.readingMaterialStock}/{home.readingMaterialCapacity} · Equipment {home.trainingEquipmentCondition}%"
-                : $"Level {home.upgradeLevel} · Improvement {home.improvementProgress}/{requiredProgress} · Reading stock {home.readingMaterialStock}/{home.readingMaterialCapacity} · Equipment {home.trainingEquipmentCondition}%";
+                ? $"Level {definition.maxUpgradeLevel} · Fully upgraded · {inventorySummary}"
+                : $"Level {home.upgradeLevel} · Improvement {home.improvementProgress}/{requiredProgress} · {inventorySummary}";
+            objectList.Clear();
+            var selectedExists = definition.actions.Exists(item => item.roomObjectId == selectedObjectId);
+            if (!selectedExists) selectedObjectId = definition.actions.Count > 0 ? definition.actions[0].roomObjectId : string.Empty;
+            foreach (var action in definition.actions)
+            {
+                var objectId = action.roomObjectId;
+                var objectButton = new Button { name = $"home-object-{objectId}", text = formatDisplayName(objectId) };
+                objectButton.AddToClassList("st-segmented-tab");
+                StimPresentationStateStyler.Apply(objectButton, objectId == selectedObjectId
+                    ? StimPresentationState.Selected : StimPresentationState.Available);
+                objectButton.clicked += () => selectObject(objectId);
+                objectList.Add(objectButton);
+            }
             actions.Clear();
             foreach (var action in definition.actions)
-                AddAction(state, action, formatMoney, formatDisplayName, performAction);
+                if (action.roomObjectId == selectedObjectId)
+                    AddAction(state, action, formatMoney, formatDisplayName, performAction);
 
             if (home.upgradeLevel >= definition.maxUpgradeLevel || state.character.age < 18) return;
             var cost = StimGameSessionService.GetHomeUpgradeCost(home.upgradeLevel);

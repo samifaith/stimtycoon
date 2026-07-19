@@ -1508,3 +1508,28 @@
     color: rgb(150, 42, 55);
     -unity-font-style: bold;
 }
+.st-match-board {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.st-match-tile {
+    width: 12.5%;
+    min-width: 36px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    font-size: 18px;
+}
+
+.state-negative {
+    color: rgb(150, 42, 55);
+    border-color: rgb(190, 62, 72);
+}
+
+.state-extreme {
+    -unity-font-style: bold;
+    border-width: 2px;
+}

@@ -77,6 +77,46 @@ namespace StimTycoon.Tests.Domain.Save
         }
 
         [Test]
+        public void ValidateSave_RejectsDuplicateOrOverCapacityHomeInventory()
+        {
+            var duplicate = CreateValidSave();
+            duplicate.state.home.inventory.Add(new StimHomeInventoryItemState
+            {
+                itemId = "starter_books", category = "book", quantity = 1,
+                capacity = 1, acquisitionSource = "test"
+            });
+            var duplicateResult = StimSaveValidator.ValidateSave(duplicate);
+            Assert.IsFalse(duplicateResult.isValid);
+            Assert.That(duplicateResult.errors, Has.Some.Contains("duplicated"));
+
+            var overCapacity = CreateValidSave();
+            overCapacity.state.home.inventory[0].quantity = 4;
+            var capacityResult = StimSaveValidator.ValidateSave(overCapacity);
+            Assert.IsFalse(capacityResult.isValid);
+            Assert.That(capacityResult.errors, Has.Some.Contains("quantity/capacity"));
+        }
+
+        [Test]
+        public void ValidateSave_RejectsInvalidOrUnboundedScheduledEvents()
+        {
+            var save = CreateValidSave();
+            for (var index = 0; index <= StimScheduledEventRecord.MaxScheduledEvents; index++)
+                save.state.scheduledEvents.Add(new StimScheduledEventRecord
+                {
+                    eventId = $"event_{index}", sourceEventId = "test", chance = 1f,
+                    earliestTriggerMonth = 10, latestTriggerMonth = 12, priority = 50,
+                    cooldownMonths = 1
+                });
+            save.state.scheduledEvents[0].priority = 101;
+
+            var result = StimSaveValidator.ValidateSave(save);
+
+            Assert.IsFalse(result.isValid);
+            Assert.That(result.errors, Has.Some.Contains("cannot exceed"));
+            Assert.That(result.errors, Has.Some.Contains("priority"));
+        }
+
+        [Test]
         public void ValidateSave_RejectsLooksOutsideCoreStatRange()
         {
             var save = CreateValidSave();

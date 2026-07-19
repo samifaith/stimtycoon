@@ -38,7 +38,7 @@ namespace StimTycoon.Runtime
                     "monthly-paycheck-value", "annual-salary-value", "net-worth-value", "focus-study",
                     "focus-workout", "focus-study-title", "focus-study-effect", "focus-workout-title",
                     "focus-workout-effect", "context-activities", "home-condition", "home-progress",
-                    "home-actions", "home-upgrade-feedback", "home-action-retry", "close-life-summary", "summary-stage-detail",
+                    "home-object-list", "home-actions", "home-upgrade-feedback", "home-action-retry", "close-life-summary", "summary-stage-detail",
                     "age-stage-summary",
                     "summary-calendar-detail", "summary-career-detail", "summary-health-value",
                     "summary-happiness-value", "summary-smarts-value", "summary-looks-value",
@@ -52,13 +52,16 @@ namespace StimTycoon.Runtime
                     "education-stage", "learning-level", "learning-fill", "learning-progress",
                     "education-actions", "skills-list", "study-session-sheet", "study-session-title",
                     "study-session-description", "study-session-effects", "study-session-timing",
-                    "study-session-requirement", "study-session-cancel", "study-session-confirm"
+                    "study-session-requirement", "study-session-cancel", "study-session-confirm",
+                    "study-match-card", "study-match-status", "study-match-score", "study-match-board",
+                    "study-match-start", "study-match-pause", "study-match-claim", "study-match-feedback"
                 },
                 [StimUiBindingOwner.Work] = new[]
                 {
                     "career-destination-content", "career-empty-state", "career-context-copy",
                     "career-path-preview", "career-card", "career-role", "career-salary", "career-next-step",
                     "career-action-fill", "career-action-progress", "career-actions", "career-actions-card",
+                    "work-tab-career", "work-tab-business", "business-summary",
                     "manual-work-role", "manual-work-rate", "manual-work-tap", "manual-work-feedback", "manual-work-retry"
                 },
                 [StimUiBindingOwner.Bank] = new[]
@@ -71,19 +74,21 @@ namespace StimTycoon.Runtime
                     "credit-detail-value", "available-credit-value", "credit-repayment-input",
                     "credit-repayment-feedback", "credit-repayment-retry", "index-fund-value", "index-fund-contributions",
                     "index-fund-performance", "index-investment-requirement", "index-investment-input",
-                    "index-investment-feedback", "index-investment-retry", "bank-tab-savings", "bank-tab-credit", "bank-tab-investing",
+                    "index-investment-feedback", "index-investment-retry", "bank-tab-savings", "bank-tab-credit", "bank-tab-investing", "bank-context-tip",
                     "bank-panel-savings", "bank-panel-credit", "bank-panel-investing"
                 },
                 [StimUiBindingOwner.Social] = new[]
                 {
                     "relationship-list-view", "relationship-list", "discover-compatible-person",
+                    "social-filter-all", "social-filter-family", "social-filter-friends", "social-filter-romance", "family-summary",
                     "relationship-discovery-feedback", "relationship-discovery-retry", "relationship-detail-view", "relationship-back",
                     "relationship-avatar", "relationship-name", "relationship-type", "relationship-strength",
-                    "relationship-fill", "relationship-genetics", "relationship-actions"
+                    "relationship-fill", "relationship-genetics", "relationship-status", "relationship-history", "relationship-actions"
                 },
                 [StimUiBindingOwner.Goals] = new[]
                 {
-                    "goals-destination-content", "achievements-count", "achievements-list"
+                    "goals-destination-content", "goals-tab-main", "goals-tab-daily", "goals-tab-life",
+                    "goals-tab-achievements", "pinned-goal-summary", "achievements-count", "achievements-list"
                 },
                 [StimUiBindingOwner.Modal] = new[]
                 {

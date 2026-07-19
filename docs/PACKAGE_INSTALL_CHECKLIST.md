@@ -20,6 +20,17 @@ Install vendors only when the related feature is ready. After each package chang
 - [ ] Configure the Unity IAP product catalog, store IDs, purchase restoration and validation, cancellation/failure behavior, and a Stim-owned adapter.
 - [ ] Create an iOS development build after each native SDK integration is configured.
 
+### External configuration required
+
+The native commerce slice is blocked until these non-repository values exist:
+
+- Apple bundle identifier and App Store Connect app record.
+- LevelPlay iOS app key plus rewarded ad-unit IDs (test and production).
+- App Store Connect product IDs for Spark packs, Starter Pack, Remove Ads, cosmetics, and Stim+.
+- Apple agreements/tax/banking completion and purchase-validation endpoint/keys.
+
+Do not invent or commit these values. Keep ads and purchases disabled until production values, consent behavior, receipt validation, and sandbox tests pass.
+
 ## Deferred vendors
 
 - [ ] Add Unity Authentication and Cloud Save together when account-linked backup work begins.

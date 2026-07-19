@@ -143,6 +143,7 @@ namespace StimTycoon.Runtime
         private readonly StimSaveTransactionRunner transactionRunner;
         private readonly StimEducationActionService educationActionService;
         private readonly StimActionLifecycleService actionLifecycleService;
+        private readonly StimMatchEngine matchEngine;
         private readonly IStimEffectValueResolver effectValueResolver;
 
         public StimSaveEnvelope ActiveSave { get; private set; }
@@ -166,6 +167,7 @@ namespace StimTycoon.Runtime
             transactionRunner = new StimSaveTransactionRunner(this.saveRepository, this.utcNow);
             educationActionService = new StimEducationActionService();
             actionLifecycleService = new StimActionLifecycleService();
+            matchEngine = new StimMatchEngine();
         }
 
         public void Start(StimSaveEnvelope save)
@@ -1184,6 +1186,7 @@ namespace StimTycoon.Runtime
             }
 
             NormalizeProgressCollections(ActiveSave.state);
+            NormalizeHomeInventory(ActiveSave.state.home);
             var decisionId = ActiveSave.state.education?.awaitingDecisionId;
             if (string.IsNullOrEmpty(decisionId))
             {
@@ -1569,6 +1572,7 @@ namespace StimTycoon.Runtime
             var candidateSave = CloneSave(ActiveSave);
             NormalizeProgressCollections(candidateSave.state);
             candidateSave.state.home ??= new StimHomeState();
+            NormalizeHomeInventory(candidateSave.state.home);
             candidateSave.revision++;
             candidateSave.updatedAtUtc = utcNow().ToUniversalTime().ToString("O");
             candidateSave.state.finances.cashMinorUnits -= cost;
@@ -1578,6 +1582,7 @@ namespace StimTycoon.Runtime
             {
                 case StimHomeActionType.Read:
                     candidateSave.state.home.readingMaterialStock -= actionDefinition.capacityConsumed;
+                    FindHomeInventoryItem(candidateSave.state.home, "starter_books").quantity = candidateSave.state.home.readingMaterialStock;
                     candidateSave.state.character.smarts = ClampStat(candidateSave.state.character.smarts + 1);
                     ApplySkillXp(candidateSave.state.skills, "learning", 8 + homeBonus * 2);
                     candidateSave.state.home.condition = ClampStat(candidateSave.state.home.condition + actionDefinition.conditionDelta);
@@ -1587,6 +1592,7 @@ namespace StimTycoon.Runtime
                 case StimHomeActionType.Train:
                     candidateSave.state.home.trainingEquipmentCondition = ClampStat(
                         candidateSave.state.home.trainingEquipmentCondition - actionDefinition.capacityConsumed);
+                    FindHomeInventoryItem(candidateSave.state.home, "starter_training_kit").condition = candidateSave.state.home.trainingEquipmentCondition;
                     candidateSave.state.character.health = ClampStat(candidateSave.state.character.health + 1);
                     ApplySkillXp(candidateSave.state.skills, "fitness", 10 + homeBonus * 2);
                     candidateSave.state.home.condition = ClampStat(candidateSave.state.home.condition + actionDefinition.conditionDelta);
@@ -1604,6 +1610,13 @@ namespace StimTycoon.Runtime
                     candidateSave.state.home.readingMaterialStock = candidateSave.state.home.readingMaterialCapacity;
                     candidateSave.state.home.trainingEquipmentCondition = ClampStat(
                         candidateSave.state.home.trainingEquipmentCondition + 30);
+                    var books = FindHomeInventoryItem(candidateSave.state.home, "starter_books");
+                    books.quantity = candidateSave.state.home.readingMaterialStock;
+                    books.capacity = candidateSave.state.home.readingMaterialCapacity;
+                    books.acquisitionSource = "home_maintenance";
+                    var equipment = FindHomeInventoryItem(candidateSave.state.home, "starter_training_kit");
+                    equipment.condition = candidateSave.state.home.trainingEquipmentCondition;
+                    equipment.acquisitionSource = "home_maintenance";
                     summary = caregiverHandlesMaintenance
                         ? "Asked a caregiver to maintain the home · No child payment · Home condition +20 · Supplies restocked · Equipment repaired"
                         : $"Maintained the home · Cost {FormatMoney(cost)} · Home condition +20 · Supplies restocked · Equipment repaired · Improvement progress +5";
@@ -1772,6 +1785,11 @@ namespace StimTycoon.Runtime
                     relationship != null && relationship.origin == "compatible_discovery").Count >= 20)
             {
                 summary = "Your discovery list is full. Develop the relationships already in your life.";
+                return false;
+            }
+            if (ActiveSave.state.relationships.Count >= StimRelationshipState.MaxEntries)
+            {
+                summary = "Your relationship list is full. Existing people remain available and no records were replaced.";
                 return false;
             }
 
@@ -2226,6 +2244,7 @@ namespace StimTycoon.Runtime
             AppendRelationshipHistory(candidateSave, candidateRelationship,
                 interactionType.ToString().ToLowerInvariant(), summary);
             AddLifeFeedEntry(candidateSave, "relationship", summary);
+            ScheduleNpcRelationshipEvent(candidateSave, candidateRelationship, interactionType);
 
             EvaluateAchievements(candidateSave);
             var serializedSave = JsonUtility.ToJson(candidateSave);
@@ -2574,6 +2593,119 @@ namespace StimTycoon.Runtime
             var succeeded = transactionRunner.TryExecute(
                 ActiveSave,
                 candidate => actionLifecycleService.Claim(candidate, instanceId, utcNow()),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TryPauseAction(string instanceId, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate => actionLifecycleService.Pause(candidate, instanceId, utcNow()),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TryResumeAction(string instanceId, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate => actionLifecycleService.Resume(candidate, instanceId, utcNow()),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TryStartMatch(string themeId, string instanceId, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate => matchEngine.Start(candidate, themeId, instanceId, utcNow()),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TrySwapMatchTiles(int firstIndex, int secondIndex, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate => matchEngine.Swap(candidate, firstIndex, secondIndex, utcNow()),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TryReconcileMatch(out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate => matchEngine.Reconcile(candidate, utcNow()),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TryPauseMatch(out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate => matchEngine.Pause(candidate, utcNow()),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TryResumeMatch(out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate => matchEngine.Resume(candidate, utcNow()),
+                out var committedSave,
+                out summary);
+            if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TryClaimMatchReward(out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate =>
+                {
+                    var session = candidate.state.matchSession;
+                    var claim = matchEngine.Claim(candidate, utcNow());
+                    if (!claim.Succeeded) return claim;
+                    var rewardAmount = session.rewardAmount *
+                                       (session.rewardMultiplierApplied ? session.rewardMultiplier : 1);
+                    switch (session.rewardType)
+                    {
+                        case "qualification_xp":
+                            candidate.state.education.qualificationExperience = Math.Min(100000,
+                                candidate.state.education.qualificationExperience + rewardAmount);
+                            break;
+                        case "career_progress":
+                            candidate.state.career.careerProgress = ClampStat(
+                                candidate.state.career.careerProgress + rewardAmount);
+                            break;
+                        case "cash_minor_units":
+                            candidate.state.finances.cashMinorUnits += rewardAmount;
+                            break;
+                        default:
+                            return StimTransactionMutationResult.Failure("Match reward type is unsupported.");
+                    }
+                    AddLifeFeedEntry(candidate, "activity", $"{ToDisplayName(session.theme)} · {claim.Summary}");
+                    return claim;
+                },
                 out var committedSave,
                 out summary);
             if (succeeded) ActiveSave = committedSave;
@@ -3525,11 +3657,13 @@ namespace StimTycoon.Runtime
 
             foreach (var followUp in resolution.outcome.followUps)
             {
-                save.state.scheduledEvents.Add(new StimScheduledEventRecord
+                AddScheduledEvent(save.state, new StimScheduledEventRecord
                 {
                     eventId = followUp.eventId,
                     earliestTriggerAge = save.state.character.age + followUp.minYearsFromNow,
                     latestTriggerAge = save.state.character.age + followUp.maxYearsFromNow,
+                    priority = 50,
+                    cooldownMonths = 12,
                     chance = followUp.probability,
                     sourceEventId = resolution.eventId,
                     cancellationRule = followUp.cancellationRule
@@ -4117,6 +4251,38 @@ namespace StimTycoon.Runtime
             state.business ??= new StimBusinessState();
             state.lifeFeed ??= new List<StimLifeFeedEntry>();
             state.scheduledEvents ??= new List<StimScheduledEventRecord>();
+            state.matchSession ??= new StimMatchSessionState();
+            state.home ??= new StimHomeState();
+            NormalizeHomeInventory(state.home);
+        }
+
+        private static void NormalizeHomeInventory(StimHomeState home)
+        {
+            if (home == null) return;
+            home.inventory ??= StimHomeState.CreateDefaultInventory();
+            var books = FindHomeInventoryItem(home, "starter_books");
+            if (books == null && home.inventory.Count < StimHomeState.MaxInventoryItems)
+            {
+                books = StimHomeState.CreateDefaultInventory()[0];
+                home.inventory.Add(books);
+            }
+            var equipment = FindHomeInventoryItem(home, "starter_training_kit");
+            if (equipment == null && home.inventory.Count < StimHomeState.MaxInventoryItems)
+            {
+                equipment = StimHomeState.CreateDefaultInventory()[1];
+                home.inventory.Add(equipment);
+            }
+            if (books != null)
+            {
+                books.quantity = home.readingMaterialStock;
+                books.capacity = home.readingMaterialCapacity;
+            }
+            if (equipment != null) equipment.condition = home.trainingEquipmentCondition;
+        }
+
+        private static StimHomeInventoryItemState FindHomeInventoryItem(StimHomeState home, string itemId)
+        {
+            return home?.inventory?.Find(item => item != null && item.itemId == itemId);
         }
 
         private static void EvaluateAchievements(StimSaveEnvelope save)
@@ -4168,6 +4334,27 @@ namespace StimTycoon.Runtime
                 out var committedSave,
                 out summary);
             if (succeeded) ActiveSave = committedSave;
+            return succeeded;
+        }
+
+        public bool TryPinGoal(string goalId, out string summary)
+        {
+            var succeeded = transactionRunner.TryExecute(
+                ActiveSave,
+                candidate =>
+                {
+                    var goal = candidate.state.goals?.Find(item => item?.goalId == goalId);
+                    if (goal == null || goal.status == "expired")
+                        return StimTransactionMutationResult.Failure("This goal is unavailable.");
+                    var pin = !goal.pinned;
+                    foreach (var item in candidate.state.goals)
+                        if (item != null) item.pinned = false;
+                    goal.pinned = pin;
+                    return StimTransactionMutationResult.Success(pin ? $"Pinned {goal.title}." : $"Unpinned {goal.title}.");
+                },
+                out var committed,
+                out summary);
+            if (succeeded) ActiveSave = committed;
             return succeeded;
         }
 
@@ -4514,35 +4701,172 @@ namespace StimTycoon.Runtime
 
         private StimEvent SelectScheduledEvent(StimSaveEnvelope save, bool completedYear)
         {
-            if (!completedYear || save.state.scheduledEvents == null) return null;
+            if (save.state.scheduledEvents == null) return null;
             var age = save.state.character.age;
+            var absoluteMonth = GetAbsoluteMonth(save.state);
+            var candidates = new List<StimScheduledEventRecord>();
             for (var index = save.state.scheduledEvents.Count - 1; index >= 0; index--)
             {
                 var record = save.state.scheduledEvents[index];
-                if (record == null || age > record.latestTriggerAge)
+                var monthlyWindow = record?.earliestTriggerMonth > 0 || record?.latestTriggerMonth > 0;
+                var expired = monthlyWindow
+                    ? absoluteMonth > record.latestTriggerMonth
+                    : record != null && age > record.latestTriggerAge;
+                if (record == null || expired || IsScheduledEventCancelled(save.state, record))
                 {
                     save.state.scheduledEvents.RemoveAt(index);
                     continue;
                 }
-                if (age < record.earliestTriggerAge) continue;
+                if (monthlyWindow)
+                {
+                    if (absoluteMonth < record.earliestTriggerMonth) continue;
+                }
+                else
+                {
+                    if (!completedYear || age < record.earliestTriggerAge) continue;
+                }
                 if (!eventCatalog.TryGetEvent(record.eventId, out var evt) || !IsEligible(evt, save))
                 {
-                    if (age >= record.latestTriggerAge) save.state.scheduledEvents.RemoveAt(index);
+                    var atWindowEnd = monthlyWindow
+                        ? absoluteMonth >= record.latestTriggerMonth
+                        : age >= record.latestTriggerAge;
+                    if (atWindowEnd) save.state.scheduledEvents.RemoveAt(index);
                     continue;
                 }
 
+                if (save.state.statuses.Exists(status =>
+                        status != null && status.statusId == $"scheduled_event_cooldown_{record.eventId}"))
+                    continue;
+                candidates.Add(record);
+            }
+
+            candidates.Sort((left, right) =>
+            {
+                var priority = right.priority.CompareTo(left.priority);
+                if (priority != 0) return priority;
+                var timing = left.earliestTriggerMonth.CompareTo(right.earliestTriggerMonth);
+                return timing != 0 ? timing : string.CompareOrdinal(left.eventId, right.eventId);
+            });
+            foreach (var record in candidates)
+            {
+                var index = save.state.scheduledEvents.IndexOf(record);
+                if (index < 0) continue;
+
                 var chance = Math.Max(0f, Math.Min(1f, record.chance));
-                var roll = StableUnit(save.rng.seed, save.rng.step + 7919 + index);
+                var roll = StableUnit(save.rng.seed, save.rng.step + 7919 + StableStringHash(record.eventId));
                 if (roll > chance)
                 {
-                    if (age >= record.latestTriggerAge) save.state.scheduledEvents.RemoveAt(index);
+                    var monthlyWindow = record.earliestTriggerMonth > 0 || record.latestTriggerMonth > 0;
+                    var atWindowEnd = monthlyWindow
+                        ? absoluteMonth >= record.latestTriggerMonth
+                        : age >= record.latestTriggerAge;
+                    if (atWindowEnd) save.state.scheduledEvents.RemoveAt(index);
                     continue;
                 }
 
                 save.state.scheduledEvents.RemoveAt(index);
+                if (record.cooldownMonths > 0)
+                    AddOrRefreshStatus(save.state.statuses,
+                        $"scheduled_event_cooldown_{record.eventId}", record.cooldownMonths);
+                eventCatalog.TryGetEvent(record.eventId, out var evt);
                 return evt;
             }
             return null;
+        }
+
+        private void ScheduleNpcRelationshipEvent(StimSaveEnvelope save, StimRelationshipState relationship,
+            StimRelationshipInteractionType interactionType)
+        {
+            if (save?.state == null || relationship == null) return;
+            string eventId = null;
+            var priority = 0;
+            var cancellationRule = "relationship_missing_or_unavailable";
+            if (relationship.relationshipId == "school_peer_primary" &&
+                save.state.character.age >= 10 && save.state.character.age <= 17 &&
+                (interactionType == StimRelationshipInteractionType.Argue ||
+                 interactionType == StimRelationshipInteractionType.Compete))
+            {
+                eventId = RepresentativeStimEvents.PeerTrustConflictId;
+                priority = 60;
+            }
+            else if (relationship.relationshipType == "married" && relationship.value <= 55 &&
+                     interactionType == StimRelationshipInteractionType.Argue)
+            {
+                eventId = RepresentativeStimEvents.MarriageCrossroadsId;
+                priority = 90;
+            }
+            if (string.IsNullOrEmpty(eventId) || !eventCatalog.TryGetEvent(eventId, out _)) return;
+            if (save.state.pendingEventId == eventId || save.state.scheduledEvents.Exists(record =>
+                    record != null && record.eventId == eventId)) return;
+            if (save.state.statuses.Exists(status => status != null &&
+                    status.statusId == $"scheduled_event_cooldown_{eventId}")) return;
+
+            var now = GetAbsoluteMonth(save.state);
+            AddScheduledEvent(save.state, new StimScheduledEventRecord
+            {
+                eventId = eventId,
+                earliestTriggerAge = save.state.character.age,
+                latestTriggerAge = save.state.character.age + 1,
+                earliestTriggerMonth = now + 1,
+                latestTriggerMonth = now + 3,
+                priority = priority,
+                cooldownMonths = 12,
+                relationshipId = relationship.relationshipId,
+                chance = 1f,
+                sourceEventId = $"relationship_interaction_{interactionType.ToString().ToLowerInvariant()}",
+                cancellationRule = cancellationRule
+            });
+        }
+
+        private static void AddScheduledEvent(StimGameState state, StimScheduledEventRecord record)
+        {
+            state.scheduledEvents ??= new List<StimScheduledEventRecord>();
+            state.scheduledEvents.Add(record);
+            while (state.scheduledEvents.Count > StimScheduledEventRecord.MaxScheduledEvents)
+            {
+                var removeIndex = 0;
+                for (var index = 1; index < state.scheduledEvents.Count; index++)
+                    if ((state.scheduledEvents[index]?.priority ?? 0) <
+                        (state.scheduledEvents[removeIndex]?.priority ?? 0)) removeIndex = index;
+                state.scheduledEvents.RemoveAt(removeIndex);
+            }
+        }
+
+        private static bool IsScheduledEventCancelled(StimGameState state, StimScheduledEventRecord record)
+        {
+            if (record.cancellationRule == "life_ended" && IsLifeEnded(state.character)) return true;
+            if (record.cancellationRule == "engagement_ended" &&
+                !state.relationships.Exists(item => item != null && item.relationshipType == "engaged")) return true;
+            if (record.cancellationRule == "school_peer_primary_missing" &&
+                !state.relationships.Exists(item => item != null && item.relationshipId == "school_peer_primary")) return true;
+            if (record.cancellationRule == "school_peer_primary_missing_or_not_close")
+            {
+                var peer = state.relationships.Find(item => item != null && item.relationshipId == "school_peer_primary");
+                if (peer == null || peer.value < 40) return true;
+            }
+            if (!string.IsNullOrEmpty(record.relationshipId))
+            {
+                var relationship = state.relationships.Find(item => item != null &&
+                    item.relationshipId == record.relationshipId);
+                if (relationship == null || relationship.relationshipType == "deceased" ||
+                    relationship.relationshipType == "unavailable") return true;
+            }
+            return false;
+        }
+
+        private static int GetAbsoluteMonth(StimGameState state)
+        {
+            return Math.Max(0, state.character.age * 12 + Math.Max(0, state.calendar.monthOfYear - 1));
+        }
+
+        private static int StableStringHash(string value)
+        {
+            unchecked
+            {
+                var hash = 17;
+                foreach (var character in value ?? string.Empty) hash = hash * 31 + character;
+                return hash & int.MaxValue;
+            }
         }
 
         private static void AvoidImmediateRepeatWhenPossible(

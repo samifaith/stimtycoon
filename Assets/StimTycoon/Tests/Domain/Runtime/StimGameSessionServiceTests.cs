@@ -781,12 +781,14 @@ namespace StimTycoon.Tests.Domain.Runtime
 
             Assert.IsTrue(service.TryPerformHomeAction(StimHomeActionType.Read, out var read), read);
             Assert.That(service.ActiveSave.state.home.readingMaterialStock, Is.Zero);
+            Assert.That(service.ActiveSave.state.home.inventory.Find(item => item.itemId == "starter_books").quantity, Is.Zero);
             service.ActiveSave.state.statuses.RemoveAll(status => status.statusId == "home_read_used");
             Assert.IsFalse(service.TryPerformHomeAction(StimHomeActionType.Read, out var empty));
             Assert.That(empty, Does.Contain("No reading materials"));
 
             Assert.IsTrue(service.TryPerformHomeAction(StimHomeActionType.Train, out var train), train);
             Assert.That(service.ActiveSave.state.home.trainingEquipmentCondition, Is.Zero);
+            Assert.That(service.ActiveSave.state.home.inventory.Find(item => item.itemId == "starter_training_kit").condition, Is.Zero);
             service.ActiveSave.state.statuses.RemoveAll(status => status.statusId == "home_train_used");
             Assert.IsFalse(service.TryPerformHomeAction(StimHomeActionType.Train, out var unsafeSummary));
             Assert.That(unsafeSummary, Does.Contain("needs maintenance"));
@@ -794,6 +796,10 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.IsTrue(service.TryPerformHomeAction(StimHomeActionType.Maintain, out var maintain), maintain);
             Assert.That(service.ActiveSave.state.home.readingMaterialStock, Is.EqualTo(3));
             Assert.That(service.ActiveSave.state.home.trainingEquipmentCondition, Is.EqualTo(30));
+            Assert.That(service.ActiveSave.state.home.inventory.Find(item => item.itemId == "starter_books").quantity, Is.EqualTo(3));
+            Assert.That(service.ActiveSave.state.home.inventory.Find(item => item.itemId == "starter_training_kit").condition, Is.EqualTo(30));
+            Assert.That(service.ActiveSave.state.home.inventory.Find(item => item.itemId == "starter_books").acquisitionSource,
+                Is.EqualTo("home_maintenance"));
         }
 
         [Test]
@@ -2478,6 +2484,205 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void TimedAction_PauseSurvivesReloadAndResumeUsesRemainingTime()
+        {
+            var repository = new RecordingSaveRepository();
+            var now = DateTimeOffset.Parse("2026-07-19T12:00:00Z");
+            var first = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), repository, utcNow: () => now);
+            first.Start(CreateValidSave());
+            var definition = new StimActionDefinition
+            {
+                id = "home.reading-timer", title = "Read", state = StimActionState.Ready,
+                durationSeconds = 60
+            };
+            Assert.IsTrue(first.TryStartAction(
+                definition, new StimActionRequest(definition.id, "home-timer-1"), out _));
+            now = now.AddSeconds(20);
+            Assert.IsTrue(first.TryPauseAction("home-timer-1", out var paused), paused);
+            Assert.That(first.ActiveSave.state.actionProgress[0].remainingSeconds, Is.EqualTo(40));
+
+            now = now.AddHours(2);
+            var reloaded = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), repository, utcNow: () => now);
+            Assert.IsTrue(reloaded.TryLoadLatest(out var loaded), loaded);
+            Assert.That(reloaded.ActiveSave.state.actionProgress[0].state, Is.EqualTo("Paused"));
+            Assert.IsTrue(reloaded.TryResumeAction("home-timer-1", out var resumed), resumed);
+            now = now.AddSeconds(39);
+            Assert.IsFalse(reloaded.IsActionReadyToClaim(reloaded.ActiveSave.state.actionProgress[0]));
+            now = now.AddSeconds(1);
+            Assert.IsTrue(reloaded.TryReconcileActionProgress(out var reconciled), reconciled);
+            Assert.That(reloaded.ActiveSave.state.actionProgress[0].state, Is.EqualTo("Claimable"));
+        }
+
+        [Test]
+        public void TimedAction_ExpiresAfterAuthoredClaimWindow()
+        {
+            var now = DateTimeOffset.Parse("2026-07-19T12:00:00Z");
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository(), utcNow: () => now);
+            service.Start(CreateValidSave());
+            var definition = new StimActionDefinition
+            {
+                id = "home.short-timer", title = "Short timer", state = StimActionState.Ready,
+                durationSeconds = 60, claimWindowSeconds = 10
+            };
+            Assert.IsTrue(service.TryStartAction(
+                definition, new StimActionRequest(definition.id, "expiring-1"), out _));
+            now = now.AddSeconds(71);
+            Assert.IsTrue(service.TryReconcileActionProgress(out var summary), summary);
+            Assert.That(service.ActiveSave.state.actionProgress[0].state, Is.EqualTo("Expired"));
+            Assert.IsFalse(service.TryClaimAction("expiring-1", out var expired));
+            Assert.That(expired, Does.Contain("expired"));
+        }
+
+        [Test]
+        public void TimedAction_PrunesTerminalHistoryAndBoundsActiveEntries()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var save = CreateValidSave();
+            for (var index = 0; index < StimActionProgressState.MaxEntries; index++)
+                save.state.actionProgress.Add(new StimActionProgressState
+                {
+                    instanceId = $"old-{index}", actionId = "old", state = "Complete",
+                    progress = 1, progressRequired = 1
+                });
+            service.Start(save);
+            var definition = new StimActionDefinition
+                { id = "home.new", title = "New", state = StimActionState.Ready, durationSeconds = 30 };
+            Assert.IsTrue(service.TryStartAction(
+                definition, new StimActionRequest(definition.id, "new-1"), out var started), started);
+            Assert.That(service.ActiveSave.state.actionProgress, Has.Count.EqualTo(StimActionProgressState.MaxEntries));
+            Assert.That(service.ActiveSave.state.actionProgress, Has.Some.Matches<StimActionProgressState>(item => item.instanceId == "new-1"));
+        }
+
+        [Test]
+        public void StudyMatch_SameSeedAndInstanceGenerateIdenticalPlayableBoards()
+        {
+            var first = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            var second = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            first.Start(CreateValidSave());
+            second.Start(CreateValidSave());
+
+            Assert.IsTrue(first.TryStartMatch("study_match", "deterministic-study-1", out var firstSummary), firstSummary);
+            Assert.IsTrue(second.TryStartMatch("study_match", "deterministic-study-1", out var secondSummary), secondSummary);
+            CollectionAssert.AreEqual(first.ActiveSave.state.matchSession.board, second.ActiveSave.state.matchSession.board);
+            Assert.IsTrue(StimMatchEngine.HasLegalMove(first.ActiveSave.state.matchSession.board, 8, 8));
+            Assert.That(first.ActiveSave.state.matchSession.score, Is.Zero);
+        }
+
+        [Test]
+        public void StudyMatch_RejectsInvalidSwapAndResolvesLegalSwapDeterministically()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            service.Start(CreateValidSave());
+            Assert.IsTrue(service.TryStartMatch("study_match", "swap-study-1", out _));
+            Assert.IsFalse(service.TrySwapMatchTiles(0, 63, out var nonAdjacent));
+            Assert.That(nonAdjacent, Does.Contain("adjacent"));
+
+            Assert.IsTrue(TryAnyMatchSwap(service, out var swapSummary), swapSummary);
+            Assert.That(service.ActiveSave.state.matchSession.score, Is.GreaterThanOrEqualTo(30));
+            Assert.IsTrue(StimMatchEngine.HasLegalMove(service.ActiveSave.state.matchSession.board, 8, 8));
+        }
+
+        [Test]
+        public void StudyMatch_RewardIsCappedTransactionalAndDuplicateSafeAfterReload()
+        {
+            var repository = new RecordingSaveRepository();
+            var service = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            var save = CreateValidSave();
+            save.state.education.qualificationExperience = 40;
+            service.Start(save);
+            Assert.IsTrue(service.TryStartMatch("study_match", "claim-study-1", out _));
+            service.ActiveSave.state.matchSession.state = "success";
+            service.ActiveSave.state.matchSession.score = service.ActiveSave.state.matchSession.targetScore;
+            Assert.IsTrue(service.TryClaimMatchReward(out var claimed), claimed);
+            Assert.That(service.ActiveSave.state.education.qualificationExperience, Is.EqualTo(50));
+
+            var reloaded = new StimGameSessionService(new InMemoryStimEventCatalog(), repository);
+            Assert.IsTrue(reloaded.TryLoadLatest(out var loaded), loaded);
+            Assert.IsFalse(reloaded.TryClaimMatchReward(out var duplicate));
+            Assert.That(duplicate, Does.Contain("already claimed"));
+            Assert.That(reloaded.ActiveSave.state.education.qualificationExperience, Is.EqualTo(50));
+        }
+
+        [Test]
+        public void StudyMatch_PauseSurvivesReloadAndTimeoutReconcilesAfterResume()
+        {
+            var now = DateTimeOffset.Parse("2026-07-19T12:00:00Z");
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository(), utcNow: () => now);
+            service.Start(CreateValidSave());
+            Assert.IsTrue(service.TryStartMatch("study_match", "pause-study-1", out var start), start);
+            now = now.AddSeconds(20);
+            Assert.IsTrue(service.TryPauseMatch(out var paused), paused);
+            Assert.That(service.ActiveSave.state.matchSession.state, Is.EqualTo("paused"));
+            Assert.That(service.ActiveSave.state.matchSession.remainingSeconds, Is.EqualTo(70));
+
+            var reloadedSave = JsonUtility.FromJson<StimSaveEnvelope>(JsonUtility.ToJson(service.ActiveSave));
+            now = now.AddDays(2);
+            var resumed = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository(), utcNow: () => now);
+            resumed.Start(reloadedSave);
+            Assert.That(resumed.ActiveSave.state.matchSession.state, Is.EqualTo("paused"));
+            Assert.IsTrue(resumed.TryResumeMatch(out var resumeSummary), resumeSummary);
+            now = now.AddSeconds(71);
+            Assert.IsTrue(resumed.TryReconcileMatch(out var timeout), timeout);
+            Assert.That(resumed.ActiveSave.state.matchSession.state, Is.EqualTo("failure"));
+        }
+
+        [Test]
+        public void MatchThemesShareEngineAndClaimedSessionEnforcesCooldown()
+        {
+            foreach (var theme in new[] { "study_match", "shift_match", "legacy_gems" })
+            {
+                var service = new StimGameSessionService(
+                    new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+                service.Start(CreateValidSave());
+                Assert.IsTrue(service.TryStartMatch(theme, $"shared-{theme}", out var summary), summary);
+                Assert.That(service.ActiveSave.state.matchSession.board, Has.Count.EqualTo(64));
+                Assert.That(StimMatchEngine.HasLegalMove(
+                    service.ActiveSave.state.matchSession.board, 8, 8), Is.True);
+            }
+
+            var cooldownService = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            cooldownService.Start(CreateValidSave());
+            Assert.IsTrue(cooldownService.TryStartMatch("study_match", "cooldown-1", out _));
+            cooldownService.ActiveSave.state.matchSession.state = "success";
+            cooldownService.ActiveSave.state.matchSession.score = 300;
+            Assert.IsTrue(cooldownService.TryClaimMatchReward(out _));
+            Assert.IsFalse(cooldownService.TryStartMatch("study_match", "cooldown-2", out var blocked));
+            Assert.That(blocked, Does.Contain("cooldown"));
+        }
+
+        [Test]
+        public void MatchLifecycleStates_AllSurviveSerializationReload()
+        {
+            var service = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            service.Start(CreateValidSave());
+            Assert.IsTrue(service.TryStartMatch("study_match", "reload-all-states", out _));
+            AssertReloadedMatchState(service.ActiveSave, "active");
+
+            service.ActiveSave.state.matchSession.state = "success";
+            service.ActiveSave.state.matchSession.score = service.ActiveSave.state.matchSession.targetScore;
+            service.ActiveSave.state.matchSession.completedAtUtc = "2026-07-19T12:01:00Z";
+            AssertReloadedMatchState(service.ActiveSave, "success");
+
+            service.ActiveSave.state.matchSession.state = "failure";
+            AssertReloadedMatchState(service.ActiveSave, "failure");
+
+            service.ActiveSave.state.matchSession.state = "success";
+            Assert.IsTrue(service.TryClaimMatchReward(out _));
+            AssertReloadedMatchState(service.ActiveSave, "claimed");
+        }
+
+        [Test]
         public void CareerApplication_UnlocksNextMonthInterviewAndEntryRole()
         {
             var repository = new RecordingSaveRepository();
@@ -3660,6 +3865,109 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void NpcInteraction_SchedulesDeterministicMonthlyTriggerAcrossReload()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerTrustConflict());
+            var save = CreateValidSave();
+            save.state.character.age = 14;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                displayName = "Maya",
+                relationshipType = "friend",
+                value = 60
+            });
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            service.Start(save);
+
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "school_peer_primary", StimRelationshipInteractionType.Argue, out var interactionSummary),
+                interactionSummary);
+            var scheduled = service.ActiveSave.state.scheduledEvents.Single();
+            Assert.That(scheduled.priority, Is.EqualTo(60));
+            Assert.That(scheduled.cooldownMonths, Is.EqualTo(12));
+            Assert.That(scheduled.relationshipId, Is.EqualTo("school_peer_primary"));
+
+            var reloaded = JsonUtility.FromJson<StimSaveEnvelope>(JsonUtility.ToJson(service.ActiveSave));
+            var resumed = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            resumed.Start(reloaded);
+            Assert.IsTrue(resumed.TryAdvanceMonth(out var nextEvent, out var advanceSummary), advanceSummary);
+            Assert.That(nextEvent?.id, Is.EqualTo(RepresentativeStimEvents.PeerTrustConflictId));
+            Assert.That(resumed.ActiveSave.state.scheduledEvents, Is.Empty);
+            Assert.That(resumed.ActiveSave.state.statuses.Exists(status =>
+                status.statusId == $"scheduled_event_cooldown_{RepresentativeStimEvents.PeerTrustConflictId}"), Is.True);
+        }
+
+        [Test]
+        public void ScheduledNpcTrigger_CancelsWhenBoundRelationshipBecomesUnavailable()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerTrustConflict());
+            var save = CreateValidSave();
+            save.state.character.age = 14;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary",
+                displayName = "Maya",
+                relationshipType = "friend",
+                value = 60
+            });
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            service.Start(save);
+            Assert.IsTrue(service.TryPerformRelationshipInteraction(
+                "school_peer_primary", StimRelationshipInteractionType.Argue, out var interactionSummary),
+                interactionSummary);
+            service.ActiveSave.state.relationships.Clear();
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var advanceSummary), advanceSummary);
+            Assert.That(nextEvent, Is.Null);
+            Assert.That(service.ActiveSave.state.scheduledEvents, Is.Empty);
+        }
+
+        [Test]
+        public void ScheduledMonthlyTriggers_SelectHighestPriorityFirst()
+        {
+            var catalog = new InMemoryStimEventCatalog();
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerTrustConflict());
+            catalog.Upsert(RepresentativeStimEvents.CreatePeerJealousy());
+            var save = CreateValidSave();
+            save.state.character.age = 14;
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_primary", displayName = "Maya",
+                relationshipType = "friend", value = 60
+            });
+            save.state.relationships.Add(new StimRelationshipState
+            {
+                relationshipId = "school_peer_middle", displayName = "Alex",
+                relationshipType = "friend", value = 60
+            });
+            var triggerMonth = save.state.character.age * 12 + save.state.calendar.monthOfYear;
+            save.state.scheduledEvents.Add(new StimScheduledEventRecord
+            {
+                eventId = RepresentativeStimEvents.PeerTrustConflictId,
+                earliestTriggerMonth = triggerMonth,
+                latestTriggerMonth = triggerMonth + 2,
+                priority = 20, chance = 1f, sourceEventId = "low"
+            });
+            save.state.scheduledEvents.Add(new StimScheduledEventRecord
+            {
+                eventId = RepresentativeStimEvents.PeerJealousyId,
+                earliestTriggerMonth = triggerMonth,
+                latestTriggerMonth = triggerMonth + 2,
+                priority = 80, chance = 1f, sourceEventId = "high"
+            });
+            var service = new StimGameSessionService(catalog, new RecordingSaveRepository());
+            service.Start(save);
+
+            Assert.IsTrue(service.TryAdvanceMonth(out var nextEvent, out var summary), summary);
+            Assert.That(nextEvent?.id, Is.EqualTo(RepresentativeStimEvents.PeerJealousyId));
+            Assert.That(service.ActiveSave.state.scheduledEvents.Single().eventId,
+                Is.EqualTo(RepresentativeStimEvents.PeerTrustConflictId));
+        }
+
+        [Test]
         public void PeerDrama_BetrayalSchedulesAndResolvesLaterConsequence()
         {
             var catalog = new InMemoryStimEventCatalog();
@@ -4352,6 +4660,30 @@ namespace StimTycoon.Tests.Domain.Runtime
 
             Assert.IsTrue(service.TryAdvanceMonth(out var selected, out var summary), summary);
             return selected;
+        }
+
+        private static bool TryAnyMatchSwap(StimGameSessionService service, out string summary)
+        {
+            var session = service.ActiveSave.state.matchSession;
+            for (var index = 0; index < session.board.Count; index++)
+            {
+                if (index % session.width + 1 < session.width &&
+                    service.TrySwapMatchTiles(index, index + 1, out summary)) return true;
+                if (index + session.width < session.board.Count &&
+                    service.TrySwapMatchTiles(index, index + session.width, out summary)) return true;
+            }
+            summary = "No legal swap was accepted.";
+            return false;
+        }
+
+        private static void AssertReloadedMatchState(StimSaveEnvelope save, string expectedState)
+        {
+            var reloadedSave = JsonUtility.FromJson<StimSaveEnvelope>(JsonUtility.ToJson(save));
+            var reloaded = new StimGameSessionService(
+                new InMemoryStimEventCatalog(), new RecordingSaveRepository());
+            reloaded.Start(reloadedSave);
+            Assert.That(reloaded.ActiveSave.state.matchSession.state, Is.EqualTo(expectedState));
+            Assert.That(reloaded.ActiveSave.state.matchSession.board, Has.Count.EqualTo(64));
         }
 
         private static StimSaveEnvelope CreateValidSave()

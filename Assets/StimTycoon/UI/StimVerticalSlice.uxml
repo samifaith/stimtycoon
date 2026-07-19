@@ -124,6 +124,7 @@
                     <ui:VisualElement name="home-visual-slot" class="st-visual-slot st-visual-slot-card" />
                     <ui:Label name="home-condition" text="Starter Home · Condition 80 / 100" class="st-home-status" />
                     <ui:Label name="home-progress" text="Level 0 · Improvement progress 0 / 10" class="st-money-help" />
+                    <ui:VisualElement name="home-object-list" class="st-segmented-tabs st-home-object-list" />
                     <ui:VisualElement name="home-actions" class="st-home-actions" />
                     <ui:Label name="home-upgrade-feedback" text="" class="st-manual-work-feedback" />
                     <ui:Button name="home-action-retry" text="TRY HOME ACTION AGAIN" class="st-feedback-retry-button hidden" tooltip="Retry the last Home action" />
@@ -146,6 +147,7 @@
                         <ui:Label name="money-cash-value" text="$0" class="st-worth-current-value" />
                     </ui:VisualElement>
                 </ui:VisualElement>
+                <ui:Label name="bank-context-tip" text="Financial guidance loading" class="st-info-callout st-money-help" />
                 <ui:VisualElement name="bank-tabs" class="st-segmented-tabs st-bank-tabs">
                     <ui:Button name="bank-tab-savings" text="SAVINGS" class="st-segmented-tab active" />
                     <ui:Button name="bank-tab-credit" text="CREDIT &amp; FLOW" class="st-segmented-tab" />
@@ -173,14 +175,6 @@
                 <ui:VisualElement name="money-history-card" class="st-polished-card st-money-history-card">
                     <ui:Label text="RECENT TRANSFERS" class="st-section-kicker" />
                     <ui:VisualElement name="money-transaction-history" />
-                </ui:VisualElement>
-                <ui:VisualElement name="manual-work-card" class="st-polished-card st-manual-work-card">
-                    <ui:Label text="OPTIONAL MANUAL WORK" class="st-section-kicker" />
-                    <ui:Label name="manual-work-role" text="Get a job to begin" class="st-manual-work-role" />
-                    <ui:Label name="manual-work-rate" text="$0.00 per hour" class="st-manual-work-rate" />
-                    <ui:Button name="manual-work-tap" text="WORK 1 HOUR" class="st-manual-work-button st-brand-skyden-primary stim-pack-foundation-button stim-pack-interaction-pop" />
-                    <ui:Label name="manual-work-feedback" text="" class="st-manual-work-feedback" />
-                    <ui:Button name="manual-work-retry" text="TRY WORK AGAIN" class="st-feedback-retry-button hidden" tooltip="Retry the last manual work action" />
                 </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="bank-panel-credit" class="st-bank-tab-panel hidden">
@@ -226,6 +220,8 @@
                     <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:VisualElement class="st-destination-icon-frame st-brand-space-container"><ui:Label text="👥" class="st-destination-icon st-brand-space-icon icon-heart" /></ui:VisualElement><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Your people" class="st-social-title" /><ui:Label text="Relationships grow through the time and choices you share." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
                     <ui:VisualElement name="com.social.premium_module" enabled="false" focusable="false" class="st-commerce-placeholder st-commerce-unavailable"><ui:Label text="◇" class="st-commerce-icon" /><ui:VisualElement class="st-commerce-copy"><ui:Label text="PREMIUM SOCIAL MODULE" class="st-commerce-title" /><ui:Label text="Unavailable · Relationships never require premium access." class="st-commerce-status" /></ui:VisualElement></ui:VisualElement>
                     <ui:Button name="discover-compatible-person" text="DISCOVER SOMEONE COMPATIBLE" class="st-social-discover st-brand-skyden-secondary stim-pack-secondary-button stim-pack-interaction-pop" />
+                    <ui:VisualElement class="st-segmented-tabs"><ui:Button name="social-filter-all" text="ALL" class="st-segmented-tab selected" /><ui:Button name="social-filter-family" text="FAMILY" class="st-segmented-tab" /><ui:Button name="social-filter-friends" text="FRIENDS" class="st-segmented-tab" /><ui:Button name="social-filter-romance" text="ROMANCE" class="st-segmented-tab" /></ui:VisualElement>
+                    <ui:Label name="family-summary" text="Household and family details" class="st-money-help" />
                     <ui:Label name="relationship-discovery-feedback" text="" class="st-manual-work-feedback" />
                     <ui:Button name="relationship-discovery-retry" text="TRY DISCOVERY AGAIN" class="st-feedback-retry-button hidden" tooltip="Retry relationship discovery" />
                     <ui:VisualElement name="relationship-list" class="st-relationship-list" />
@@ -241,6 +237,8 @@
                         <ui:Label name="relationship-strength" text="Relationship 50 / 100" class="st-relationship-strength" />
                         <ui:VisualElement class="st-relationship-track"><ui:VisualElement name="relationship-fill" class="st-relationship-fill" /></ui:VisualElement>
                         <ui:Label name="relationship-genetics" text="Genetics" class="st-relationship-genetics" />
+                        <ui:Label name="relationship-status" text="Available" class="st-money-help" />
+                        <ui:Label name="relationship-history" text="History" class="st-relationship-genetics" />
                     </ui:VisualElement>
                     <ui:Label text="SPEND TIME" class="st-section-kicker" />
                     <ui:VisualElement name="relationship-actions" class="st-relationship-actions" />
@@ -275,6 +273,16 @@
                         <ui:VisualElement name="education-actions" class="st-education-actions" />
                     </ui:VisualElement>
                 </ui:VisualElement>
+                <ui:VisualElement name="study-match-card" class="st-polished-card st-component-card">
+                    <ui:VisualElement class="st-section-heading"><ui:Label text="🧩" class="st-section-heading-icon" /><ui:Label text="STUDY MATCH" class="st-section-heading-title" /></ui:VisualElement>
+                    <ui:Label name="study-match-status" text="Match patterns to earn qualification XP." class="st-money-help" />
+                    <ui:Label name="study-match-score" text="Score 0 / 300" class="st-relationship-strength" />
+                    <ui:VisualElement name="study-match-board" class="st-match-board" />
+                    <ui:Button name="study-match-start" text="START STUDY MATCH" class="st-primary-action" />
+                    <ui:Button name="study-match-pause" text="PAUSE MATCH" class="stim-pack-secondary-button hidden" />
+                    <ui:Button name="study-match-claim" text="CLAIM REWARD" class="st-primary-action hidden" />
+                    <ui:Label name="study-match-feedback" text="" class="st-manual-work-feedback" />
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:ScrollView>
 
@@ -283,6 +291,7 @@
                 <ui:VisualElement class="st-destination-heading st-component-page-heading"><ui:VisualElement class="st-destination-icon-frame st-brand-space-container"><ui:Label text="💼" class="st-destination-icon st-brand-space-icon icon-rocket" /></ui:VisualElement><ui:VisualElement class="st-destination-heading-copy"><ui:Label text="Build your working life" class="st-social-title" /><ui:Label text="Develop a career or operate your own business." class="st-social-subtitle" /></ui:VisualElement></ui:VisualElement>
                 <ui:VisualElement name="com.work.rewarded_module" enabled="false" focusable="false" class="st-commerce-placeholder st-commerce-unavailable"><ui:Label text="▷" class="st-commerce-icon" /><ui:VisualElement class="st-commerce-copy"><ui:Label text="SPONSORED WORK MODULE" class="st-commerce-title" /><ui:Label text="Unavailable · Ordinary work rewards are unchanged." class="st-commerce-status" /></ui:VisualElement></ui:VisualElement>
                 <ui:VisualElement class="st-info-callout"><ui:Label text="ℹ️" class="st-info-icon" /><ui:Label name="career-context-copy" text="Career and business actions unlock in adulthood. Childhood choices will shape the available paths." class="st-info-copy" /></ui:VisualElement>
+                <ui:VisualElement class="st-segmented-tabs"><ui:Button name="work-tab-career" text="CAREER" class="st-segmented-tab selected" /><ui:Button name="work-tab-business" text="BUSINESS" class="st-segmented-tab" /></ui:VisualElement>
                 <ui:VisualElement name="career-destination-content">
                     <ui:VisualElement name="career-card" class="st-polished-card st-career-card hidden">
                         <ui:VisualElement class="st-section-heading">
@@ -304,6 +313,15 @@
                     <ui:VisualElement class="st-section-heading"><ui:Label text="✓" class="st-section-heading-icon" /><ui:Label text="AVAILABLE ACTIONS" class="st-section-heading-title" /></ui:VisualElement>
                     <ui:VisualElement name="career-actions" class="st-career-actions" />
                 </ui:VisualElement>
+                <ui:Label name="business-summary" text="Start a business to see its operating dashboard." class="st-polished-card st-money-help hidden" />
+                <ui:VisualElement name="manual-work-card" class="st-polished-card st-manual-work-card">
+                    <ui:Label text="OPTIONAL MANUAL WORK" class="st-section-kicker" />
+                    <ui:Label name="manual-work-role" text="Get a job to begin" class="st-manual-work-role" />
+                    <ui:Label name="manual-work-rate" text="$0.00 per hour" class="st-manual-work-rate" />
+                    <ui:Button name="manual-work-tap" text="WORK 1 HOUR" class="st-manual-work-button st-brand-skyden-primary stim-pack-foundation-button stim-pack-interaction-pop" />
+                    <ui:Label name="manual-work-feedback" text="" class="st-manual-work-feedback" />
+                    <ui:Button name="manual-work-retry" text="TRY WORK AGAIN" class="st-feedback-retry-button hidden" tooltip="Retry the last manual work action" />
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:ScrollView>
 
@@ -314,6 +332,8 @@
                 <ui:VisualElement name="com.goals.season_preview" enabled="false" focusable="false" class="st-commerce-placeholder st-commerce-unavailable"><ui:Label text="◇" class="st-commerce-icon" /><ui:VisualElement class="st-commerce-copy"><ui:Label text="PREMIUM SEASON PREVIEW" class="st-commerce-title" /><ui:Label text="Unavailable · No season rewards are active." class="st-commerce-status" /></ui:VisualElement></ui:VisualElement>
                 <ui:VisualElement name="com.goals.bonus_game_preview" enabled="false" focusable="false" class="st-commerce-placeholder st-commerce-unavailable"><ui:Label text="▷" class="st-commerce-icon" /><ui:VisualElement class="st-commerce-copy"><ui:Label text="BONUS GAME PREVIEW" class="st-commerce-title" /><ui:Label text="Unavailable · No paid reward is active." class="st-commerce-status" /></ui:VisualElement></ui:VisualElement>
                 <ui:VisualElement name="goals-destination-content">
+                    <ui:VisualElement class="st-segmented-tabs"><ui:Button name="goals-tab-main" text="MAIN" class="st-segmented-tab selected" /><ui:Button name="goals-tab-daily" text="DAILY" class="st-segmented-tab" /><ui:Button name="goals-tab-life" text="LIFE" class="st-segmented-tab" /><ui:Button name="goals-tab-achievements" text="AWARDS" class="st-segmented-tab" /></ui:VisualElement>
+                    <ui:Label name="pinned-goal-summary" text="No goal pinned" class="st-info-callout" />
                     <ui:VisualElement name="achievements-card" class="st-polished-card st-component-card st-achievements-card">
                         <ui:VisualElement class="st-section-heading">
                             <ui:Label text="🏆" class="st-section-heading-icon st-brand-space-icon icon-badge" />

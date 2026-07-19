@@ -100,8 +100,10 @@ namespace StimTycoon.Runtime
             {
                 case StimActionState.Locked: return $"{definition.title}\n{definition.lockedReason}";
                 case StimActionState.InProgress: return "In progress";
+                case StimActionState.Paused: return "Paused";
                 case StimActionState.Claimable: return "Claim";
                 case StimActionState.Complete: return "Complete";
+                case StimActionState.Expired: return "Expired";
                 default: return definition.title;
             }
         }

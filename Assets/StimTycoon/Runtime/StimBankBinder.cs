@@ -30,6 +30,7 @@ namespace StimTycoon.Runtime
         private readonly VisualElement bankPanelSavings;
         private readonly VisualElement bankPanelCredit;
         private readonly VisualElement bankPanelInvesting;
+        private readonly Label bankContextTip;
 
         public StimBankBinder(VisualElement root)
         {
@@ -63,6 +64,7 @@ namespace StimTycoon.Runtime
             bankPanelSavings = root.Q<VisualElement>("bank-panel-savings");
             bankPanelCredit = root.Q<VisualElement>("bank-panel-credit");
             bankPanelInvesting = root.Q<VisualElement>("bank-panel-investing");
+            bankContextTip = root.Q<Label>("bank-context-tip");
         }
 
         public Button SavingsDepositMode { get; }
@@ -80,7 +82,8 @@ namespace StimTycoon.Runtime
             creditRepaymentInput != null && indexFundValue != null && indexFundContributions != null &&
             indexFundPerformance != null && indexInvestmentRequirement != null && indexInvestmentInput != null &&
             BankTabSavings != null && BankTabCredit != null && BankTabInvesting != null &&
-            bankPanelSavings != null && bankPanelCredit != null && bankPanelInvesting != null;
+            bankPanelSavings != null && bankPanelCredit != null && bankPanelInvesting != null &&
+            bankContextTip != null;
 
         public StimBankTab Render(StimGameState state, StimSavingsTransferType transferType, StimBankTab selectedTab,
             Func<long, string> formatMoney, Func<long, string> formatSignedMoney,
@@ -88,6 +91,7 @@ namespace StimTycoon.Runtime
         {
             var adult = state.character.age >= 18;
             var finances = state.finances;
+            RenderFinancialState(finances, formatMoney);
             savingsBalanceValue.text = formatMoney(finances.savingsMinorUnits);
             RenderAccounts(finances, adult, formatMoney);
             indexInvestmentInput.parent?.EnableInClassList("hidden", !adult);
@@ -124,10 +128,31 @@ namespace StimTycoon.Runtime
         private void RenderAccounts(StimFinancesState finances, bool adult, Func<long, string> money)
         {
             moneyAccountsList.Clear();
-            moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow("cash-wallet", "💵", "Cash Wallet", money(finances.cashMinorUnits), "Available for actions and purchases"));
+            moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow("cash-wallet", "💵", "Cash Wallet / Checking", money(finances.cashMinorUnits), "Checking detail · liquid cash available for actions and purchases"));
             moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow("savings", "🏦", "Savings", money(finances.savingsMinorUnits), $"{finances.savingsApyBasisPoints / 100m:0.00}% APY"));
             moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow("revolving-credit", "▣", "Revolving Credit", money(finances.householdCreditBalanceMinorUnits), $"{finances.householdCreditAprBasisPoints / 100m:0.00}% APR"));
             if (adult) moneyAccountsList.Add(StimUiComponentFactory.CreateAccountRow("index-fund", "↗", "Index Fund", money(finances.indexFundMinorUnits), "Long-term investment value"));
+        }
+
+        private void RenderFinancialState(StimFinancesState finances, Func<long, string> money)
+        {
+            var assets = finances.cashMinorUnits + finances.savingsMinorUnits + finances.indexFundMinorUnits;
+            var netWorth = assets - finances.debtMinorUnits;
+            var investmentPerformance = finances.indexFundMinorUnits - finances.indexFundContributionsMinorUnits;
+            if (netWorth < 0)
+                bankContextTip.text = $"Priority: debt exceeds assets by {money(-netWorth)}. Repay high-interest credit before adding investments.";
+            else if (finances.lastNetCashFlowMinorUnits < 0)
+                bankContextTip.text = $"Last month fell short by {money(-finances.lastNetCashFlowMinorUnits)}. Review expenses and protect available cash.";
+            else if (finances.cashMinorUnits < finances.monthlyLivingExpensesMinorUnits)
+                bankContextTip.text = "Cash is below one month of living expenses. Build a liquid buffer before investing.";
+            else if (investmentPerformance < 0)
+                bankContextTip.text = $"Your index fund is down {money(-investmentPerformance)} from contributions. Returns can remain negative; withdrawals are not forced.";
+            else
+                bankContextTip.text = "Finances are stable. Savings earns 3.50% APY; investing remains optional and can lose value.";
+            bankContextTip.EnableInClassList("state-negative", netWorth < 0 || finances.lastNetCashFlowMinorUnits < 0);
+            bankContextTip.EnableInClassList("state-extreme", assets >= 100000000000L || finances.debtMinorUnits >= 100000000000L);
+            cashFlowNet.EnableInClassList("state-negative", finances.lastNetCashFlowMinorUnits < 0);
+            indexFundPerformance.EnableInClassList("state-negative", investmentPerformance < 0);
         }
 
         private void RenderCashFlow(StimFinancesState finances, Func<long, string> money, Func<long, string> signed)

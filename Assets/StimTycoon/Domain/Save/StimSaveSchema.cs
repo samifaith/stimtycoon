@@ -74,6 +74,7 @@ namespace StimTycoon.Saves
         public List<StimTransitionPresentationState> transitionPresentations = new List<StimTransitionPresentationState>();
         public List<StimLifeDecisionState> lifeDecisions = new List<StimLifeDecisionState>();
         public List<StimActionProgressState> actionProgress = new List<StimActionProgressState>();
+        public StimMatchSessionState matchSession = new StimMatchSessionState();
         public List<StimLifeFeedEntry> lifeFeed = new List<StimLifeFeedEntry>();
         public StimHistoryArchiveState historyArchive = new StimHistoryArchiveState();
         public string pendingEventId;
@@ -243,6 +244,7 @@ namespace StimTycoon.Saves
     [Serializable]
     public class StimHomeState
     {
+        public const int MaxInventoryItems = 20;
         public string homeId = "starter_home";
         public int condition = 80;
         public int upgradeLevel;
@@ -250,6 +252,35 @@ namespace StimTycoon.Saves
         public int readingMaterialStock = 3;
         public int readingMaterialCapacity = 3;
         public int trainingEquipmentCondition = 100;
+        public List<StimHomeInventoryItemState> inventory = CreateDefaultInventory();
+
+        public static List<StimHomeInventoryItemState> CreateDefaultInventory()
+        {
+            return new List<StimHomeInventoryItemState>
+            {
+                new StimHomeInventoryItemState
+                {
+                    itemId = "starter_books", category = "book", quantity = 3,
+                    capacity = 3, condition = 100, acquisitionSource = "new_life"
+                },
+                new StimHomeInventoryItemState
+                {
+                    itemId = "starter_training_kit", category = "equipment", quantity = 1,
+                    capacity = 1, condition = 100, acquisitionSource = "new_life"
+                }
+            };
+        }
+    }
+
+    [Serializable]
+    public class StimHomeInventoryItemState
+    {
+        public string itemId;
+        public string category;
+        public int quantity;
+        public int capacity;
+        public int condition = 100;
+        public string acquisitionSource;
     }
 
     [Serializable]
@@ -324,6 +355,8 @@ namespace StimTycoon.Saves
     [Serializable]
     public class StimRelationshipState
     {
+        public const int MaxEntries = 64;
+
         public string relationshipId;
         public string identityId;
         public string displayName;
@@ -398,6 +431,7 @@ namespace StimTycoon.Saves
         public int createdAtMonth;
         public int claimedRevision;
         public string claimedAtUtc;
+        public bool pinned;
     }
 
     [Serializable]
@@ -414,6 +448,7 @@ namespace StimTycoon.Saves
     [Serializable]
     public class StimActionProgressState
     {
+        public const int MaxEntries = 32;
         public string instanceId;
         public string actionId;
         public string state = "Ready";
@@ -422,10 +457,47 @@ namespace StimTycoon.Saves
         public string resultSummary;
         public int revision;
         public int durationSeconds;
+        public int claimWindowSeconds;
+        public int remainingSeconds;
         public string startedAtUtc;
         public string completesAtUtc;
+        public string pausedAtUtc;
+        public string expiresAtUtc;
         public string completedAtUtc;
         public string claimedAtUtc;
+    }
+
+    [Serializable]
+    public class StimMatchSessionState
+    {
+        public string activityId;
+        public string instanceId;
+        public string theme;
+        public string state = "none";
+        public int boardSeed;
+        public int rngStep;
+        public int width = 8;
+        public int height = 8;
+        public List<int> board = new List<int>();
+        public int durationSeconds;
+        public int remainingSeconds;
+        public string startedAtUtc;
+        public string completesAtUtc;
+        public string pausedAtUtc;
+        public string completedAtUtc;
+        public int score;
+        public int targetScore;
+        public int rewardAmount;
+        public string rewardType;
+        public string rewardPreview;
+        public bool rewardMultiplierAvailable;
+        public bool rewardMultiplierApplied;
+        public int rewardMultiplier = 1;
+        public bool rewardClaimed;
+        public string claimedAtUtc;
+        public int claimedRevision;
+        public int cooldownUntilAge;
+        public int cooldownUntilMonth;
     }
 
     [Serializable]
@@ -486,9 +558,16 @@ namespace StimTycoon.Saves
     [Serializable]
     public class StimScheduledEventRecord
     {
+        public const int MaxScheduledEvents = 32;
+
         public string eventId;
         public int earliestTriggerAge;
         public int latestTriggerAge;
+        public int earliestTriggerMonth;
+        public int latestTriggerMonth;
+        public int priority;
+        public int cooldownMonths;
+        public string relationshipId;
         public float chance;
         public string sourceEventId;
         public string cancellationRule;
@@ -609,6 +688,7 @@ namespace StimTycoon.Saves
             ValidateGoals(result, save.state.goals);
             ValidateLifeDecisions(result, save.state.lifeDecisions);
             ValidateActionProgress(result, save.state.actionProgress);
+            ValidateMatchSession(result, save.state.matchSession);
             ValidateHistoryRetention(result, save.state);
             ValidateEventHistory(result, save.state.eventHistory);
             ValidateScheduledEvents(result, save.state.scheduledEvents);
@@ -962,6 +1042,36 @@ namespace StimTycoon.Saves
                 result.errors.Add("state.home reading-material stock/capacity is invalid");
             }
             ValidateStatRange(result, home.trainingEquipmentCondition, "state.home.trainingEquipmentCondition");
+            if (home.inventory == null || home.inventory.Count > StimHomeState.MaxInventoryItems)
+            {
+                result.isValid = false;
+                result.errors.Add($"state.home.inventory must contain at most {StimHomeState.MaxInventoryItems} items");
+                return;
+            }
+            var itemIds = new HashSet<string>();
+            foreach (var item in home.inventory)
+            {
+                if (item == null)
+                {
+                    result.isValid = false;
+                    result.errors.Add("state.home.inventory cannot contain null items");
+                    continue;
+                }
+                ValidateRequiredString(result, item.itemId, "state.home.inventory.itemId");
+                ValidateRequiredString(result, item.category, $"state.home.inventory[{item.itemId}].category");
+                ValidateRequiredString(result, item.acquisitionSource, $"state.home.inventory[{item.itemId}].acquisitionSource");
+                if (!string.IsNullOrWhiteSpace(item.itemId) && !itemIds.Add(item.itemId))
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.home.inventory itemId {item.itemId} is duplicated");
+                }
+                if (item.capacity < 1 || item.capacity > 100 || item.quantity < 0 || item.quantity > item.capacity)
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.home.inventory[{item.itemId}] quantity/capacity is invalid");
+                }
+                ValidateStatRange(result, item.condition, $"state.home.inventory[{item.itemId}].condition");
+            }
         }
 
         private static void ValidateCalendarState(StimSaveValidationResult result, StimCalendarState calendar)
@@ -1233,6 +1343,11 @@ namespace StimTycoon.Saves
                                 relationship.npcCashMinorUnits >= 0 && relationship.npcDebtMinorUnits >= 0,
                 "value/NPC fields must be within range and monthsSinceInteraction cannot be negative");
             if (relationships == null) return;
+            if (relationships.Count > StimRelationshipState.MaxEntries)
+            {
+                result.isValid = false;
+                result.errors.Add($"state.relationships must contain at most {StimRelationshipState.MaxEntries} entries");
+            }
             for (var relationshipIndex = 0; relationshipIndex < relationships.Count; relationshipIndex++)
             {
                 var relationship = relationships[relationshipIndex];
@@ -1317,8 +1432,13 @@ namespace StimTycoon.Saves
             StimSaveValidationResult result,
             List<StimActionProgressState> actions)
         {
+            if (actions != null && actions.Count > StimActionProgressState.MaxEntries)
+            {
+                result.isValid = false;
+                result.errors.Add($"state.actionProgress must contain at most {StimActionProgressState.MaxEntries} entries");
+            }
             var validStates = new HashSet<string>(StringComparer.Ordinal)
-                { "Ready", "InProgress", "Complete", "Claimable", "Locked" };
+                { "Ready", "InProgress", "Paused", "Complete", "Claimable", "Expired", "Locked" };
             ValidateProgressRecords(
                 result,
                 actions,
@@ -1330,8 +1450,53 @@ namespace StimTycoon.Saves
                           action.progressRequired > 0 &&
                           action.progress >= 0 && action.progress <= action.progressRequired &&
                           action.durationSeconds >= 0 &&
+                          action.claimWindowSeconds >= 0 && action.remainingSeconds >= 0 &&
                           action.revision >= 0,
                 "actionId/state must be valid; progress/duration must be within range; revision cannot be negative");
+        }
+
+        private static void ValidateMatchSession(StimSaveValidationResult result, StimMatchSessionState session)
+        {
+            if (session == null)
+            {
+                result.isValid = false;
+                result.errors.Add("state.matchSession is null");
+                return;
+            }
+            var states = new HashSet<string>(StringComparer.Ordinal)
+                { "none", "active", "paused", "success", "failure", "claimed" };
+            if (!states.Contains(session.state) || session.score < 0 || session.targetScore < 0 ||
+                session.rewardAmount < 0 || session.durationSeconds < 0 || session.rngStep < 0 ||
+                session.remainingSeconds < 0 || session.rewardMultiplier < 1 || session.rewardMultiplier > 2 ||
+                session.rewardMultiplierApplied && !session.rewardMultiplierAvailable)
+            {
+                result.isValid = false;
+                result.errors.Add("state.matchSession lifecycle values are invalid");
+            }
+            if (session.state == "none") return;
+            if (string.IsNullOrWhiteSpace(session.activityId) || string.IsNullOrWhiteSpace(session.instanceId) ||
+                string.IsNullOrWhiteSpace(session.theme) || session.width < 3 || session.width > 10 ||
+                session.height < 3 || session.height > 10 || session.board == null ||
+                session.board.Count != session.width * session.height || session.targetScore < 1 ||
+                session.durationSeconds < 1 || !TryParseUtcTimestamp(session.startedAtUtc, out _) ||
+                !TryParseUtcTimestamp(session.completesAtUtc, out _) ||
+                session.board.Exists(tile => tile < 0 || tile > 7))
+            {
+                result.isValid = false;
+                result.errors.Add("state.matchSession active session data is invalid");
+            }
+            if (session.state == "paused" && (session.remainingSeconds < 1 ||
+                                               !TryParseUtcTimestamp(session.pausedAtUtc, out _)))
+            {
+                result.isValid = false;
+                result.errors.Add("state.matchSession paused metadata is invalid");
+            }
+            if (session.rewardClaimed && (session.state != "claimed" || session.claimedRevision < 1 ||
+                                          !TryParseUtcTimestamp(session.claimedAtUtc, out _)))
+            {
+                result.isValid = false;
+                result.errors.Add("state.matchSession claim metadata is invalid");
+            }
         }
 
         private static void ValidateProgressRecords<T>(
@@ -1429,6 +1594,12 @@ namespace StimTycoon.Saves
                 return;
             }
 
+            if (scheduledEvents.Count > StimScheduledEventRecord.MaxScheduledEvents)
+            {
+                result.isValid = false;
+                result.errors.Add($"state.scheduledEvents cannot exceed {StimScheduledEventRecord.MaxScheduledEvents} records");
+            }
+
             for (var index = 0; index < scheduledEvents.Count; index++)
             {
                 var record = scheduledEvents[index];
@@ -1452,6 +1623,31 @@ namespace StimTycoon.Saves
                 {
                     result.isValid = false;
                     result.errors.Add($"state.scheduledEvents[{index}].latestTriggerAge cannot be earlier than earliestTriggerAge");
+                }
+
+
+                if (record.earliestTriggerMonth < 0 || record.latestTriggerMonth < 0)
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.scheduledEvents[{index}] trigger months cannot be negative");
+                }
+                else if (record.latestTriggerMonth > 0 &&
+                         record.latestTriggerMonth < record.earliestTriggerMonth)
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.scheduledEvents[{index}].latestTriggerMonth cannot be earlier than earliestTriggerMonth");
+                }
+
+                if (record.priority < 0 || record.priority > 100)
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.scheduledEvents[{index}].priority must be within [0, 100]");
+                }
+
+                if (record.cooldownMonths < 0 || record.cooldownMonths > 1200)
+                {
+                    result.isValid = false;
+                    result.errors.Add($"state.scheduledEvents[{index}].cooldownMonths must be within [0, 1200]");
                 }
 
                 if (record.chance < 0f || record.chance > 1f)

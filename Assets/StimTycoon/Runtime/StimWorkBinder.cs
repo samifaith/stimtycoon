@@ -10,6 +10,7 @@ namespace StimTycoon.Runtime
         private readonly VisualElement careerPathPreview;
         private readonly Label manualWorkRole;
         private readonly Label manualWorkRate;
+        private readonly Label businessSummary;
 
         public StimWorkBinder(VisualElement root)
         {
@@ -18,12 +19,41 @@ namespace StimTycoon.Runtime
             careerPathPreview = root.Q<VisualElement>("career-path-preview");
             manualWorkRole = root.Q<Label>("manual-work-role");
             manualWorkRate = root.Q<Label>("manual-work-rate");
+            businessSummary = root.Q<Label>("business-summary");
+            WorkTabCareer = root.Q<Button>("work-tab-career");
+            WorkTabBusiness = root.Q<Button>("work-tab-business");
+            ManualWorkCard = root.Q<VisualElement>("manual-work-card");
             ManualWorkTap = root.Q<Button>("manual-work-tap");
         }
 
         public Button ManualWorkTap { get; }
+        public Button WorkTabCareer { get; }
+        public Button WorkTabBusiness { get; }
+        public VisualElement ManualWorkCard { get; }
         public bool IsValid => careerContextCopy != null && careerPathPreview != null &&
-                               manualWorkRole != null && manualWorkRate != null && ManualWorkTap != null;
+                               manualWorkRole != null && manualWorkRate != null && businessSummary != null &&
+                               WorkTabCareer != null && WorkTabBusiness != null && ManualWorkCard != null && ManualWorkTap != null;
+
+        public void RenderWorkspace(StimGameState state, bool businessSelected, Func<long, string> formatMoney)
+        {
+            StimPresentationStateStyler.Apply(WorkTabCareer,
+                businessSelected ? StimPresentationState.Available : StimPresentationState.Selected);
+            StimPresentationStateStyler.Apply(WorkTabBusiness,
+                businessSelected ? StimPresentationState.Selected : StimPresentationState.Available);
+            businessSummary.EnableInClassList("hidden", !businessSelected);
+            ManualWorkCard.EnableInClassList("hidden", businessSelected);
+            if (!businessSelected) return;
+            var business = state.business ?? new StimBusinessState();
+            businessSummary.text = business.status == "operating"
+                ? $"{business.displayName} · Level {business.level} · AP {business.actionPoints}/{business.maxActionPoints}\n" +
+                  $"Revenue {formatMoney(business.lastRevenueMinorUnits)} · Expenses/payroll {formatMoney(business.lastExpensesMinorUnits)} · " +
+                  $"Staff {business.staffCount} · Location {business.locationLevel} · Valuation {formatMoney(business.valuationMinorUnits)}\n" +
+                  $"Operating progress {business.operatingProgress} · Lifetime profit {formatMoney(business.lifetimeProfitMinorUnits)} · " +
+                  $"Disruptions {business.riskEventsExperienced} · Loss streak {business.consecutiveLossMonths}"
+                : business.status == "sold" ? "Local Services Co. was sold. Its final value remains in your life history."
+                : business.status == "failed" ? "Local Services Co. closed after sustained losses. Recovery remains possible through career work."
+                : "Local Services Co. · Requires age 18, Professional Level 2, and $1,000 startup cash.";
+        }
 
         public void RenderPathPreview(StimGameState state, bool adult)
         {

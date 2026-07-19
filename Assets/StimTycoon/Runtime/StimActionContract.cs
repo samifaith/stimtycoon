@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StimTycoon.Runtime
 {
-    public enum StimActionState { Ready, InProgress, Complete, Claimable, Locked }
+    public enum StimActionState { Ready, InProgress, Paused, Complete, Claimable, Expired, Locked }
     public enum StimActionDestination { Life, Education, Money, Home, Social, Business, Goals }
     public enum StimActionPaymentOption { None, Cash, Credit }
 
@@ -35,6 +35,7 @@ namespace StimTycoon.Runtime
         public int progress;
         public int progressRequired = 1;
         public int durationSeconds;
+        public int claimWindowSeconds;
         public int cooldownMonths;
         public bool hasRisk;
     }

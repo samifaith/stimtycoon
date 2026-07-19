@@ -244,8 +244,10 @@ namespace StimTycoon.Tests.Domain.UI
         [TestCase(StimActionState.Ready, StimPresentationState.Available)]
         [TestCase(StimActionState.Locked, StimPresentationState.Locked)]
         [TestCase(StimActionState.InProgress, StimPresentationState.Active)]
+        [TestCase(StimActionState.Paused, StimPresentationState.Cooldown)]
         [TestCase(StimActionState.Claimable, StimPresentationState.Claimable)]
         [TestCase(StimActionState.Complete, StimPresentationState.Claimed)]
+        [TestCase(StimActionState.Expired, StimPresentationState.Terminal)]
         public void ActionCards_MapDomainLifecycleToSharedPresentationState(
             StimActionState actionState,
             StimPresentationState expectedState)
@@ -569,7 +571,7 @@ namespace StimTycoon.Tests.Domain.UI
             var enableBody = ExtractMethodBody(source, "private void OnEnable()");
             var disableBody = ExtractMethodBody(source, "private void OnDisable()");
 
-            Assert.That(CountOccurrences(bindBody, "BindPersistentButton("), Is.EqualTo(26));
+            Assert.That(CountOccurrences(bindBody, "BindPersistentButton("), Is.EqualTo(39));
             StringAssert.Contains("UnbindPersistentCallbacks();", bindBody);
             StringAssert.Contains("shellBinder?.BindActions(", bindBody);
             AssertTokensInOrder(bindButtonBody,

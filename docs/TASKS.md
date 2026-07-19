@@ -72,7 +72,7 @@ No commerce control may activate until its economy, migration, fulfillment, rest
 - [x] M14 domain foundation: persistent Bank/Education workspaces, timed study claims, qualification progression, and portfolio reporting.
 - [x] W0/W1: binding manifest, shell binder, shared state machine, retries, rollback, and reload-safe workflows.
 - [x] W2 automation: 100 staged Yarn/catalog definitions with parity, age, follow-up, distribution, copy, and dynamic-reward audits.
-- [x] Latest retained automation: 1,336 quick EditMode, 729 full EditMode, 5 PlayMode smoke, and 1 visual-capture case producing 48 images.
+- [x] Latest retained automation: 1,354 quick EditMode, 1,355 full EditMode, 5 PlayMode smoke, and 1 visual-capture case producing 48 images.
 - [ ] W2 editorial release: human approval and measured staged-event cohort rollout.
 - [ ] Production presentation and genuine 130% typography remain open, but do not block destination functionality work.
 
@@ -93,73 +93,73 @@ W2 editorial approval and small staged-event cohorts may proceed in parallel.
 
 ### Home workspace
 
-- [ ] Turn the existing Home foundation into a focused room/object workspace.
-- [ ] Surface condition, improvement progress, upgrade level, maintenance state, and household effects.
-- [ ] Route reading, training, rest, maintenance, and household-object actions through existing transactional services.
-- [ ] Preserve age gates, affordability, signed previews, cooldowns, Life Feed output, and reload safety.
-- [ ] Restore the selected room/object and scroll position after actions and overlays.
+- [x] Turn the existing Home foundation into a focused room/object workspace.
+- [x] Surface condition, improvement progress, upgrade level, maintenance state, and household effects.
+- [x] Route reading, training, rest, maintenance, and household-object actions through existing transactional services.
+- [x] Preserve age gates, affordability, signed previews, cooldowns, Life Feed output, and reload safety.
+- [x] Restore the selected room/object and scroll position after actions and overlays.
 
 ### Inventory and timers
 
-- [ ] Add bounded books and equipment inventory with stable item IDs, quantity, capacity, and acquisition source.
-- [ ] Add active timers with UTC reconciliation, pause/reload behavior, expiry, and single-claim completion.
-- [ ] Define consumption, replacement, capacity-full, missing-item, expired, claimable, claimed, and recovery states.
-- [ ] Do not introduce energy, hunger, pay-to-recover requirements, or countdown pressure.
+- [x] Add bounded books and equipment inventory with stable item IDs, quantity, capacity, and acquisition source.
+- [x] Add active timers with UTC reconciliation, pause/reload behavior, expiry, and single-claim completion.
+- [x] Define consumption, replacement, capacity-full, missing-item, expired, claimable, claimed, and recovery states.
+- [x] Do not introduce energy, hunger, pay-to-recover requirements, or countdown pressure.
 
 ### Social and family
 
-- [ ] Present deterministic persistent relationship candidates in a bounded, refreshable list.
-- [ ] Build focused profiles with warmth, stage, consent, history, cooldowns, requirements, and available actions.
-- [ ] Surface partner, child, parenting, dependent-cost, household, separation, divorce, custody, death, and unavailable states.
-- [ ] Add deterministic NPC event triggers with priority, timing windows, cooldowns, cancellation, and reload coverage.
-- [ ] Restore selected person, filter, list position, and return context.
-- [ ] Populate UI only from saved relationship IDs and canonical 0–100 relationship state.
+- [x] Present deterministic persistent relationship candidates in a bounded, refreshable list.
+- [x] Build focused profiles with warmth, stage, consent, history, cooldowns, requirements, and available actions.
+- [x] Surface partner, child, parenting, dependent-cost, household, separation, divorce, custody, death, and unavailable states.
+- [x] Add deterministic NPC event triggers with priority, timing windows, cooldowns, cancellation, and reload coverage.
+- [x] Restore selected person, filter, list position, and return context.
+- [x] Populate UI only from saved relationship IDs and canonical 0–100 relationship state.
 
 ### M15 acceptance
 
 - [ ] Every Home/Social action uses the shared action contract and atomic save flow.
 - [ ] Empty, locked, insufficient-resource, active, cooldown, terminal, error, retry, rollback, and restored states are covered.
-- [ ] Persistent collections are bounded and migration-tested.
-- [ ] Targeted EditMode and production-scene PlayMode tests pass.
+- [x] Persistent collections are bounded and migration-tested.
+- [x] Targeted EditMode and production-scene PlayMode tests pass.
 
 ## M16 — Work, Goals, transitions, and match engine
 
 ### Career and business
 
-- [ ] Build focused career routing for industries, requirements, applications, interviews, performance, promotion, retraining, firing, unemployment, and retirement.
-- [ ] Build a Local Services Co. dashboard for action points, work, revenue, expenses, staff, payroll, upgrades, locations, disruptions, valuation, failure, and sale.
-- [ ] Keep manual work economically coherent: one hour pays annual salary divided by 2,080; longer authored shifts expose duration and cooldown.
-- [ ] Retain the implemented age-18 business gate unless a separately tested rule changes it.
+- [x] Build focused career routing for industries, requirements, applications, interviews, performance, promotion, retraining, firing, unemployment, and retirement.
+- [x] Build a Local Services Co. dashboard for action points, work, revenue, expenses, staff, payroll, upgrades, locations, disruptions, valuation, failure, and sale.
+- [x] Keep manual work economically coherent: one hour pays annual salary divided by 2,080; longer authored shifts expose duration and cooldown.
+- [x] Retain the implemented age-18 business gate unless a separately tested rule changes it.
 
 ### Goals and transitions
 
-- [ ] Present Main, Daily, and Life goals as focused boards with pinning, progress, direct `Go`, expiry/reset, and transactional claim states.
-- [ ] Keep Goals and Achievements as separate saved objects while sharing compact row components.
-- [ ] Give birth/new life, graduation, marriage, parenthood, retirement, death, and legacy focused durable presentations.
+- [x] Present Main, Daily, and Life goals as focused boards with pinning, progress, direct `Go`, expiry/reset, and transactional claim states.
+- [x] Keep Goals and Achievements as separate saved objects while sharing compact row components.
+- [x] Give birth/new life, graduation, marriage, parenthood, retirement, death, and legacy focused durable presentations.
 
 ### Reusable match engine
 
-- [ ] Define a persisted match session with stable activity/instance ID, deterministic board seed, theme, duration, timestamps, score, target, and reward preview.
-- [ ] Implement board generation, matching, cascades, legal-move detection, reshuffle, pause/reload reconciliation, timeout, success/failure, and results.
-- [ ] Implement duplicate-safe claim, replay, cooldown, cap, and optional rewarded-multiplier state.
-- [ ] Configure Study Match first, then Shift Match and Legacy Gems without separate game codebases.
-- [ ] Provide reduced-motion behavior and input/touch accessibility.
+- [x] Define a persisted match session with stable activity/instance ID, deterministic board seed, theme, duration, timestamps, score, target, and reward preview.
+- [x] Implement board generation, matching, cascades, legal-move detection, reshuffle, pause/reload reconciliation, timeout, success/failure, and results.
+- [x] Implement duplicate-safe claim, replay, cooldown, cap, and optional rewarded-multiplier state.
+- [x] Configure Study Match first, then Shift Match and Legacy Gems without separate game codebases.
+- [x] Provide reduced-motion behavior and input/touch accessibility.
 
 ### M16 acceptance
 
-- [ ] Work and Goals systems are reachable without searching a mixed-purpose scroll.
-- [ ] Match themes are configuration-driven and deterministic under test.
-- [ ] Rewards are capped, balanced, transactional, and never require ads or Sparks.
-- [ ] Save/reload at every match lifecycle state is covered.
+- [x] Work and Goals systems are reachable without searching a mixed-purpose scroll.
+- [x] Match themes are configuration-driven and deterministic under test.
+- [x] Rewards are capped, balanced, transactional, and never require ads or Sparks.
+- [x] Save/reload at every match lifecycle state is covered.
 
 ## M14 completion — Bank and Study edge states
 
-- [ ] Finish Study path detail and session-state consistency.
-- [ ] Preserve canonical qualification tiers `50/125/250`, session durations `60/120/180` seconds, XP `+10/+20/+35`, and bounded Smarts effects `+1/+1/+2` unless balance tests approve a change.
-- [ ] Finish Bank extreme/negative values, account details, debt/investment edge states, and contextual tips.
-- [ ] Preserve 3.50% savings APY, $10 minimum index contribution, and the current investment eligibility gates unless balance tests approve a change.
-- [ ] Treat Checking as a detail route over the cash wallet unless a separate product is deliberately modeled.
-- [ ] Keep Sparks separate from every Bank and net-worth calculation.
+- [x] Finish Study path detail and session-state consistency.
+- [x] Preserve canonical qualification tiers `50/125/250`, session durations `60/120/180` seconds, XP `+10/+20/+35`, and bounded Smarts effects `+1/+1/+2` unless balance tests approve a change.
+- [x] Finish Bank extreme/negative values, account details, debt/investment edge states, and contextual tips.
+- [x] Preserve 3.50% savings APY, $10 minimum index contribution, and the current investment eligibility gates unless balance tests approve a change.
+- [x] Treat Checking as a detail route over the cash wallet unless a separate product is deliberately modeled.
+- [x] Keep Sparks separate from every Bank and net-worth calculation.
 
 ## M13/M17 — Production UI and assets
 
