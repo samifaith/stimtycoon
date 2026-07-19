@@ -130,6 +130,8 @@ Visuals are optional to event resolution but required as content metadata before
 - Effects – Warning if outcome has no effects
 - `feedEntryKey` – Warning in prototype content; hard error at production-content validation
 - `Effect.valueRuleId` – Optional registered balance key. When present, runtime resolution and previews use the configured value instead of the authored fallback `value`; unknown keys are hard errors. Cash, XP, stats, and future reward adapters must remain separate typed effects. Legacy Gem rules may not be activated until the versioned wallet and ledger gate is complete.
+
+The current staged balance profile is `staged_rewards_v1`. Every rule declares a default, inclusive minimum/maximum, and whole-unit requirement. Configuration rejects non-finite values, fractional units, out-of-band amounts, and sign flips; a cost rule therefore cannot become a grant through tuning alone. New reward types require a new typed application adapter and bounded rule definition rather than repurposing Cash or XP.
 - Visual metadata – Warning until M17; hard error at production-art exit
 
 ---
