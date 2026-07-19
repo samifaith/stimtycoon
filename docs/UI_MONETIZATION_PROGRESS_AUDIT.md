@@ -14,9 +14,10 @@
 
 ## Product-decision corrections
 
-- **SUPERSEDED:** `Sparks` is no longer the premium-currency name. The repository's canonical decision is **Legacy Gems**.
-- Legacy Gems must remain separate from Cash, savings, debt, accounts, and net worth.
-- Legacy Gems may be purchasable and occasionally earnable in bounded amounts, but cannot be required for ordinary progression, recovery, events, achievements, time advancement, saves, or endings.
+- **Sparks** are the canonical premium currency under the final v2 specification.
+- Sparks must remain separate from Cash, savings, debt, accounts, and net worth.
+- Sparks may be purchasable and occasionally earnable in bounded amounts, but cannot be required for ordinary progression, recovery, events, achievements, time advancement, saves, or endings.
+- **Legacy Gems** is reserved for the Goals match-game theme and is not a wallet.
 - The Store remains outside the six-item bottom navigation and opens from the header wallet entry, upsells, settings, or insufficient-balance prompts.
 - A Season Pass remains deferred and must not ship in the MVP.
 - Current commerce elements are intentionally disabled presentation scaffolds. They do not represent functioning ads, purchases, rewards, entitlements, or premium currency.
@@ -89,7 +90,7 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 
 # Phase 5: Monetization UI — Deferred Beyond the Disabled Scaffold
 
-- [ ] **DEFERRED, SUPERSEDED NAME:** Build the **Legacy Gem Store**, replacing the earlier Spark Store concept, only after separate commerce approval.
+- [ ] Build the **Spark Store** only after the wallet, commerce, privacy, legal, and fulfillment gates pass.
   No store screen, product rows, pack catalog, cosmetic catalog, restore flow, legal area, or purchase-result UI is implemented.
 - [ ] **DEFERRED:** Build the Stim+ paywall only if subscriptions are separately approved.
   No plan selector, localized subscription offer, benefit list, entitlement state, legal links, or member state is implemented.
@@ -107,7 +108,7 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 - The default runtime uses `NoOpAdsService`.
 - No concrete LevelPlay adapter was found.
 - No Unity Purchasing code or purchase-service abstraction was found.
-- No Legacy Gem balance, ledger, receipt ID, grant, spend, restore, or entitlement model exists in the save schema.
+- No Spark balance, ledger, receipt ID, grant, spend, restore, or entitlement model exists in the save schema.
 
 # Phase 6: Art and polish
 
@@ -146,7 +147,7 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 | Bank | Savings, history, credit, cash flow, investing, rollback | Quick-action presentation, tips, account details, edge states | Partial, strongest destination |
 | Social | Relationships, discovery, profile/actions, saved family systems | Family workspace, candidate list, terminal states, portraits/history | Partial |
 | Goals | Goals, achievements, progress, routing, claims | Pinned/manage layer, separate boards, complete visual states | Partial |
-| Legacy Gem Store | Disabled header entry only | Entire store, wallet, economy, products, purchase flow | Deferred pending approval |
+| Spark Store | Disabled header entry only | Entire store, wallet, economy, products, purchase flow | Approved launch scope; implementation gated |
 | Stim+ | Disabled premium slots only | Entire paywall, subscription and entitlement lifecycle | Deferred pending approval |
 | Rewarded ads | Disabled placements and no-op boundary | Prompt, provider adapter, callbacks, limits, rewards, consent | Scaffold only; behavior deferred |
 | Mini-games | Reference placeholders only | Entire persisted reusable match framework and themes | Not started |
@@ -174,8 +175,8 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 ## Not implemented or approval-gated
 
 - [ ] One reusable match-game engine.
-- [ ] Legacy Gem wallet and ledger.
-- [ ] Legacy Gem Store — deferred pending commerce approval.
+- [ ] Spark wallet and ledger.
+- [ ] Spark Store — approved launch scope, gated by durable commerce requirements.
 - [ ] Stim+ paywall and entitlements — deferred pending subscription approval.
 - [ ] Active rewarded ads — deferred pending product, privacy, and service approval.
 - [ ] Localized product metadata — deferred pending commerce approval.
@@ -191,15 +192,15 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 4. Execute M15 in its required order: bounded inventory/timer save contract, room/object Home workspace, Social discovery/profiles, then the focused family workspace and durable NPC triggers.
 5. Execute M16 convergence for Career, Business, Goals, achievements, transitions, and their focused workspace states.
 6. Build one persisted reusable match lifecycle, then configure Study Match and Shift Match on it.
-7. Execute M17 content, balance, and production-presentation work; design and simulate the Legacy Gem earn/spend economy without activating a wallet, Store, purchases, subscriptions, or ads.
+7. Execute M17 content, balance, and production-presentation work; design and simulate the Spark earn/spend economy without activating a wallet, Store, purchases, subscriptions, or ads.
 8. Execute M18 Settings, accessibility, pseudo-localization, device/recovery profiling, privacy/licensing, and iOS beta hardening.
-9. During M18, add the already approved Legacy Gem foundation behind additive migration: wallet, bounded ledger, reason and transaction IDs, earned-versus-purchased attribution, atomic grant/spend, rollback, duplicate protection, offline behavior, and conflict rules—without activating products or paid rewards.
+9. During M18, add the Spark foundation behind additive migration: wallet, bounded ledger, reason and transaction IDs, earned-versus-purchased attribution, atomic grant/spend, rollback, duplicate protection, offline behavior, and conflict rules before activating products or paid rewards.
 10. Only after their separate product, economy, legal, privacy, and service approvals, add Store, Stim+, rewarded-ad, IAP, or LevelPlay behavior with verification, restore, caps, offline handling, and sandbox tests.
 
 # Source-of-truth paths
 
-- `STIM_TYCOON_MASTER_README(2).md` — product definition and milestone sequence
-- `docs/TASKS.md` — authoritative ordered implementation backlog
+- `README.md` — repository setup and technical orientation
+- `docs/TASKS.md` — authoritative product decisions and ordered implementation backlog
 - `docs/REFERENCE_UI_GAP_ANALYSIS.md`
 - `docs/FRONTEND_WIRING_WORKFLOW.md`
 - `Assets/StimTycoon/UI/StimVerticalSlice.uxml`

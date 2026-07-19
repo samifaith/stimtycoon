@@ -16,7 +16,7 @@ Status labels:
 - **Deferred** — intentionally gated behind a later product, economy, service, privacy, or platform decision.
 - **Reference only** — useful interaction or presentation guidance that conflicts with the approved Stim product contract and is not backlog work unless separately approved.
 
-The approved shell has six destinations: **Life, Study, Work, Bank, Social, and Goals**. The alternate Home/School/Activities/City/Menu navigation, action-energy quotas, `End Turn`, Stim Coins, and season XP shown in some references are not current Stim systems. **Legacy Gems** supersede Stim Coins as the one approved premium currency: purchasable and occasionally earnable in bounded amounts, but never part of cash/net worth or required baseline progression.
+The approved shell has six destinations: **Life, Study, Work, Bank, Social, and Goals**. The alternate Home/School/Activities/City/Menu navigation, action-energy quotas, `End Turn`, Stim Coins, and season XP shown in some references are not current Stim systems. **Sparks** are the one approved premium currency: purchasable and occasionally earnable in bounded amounts, but never part of cash/net worth or required baseline progression. **Legacy Gems** is the Goals match-game theme, not a currency.
 
 **Priority clarification:** premium/paid-reward products remain deferred, but their disabled visual scaffold is the first unfinished UI requirement. Before other UI convergence, the live six-destination shell must reserve the pictured premium/sponsored/reward sections with original Stim-owned icons, stable slot IDs, explicit unavailable copy, accessibility labels, and no enabled reward or purchase behavior.
 
@@ -93,7 +93,7 @@ The approved shell has six destinations: **Life, Study, Work, Bank, Social, and 
 | Credit and cash flow | Income/expense detail, debt/APR, repayment amount/method, zero-debt and delinquency states | **Live/Partial** — functionality exists; focused comprehension and edge-state polish remain | BANK-05 |
 | Investing | Age/Smarts/emergency-fund gates, contribution, allocation/performance, risk copy, empty/positive/negative history | **Live/Partial** — index path and reporting exist; richer portfolio/history is deferred until balance approval | BANK-06 |
 | Financial tip | Contextual, dismissible educational guidance tied to actual state | **Missing** | BANK-07 |
-| Legacy Gem wallet | Whole-unit premium balance and store shortcut, separate from accounts/net worth | **Approved identity; Missing/P0 presentation; wallet/economy implementation gated** | M13/COM-01 |
+| Spark wallet | Whole-unit premium balance and store shortcut, separate from accounts/net worth | **Approved identity; current disabled presentation requires rename; wallet/economy implementation gated** | M13/COM-01 |
 | Premium tools/optional reward sections | Disabled labeled Bank placements with original iconography and stable IDs | **Missing/P0 presentation**; products, prices, and rewards deferred | M13/COM-02/03 |
 
 ## Social destination
@@ -116,7 +116,7 @@ The approved shell has six destinations: **Life, Study, Work, Bank, Social, and 
 | Goal boards | Separate Main, Daily, and Life views with reset/expiry language and once-only rewards | **Missing** as a coherent board; model exists | GOAL-03 |
 | Sponsored challenge | Stable disabled placeholder before ads approval; never required for baseline goals | **Missing/P0 presentation**; behavior deferred | M13/COM-03 |
 | Season pass | Disabled preview section now; season identity/timer/XP, free/premium lanes, reward claim, and expiry only after approval | **Missing/P0 presentation**; system deferred | M13/COM-04 |
-| Legacy Gems/paid-reward preview | Disabled bonus-game/reward section now; future awards feed the single bounded Legacy Gem wallet | **Missing/P0 presentation**; wallet/economy behavior gated | M13/COM-05 |
+| Legacy Gems match preview | Disabled Goals mini-game/reward section now; future capped rewards may include small Sparks | **Engine missing; theme approved** | M16/COM-05 |
 
 ## Commerce and live-service references
 
@@ -124,7 +124,7 @@ These screens are documented so later work does not need to reverse-engineer the
 
 | Screen | Pictured component contract | Required branches before release | Status/task |
 |---|---|---|---|
-| Legacy Gem store | Gem packs, bundle, remove-ads entitlement, cosmetics, restore purchases, legal/disclosure | Loading, localized pricing, unavailable product, pending, success, cancel, failure, already owned, restore none/success/failure, parental/age treatment, offline | **Currency approved; products/transactions deferred — COM-01** |
+| Spark Store | Spark packs, Starter Pack, remove-ads entitlement where meaningful, cosmetics, restore purchases, legal/disclosure | Loading, localized pricing, unavailable product, pending, success, cancel, failure, already owned, restore none/success/failure, age treatment, offline | **Approved launch scope; implementation gated — COM-01** |
 | Stim+ paywall | Benefit list, monthly/yearly plans, best-value disclosure, subscribe, maybe later, legal/restore | Eligibility, trial/no trial, plan selection, pending, purchase/restore outcomes, cancellation, expiration, grace period, offline and existing entitlement | **Deferred — COM-02** |
 | Rewarded-ad prompt | Explicit selectable reward, Watch Ad, decline, available boosts and quotas | Consent/ATT, unavailable, loading, started, skipped, completed, reward grant, duplicate callback, cooldown/cap, offline, age treatment | **Deferred — COM-03** |
 | Season/event rewards | Season timer/level/XP, free/premium tracks, claim cells, pass upsell, challenge, mini-game teaser | Active/expired season, locked/unlocked lane, claimable/claimed, missed reward policy, migration, offline, purchase loss/restore | **Deferred — COM-04/05** |
@@ -154,7 +154,7 @@ The existing roadmap already covered the six destinations, reusable sheets/tabs,
 - bounded Social candidate-list terminal states plus deceased/unavailable/consent branches;
 - pinned-goal management and a complete locked/active/claimable/claimed vocabulary;
 - a preserved future commerce screen/state inventory without treating currencies, subscriptions, ads, passes, or action quotas as approved features;
-- an explicit rule that the alternate five-tab shell, action quota/`End Turn`, and Stim Coins are reference-only; Legacy Gems are the approved replacement premium currency without changing the six-destination monthly loop.
+- an explicit rule that the alternate five-tab shell, action quota/`End Turn`, and Stim Coins are reference-only; Sparks are the approved premium currency without changing the six-destination monthly loop, while Legacy Gems names the Goals match theme.
 
 ## Delivery order
 

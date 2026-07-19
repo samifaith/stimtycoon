@@ -83,7 +83,7 @@ Risk labels remain hidden during ordinary play. Choice wording, character prepar
 | Social | Relationships, discovery, profiles, family state | Interact |
 | Goals | Pinned goals, Main/Daily/Life boards, achievements | Navigate or claim |
 
-The alternate five-tab navigation, action quota/`End Turn`, Stim Coins, and season progression shown in exploratory references are not part of this contract. Legacy Gems supersede Stim Coins as the single approved premium currency; they remain separate from cash/net worth and cannot gate the monthly loop. Store, subscription, ad, and season behavior retain separate approval and implementation gates.
+The alternate five-tab navigation, action quota/`End Turn`, Stim Coins, and season progression shown in exploratory references are not part of this contract. Sparks are the single approved premium currency; they remain separate from cash/net worth and cannot gate the monthly loop. Legacy Gems is reserved for the Goals match-game theme. Store, subscription, and rewarded-ad behavior follow the gated launch scope in `docs/TASKS.md`; a Season Pass remains post-launch only.
 
 ## Reusable component order
 

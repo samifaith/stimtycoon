@@ -90,6 +90,9 @@ namespace StimTycoon.Tests.PlayMode
                     StimVerticalSliceController.ApplyResponsiveLayout(root, profile.Width);
                     controller.SetAccessibilityTextScale(textScale);
                     for (var frame = 0; frame < 5; frame++) yield return null;
+                    Assert.That(root.ClassListContains("st-large-text"),
+                        Is.EqualTo(textScale >= 1.3f),
+                        $"Visual capture did not apply the {TextScaleLabel(textScale)} accessibility layout.");
                     root.MarkDirtyRepaint();
                     yield return null;
 
@@ -186,7 +189,10 @@ namespace StimTycoon.Tests.PlayMode
         {
             var previous = RenderTexture.active;
             RenderTexture.active = target;
-            GL.Clear(true, true, Color.black);
+            // The frontend handoff stylesheet deliberately makes the structural canvas transparent.
+            // Clear to a neutral light review surface so dark UI copy remains legible in retained
+            // evidence instead of being composited over RenderTexture's default black.
+            GL.Clear(true, true, new Color32(245, 248, 252, 255));
             RenderTexture.active = previous;
         }
 
