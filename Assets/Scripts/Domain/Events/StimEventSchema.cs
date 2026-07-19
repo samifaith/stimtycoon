@@ -112,6 +112,7 @@ namespace StimTycoon.Events
         public EffectType type;
         public string targetId;        // e.g., "health", "negotiation", "cash"
         public float value;            // magnitude of change
+        public string valueRuleId;     // optional balance key; resolves instead of the authored fallback value
         public string metadata;        // JSON string for complex effects
     }
 

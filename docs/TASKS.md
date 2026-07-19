@@ -27,6 +27,7 @@ The frontend owner controls UXML/USS/art/responsive presentation and runtime scr
 - [x] W0 — grouped binding manifest plus header/navigation/safe-area/time-control Shell binder are live; destination rendering and global modal arbitration now sit behind the binder, shell actions are blocked behind modals, and behavior coverage protects the lifecycle seam.
 - [x] W1 — implement the shared visual state machine, modal arbitration, confirmation/error/retry behavior, and reload-safe multi-step workflows.
 - [ ] W2 — validated data-driven definitions and exact Yarn-to-catalog event/choice parity tests are complete for all 100 staged Childhood/School/Career/Health/Money nodes. Automated audits cover age boundaries, follow-ups, distribution, and copy quality. The playable catalog now has one deterministic, category-scoped, hard-capped rollout boundary that defaults to zero staged events. Finish human editorial approval, then activate and measure approved cohorts before broad random selection.
+- [x] W2 reward balancing seam — all 200 staged consequences reference registered dynamic balance keys with migration-safe authored fallbacks. Runtime application, cost checks, previews, and editorial reports resolve the same configured value. Legacy Gem and future reward adapters remain gated behind their durable typed wallet/ledger contracts.
 - [ ] W3 — wire destination slices in this order: Shell → Life → Home/Social → Work → Goals → reusable mini-games → Settings/services.
 
 ## Phase 5 — Experience Convergence

@@ -51,6 +51,7 @@ namespace StimTycoon.Editor
             IReadOnlyList<ReviewNode> nodes, IReadOnlyDictionary<string, StimEvent> catalog)
         {
             var output = new StringBuilder();
+            var effectValues = new StimEffectValueResolver();
             output.AppendLine("# Staged Event Editorial Review");
             output.AppendLine();
             output.AppendLine("Generated evidence only. Every event remains **PENDING** until a human reviewer records all four approvals. Generating this file does not enable staged content.");
@@ -82,7 +83,9 @@ namespace StimTycoon.Editor
                     foreach (var outcome in choice.outcomes)
                     {
                         var effects = string.Join("; ", outcome.effects.Select(effect =>
-                            $"{effect.type} {effect.targetId} {Signed(effect.value)}"));
+                            $"{effect.type} {effect.targetId} {Signed(effectValues.Resolve(effect))}" +
+                            (string.IsNullOrWhiteSpace(effect.valueRuleId) ? string.Empty :
+                                $" ({effect.valueRuleId})")));
                         output.AppendLine($"| {Cell(authoredChoice.label)} | {Cell(authoredChoice.result)} | " +
                                           $"{outcome.classification} | {Cell(effects)} | {Cell(outcome.feedEntryKey)} |");
                     }

@@ -387,7 +387,13 @@ namespace StimTycoon.Runtime
                         telemetryCode = spec.id + "_" + choiceId,
                         effects = new List<Effect>
                         {
-                            new Effect { type = effectType, targetId = targetId, value = value }
+                            new Effect
+                            {
+                                type = effectType,
+                                targetId = targetId,
+                                value = value,
+                                valueRuleId = GetValueRule(effectType, value)
+                            }
                         }
                     }
                 }
@@ -412,6 +418,27 @@ namespace StimTycoon.Runtime
             if (eventId.StartsWith("health_", StringComparison.Ordinal)) return "health moment";
             if (eventId.StartsWith("money_", StringComparison.Ordinal)) return "money moment";
             return "life moment";
+        }
+
+        private static string GetValueRule(EffectType effectType, float value)
+        {
+            switch (effectType)
+            {
+                case EffectType.StatDelta:
+                    return value < 0f ? StimEffectValueRules.StagedStatLoss :
+                        StimEffectValueRules.StagedStatGain;
+                case EffectType.SkillXp:
+                    return StimEffectValueRules.StagedSkillXpGain;
+                case EffectType.CareerProgressDelta:
+                    return StimEffectValueRules.StagedCareerProgressGain;
+                case EffectType.CashDelta:
+                    if (value < 0f) return StimEffectValueRules.StagedCashSmallCost;
+                    return value >= 1000f ? StimEffectValueRules.StagedCashMediumGain :
+                        StimEffectValueRules.StagedCashSmallGain;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(effectType), effectType,
+                        "Staged reward effects require a registered balance rule.");
+            }
         }
 
         private static string Humanize(string value)
