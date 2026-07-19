@@ -2,7 +2,9 @@
   "name": "StimTycoon.Runtime",
   "rootNamespace": "StimTycoon",
   "references": [
-    "StimTycoon.Domain"
+    "StimTycoon.Domain",
+    "Unity.Services.Core",
+    "Unity.Services.Core.Environments"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -1,8 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <Style src="project://database/Assets/UI/Styles/StimTheme.uss" />
-    <Style src="project://database/Assets/UI/Styles/Shell.uss" />
-    <Style src="project://database/Assets/UI/Styles/Components.uss" />
-    <Style src="project://database/Assets/UI/Styles/Destinations.uss" />
+    <Style src="project://database/Assets/StimTycoon/UI/Styles/StimTheme.uss" />
+    <Style src="project://database/Assets/StimTycoon/UI/Styles/Shell.uss" />
+    <Style src="project://database/Assets/StimTycoon/UI/Styles/Components.uss" />
+    <Style src="project://database/Assets/StimTycoon/UI/Styles/Destinations.uss" />
     <Style src="ComponentGallery.uss" />
 
     <ui:ScrollView name="component-gallery" mode="Vertical" horizontal-scroller-visibility="Hidden" class="st-gallery">

@@ -16,20 +16,20 @@ namespace StimTycoon.Tests.Domain.UI
 {
     public sealed class StimLifeScreenStructureTests
     {
-        private const string PlayableLifePath = "Assets/UI/StimVerticalSlice.uxml";
-        private const string PlayableScenePath = "Assets/Scenes/StimVerticalSlice.unity";
+        private const string PlayableLifePath = "Assets/StimTycoon/UI/StimVerticalSlice.uxml";
+        private const string PlayableScenePath = "Assets/StimTycoon/Scenes/StimVerticalSlice.unity";
         private const string HeaderPath = "Assets/StimTycoon/UI/Components/AppHeader/AppHeader.uxml";
         private const string NavigationPath = "Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml";
         private const string FeedRowPath = "Assets/StimTycoon/UI/Components/FeedRow/FeedRow.uxml";
         private const string AchievementRowPath = "Assets/StimTycoon/UI/Components/AchievementRow/AchievementRow.uxml";
         private const string ActionCardPath = "Assets/StimTycoon/UI/Components/ActionCard/ActionCard.uxml";
-        private const string ThemePath = "Assets/UI/Styles/StimTheme.uss";
-        private const string ShellPath = "Assets/UI/Styles/Shell.uss";
-        private const string ComponentsPath = "Assets/UI/Styles/Components.uss";
-        private const string DestinationsPath = "Assets/UI/Styles/Destinations.uss";
-        private const string FrontendCanvasPath = "Assets/UI/Styles/FrontendCanvas.uss";
-        private const string ControllerPath = "Assets/Scripts/Runtime/StimVerticalSliceController.cs";
-        private const string ShellBinderPath = "Assets/Scripts/Runtime/StimShellBinder.cs";
+        private const string ThemePath = "Assets/StimTycoon/UI/Styles/StimTheme.uss";
+        private const string ShellPath = "Assets/StimTycoon/UI/Styles/Shell.uss";
+        private const string ComponentsPath = "Assets/StimTycoon/UI/Styles/Components.uss";
+        private const string DestinationsPath = "Assets/StimTycoon/UI/Styles/Destinations.uss";
+        private const string FrontendCanvasPath = "Assets/StimTycoon/UI/Styles/FrontendCanvas.uss";
+        private const string ControllerPath = "Assets/StimTycoon/Runtime/StimVerticalSliceController.cs";
+        private const string ShellBinderPath = "Assets/StimTycoon/Runtime/StimShellBinder.cs";
 
         [Test]
         public void PlayableRoot_UsesOnlyCanonicalStylesheetEntryPoints()
@@ -44,12 +44,8 @@ namespace StimTycoon.Tests.Domain.UI
             StringAssert.DoesNotContain("StimTycoonTheme.uss", source);
             StringAssert.DoesNotContain("StimVerticalSliceCozyCorporate.uss", source);
             Assert.That(CountOccurrences(source, "<Style src="), Is.EqualTo(5));
-            Assert.That(File.Exists("Assets/UI/StimVerticalSlice.uss"), Is.False);
-            Assert.That(File.Exists("Assets/UI/StimVerticalSliceCozyCorporate.uss"), Is.False);
-            Assert.That(!Directory.Exists("Assets/StimTycoon/UI/Styles") ||
-                        Directory.GetFiles("Assets/StimTycoon/UI/Styles").Length == 0, Is.True,
-                "The unused prototype style system must not remain in the production migration path.");
-
+            Assert.That(File.Exists("Assets/StimTycoon/UI/StimVerticalSlice.uss"), Is.False);
+            Assert.That(File.Exists("Assets/StimTycoon/UI/StimVerticalSliceCozyCorporate.uss"), Is.False);
             foreach (var stylesheetPath in new[] { ThemePath, ShellPath, ComponentsPath, DestinationsPath, FrontendCanvasPath })
             {
                 var stylesheet = File.ReadAllText(stylesheetPath);
@@ -349,7 +345,7 @@ namespace StimTycoon.Tests.Domain.UI
                 }
 
                 Assert.That(document, Is.Not.Null);
-                Assert.That(document.panelSettings, Is.EqualTo(AssetDatabase.LoadAssetAtPath<PanelSettings>("Assets/UI/StimPanelSettings.asset")));
+                Assert.That(document.panelSettings, Is.EqualTo(AssetDatabase.LoadAssetAtPath<PanelSettings>("Assets/StimTycoon/UI/StimPanelSettings.asset")));
                 Assert.That(document.visualTreeAsset, Is.EqualTo(AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(PlayableLifePath)));
                 Assert.That(eventSystemCount, Is.EqualTo(1));
                 Assert.That(inputModule, Is.Not.Null);

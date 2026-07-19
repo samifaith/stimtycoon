@@ -626,27 +626,27 @@
 }
 
 .icon-home {
-    background-image: url("project://database/Assets/UI/Icons/Lucide/house.svg");
+    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/house.svg");
 }
 
 .icon-study {
-    background-image: url("project://database/Assets/UI/Icons/Lucide/graduation-cap.svg");
+    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/graduation-cap.svg");
 }
 
 .icon-work {
-    background-image: url("project://database/Assets/UI/Icons/Lucide/briefcase-business.svg");
+    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/briefcase-business.svg");
 }
 
 .icon-bank {
-    background-image: url("project://database/Assets/UI/Icons/Lucide/landmark.svg");
+    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/landmark.svg");
 }
 
 .icon-social {
-    background-image: url("project://database/Assets/UI/Icons/Lucide/users.svg");
+    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/users.svg");
 }
 
 .icon-goals {
-    background-image: url("project://database/Assets/UI/Icons/Lucide/star.svg");
+    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/star.svg");
 }
 
 .st-nav-label {

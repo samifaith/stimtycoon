@@ -12,7 +12,7 @@ namespace StimTycoon.Tests.Domain.Content
     [Category("ContentContract")]
     public sealed class StimYarnAuthoringContractTests
     {
-        private const string EventsPath = "Assets/Dialogue/Events";
+        private const string EventsPath = "Assets/StimTycoon/Dialogue/Events";
         private static readonly Regex NodeTitle = new Regex(
             @"(?m)^title:\s*(?<id>\S+)\s*$", RegexOptions.Compiled);
         private static readonly Regex ChoiceTag = new Regex(

@@ -1,8 +1,8 @@
 # Stim Tycoon UI Asset Manifest
 
-Stim-owned UXML/USS references vendor assets in place. Do not edit or reorganize vendor folders; adapt them through the four production owners in `Assets/UI/Styles`: `StimTheme.uss`, `Shell.uss`, `Components.uss`, and `Destinations.uss`.
+Stim-owned UXML/USS references vendor assets in place. Do not edit or reorganize vendor folders; adapt them through the four production owners in `Assets/StimTycoon/UI/Styles`: `StimTheme.uss`, `Shell.uss`, `Components.uss`, and `Destinations.uss`.
 
-Functional navigation uses a Stim-owned subset of Lucide SVG icons under `Assets/UI/Icons/Lucide`. The subset retains Lucide's ISC license in that directory and may be recolored through the canonical USS adapter.
+Functional navigation uses a Stim-owned subset of Lucide SVG icons under `Assets/StimTycoon/UI/Icons/Lucide`. The subset retains Lucide's ISC license in that directory and may be recolored through the canonical USS adapter.
 
 The production component system is custom UI Toolkit: static composition lives in `StimVerticalSlice.uxml`, the header and navigation are live UXML templates, dynamic collections come from the runtime factories, and all flexible visual bounds come from Stim-owned USS. The installed packs are art libraries, not a second component runtime, and a new GUI pack should not be added unless it provides proven responsive UI Toolkit/UXML components that replace an identified Stim owner.
 

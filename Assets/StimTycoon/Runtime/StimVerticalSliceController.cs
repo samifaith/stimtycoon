@@ -2696,7 +2696,7 @@ namespace StimTycoon.Runtime
 
             Debug.LogError(
                 missing.Count == 0
-                    ? "Vertical slice UXML binding validation failed, but no null UI field was identified. Reimport Assets/UI/StimVerticalSlice.uxml."
+                    ? "Vertical slice UXML binding validation failed, but no null UI field was identified. Reimport Assets/StimTycoon/UI/StimVerticalSlice.uxml."
                     : $"Vertical slice UXML is missing required named elements for: {string.Join(", ", missing)}.",
                 this);
         }

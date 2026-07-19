@@ -2,7 +2,7 @@
 
 ## Codebase findings
 
-- The production UI is `Assets/UI/StimVerticalSlice.uxml`, backed by `StimVerticalSliceController` and structural UI tests.
+- The production UI is `Assets/StimTycoon/UI/StimVerticalSlice.uxml`, backed by `StimVerticalSliceController` and structural UI tests.
 - `AppHeader` and `BottomNavigation` are the only extracted UXML templates currently used by the production screen.
 - `ActionTile`, `BaseCard`, and `StatRow` exist as a second-generation component library but are not instantiated by the production screen yet.
 - The four directly referenced production owners are `StimTheme.uss`, `Shell.uss`, `Components.uss`, and `Destinations.uss`. Imports, the CozyCorporate cascade, the old vertical-slice sheet, and the unused prototype style system have been removed.

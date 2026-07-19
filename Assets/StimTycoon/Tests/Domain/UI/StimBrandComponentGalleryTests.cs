@@ -9,7 +9,7 @@ namespace StimTycoon.Tests.Domain.UI
     {
         private const string GalleryPath = "Assets/StimTycoon/UI/Screens/ComponentGallery/ComponentGallery.uxml";
         private const string GalleryStylesPath = "Assets/StimTycoon/UI/Screens/ComponentGallery/ComponentGallery.uss";
-        private const string ThemePath = "Assets/UI/Styles/StimTheme.uss";
+        private const string ThemePath = "Assets/StimTycoon/UI/Styles/StimTheme.uss";
 
         private static readonly string[] CanonicalComponentPaths =
         {

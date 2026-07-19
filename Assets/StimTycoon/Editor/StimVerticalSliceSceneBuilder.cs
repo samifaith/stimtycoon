@@ -11,9 +11,9 @@ namespace StimTycoon.Editor
 {
     public static class StimVerticalSliceSceneBuilder
     {
-        private const string ScenePath = "Assets/Scenes/StimVerticalSlice.unity";
-        private const string UxmlPath = "Assets/UI/StimVerticalSlice.uxml";
-        private const string PanelSettingsPath = "Assets/UI/StimPanelSettings.asset";
+        private const string ScenePath = "Assets/StimTycoon/Scenes/StimVerticalSlice.unity";
+        private const string UxmlPath = "Assets/StimTycoon/UI/StimVerticalSlice.uxml";
+        private const string PanelSettingsPath = "Assets/StimTycoon/UI/StimPanelSettings.asset";
         private const string FeedRowPath = "Assets/StimTycoon/UI/Components/FeedRow/FeedRow.uxml";
         private const string AchievementRowPath = "Assets/StimTycoon/UI/Components/AchievementRow/AchievementRow.uxml";
         private const string ActionCardPath = "Assets/StimTycoon/UI/Components/ActionCard/ActionCard.uxml";

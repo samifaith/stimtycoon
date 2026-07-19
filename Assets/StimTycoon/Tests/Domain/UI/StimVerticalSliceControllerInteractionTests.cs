@@ -14,7 +14,7 @@ namespace StimTycoon.Tests.Domain.UI
 {
     public sealed class StimVerticalSliceControllerInteractionTests
     {
-        private const string PlayableLifePath = "Assets/UI/StimVerticalSlice.uxml";
+        private const string PlayableLifePath = "Assets/StimTycoon/UI/StimVerticalSlice.uxml";
         private GameObject host;
         private StimVerticalSliceController controller;
         private TemplateContainer root;
