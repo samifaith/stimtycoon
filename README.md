@@ -86,14 +86,14 @@ See [the active task list](docs/TASKS.md) for milestone acceptance criteria and 
 
 The supplied screen references have also been decomposed into a screen-by-screen inventory of components, behaviors, branch states, current implementation status, and stable task IDs. See [the reference UI gap analysis](docs/REFERENCE_UI_GAP_ANALYSIS.md). That analysis adopts Legacy Gems as the single premium-currency identity while preserving the remaining commerce concepts without approving Stim Coins, action-energy quotas, alternate five-tab navigation, subscriptions, ads, or season passes as current gameplay.
 
-The approved M13 UI direction is a compact, light mobile interface based on the supplied wireframes: an 88–96 point status header, dense list rows, and six icon-over-label navigation items. The imported kits are integrated through Stim-owned UXML/USS without editing vendor folders: Free Casual GUI supplies calibrated nine-sliced SVG controls, the palette, Baloo display type, and aspect-contained progress accents; Space Exploration GUI Kit supplies navigation, destination, section, and information identity; Jelly UI Pack supplies aspect-contained achievement and outcome marks while its palette informs claim, qualification, and input surfaces. `StimPanelSettings.asset` provides UI Toolkit's screen-size scaling equivalent to the Skyden uGUI demo. Production tests require `scale-to-fit` for unsliced art and complete approved slice values for responsive Skyden controls. Complex native-ratio panels, baked-copy panels, and fixed HUD decoration remain quarantined from responsive layouts. Independent destination scroll restoration, Bank tab restoration, and the review gallery support the migration. M13 still requires runtime width/text-scale visual approval and interaction-detail completion. The selected dependencies and release checks are recorded in [the UI asset manifest](Assets/UI/Art/ASSET_MANIFEST.md).
+The approved M13 UI direction is a compact, light mobile interface based on the supplied wireframes: an 88–96 point status header, dense list rows, and six icon-over-label navigation items. The imported kits are integrated through Stim-owned UXML/USS without editing vendor folders: Free Casual GUI supplies calibrated nine-sliced SVG controls, the palette, Baloo display type, and aspect-contained progress accents; Space Exploration GUI Kit supplies navigation, destination, section, and information identity; Jelly UI Pack supplies aspect-contained achievement and outcome marks while its palette informs claim, qualification, and input surfaces. `StimPanelSettings.asset` provides UI Toolkit's screen-size scaling equivalent to the Skyden uGUI demo. Production tests require `scale-to-fit` for unsliced art and complete approved slice values for responsive Skyden controls. Complex native-ratio panels, baked-copy panels, and fixed HUD decoration remain quarantined from responsive layouts. Independent destination scroll restoration, Bank tab restoration, and the review gallery support the migration. M13 still requires runtime width/text-scale visual approval and interaction-detail completion. The selected dependencies and release checks are recorded in [the UI asset manifest](Assets/StimTycoon/UI/Art/ASSET_MANIFEST.md).
 
 ## Open and Run
 
 1. Install Unity `6000.3.19f1` with iOS Build Support through Unity Hub.
 2. Open this repository as an existing project and allow package import to finish.
 3. Confirm the Console has no compilation errors.
-4. Open `Assets/Scenes/StimVerticalSlice.unity`.
+4. Open `Assets/StimTycoon/Scenes/StimVerticalSlice.unity`.
 5. Press Play, resolve events, advance months, and use **View Player Overview** to inspect the current life state.
 
 For mobile layout checks, open Device Simulator and select **Apple iPhone 17**, **Apple iPhone 17 Pro**, or **Apple iPhone 17 Pro Max**. If those profiles are missing after import, run `Tools → Stim Tycoon → Install iPhone 17 Simulator Profiles`, then reopen Device Simulator.
@@ -147,22 +147,23 @@ Still deferred until the related gameplay or production gate needs them:
 - LevelPlay placement/consent configuration and its production Stim-owned adapter
 - Unity IAP product catalog, restore/validation flows, and its Stim-owned adapter
 
-See [the package checklist](docs/PACKAGE_INSTALL_CHECKLIST.md) before adding a vendor dependency. Keep all vendor SDK types behind the interfaces in `Assets/Scripts/Domain/Abstractions`.
+See [the package checklist](docs/PACKAGE_INSTALL_CHECKLIST.md) before adding a vendor dependency. Keep all vendor SDK types behind the interfaces in `Assets/StimTycoon/Domain/Abstractions`.
 
 ## Project Structure
 
 ```text
 Assets/
-├── Dialogue/Events/       # Yarn-authored event dialogue
-├── Scenes/                # Playable Unity scenes
-├── Scripts/
-│   ├── Domain/            # Schemas, validation, resolution, interfaces
-│   ├── Runtime/           # Sessions, persistence, composition, UI binding
-│   ├── Editor/            # Setup checks and scene tooling
-│   ├── Vendors/           # Isolated vendor integrations
-│   └── Tests/             # EditMode contracts/simulations and PlayMode smoke suite
+├── StimTycoon/             # All first-party product assets
+│   ├── Dialogue/Events/    # Yarn-authored event dialogue
+│   ├── Domain/             # Schemas, validation, resolution, interfaces
+│   ├── Editor/             # Setup checks and scene tooling
+│   ├── Integrations/       # Stim-owned adapters for external packages
+│   ├── Runtime/            # Sessions, persistence, composition, UI binding
+│   ├── Scenes/             # Playable Unity scenes
+│   ├── Tests/              # EditMode contracts/simulations and PlayMode smoke suite
+│   └── UI/                 # Canonical UXML, USS, icons, and panel settings
 ├── DeviceSimulatorDevices/ # Stim-owned iPhone 17 simulation definitions
-└── UI/                    # Canonical UXML, USS, icons, and panel settings
+└── <vendor folders>/       # Imported packages retained in place
 
 Packages/                  # Pinned Unity dependencies
 ProjectSettings/           # Unity project configuration

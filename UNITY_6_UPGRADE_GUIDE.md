@@ -22,7 +22,7 @@ The project may live on an external drive. Use APFS on macOS, keep the drive mou
 1. Confirm the title bar or **Unity → About Unity** reports `6000.3.19f1`.
 2. Run `Tools → Stim Tycoon → Run Setup Check`.
 3. Open `Window → General → Test Runner`, select **EditMode**, and run the complete suite. The repository currently contains 340 EditMode test methods; include the `SlowSimulation` birth-to-ending harness in a full verification run.
-4. Open `Assets/Scenes/StimVerticalSlice.unity` and press Play.
+4. Open `Assets/StimTycoon/Scenes/StimVerticalSlice.unity` and press Play.
 
 ## Current Dependencies
 

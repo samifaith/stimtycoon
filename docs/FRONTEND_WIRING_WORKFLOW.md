@@ -11,7 +11,7 @@ This is the working agreement for parallel UI production. The visual frontend ca
 Owns:
 
 - visual hierarchy, UXML composition, USS, spacing, typography, color, art, animation, and responsive presentation;
-- the last-loaded `Assets/UI/Styles/FrontendCanvas.uss` presentation layer; this neutral canvas is the canonical place to rebuild colors, surfaces, borders, radii, and decorative container art;
+- the last-loaded `Assets/StimTycoon/UI/Styles/FrontendCanvas.uss` presentation layer; this neutral canvas is the canonical place to rebuild colors, surfaces, borders, radii, and decorative container art;
 - choosing and adapting approved kit components through Stim-owned UXML/USS;
 - aspect ratio, nine-slicing, text containment, safe-area composition, and visual states;
 - runtime screenshots at the supported device widths and text scales;
@@ -66,7 +66,7 @@ Frontend work should replace the scoped neutral rules incrementally. Do not remo
 
 ## UI Builder, sprites, stylesheets, and input
 
-- `Assets/UI/StimVerticalSlice.uxml` is the playable UI Builder document. Its five directly attached USS files are the canonical cascade, with `FrontendCanvas.uss` loaded last for frontend ownership.
+- `Assets/StimTycoon/UI/StimVerticalSlice.uxml` is the playable UI Builder document. Its five directly attached USS files are the canonical cascade, with `FrontendCanvas.uss` loaded last for frontend ownership.
 - The scene `UIDocument` owns its Panel Settings and Source Asset references in the Inspector. Runtime code validates those references but must not replace them, so scene preview, UI Builder, and Play mode all use the same assets.
 - Feed Row, Achievement Row, and Action Card are UI Builder-authored UXML components. Runtime factories clone those templates and only bind dynamic content, state classes, progress, and callbacks. Do not recreate their visual hierarchy in controller code.
 - Destination cards live under their real destination hosts in UXML; runtime code does not reparent them. A visual slot with an authored sprite child is preserved, while an empty slot receives a fallback placeholder at runtime.

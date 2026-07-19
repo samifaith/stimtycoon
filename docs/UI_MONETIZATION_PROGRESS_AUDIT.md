@@ -120,7 +120,7 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 
 ## Important visual-state note
 
-`Assets/UI/Styles/FrontendCanvas.uss` is intentionally a neutral presentation baseline loaded after the structural styles. It currently clears inherited colors, borders, radii, and shape-bearing button/progress art while preserving layout and bindings. The final cozy-corporate visual pass should be implemented primarily in this file without renaming protected UXML elements or moving gameplay rules into USS.
+`Assets/StimTycoon/UI/Styles/FrontendCanvas.uss` is intentionally a neutral presentation baseline loaded after the structural styles. It currently clears inherited colors, borders, radii, and shape-bearing button/progress art while preserving layout and bindings. The final cozy-corporate visual pass should be implemented primarily in this file without renaming protected UXML elements or moving gameplay rules into USS.
 
 # Phase 7: Platform integration — Conditional M18 Work
 
@@ -202,14 +202,14 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 - `docs/TASKS.md` — authoritative ordered implementation backlog
 - `docs/REFERENCE_UI_GAP_ANALYSIS.md`
 - `docs/FRONTEND_WIRING_WORKFLOW.md`
-- `Assets/UI/StimVerticalSlice.uxml`
-- `Assets/UI/Styles/StimTheme.uss`
-- `Assets/UI/Styles/FrontendCanvas.uss`
+- `Assets/StimTycoon/UI/StimVerticalSlice.uxml`
+- `Assets/StimTycoon/UI/Styles/StimTheme.uss`
+- `Assets/StimTycoon/UI/Styles/FrontendCanvas.uss`
 - `Assets/StimTycoon/UI/Components/`
-- `Assets/Scripts/Runtime/StimVerticalSliceController.cs`
-- `Assets/Scripts/Runtime/StimUiComponentFactory.cs`
-- `Assets/Scripts/Runtime/StimActionCardFactory.cs`
-- `Assets/Scripts/Runtime/StimPresentationState.cs`
-- `Assets/Scripts/Runtime/StimRuntimeCompositionRoot.cs`
-- `Assets/Scripts/Domain/Save/StimSaveSchema.cs`
+- `Assets/StimTycoon/Runtime/StimVerticalSliceController.cs`
+- `Assets/StimTycoon/Runtime/StimUiComponentFactory.cs`
+- `Assets/StimTycoon/Runtime/StimActionCardFactory.cs`
+- `Assets/StimTycoon/Runtime/StimPresentationState.cs`
+- `Assets/StimTycoon/Runtime/StimRuntimeCompositionRoot.cs`
+- `Assets/StimTycoon/Domain/Save/StimSaveSchema.cs`
 - `Packages/manifest.json`

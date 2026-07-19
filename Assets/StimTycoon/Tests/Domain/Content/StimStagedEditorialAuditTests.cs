@@ -12,7 +12,7 @@ namespace StimTycoon.Tests.Domain.Content
     [Category("ContentContract")]
     public sealed class StimStagedEditorialAuditTests
     {
-        private const string EventsPath = "Assets/Dialogue/Events";
+        private const string EventsPath = "Assets/StimTycoon/Dialogue/Events";
         private static readonly string[] BatchFiles =
         {
             "ChildhoodBatch20.yarn", "SchoolBatch20.yarn", "CareerBatch20.yarn",

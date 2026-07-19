@@ -45,7 +45,7 @@ namespace StimTycoon.Editor
                 return;
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(ScenePath) ?? "Assets/Scenes");
+            Directory.CreateDirectory(Path.GetDirectoryName(ScenePath) ?? "Assets/StimTycoon/Scenes");
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var gameObject = new GameObject("Stim Vertical Slice");
             gameObject.SetActive(false);

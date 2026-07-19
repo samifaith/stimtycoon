@@ -1,6 +1,6 @@
 # Event Schema and Validator
 
-**File:** `Assets/Scripts/Domain/Events/`  
+**File:** `Assets/StimTycoon/Domain/Events/`
 **Status:** Schema v1 foundation complete; offline event foundation delivered; staged catalog wiring and online validation deferred
 **Version:** 1.0 (locked)
 
@@ -254,7 +254,7 @@ modifierRuleIds: ["skill_negotiation_4", "stat_smarts_above_75", "trait_ambitiou
 
 ### Unit Test Validator
 
-In `Assets/Scripts/Tests/Domain/Events/StimEventValidatorTests.cs`:
+In `Assets/StimTycoon/Tests/Domain/Events/StimEventValidatorTests.cs`:
 
 ```csharp
 [Test]
@@ -351,7 +351,7 @@ To make breaking changes (e.g., removing a field or changing a type):
 
 ## Test Coverage
 
-Current tests in `Assets/Scripts/Tests/Domain/Events/StimEventValidatorTests.cs`:
+Current tests in `Assets/StimTycoon/Tests/Domain/Events/StimEventValidatorTests.cs`:
 
 - ✓ Rejects null event
 - ✓ Rejects wrong schema version

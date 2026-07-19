@@ -40,7 +40,7 @@ The frontend owner controls UXML/USS/art/responsive presentation and runtime scr
 
 > **Approved premium-currency decision:** **Legacy Gems** are Stim Tycoon's single premium currency. They will be purchasable and occasionally earnable in small, bounded gameplay awards. They are whole units, remain separate from cash/net worth/debt, and may never be required for ordinary time advancement, baseline progression, event resolution, recovery, earned achievement claims, or endings. Stim Coins are retired as a reference concept; do not create a second premium currency.
 
-> **Approved component direction:** the supplied colored mobile references are the visual authority and Stim-owned UI Toolkit is the responsive component system. Free Casual GUI contributes calibrated nine-sliced SVG controls plus palette/type/progress accents, Space Exploration GUI Kit contributes pictograms, and Jelly UI Pack contributes reward marks. Vendor folders stay untouched. See `Assets/UI/Art/ASSET_MANIFEST.md`.
+> **Approved component direction:** the supplied colored mobile references are the visual authority and Stim-owned UI Toolkit is the responsive component system. Free Casual GUI contributes calibrated nine-sliced SVG controls plus palette/type/progress accents, Space Exploration GUI Kit contributes pictograms, and Jelly UI Pack contributes reward marks. Vendor folders stay untouched. See `Assets/StimTycoon/UI/Art/ASSET_MANIFEST.md`.
 
 **Required implementation workflow:** UXML owns layout, USS owns presentation and sprite references, and C# owns binding, data, and behavior. For the current handoff, the repository provides a stripped shell and the frontend owner loads and places sprites in Unity UI Builder. Wiring work must not perform that sprite or final-presentation pass unless the frontend owner explicitly requests it; UI Builder changes still save back to the source-controlled UXML/USS assets.
 
@@ -97,7 +97,7 @@ The editor installs these definitions into `Assets/DeviceSimulatorDevices` after
 
 The native display sizes come from Apple’s published technical specifications. Safe-area values are conservative simulator baselines for layout testing, not a substitute for validation on physical hardware and the current iOS SDK.
 
-- [x] Confirm the live scene uses `Assets/UI/StimVerticalSlice.uxml` and preserve its stable controller bindings.
+- [x] Confirm the live scene uses `Assets/StimTycoon/UI/StimVerticalSlice.uxml` and preserve its stable controller bindings.
 - [x] Treat `StimTheme.uss`, `Shell.uss`, `Components.uss`, and `Destinations.uss` as the four exclusive stylesheets referenced directly by the playable root.
 - [x] Remove the retained legacy layout imports after assigning shell, component, and destination rules to their canonical owners.
 - [x] Apply bounded Stim-owned theme-adapter surfaces to representative primary/secondary actions and reward/claim feedback without stretching large source sprites onto layout containers.
@@ -106,15 +106,15 @@ The native display sizes come from Apple’s published technical specifications.
 - [ ] Repeat the width checks at 130% text scale and correct any clipping, overlap, or sub-44-point primary target. Automated matrix coverage now verifies responsive state selection plus persistent navigation, time-control, Study-confirmation, event-continuation, and new-life target seams; destination and overlay screenshots remain open.
 - [x] Replace the retained legacy layout import with shell-, destination-, and component-owned production rules.
 
-1. Keep the imported vendor packs in their existing vendor-owned folders; place only Stim-owned derivatives, mappings, and manifest records in `Assets/UI/Art` and `Assets/UI/Icons`.
-2. Build destination screens as `.uxml` files under `Assets/UI/Screens` and reusable UI elements under the designated Stim-owned component directory.
-3. Use `Assets/UI/Styles/StimTheme.uss` as the canonical shared theme and `Components.uss` for reusable component rules; eliminate or explicitly map overlapping legacy theme files so the live scene cannot silently use the wrong stylesheet.
+1. Keep the imported vendor packs in their existing vendor-owned folders; place only Stim-owned derivatives, mappings, and manifest records in `Assets/StimTycoon/UI/Art` and `Assets/StimTycoon/UI/Icons`.
+2. Build destination screens as `.uxml` files under `Assets/StimTycoon/UI/Screens` and reusable UI elements under the designated Stim-owned component directory.
+3. Use `Assets/StimTycoon/UI/Styles/StimTheme.uss` as the canonical shared theme and `Components.uss` for reusable component rules; eliminate or explicitly map overlapping legacy theme files so the live scene cannot silently use the wrong stylesheet.
 4. Use `scale-to-fit` for icons/progress and complete calibrated USS nine-slicing for approved Skyden SVG controls. Never stretch an undivided component image or place dynamic copy over an uncalibrated asset. A responsive component is complete when its hierarchy, density, states, text containment, and behavior match the reference contract.
 5. Preview and adjust the UXML with Unity UI Builder as useful, then verify the actual `StimVerticalSlice` scene in Play Mode.
 6. Give interactive UXML elements stable names and connect them to C# controllers/binders without moving gameplay rules out of the existing domain/runtime services.
 
 ```text
-Assets/UI/
+Assets/StimTycoon/UI/
 ├── Art/                   # Stim-owned derivatives, mappings, and asset manifest
 ├── Icons/                 # Stim-owned icon selections/derivatives
 ├── Screens/               # HomeScreen.uxml, BankScreen.uxml, and other destinations
@@ -122,7 +122,7 @@ Assets/UI/
 ├── Styles/
 │   ├── StimTheme.uss      # Canonical colors, spacing, typography, buttons, and cards
 │   └── Components.uss     # Reusable component and vendor-sprite styling
-└── Scripts/               # UI-only controllers/binders where needed
+└── Runtime/               # UI-only formatting helpers where needed
 ```
 
 - [x] Implement a safe-area-aware persistent status header for age/calendar, cash/net worth, and Stim's actual stats/resources.
@@ -131,7 +131,7 @@ Assets/UI/
 - [x] Establish the approved three-pack UI direction through a replaceable Stim-owned USS adapter and an asset/license manifest, without reorganizing vendor imports.
 - [x] Apply the imported GUI packs visibly to the live `StimVerticalSlice` UI through Stim-owned UXML/USS: Free Casual GUI supplies calibrated nine-sliced SVG controls, the responsive palette/type language, and aspect-contained progress; Space Exploration GUI Kit owns navigation/destination/information identity; Jelly UI Pack supplies aspect-contained achievement/outcome marks plus the palette for claims, qualification, and inputs. Tests reject unsliced stretching and incomplete or unapproved nine-slicing.
 - [ ] Replace the current plain/default/placeholder presentation across the six-destination shell with the selected vendor sprites and Stim-owned themed derivatives; importing assets, listing them in the manifest, or defining unused USS tokens does not satisfy this task.
-- [x] Audit the overlapping `Assets/UI` and `Assets/StimTycoon/UI` UXML/USS trees, retain `Assets/UI/StimVerticalSlice.uxml` plus the four `Assets/UI/Styles` owners as production paths, and keep extracted templates under `Assets/StimTycoon/UI/Components`; structural tests protect these boundaries.
+- [x] Consolidate the former split UI trees under `Assets/StimTycoon/UI`, retain `StimVerticalSlice.uxml` plus the five canonical stylesheets as production paths, and keep extracted templates under `Components`; structural tests protect these boundaries.
 - [ ] Complete and document a live Play Mode visual verification at 320/390/430/768 widths showing that approved aspect-contained assets and kit-matched responsive surfaces render correctly in the status header, navigation, representative destination panels, primary/secondary actions, and at least one reward/claim flow.
 - [ ] Add reusable destination headers, segmented tabs, modal sheets, requirement chips, action states, progress bars, timer/cooldown rows, and selected-navigation styling.
 - [ ] Replace default/placeholder scrollbars throughout the application with one polished Stim scrollbar and scroll-affordance system for page, list, sheet, tab, and nested-scroll contexts; do not solve visual quality by hiding required position feedback.
