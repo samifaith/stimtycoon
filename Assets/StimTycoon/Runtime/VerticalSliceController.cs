@@ -36,6 +36,7 @@ namespace StimTycoon.Runtime
         [SerializeField] private VisualTreeAsset achievementRowTemplate;
         [SerializeField] private VisualTreeAsset actionCardTemplate;
 
+        private RuntimeCompositionRoot compositionRoot;
         private GameSessionService gameSession;
         private Label cashValue;
         private Label lifeSummary;
@@ -260,12 +261,8 @@ namespace StimTycoon.Runtime
             careerActionProgress = root.Q<Label>("career-action-progress");
             careerActions = root.Q<VisualElement>("career-actions");
             careerActionsCard = root.Q<VisualElement>("career-actions-card");
-            var catalog = new InMemoryEventCatalog();
-            foreach (var authoredEvent in PlayableEventCatalog.Build().events)
-            {
-                catalog.Upsert(authoredEvent);
-            }
-            gameSession = new GameSessionService(catalog, new NativeSaveRepository());
+            compositionRoot = RuntimeCompositionRoot.CreateDefault();
+            gameSession = new GameSessionService(compositionRoot.EventCatalog, compositionRoot.SaveRepository);
             var loadedExistingLife = gameSession.TryLoadLatest(out _);
 
             advanceMonth = shellBinder.AdvanceMonth;
@@ -327,7 +324,7 @@ namespace StimTycoon.Runtime
                      gameSession.ActiveSave.state.career.roleTitle != "Retired" &&
                      gameSession.ActiveSave.state.eventHistory.Count == 0)
             {
-                catalog.TryGetEvent(RepresentativeEvents.SalaryNegotiationId, out currentEvent);
+                compositionRoot.EventCatalog.TryGetEvent(RepresentativeEvents.SalaryNegotiationId, out currentEvent);
             }
 
             RefreshHeader();

@@ -11,7 +11,6 @@ namespace StimTycoon.Editor
 {
     public static class VerticalSliceSceneBuilder
     {
-        private const string ScenePath = "Assets/StimTycoon/Scenes/VerticalSlice.unity";
         private const string UxmlPath = "Assets/StimTycoon/UI/VerticalSlice.uxml";
         private const string PanelSettingsPath = "Assets/StimTycoon/UI/PanelSettings.asset";
         private const string FeedRowPath = "Assets/StimTycoon/UI/Components/FeedRow/FeedRow.uxml";
@@ -45,7 +44,7 @@ namespace StimTycoon.Editor
                 return;
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(ScenePath) ?? "Assets/StimTycoon/Scenes");
+            Directory.CreateDirectory(Path.GetDirectoryName(StimProjectPaths.VerticalSliceScene) ?? "Assets/StimTycoon/Scenes");
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var gameObject = new GameObject("Stim Vertical Slice");
             gameObject.SetActive(false);
@@ -76,10 +75,10 @@ namespace StimTycoon.Editor
             camera.backgroundColor = new Color(0.055f, 0.071f, 0.094f);
             cameraObject.transform.position = new Vector3(0f, 0f, -10f);
 
-            EditorSceneManager.SaveScene(scene, ScenePath);
+            EditorSceneManager.SaveScene(scene, StimProjectPaths.VerticalSliceScene);
             AssetDatabase.SaveAssets();
             Selection.activeObject = gameObject;
-            Debug.Log($"Created playable vertical slice scene at {ScenePath}.");
+            Debug.Log($"Created playable vertical slice scene at {StimProjectPaths.VerticalSliceScene}.");
         }
     }
 }

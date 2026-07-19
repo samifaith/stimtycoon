@@ -19,18 +19,9 @@ This document is the executable quality contract for Stim Tycoon. It complements
 
 ## Current baseline
 
-The counts below are the recorded July 18, 2026 baseline, backed by retained local NUnit and coverage artifacts. They remain the comparison target rather than a claim that every future checkout is continuously green; remote activation/branch-protection proof remains an open release task.
+The canonical [QA baseline](QA_BASELINE.md) records retained counts and distinguishes historical evidence from results verified on the current checkout. This strategy defines how those results are produced. Remote activation and branch-protection proof remain open release tasks.
 
-- Unity `6000.3.19f1`
-- Unity Test Framework `1.6.0`
-- Unity Code Coverage `1.3.0`
-- 729-case verified EditMode baseline from July 18, 2026
-- 3-case verified production-scene PlayMode smoke baseline from July 17, 2026
-- Production-scene PlayMode smoke assembly for scene boot, UI contract, input system, and callback lifecycle
-- Yarn authoring-contract coverage for unique nodes/events and exact choice-command parity
-- GitHub Actions configuration for PR/main gates and nightly deterministic simulation
-
-The recorded full headless baseline is 729/729 EditMode in 13.2 seconds and 5/5 PlayMode smoke in 5.5 seconds on the July 18, 2026 development machine. The fast pull-request EditMode selection excludes the single `SlowSimulation` case; retain its own result independently when run.
+The production-scene PlayMode smoke assembly covers scene boot, UI contracts, the input system, and callback lifecycle. Yarn authoring-contract tests cover unique nodes/events and exact choice-command parity. GitHub Actions defines PR/main gates and a nightly deterministic simulation. The fast pull-request EditMode selection excludes `SlowSimulation`; retain its result independently when run.
 
 ## Test tiers
 

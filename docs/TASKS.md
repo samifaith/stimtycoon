@@ -72,7 +72,7 @@ No commerce control may activate until its economy, migration, fulfillment, rest
 - [x] M14 domain foundation: persistent Bank/Education workspaces, timed study claims, qualification progression, and portfolio reporting.
 - [x] W0/W1: binding manifest, shell binder, shared state machine, retries, rollback, and reload-safe workflows.
 - [x] W2 automation: 100 staged Yarn/catalog definitions with parity, age, follow-up, distribution, copy, and dynamic-reward audits.
-- [x] Latest retained automation: 1,354 quick EditMode, 1,355 full EditMode, 5 PlayMode smoke, and 1 visual-capture case producing 48 images.
+- [x] Latest retained automation is recorded in the canonical [QA baseline](QA_BASELINE.md).
 - [ ] W2 editorial release: human approval and measured staged-event cohort rollout.
 - [ ] Production presentation and genuine 130% typography remain open, but do not block destination functionality work.
 

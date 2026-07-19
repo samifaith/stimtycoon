@@ -23,6 +23,18 @@ namespace StimTycoon.Tests.Domain.Runtime
         }
 
         [Test]
+        public void DefaultCompositionRoot_UsesThePlayableCatalogAndConfiguredSaveBoundary()
+        {
+            var root = RuntimeCompositionRoot.CreateDefault();
+            var expected = PlayableEventCatalog.Build();
+
+            Assert.That(root.EventCatalog.Count, Is.EqualTo(expected.events.Count));
+            Assert.That(root.SaveRepository, Is.Not.Null);
+            Assert.That(root.EventRuntimeService, Is.Not.Null);
+            Assert.That(root.DialogueBridge, Is.Not.Null);
+        }
+
+        [Test]
         public void BoundedRollout_RegistersOnlySelectedCategoriesAtExactCaps()
         {
             var rollout = CreateRollout(5, 742981, EventCategory.Childhood, EventCategory.Health);

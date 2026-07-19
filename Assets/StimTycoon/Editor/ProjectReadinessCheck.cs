@@ -23,6 +23,7 @@ namespace StimTycoon.Editor
             Check(Path.Combine(projectRoot ?? string.Empty, "Packages", "manifest.json"), "Packages/manifest.json", failures, passes);
             Check(Path.Combine(projectRoot ?? string.Empty, "ProjectSettings", "ProjectVersion.txt"), "ProjectVersion.txt", failures, passes);
             Check(Path.Combine(projectRoot ?? string.Empty, "ProjectSettings", "ProjectSettings.asset"), "ProjectSettings.asset", failures, passes);
+            CheckProductionScene(failures, passes);
 
             var editorVersion = Application.unityVersion;
             if (editorVersion.StartsWith("6000.3.", StringComparison.Ordinal))
@@ -56,6 +57,28 @@ namespace StimTycoon.Editor
             }
 
             WriteResults(passes, warnings, failures);
+        }
+
+        private static void CheckProductionScene(ICollection<string> failures, ICollection<string> passes)
+        {
+            var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(StimTycoon.Runtime.StimProjectPaths.VerticalSliceScene);
+            if (sceneAsset == null)
+            {
+                failures.Add($"Missing production scene: {StimTycoon.Runtime.StimProjectPaths.VerticalSliceScene}");
+                return;
+            }
+
+            passes.Add($"Found production scene at {StimTycoon.Runtime.StimProjectPaths.VerticalSliceScene}.");
+            var enabledInBuild = Array.Exists(EditorBuildSettings.scenes,
+                scene => scene.enabled && scene.path == StimTycoon.Runtime.StimProjectPaths.VerticalSliceScene);
+            if (enabledInBuild)
+            {
+                passes.Add("Production scene is enabled in Build Settings.");
+            }
+            else
+            {
+                failures.Add("Production scene is not enabled in Build Settings.");
+            }
         }
 
         private static void Check(string path, string label, ICollection<string> failures, ICollection<string> passes)

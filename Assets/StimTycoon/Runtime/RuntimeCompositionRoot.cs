@@ -36,6 +36,11 @@ namespace StimTycoon.Runtime
         public static RuntimeCompositionRoot CreateDefault()
         {
             var eventCatalog = new InMemoryEventCatalog();
+            foreach (var authoredEvent in PlayableEventCatalog.Build().events)
+            {
+                eventCatalog.Upsert(authoredEvent);
+            }
+
             var eventRuntimeService = new EventRuntimeService(eventCatalog);
 
 #if STIM_EASY_SAVE_3
@@ -52,27 +57,6 @@ namespace StimTycoon.Runtime
                 new NoOpAccountService(),
                 new NoOpCloudSaveService(),
                 new NoOpAdsService());
-        }
-    }
-
-    internal sealed class NoOpSaveRepository : ISaveRepository
-    {
-        public bool TryCommitAutosave(string serializedSave, out string persistenceSummary)
-        {
-            persistenceSummary = "Save repository is not yet connected.";
-            return false;
-        }
-
-        public bool TryLoadLatestSave(out string serializedSave)
-        {
-            serializedSave = null;
-            return false;
-        }
-
-        public bool TryValidateSave(string serializedSave, out string validationSummary)
-        {
-            validationSummary = "Save repository is not yet connected.";
-            return false;
         }
     }
 

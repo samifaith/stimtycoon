@@ -16,7 +16,7 @@
     "com.unity.ui": "2.0.0",
     "com.unity.ui.builder": "2.0.0",
     "com.unity.visualscripting": "1.9.11",
-    "dev.yarnspinner.unity": "https://github.com/YarnSpinnerTool/YarnSpinner-Unity.git#current",
+    "dev.yarnspinner.unity": "https://github.com/YarnSpinnerTool/YarnSpinner-Unity.git#4c0c8ef55129c1c93fd3d3419536ca0cc533335f",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

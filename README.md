@@ -58,16 +58,7 @@ scripts/qa/run-unity-tests.sh visual
 
 Artifacts are written to the ignored `Artifacts/` directory.
 
-The latest retained local results are:
-
-- 1,336 passing quick EditMode cases on July 19, 2026;
-- 5 passing production-scene PlayMode smoke cases on July 19, 2026;
-- 729 passing full EditMode cases, including the slow simulation, on July 18, 2026;
-- 1 passing M13 visual-capture case producing 48 review images on July 19, 2026.
-
-The differing quick/full counts reflect category selection and Unity parameterized-case discovery; consult the NUnit XML artifact rather than adding the counts together.
-
-See [QA strategy](docs/QA_STRATEGY.md) for test tiers and release evidence.
+See the canonical [QA baseline](docs/QA_BASELINE.md) for retained counts and current-checkout evidence. The [QA strategy](docs/QA_STRATEGY.md) defines test tiers and release requirements.
 
 ## Project structure
 

@@ -17,7 +17,7 @@ namespace StimTycoon.Tests.Domain.UI
     public sealed class LifeScreenStructureTests
     {
         private const string PlayableLifePath = "Assets/StimTycoon/UI/VerticalSlice.uxml";
-        private const string PlayableScenePath = "Assets/StimTycoon/Scenes/VerticalSlice.unity";
+        private const string PlayableScenePath = StimProjectPaths.VerticalSliceScene;
         private const string HeaderPath = "Assets/StimTycoon/UI/Components/AppHeader/AppHeader.uxml";
         private const string NavigationPath = "Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml";
         private const string FeedRowPath = "Assets/StimTycoon/UI/Components/FeedRow/FeedRow.uxml";
@@ -29,6 +29,7 @@ namespace StimTycoon.Tests.Domain.UI
         private const string DestinationsPath = "Assets/StimTycoon/UI/Styles/Destinations.uss";
         private const string FrontendCanvasPath = "Assets/StimTycoon/UI/Styles/FrontendCanvas.uss";
         private const string ControllerPath = "Assets/StimTycoon/Runtime/VerticalSliceController.cs";
+        private const string CompositionRootPath = "Assets/StimTycoon/Runtime/RuntimeCompositionRoot.cs";
         private const string ShellBinderPath = "Assets/StimTycoon/Runtime/ShellBinder.cs";
 
         [Test]
@@ -369,6 +370,40 @@ namespace StimTycoon.Tests.Domain.UI
         }
 
         [Test]
+        public void SerializedFirstPartyAssets_ReferenceOnlyResolvableGuids()
+        {
+            var serializedExtensions = new HashSet<string>
+            {
+                ".asset", ".mat", ".prefab", ".unity", ".uss", ".uxml"
+            };
+            var guidPattern = new Regex(@"guid\s*[:=]\s*[""']?([0-9a-fA-F]{32})",
+                RegexOptions.Compiled);
+            var missingReferences = new List<string>();
+            var assetGuids = AssetDatabase.FindAssets(string.Empty,
+                new[] { "Assets/StimTycoon", "Assets/StimDesignSystem" });
+
+            foreach (var assetGuid in assetGuids)
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
+                if (!serializedExtensions.Contains(Path.GetExtension(assetPath))) continue;
+
+                var contents = File.ReadAllText(assetPath);
+                foreach (Match match in guidPattern.Matches(contents))
+                {
+                    var referencedGuid = match.Groups[1].Value;
+                    if (referencedGuid.StartsWith("000000", System.StringComparison.Ordinal)) continue;
+                    if (!string.IsNullOrEmpty(AssetDatabase.GUIDToAssetPath(referencedGuid))) continue;
+
+                    missingReferences.Add($"{assetPath} -> {referencedGuid}");
+                }
+            }
+
+            Assert.That(missingReferences, Is.Empty,
+                "Serialized first-party assets contain unresolved GUID references:\n" +
+                string.Join("\n", missingReferences.Distinct()));
+        }
+
+        [Test]
         public void VisualPlaceholder_RequiresStableAccessibleMetadataAndRendersFallback()
         {
             Assert.Throws<System.ArgumentException>(() => VisualPlaceholderFactory.Create(
@@ -621,11 +656,13 @@ namespace StimTycoon.Tests.Domain.UI
         [Test]
         public void PlayableController_RegistersThroughTheCanonicalRolloutBoundary()
         {
-            var source = File.ReadAllText(ControllerPath);
+            var controllerSource = File.ReadAllText(ControllerPath);
+            var compositionSource = File.ReadAllText(CompositionRootPath);
 
-            StringAssert.Contains("PlayableEventCatalog.Build().events", source);
-            StringAssert.DoesNotContain("catalog.Upsert(RepresentativeEvents.Create", source);
-            StringAssert.DoesNotContain("StagedEventCatalog.Create", source);
+            StringAssert.Contains("RuntimeCompositionRoot.CreateDefault()", controllerSource);
+            StringAssert.Contains("PlayableEventCatalog.Build().events", compositionSource);
+            StringAssert.DoesNotContain("catalog.Upsert(RepresentativeEvents.Create", compositionSource);
+            StringAssert.DoesNotContain("StagedEventCatalog.Create", compositionSource);
         }
 
         [Test]
