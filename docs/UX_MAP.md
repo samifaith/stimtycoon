@@ -17,7 +17,7 @@ The locked direction is **cozy corporate**: structured and financially literate,
 - Cards use thick outlines, rounded corners, clear headings, and short blocks of copy.
 - Normal tap targets are at least 44 points tall; primary actions target 48 points or more.
 
-The live implementation is rooted at `Assets/StimTycoon/UI/StimVerticalSlice.uxml` and references only the canonical Stim-owned `Assets/StimTycoon/UI/Styles/StimTheme.uss` and `Assets/StimTycoon/UI/Styles/Components.uss` entry points. `Components.uss` temporarily maps retained legacy layout rules while they are extracted screen by screen. Imported GUI packs remain vendor-owned and are consumed only through Stim-owned composition and style adapters.
+The live implementation is rooted at `Assets/StimTycoon/UI/VerticalSlice.uxml` and uses UI Toolkit for menus, dashboards, sheets, feeds, business, and customization. Production styles reference only the approved subset in `Assets/StimDesignSystem`; retained tools and notices live in `Assets/ThirdParty`. No production Canvas/uGUI hierarchy is used.
 
 The approved presentation is compact and wireframe-led: restrained white cards on a pale-blue canvas, an 88–96 point player/cash header, wrapped 24–28 point page headings, dense 44–64 point rows, and six icon-over-label navigation targets. Lucide SVGs identify functional navigation and controls. Emoji are the temporary imagery system for avatars, feed categories, destination illustrations, objects, and badges until original production art replaces them.
 
@@ -89,7 +89,7 @@ The alternate five-tab navigation, action quota/`End Turn`, Stim Coins, and seas
 
 Build the component layer in this order so each addition is exercised by the playable loop:
 
-1. `StimButton`, `StimCard`, and `SectionHeader`
+1. `Button`, `Card`, and `SectionHeader`
 2. `StatMeter`, `MoneyValue`, and signed `ChangeBadge`
 3. `EventCard`, `ChoiceButton`, and `OutcomeCard`
 4. `TimelineEntry` and bottom navigation

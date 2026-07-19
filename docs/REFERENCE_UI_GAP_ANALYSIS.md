@@ -10,7 +10,7 @@ The images are product specifications for hierarchy, density, feedback, and inte
 
 Status labels:
 
-- **Live** — present in the playable `StimVerticalSlice` and connected to saved game state.
+- **Live** — present in the playable `VerticalSlice` and connected to saved game state.
 - **Partial** — a working foundation exists, but the pictured component, behavior, or state coverage is incomplete.
 - **Missing** — approved for Stim Tycoon but not implemented in the playable destination.
 - **Deferred** — intentionally gated behind a later product, economy, service, privacy, or platform decision.
@@ -129,7 +129,7 @@ These screens are documented so later work does not need to reverse-engineer the
 | Rewarded-ad prompt | Explicit selectable reward, Watch Ad, decline, available boosts and quotas | Consent/ATT, unavailable, loading, started, skipped, completed, reward grant, duplicate callback, cooldown/cap, offline, age treatment | **Deferred — COM-03** |
 | Season/event rewards | Season timer/level/XP, free/premium tracks, claim cells, pass upsell, challenge, mini-game teaser | Active/expired season, locked/unlocked lane, claimable/claimed, missed reward policy, migration, offline, purchase loss/restore | **Deferred — COM-04/05** |
 
-Before any of these tasks becomes active, product must approve the economy and player value, legal/privacy must approve disclosures and age treatment, and engineering must retain optional offline-safe `IStimAdsService`/IAP boundaries. Baseline progression, recovery, earned achievements, Advance Month, saves, and endings cannot require an ad or purchase.
+Before any of these tasks becomes active, product must approve the economy and player value, legal/privacy must approve disclosures and age treatment, and engineering must retain optional offline-safe `IAdsService`/IAP boundaries. Baseline progression, recovery, earned achievements, Advance Month, saves, and endings cannot require an ad or purchase.
 
 ## Shared branch-state checklist
 

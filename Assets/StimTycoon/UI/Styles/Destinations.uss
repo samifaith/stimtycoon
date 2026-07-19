@@ -1462,7 +1462,7 @@
 }
 
 .st-component-page-heading .st-social-title {
-    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+    -unity-font-definition: url("project://database/Assets/StimDesignSystem/Fonts/Baloo-Regular.ttf");
     font-size: 20px;
     line-height: 23px;
 }
@@ -1496,7 +1496,7 @@
     color: var(--st-text-primary);
     white-space: normal;
     -unity-text-align: middle-center;
-    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+    -unity-font-definition: url("project://database/Assets/StimDesignSystem/Fonts/Baloo-Regular.ttf");
 }
 
 .st-asset-kits-integrated .st-advance-month,
@@ -1512,7 +1512,7 @@
     color: white;
     white-space: normal;
     -unity-text-align: middle-center;
-    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+    -unity-font-definition: url("project://database/Assets/StimDesignSystem/Fonts/Baloo-Regular.ttf");
 }
 
 .st-asset-kits-integrated .st-segmented-tab,
@@ -1557,7 +1557,7 @@
 
 .st-asset-kits-integrated .st-result-card {
     border-width: 3px;
-    border-color: var(--stim-pack-reward);
+    border-color: var(--pack-reward);
     background-color: rgb(255, 245, 251);
 }
 
@@ -1697,7 +1697,7 @@
     height: 36px;
     align-self: center;
     margin-bottom: 4px;
-    background-image: url("project://database/Assets/Jelly_UI_Pack/Sprites/Icons/star_icon.png");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/star.png");
     -unity-background-scale-mode: scale-to-fit;
 }
 

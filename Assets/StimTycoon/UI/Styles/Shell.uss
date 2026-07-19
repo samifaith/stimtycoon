@@ -31,32 +31,32 @@
 }
 
 .st-asset-kits-integrated .st-nav-icon.icon-home {
-    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/home-64.png");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/home.png");
     -unity-background-scale-mode: scale-to-fit;
 }
 
 .st-asset-kits-integrated .st-nav-icon.icon-study {
-    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/book-64.png");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/book.png");
     -unity-background-scale-mode: scale-to-fit;
 }
 
 .st-asset-kits-integrated .st-nav-icon.icon-work {
-    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/rocket-64.png");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/rocket.png");
     -unity-background-scale-mode: scale-to-fit;
 }
 
 .st-asset-kits-integrated .st-nav-icon.icon-bank {
-    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/buy-64.png");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/buy.png");
     -unity-background-scale-mode: scale-to-fit;
 }
 
 .st-asset-kits-integrated .st-nav-icon.icon-social {
-    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/heart-64.png");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/heart.png");
     -unity-background-scale-mode: scale-to-fit;
 }
 
 .st-asset-kits-integrated .st-nav-icon.icon-goals {
-    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/trophy-64.png");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/trophy.png");
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -626,27 +626,33 @@
 }
 
 .icon-home {
-    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/house.svg");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/Lucide/house.svg");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .icon-study {
-    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/graduation-cap.svg");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/Lucide/graduation-cap.svg");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .icon-work {
-    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/briefcase-business.svg");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/Lucide/briefcase-business.svg");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .icon-bank {
-    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/landmark.svg");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/Lucide/landmark.svg");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .icon-social {
-    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/users.svg");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/Lucide/users.svg");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .icon-goals {
-    background-image: url("project://database/Assets/StimTycoon/UI/Icons/Lucide/star.svg");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/Lucide/star.svg");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .st-nav-label {

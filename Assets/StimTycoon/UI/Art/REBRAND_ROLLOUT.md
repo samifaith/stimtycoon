@@ -2,10 +2,10 @@
 
 ## Codebase findings
 
-- The production UI is `Assets/StimTycoon/UI/StimVerticalSlice.uxml`, backed by `StimVerticalSliceController` and structural UI tests.
+- The production UI is `Assets/StimTycoon/UI/VerticalSlice.uxml`, backed by `VerticalSliceController` and structural UI tests.
 - `AppHeader` and `BottomNavigation` are the only extracted UXML templates currently used by the production screen.
 - `ActionTile`, `BaseCard`, and `StatRow` exist as a second-generation component library but are not instantiated by the production screen yet.
-- The four directly referenced production owners are `StimTheme.uss`, `Shell.uss`, `Components.uss`, and `Destinations.uss`. Imports, the CozyCorporate cascade, the old vertical-slice sheet, and the unused prototype style system have been removed.
+- The four directly referenced production owners are `Theme.uss`, `Shell.uss`, `Components.uss`, and `Destinations.uss`. Imports, the CozyCorporate cascade, the old vertical-slice sheet, and the unused prototype style system have been removed.
 - Runtime factories create feed, achievement, relationship, account, career-path, stat, action, skill, and placeholder elements. Stable names, tooltips, and component classes are production contracts.
 - Responsive behavior is controller-driven at 360 px and below, with tests covering 320, 360, 390, 430, and 768 px, large text, safe areas, bindings, and shell structure.
 
@@ -37,15 +37,15 @@ The intended visual sentence is: **Skyden is the language, Space is the organiza
 ## Production component decision
 
 - Do not add a fourth GUI kit to solve responsive layout. The installed Skyden README explicitly targets uGUI, but UI Toolkit provides equivalent panel scaling and USS nine-slicing for its SVGs; using those capabilities avoids a second UI runtime or another adapter.
-- `StimVerticalSlice.uxml` owns static screen composition. `AppHeader` and `BottomNavigation` are its live UXML templates.
-- `StimUiComponentFactory`, `StimActionCardFactory`, and the existing domain-specific builders own dynamic collections whose count and copy change at runtime.
+- `VerticalSlice.uxml` owns static screen composition. `AppHeader` and `BottomNavigation` are its live UXML templates.
+- `UiComponentFactory`, `ActionCardFactory`, and the existing domain-specific builders own dynamic collections whose count and copy change at runtime.
 - The other extracted component UXML files are reviewable structure contracts and gallery references until a live screen explicitly instantiates them; their presence must not be described as production adoption.
 - Stim-owned USS cards, rows, buttons, inputs, sheets, and state treatments are the canonical responsive component system. Vendor assets may decorate that system only in the text-free slots allowed by the production tests.
 
 ## Asset constraints found during audit
 
 - Skyden's selected button is vector art at 326×115. Its rounded rectangle has an approximately 53–55 px protected perimeter, so the production adapter uses complete four-edge USS nine-slicing at a calibrated `0.4` scale rather than scaling the whole SVG out of proportion.
-- Skyden's README and demo target uGUI and configure `Scale With Screen Size` at 1080×1920 with a 0.5 match. Stim's UI Toolkit equivalent is already configured in `StimPanelSettings.asset` at a portrait 390×844 reference with a 0.5 match.
+- Skyden's README and demo target uGUI and configure `Scale With Screen Size` at 1080×1920 with a 0.5 match. Stim's UI Toolkit equivalent is already configured in `PanelSettings.asset` at a portrait 390×844 reference with a 0.5 match.
 - Skyden's panel vectors have fixed native proportions; `panel_list_*` also contains baked labels and `panel_status_score` contains fixed HUD decoration. Those complex panels remain untouched for provenance and are not used as arbitrary responsive surfaces. Flexible cards and rows use Stim-owned USS geometry and the source palette.
 - Jelly's raster buttons and inputs have fixed proportions and no responsive sprite borders. Production uses Jelly artwork only for text-free achievement/result/progress marks; claim, badge, and input controls use Stim-owned surfaces sampled from its palette.
 - Space container PNGs are not stretched onto responsive cards; the native 54×54 homepage frame is used only at its square aspect ratio around destination pictograms.
@@ -68,7 +68,7 @@ The intended visual sentence is: **Skyden is the language, Space is the organiza
 
 3. **Canonical components**
    - Live cards, headings, feed rows, stats, relationships, achievements, accounts, and career paths now use production component contracts.
-   - Static shell elements remain UXML templates; runtime collections use `StimUiComponentFactory` or the existing domain-specific factories.
+   - Static shell elements remain UXML templates; runtime collections use `UiComponentFactory` or the existing domain-specific factories.
    - Reviewable UXML contracts now exist for `SectionHeader`, `FeedRow`, `StatTile`, `AchievementRow`, `ActionCard`, and `InfoBanner` under `Assets/StimTycoon/UI/Components`; their stable root names are protected by EditMode tests.
    - The unused duplicate style system has been removed.
 

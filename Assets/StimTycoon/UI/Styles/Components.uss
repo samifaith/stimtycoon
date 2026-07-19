@@ -520,24 +520,24 @@
     white-space: normal;
 }
 
-.stim-pack-action-row {
+.pack-action-row {
     min-height: 56px;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
 }
 
-.stim-pack-interaction-pop {
+.pack-interaction-pop {
     transition-property: opacity, -unity-background-image-tint-color;
     transition-duration: 0.08s;
     transition-timing-function: ease-out;
 }
 
-.stim-pack-interaction-pop:active {
+.pack-interaction-pop:active {
     opacity: 0.86;
 }
 
-.stim-pack-interaction-pop:disabled {
+.pack-interaction-pop:disabled {
     opacity: 0.48;
 }
 
@@ -581,7 +581,7 @@
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Containers/Medium/homepage-icon-container-medium.png");
+    background-image: url("project://database/Assets/StimDesignSystem/Containers/icon-container.png");
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -622,7 +622,7 @@
     border-radius: 14px;
 }
 
-.stim-pack-panel {
+.pack-panel {
     padding: 10px;
     background-color: rgba(255, 255, 255, 0.97);
     border-width: 1px;
@@ -653,7 +653,7 @@
     color: rgb(7, 36, 82);
     font-size: 16px;
     -unity-font-style: bold;
-    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+    -unity-font-definition: url("project://database/Assets/StimDesignSystem/Fonts/Baloo-Regular.ttf");
     letter-spacing: 0.6px;
 }
 
@@ -1157,14 +1157,14 @@
     flex-shrink: 0;
 }
 
-.st-achievement-icon.stim-pack-reward-icon {
+.st-achievement-icon.pack-reward-icon {
     background-color: rgba(0, 0, 0, 0);
     color: rgba(0, 0, 0, 0);
 }
 
 /* Asset-kit production layer. Runtime factories inherit these mappings. */
 .st-asset-kits-integrated .st-polished-card,
-.st-asset-kits-integrated .stim-pack-panel,
+.st-asset-kits-integrated .pack-panel,
 .st-asset-kits-integrated .st-card,
 .st-asset-kits-integrated .st-action-card,
 .st-asset-kits-integrated .st-preview-panel,
@@ -1189,7 +1189,7 @@
     color: white;
     white-space: normal;
     -unity-text-align: middle-center;
-    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+    -unity-font-definition: url("project://database/Assets/StimDesignSystem/Fonts/Baloo-Regular.ttf");
 }
 
 .st-asset-kits-integrated .st-percentage-button {
@@ -1217,24 +1217,24 @@
 .st-asset-kits-integrated .st-relationship-card-track,
 .st-asset-kits-integrated .st-xp-pill {
     background-color: rgba(0, 0, 0, 0);
-    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Other/Progress_Bar.svg.svg");
+    background-image: url("project://database/Assets/StimDesignSystem/Progress/progress-bar.svg");
     -unity-background-scale-mode: scale-to-fit;
     border-width: 0;
 }
 
-.st-asset-kits-integrated .stim-pack-reward-button,
+.st-asset-kits-integrated .pack-reward-button,
 .st-asset-kits-integrated .st-brand-jelly-claim {
     min-width: 0;
     min-height: 44px;
     padding: 8px 10px;
-    background-color: var(--stim-pack-reward);
+    background-color: var(--pack-reward);
     border-width: 2px;
-    border-color: var(--stim-pack-reward-accent);
+    border-color: var(--pack-reward-accent);
     border-radius: 18px;
     color: white;
     white-space: normal;
     -unity-text-align: middle-center;
-    -unity-font-definition: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Demo/Fonts/Baloo/Baloo-Regular.ttf");
+    -unity-font-definition: url("project://database/Assets/StimDesignSystem/Fonts/Baloo-Regular.ttf");
 }
 
 .st-asset-kits-integrated .st-achievement-row {
@@ -1249,12 +1249,12 @@
     border-top-color: var(--st-border-blue);
     border-right-color: var(--st-border-blue);
     border-bottom-color: var(--st-border-blue);
-    border-left-color: var(--stim-pack-reward);
+    border-left-color: var(--pack-reward);
     border-radius: 14px;
 }
 
 .st-asset-kits-integrated .st-info-icon {
-    background-image: url("project://database/Assets/Space_Exploration_GUI_Kit/Picto_Icons/Dark_Purple/info-64.png");
+    background-image: url("project://database/Assets/StimDesignSystem/Icons/info.png");
     -unity-background-scale-mode: scale-to-fit;
     color: rgba(0, 0, 0, 0);
 }
@@ -1293,9 +1293,9 @@
 
 .st-asset-kits-integrated .st-qualification-badge.current {
     max-width: 100%;
-    background-color: var(--stim-pack-reward);
+    background-color: var(--pack-reward);
     border-width: 2px;
-    border-color: var(--stim-pack-reward-accent);
+    border-color: var(--pack-reward-accent);
     border-radius: 14px;
     color: white;
     padding-left: 12px;
@@ -1424,7 +1424,7 @@
 
 .st-asset-kits-integrated .st-skill-track {
     background-color: rgba(0, 0, 0, 0);
-    background-image: url("project://database/Assets/Skyden_Games/Free_Casual_GUI/Resource/Free_Casual_GUI/Other/Progress_Bar.svg.svg");
+    background-image: url("project://database/Assets/StimDesignSystem/Progress/progress-bar.svg");
     -unity-background-scale-mode: scale-to-fit;
     border-width: 0;
 }

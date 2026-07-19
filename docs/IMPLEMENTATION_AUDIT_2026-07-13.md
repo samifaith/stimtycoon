@@ -41,11 +41,11 @@ The repository has a reliable Phase 0 foundation and a user-verified Phase 1 off
 ## Architecture decisions
 
 - Continue using `UIDocument`; do not introduce `PanelRenderer`.
-- Keep simulation mutations inside `StimGameSessionService` or dedicated application services.
-- Route newly extracted action paths through `StimSaveTransactionRunner`; Education is the first migrated compatibility slice.
-- Use the persisted shared action contract and `StimActionCardFactory` for new interactive slices; Education is the reference implementation.
-- Use `StimActionLifecycleService` for timed work so UTC reconciliation and claiming remain persisted, interruption-safe, and single-award.
-- Use `StimActionAmountService` and `StimActionInputFactory` for percentage/exact monetary input and authored payment-method selection.
+- Keep simulation mutations inside `GameSessionService` or dedicated application services.
+- Route newly extracted action paths through `SaveTransactionRunner`; Education is the first migrated compatibility slice.
+- Use the persisted shared action contract and `ActionCardFactory` for new interactive slices; Education is the reference implementation.
+- Use `ActionLifecycleService` for timed work so UTC reconciliation and claiming remain persisted, interruption-safe, and single-award.
+- Use `ActionAmountService` and `ActionInputFactory` for percentage/exact monetary input and authored payment-method selection.
 - Keep event risk labels hidden during normal play.
 - Every visible action must produce explicit signed feedback such as `Smarts +2` or `Health −1`.
 - The free Sinanata design-system package is not retained because all published tags use an API signature that fails with the pinned Unity editor. Stim-owned `ds-` structural classes remain replaceable.

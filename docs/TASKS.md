@@ -163,6 +163,8 @@ W2 editorial approval and small staged-event cohorts may proceed in parallel.
 
 ## M13/M17 — Production UI and assets
 
+- [x] Standardize production screens on UI Toolkit; retain only the Input System EventSystem required for runtime input.
+- [x] Consolidate approved copied art under `Assets/StimDesignSystem`, move retained imports under `Assets/ThirdParty`, and remove demos, size variants, example fonts, and unrelated imagery.
 - [ ] Replace the stripped presentation canvas with the approved centralized token and component system.
 - [ ] Complete shared destination headers, segmented tabs, modal sheets, requirement chips, progress, timer/cooldown rows, selected navigation, feedback, and branch states.
 - [ ] Replace placeholder/default scrollbars with a perceivable, accessible scroll-affordance system.
@@ -180,8 +182,8 @@ W2 editorial approval and small staged-event cohorts may proceed in parallel.
 - [ ] Expand original health, school, drama, career, relationship, family, business, financial, and world-event chains.
 - [ ] Complete age-boundary audits for events, choices, outcomes, rewards, NPC roles, tasks, and visuals.
 - [ ] Expand education, career, business, Home, inventory, goal, achievement, and ending breadth.
-- [ ] Add property and broader portfolios only after existing Bank simulations remain stable.
-- [ ] Add a second business only after the first is understandable, balanced, and recoverable.
+- [x] Add a playable starter rental portfolio: purchase, mortgage, rent, vacancy, maintenance, appreciation, sale, ledger, and net worth.
+- [x] Add save-safe portfolio slots and visible skeletons for two additional businesses; full economics remain post-MVP.
 - [ ] Simulate constrained, middle-income, and affluent lives and remove dominant strategies.
 - [ ] Run human comprehension and replay tests.
 

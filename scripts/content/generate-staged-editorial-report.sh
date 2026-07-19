@@ -15,6 +15,6 @@ fi
 mkdir -p "${PROJECT_ROOT}/Artifacts/Content"
 "${UNITY_EDITOR}" -batchmode -nographics -quit \
   -projectPath "${PROJECT_ROOT}" \
-  -executeMethod StimTycoon.Editor.StimStagedEditorialReportGenerator.GenerateForBatchMode \
+  -executeMethod StimTycoon.Editor.StagedEditorialReportGenerator.GenerateForBatchMode \
   -logFile "${PROJECT_ROOT}/Artifacts/Content/staged-editorial-review.log"
 print "${PROJECT_ROOT}/Artifacts/Content/staged-editorial-review.md"

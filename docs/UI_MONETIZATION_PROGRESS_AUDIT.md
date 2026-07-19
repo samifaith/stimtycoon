@@ -41,9 +41,9 @@ These counts describe implementation evidence, not roadmap priority or product a
 - [x] ~~Audit current UXML, USS, and C# bindings~~
   Protected binding names, a grouped binding manifest, structural tests, the frontend/wiring contract, and the Shell binder are present.
 - [x] ~~Create tokens and theme files~~
-  `StimTheme.uss`, `Shell.uss`, `Components.uss`, `Destinations.uss`, and the last-loaded `FrontendCanvas.uss` are canonical.
+  `Theme.uss`, `Shell.uss`, `Components.uss`, `Destinations.uss`, and the last-loaded `FrontendCanvas.uss` are canonical.
 - [x] ~~Build reusable Player Header~~
-  Implemented as `Assets/StimTycoon/UI/Components/AppHeader/AppHeader.uxml` and wired through `StimShellBinder`.
+  Implemented as `Assets/StimTycoon/UI/Components/AppHeader/AppHeader.uxml` and wired through `ShellBinder`.
 - [x] ~~Build reusable Bottom Navigation~~
   Implemented as `Assets/StimTycoon/UI/Components/BottomNavigation/BottomNavigation.uxml` with six exclusive destinations.
 - [ ] **PARTIAL:** Fix safe areas, overlap, scrolling, and clipping.
@@ -58,7 +58,7 @@ These counts describe implementation evidence, not roadmap priority or product a
 - [ ] **PARTIAL:** Build `MetricCard`.
   Net-worth, balance, stat, progress, and summary cards exist in UXML and USS, but there is no finalized reusable `MetricCard` template or factory.
 - [x] ~~Build `ActionCard`~~
-  `ActionCard.uxml`, `StimActionCardFactory`, state mapping, progress, requirements, previews, and callbacks are implemented.
+  `ActionCard.uxml`, `ActionCardFactory`, state mapping, progress, requirements, previews, and callbacks are implemented.
 - [ ] **PARTIAL:** Build progress, chips, banners, and state components.
   Shared presentation states, progress families, requirement chips, segmented tabs, info callouts, signed result chips, and action states exist. Common visual polish, accessibility semantics, timers, cooldown rows, and complete branch coverage remain incomplete.
 - [ ] **PARTIAL:** Build feedback modals and toasts.
@@ -104,7 +104,7 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 ## Existing monetization foundation that must not be mistaken for completion
 
 - Unity IAP `5.4.1` and Unity LevelPlay `9.5.0` are installed in `Packages/manifest.json`.
-- `IStimAdsService` exists as an SDK boundary.
+- `IAdsService` exists as an SDK boundary.
 - The default runtime uses `NoOpAdsService`.
 - No concrete LevelPlay adapter was found.
 - No Unity Purchasing code or purchase-service abstraction was found.
@@ -203,14 +203,14 @@ No reusable match-board model, board state, tile configuration, scoring engine, 
 - `docs/TASKS.md` — authoritative product decisions and ordered implementation backlog
 - `docs/REFERENCE_UI_GAP_ANALYSIS.md`
 - `docs/FRONTEND_WIRING_WORKFLOW.md`
-- `Assets/StimTycoon/UI/StimVerticalSlice.uxml`
-- `Assets/StimTycoon/UI/Styles/StimTheme.uss`
+- `Assets/StimTycoon/UI/VerticalSlice.uxml`
+- `Assets/StimTycoon/UI/Styles/Theme.uss`
 - `Assets/StimTycoon/UI/Styles/FrontendCanvas.uss`
 - `Assets/StimTycoon/UI/Components/`
-- `Assets/StimTycoon/Runtime/StimVerticalSliceController.cs`
-- `Assets/StimTycoon/Runtime/StimUiComponentFactory.cs`
-- `Assets/StimTycoon/Runtime/StimActionCardFactory.cs`
-- `Assets/StimTycoon/Runtime/StimPresentationState.cs`
-- `Assets/StimTycoon/Runtime/StimRuntimeCompositionRoot.cs`
-- `Assets/StimTycoon/Domain/Save/StimSaveSchema.cs`
+- `Assets/StimTycoon/Runtime/VerticalSliceController.cs`
+- `Assets/StimTycoon/Runtime/UiComponentFactory.cs`
+- `Assets/StimTycoon/Runtime/ActionCardFactory.cs`
+- `Assets/StimTycoon/Runtime/PresentationState.cs`
+- `Assets/StimTycoon/Runtime/RuntimeCompositionRoot.cs`
+- `Assets/StimTycoon/Domain/Save/SaveSchema.cs`
 - `Packages/manifest.json`

@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <Style src="project://database/Assets/StimTycoon/UI/Styles/StimTheme.uss" />
+    <Style src="project://database/Assets/StimTycoon/UI/Styles/Theme.uss" />
     <Style src="project://database/Assets/StimTycoon/UI/Styles/Shell.uss" />
     <Style src="project://database/Assets/StimTycoon/UI/Styles/Components.uss" />
     <Style src="project://database/Assets/StimTycoon/UI/Styles/Destinations.uss" />
@@ -15,8 +15,8 @@
                 <ui:Label text="SKYDEN · EVERYDAY ACTIONS" class="st-gallery-section-title" />
                 <ui:Label text="Vector-backed controls at their validated wide aspect ratio." class="st-gallery-caption" />
                 <ui:VisualElement class="st-gallery-row">
-                    <ui:Button name="skyden-primary" text="ADVANCE MONTH  ›" class="st-gallery-wide-button st-brand-skyden-button stim-pack-interaction-pop" />
-                    <ui:Button name="skyden-disabled" text="LOCKED" enabled="false" class="st-gallery-wide-button st-brand-skyden-button stim-pack-interaction-pop" />
+                    <ui:Button name="skyden-primary" text="ADVANCE MONTH  ›" class="st-gallery-wide-button st-brand-skyden-button pack-interaction-pop" />
+                    <ui:Button name="skyden-disabled" text="LOCKED" enabled="false" class="st-gallery-wide-button st-brand-skyden-button pack-interaction-pop" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
@@ -39,9 +39,9 @@
                 <ui:Label text="JELLY · REWARDS AND MILESTONES" class="st-gallery-section-title" />
                 <ui:Label text="High-energy artwork is reserved for moments that deserve attention." class="st-gallery-caption" />
                 <ui:VisualElement class="st-gallery-reward-card">
-                    <ui:VisualElement class="st-gallery-reward-icon stim-pack-reward-icon" />
+                    <ui:VisualElement class="st-gallery-reward-icon pack-reward-icon" />
                     <ui:VisualElement class="st-gallery-reward-copy"><ui:Label text="Milestone reached!" class="st-gallery-card-title" /><ui:Label text="First year completed · +250 XP" class="st-gallery-caption" /></ui:VisualElement>
-                    <ui:Button name="jelly-claim" text="CLAIM" class="st-gallery-reward-button st-brand-jelly-reward stim-pack-interaction-pop" />
+                    <ui:Button name="jelly-claim" text="CLAIM" class="st-gallery-reward-button st-brand-jelly-reward pack-interaction-pop" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
@@ -50,7 +50,7 @@
                 <ui:VisualElement class="st-gallery-dashboard-card">
                     <ui:VisualElement class="st-gallery-card-heading"><ui:VisualElement class="st-gallery-heading-icon st-brand-space-icon icon-home" /><ui:Label text="Monthly summary" class="st-gallery-card-title" /></ui:VisualElement>
                     <ui:Label text="Space identifies the information, neutral Stim surfaces carry the content, and Jelly appears only when a reward is available." class="st-gallery-intro" />
-                    <ui:VisualElement class="st-gallery-row"><ui:Button text="VIEW DETAILS" class="st-gallery-wide-button st-brand-skyden-button stim-pack-interaction-pop" /><ui:Button text="CLAIM REWARD" class="st-gallery-wide-button st-brand-jelly-reward stim-pack-interaction-pop" /></ui:VisualElement>
+                    <ui:VisualElement class="st-gallery-row"><ui:Button text="VIEW DETAILS" class="st-gallery-wide-button st-brand-skyden-button pack-interaction-pop" /><ui:Button text="CLAIM REWARD" class="st-gallery-wide-button st-brand-jelly-reward pack-interaction-pop" /></ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

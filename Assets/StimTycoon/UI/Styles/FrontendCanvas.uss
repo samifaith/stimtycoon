@@ -56,11 +56,11 @@
     --st-border-purple: rgba(0, 0, 0, 0);
     --st-border-pink: rgba(0, 0, 0, 0);
     --st-border-yellow: rgba(0, 0, 0, 0);
-    --stim-pack-foundation: rgb(32, 32, 32);
-    --stim-pack-foundation-dark: rgb(32, 32, 32);
-    --stim-pack-reward: rgb(32, 32, 32);
-    --stim-pack-reward-accent: rgb(32, 32, 32);
-    --stim-pack-panel: rgba(0, 0, 0, 0);
+    --pack-foundation: rgb(32, 32, 32);
+    --pack-foundation-dark: rgb(32, 32, 32);
+    --pack-reward: rgb(32, 32, 32);
+    --pack-reward-accent: rgb(32, 32, 32);
+    --pack-panel: rgba(0, 0, 0, 0);
 }
 
 /* Three class terms intentionally outrank the legacy multi-class adapters. */

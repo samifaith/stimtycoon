@@ -66,7 +66,7 @@ Frontend work should replace the scoped neutral rules incrementally. Do not remo
 
 ## UI Builder, sprites, stylesheets, and input
 
-- `Assets/StimTycoon/UI/StimVerticalSlice.uxml` is the playable UI Builder document. Its five directly attached USS files are the canonical cascade, with `FrontendCanvas.uss` loaded last for frontend ownership.
+- `Assets/StimTycoon/UI/VerticalSlice.uxml` is the playable UI Builder document. Its five directly attached USS files are the canonical cascade, with `FrontendCanvas.uss` loaded last for frontend ownership.
 - The scene `UIDocument` owns its Panel Settings and Source Asset references in the Inspector. Runtime code validates those references but must not replace them, so scene preview, UI Builder, and Play mode all use the same assets.
 - Feed Row, Achievement Row, and Action Card are UI Builder-authored UXML components. Runtime factories clone those templates and only bind dynamic content, state classes, progress, and callbacks. Do not recreate their visual hierarchy in controller code.
 - Destination cards live under their real destination hosts in UXML; runtime code does not reparent them. A visual slot with an authored sprite child is preserved, while an empty slot receives a fallback placeholder at runtime.
@@ -107,9 +107,9 @@ The wiring return should include:
 
 ## Wiring architecture direction
 
-`StimVerticalSliceController` currently binds the complete vertical slice and is too large for sustained parallel UI work. Extraction should be incremental, not a rewrite:
+`VerticalSliceController` currently binds the complete vertical slice and is too large for sustained parallel UI work. Extraction should be incremental, not a rewrite:
 
-1. Keep `StimGameSessionService` and dedicated application services as the gameplay authority.
+1. Keep `GameSessionService` and dedicated application services as the gameplay authority.
 2. Keep the root controller responsible for composition, modal arbitration, pending events/transitions, and destination navigation.
 3. Extract one binder at a time: Shell, Life, Study, Work, Bank, Social, Goals, then modal sheets.
 4. Each binder receives an already-validated view root and services; it never owns persistence or canonical game rules.
@@ -117,7 +117,7 @@ The wiring return should include:
 6. Route all mutations through typed service calls; never mutate the active save from a binder.
 7. Retain one canonical launch event catalog. The controller must not duplicate an event registration list.
 
-Current extraction progress: `StimShellBinder` owns shared shell behavior; `StimLifeBinder` owns deterministic Life Feed grouping, empty state, template-row binding, and visible-count presentation; `StimLifeOverviewBinder` owns Life overview/Summary stat duplication, progress fills, career/pay copy, and net-worth detail; `StimHomeBinder` owns Home condition/progress, action/upgrade rows, retry control, and transaction feedback; `StimStudyBinder` owns the study catalog plus confirmation-sheet presentation; `StimWorkBinder` owns the career-path preview and manual-work presentation; `StimBankBinder` owns account, transfer, cash-flow, credit, investing, history, and tab presentation; `StimSocialBinder` owns relationship list, discovery, and detail presentation; `StimGoalsBinder` owns goal/achievement row presentation and empty state; `StimNewLifeBinder` owns New Life modal controls, optional-action presentation, and recoverable error display; `StimEventSheetBinder` owns event/result copy, semantic visibility, the choice host, and Continue presentation; and `StimFinalLifeBinder` owns final-life copy plus its New Life action control. The controller retains financial calculations, Home mutations and eligibility authority, ending decisions, event resolution, choice construction/callbacks, time advancement, recovery, workflow persistence, save creation, claim authority, pending-event arbitration, and destination/modal routing.
+Current extraction progress: `ShellBinder` owns shared shell behavior; `LifeBinder` owns deterministic Life Feed grouping, empty state, template-row binding, and visible-count presentation; `LifeOverviewBinder` owns Life overview/Summary stat duplication, progress fills, career/pay copy, and net-worth detail; `HomeBinder` owns Home condition/progress, action/upgrade rows, retry control, and transaction feedback; `StudyBinder` owns the study catalog plus confirmation-sheet presentation; `WorkBinder` owns the career-path preview and manual-work presentation; `BankBinder` owns account, transfer, cash-flow, credit, investing, history, and tab presentation; `SocialBinder` owns relationship list, discovery, and detail presentation; `GoalsBinder` owns goal/achievement row presentation and empty state; `NewLifeBinder` owns New Life modal controls, optional-action presentation, and recoverable error display; `EventSheetBinder` owns event/result copy, semantic visibility, the choice host, and Continue presentation; and `FinalLifeBinder` owns final-life copy plus its New Life action control. The controller retains financial calculations, Home mutations and eligibility authority, ending decisions, event resolution, choice construction/callbacks, time advancement, recovery, workflow persistence, save creation, claim authority, pending-event arbitration, and destination/modal routing.
 
 Proposed boundary:
 
@@ -153,11 +153,11 @@ validation → commit/rollback → Life Feed
 
 ### W2 — Authored content wiring
 
-Five staged Yarn files currently contain 100 new dialogue nodes: Childhood, School, Career, Health, and Money. Yarn Spinner imports them through `StimTycoon.yarnproject`, but a node is not playable until a matching validated `StimEvent` and every referenced choice ID exist in the canonical C# catalog.
+Five staged Yarn files currently contain 100 new dialogue nodes: Childhood, School, Career, Health, and Money. Yarn Spinner imports them through `StimTycoon.yarnproject`, but a node is not playable until a matching validated `Event` and every referenced choice ID exist in the canonical C# catalog.
 
 Current staged progress: all 100 Childhood, School, Career, Health, and Money nodes have compact data-driven definitions with explicit age ranges, requirements, effects, cooldowns, telemetry, production validation, and exact Yarn choice parity. They intentionally remain outside the launch catalog until pacing, distribution, and editorial review.
 
-- [x] Add data-driven `StimEvent` definitions for the 100 staged nodes without creating a 100-method controller/catalog file.
+- [x] Add data-driven `Event` definitions for the 100 staged nodes without creating a 100-method controller/catalog file.
 - [x] Assign explicit age ranges, timing, requirements, cooldown/repeat policy, locations, outcome weights, meaningful effects, feed text, and telemetry to every event.
 - [x] Require `minor_cash_agency` only where a child truly has appropriate financial agency; all staged cash-charging outcomes are currently age 18+ and automated coverage protects that boundary.
 - [x] Add an automated Yarn-to-catalog contract test for every `stim_resolve_choice` event and choice ID.

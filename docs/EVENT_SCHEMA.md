@@ -26,7 +26,7 @@ Age bands, progression requirements, NPC-trigger priority, reward budgets, Life 
 ### Event (Root)
 
 ```csharp
-StimEvent {
+Event {
   schemaVersion: int = 1
   id: string (e.g., "career_salary_negotiation_001")
   category: EventCategory (Childhood, School, Career, Health, Money, Relationship, Business, World, Legacy)
@@ -138,7 +138,7 @@ Visuals are optional to event resolution but required as content metadata before
 
 ### Step 1: Define in Code or JSON
 
-Create a `StimEvent` object (in C# or as JSON):
+Create a `Event` object (in C# or as JSON):
 
 ```json
 {
@@ -220,7 +220,7 @@ In C#:
 
 ```csharp
 var evt = LoadOrDeserializeEvent(json);
-var result = StimEventValidator.ValidateEvent(evt);
+var result = EventValidator.ValidateEvent(evt);
 
 if (result.isValid)
 {
@@ -228,7 +228,7 @@ if (result.isValid)
 }
 else
 {
-    Debug.LogError(StimEventValidator.GetValidationSummary(result, evt.id));
+    Debug.LogError(EventValidator.GetValidationSummary(result, evt.id));
 }
 ```
 
@@ -254,14 +254,14 @@ modifierRuleIds: ["skill_negotiation_4", "stat_smarts_above_75", "trait_ambitiou
 
 ### Unit Test Validator
 
-In `Assets/StimTycoon/Tests/Domain/Events/StimEventValidatorTests.cs`:
+In `Assets/StimTycoon/Tests/Domain/Events/EventValidatorTests.cs`:
 
 ```csharp
 [Test]
 public void MyCustomEvent_PassesValidation()
 {
     var evt = CreateMyEvent();
-    var result = StimEventValidator.ValidateEvent(evt);
+    var result = EventValidator.ValidateEvent(evt);
     Assert.IsTrue(result.isValid);
 }
 ```
@@ -277,10 +277,10 @@ private static void ValidateAllEvents()
     var events = Resources.LoadAll<EventScriptableObject>("Events");
     foreach (var evt in events)
     {
-        var result = StimEventValidator.ValidateEvent(evt.data);
+        var result = EventValidator.ValidateEvent(evt.data);
         if (!result.isValid)
         {
-            Debug.LogError($"Event {evt.name} failed validation:\n{StimEventValidator.GetValidationSummary(result, evt.name)}");
+            Debug.LogError($"Event {evt.name} failed validation:\n{EventValidator.GetValidationSummary(result, evt.name)}");
         }
     }
 }
@@ -351,7 +351,7 @@ To make breaking changes (e.g., removing a field or changing a type):
 
 ## Test Coverage
 
-Current tests in `Assets/StimTycoon/Tests/Domain/Events/StimEventValidatorTests.cs`:
+Current tests in `Assets/StimTycoon/Tests/Domain/Events/EventValidatorTests.cs`:
 
 - ✓ Rejects null event
 - ✓ Rejects wrong schema version

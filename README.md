@@ -34,7 +34,7 @@ The current execution order and all remaining product decisions live in the [mas
 
 1. Install Unity `6000.3.19f1` with iOS Build Support.
 2. Open this directory as an existing Unity project.
-3. Open `Assets/StimTycoon/Scenes/StimVerticalSlice.unity`.
+3. Open `Assets/StimTycoon/Scenes/VerticalSlice.unity`.
 4. Enter Play Mode.
 
 If the scene must be rebuilt, use `Tools → Stim Tycoon → Create Vertical Slice Scene`.

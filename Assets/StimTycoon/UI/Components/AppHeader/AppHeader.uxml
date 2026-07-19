@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <ui:VisualElement name="app-header" class="st-life-header st-component-app-header stim-pack-status-cluster st-brand-skyden-panel">
+    <ui:VisualElement name="app-header" class="st-life-header st-component-app-header pack-status-cluster st-brand-skyden-panel">
         <ui:Button name="open-life-summary" class="st-profile-cluster" tooltip="Open Life Summary">
             <ui:VisualElement class="st-profile-avatar"><ui:Label name="avatar-glyph" text="🧑" class="st-profile-avatar-glyph" /></ui:VisualElement>
             <ui:VisualElement class="st-profile-meta">
@@ -19,7 +19,7 @@
                 <ui:Label name="cash-value" text="$2,540,812" class="st-balance-value" />
                 <ui:Label name="header-net-worth-value" text="Net $2,540,812" class="st-header-net-worth" />
             </ui:VisualElement>
-            <ui:Button name="add-cash" text="+" class="st-balance-add st-brand-skyden-add stim-pack-secondary-button stim-pack-interaction-pop" tooltip="Money options" />
+            <ui:Button name="add-cash" text="+" class="st-balance-add st-brand-skyden-add pack-secondary-button pack-interaction-pop" tooltip="Money options" />
             <ui:Button name="com.header.money_entry" text="◇" enabled="false" focusable="false" class="st-commerce-header-entry st-commerce-unavailable" tooltip="Legacy Gems store unavailable" />
         </ui:VisualElement>
     </ui:VisualElement>

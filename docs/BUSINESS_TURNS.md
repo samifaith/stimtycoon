@@ -444,7 +444,7 @@ Then:   Turns: 2/10
 
 ## Implementation Checklist (Phase 1–4)
 
-**Current-code reconciliation:** this document describes a broader turn-based business design. The playable alpha now has one persisted operational business with action points, manual work, monthly revenue/expenses/profit, staff and location levels, ledger retention, valuation, failure pressure, sale behavior, and Life Feed feedback. It does not yet implement this document's full timer-replenished turn model, three-business breadth, equipment depth, or focused dashboard presentation.
+**Current-code reconciliation:** the playable alpha has one operational service business plus a playable rental-property portfolio with purchase, mortgage, rent, vacancy, maintenance, appreciation, sale, ledger, and net-worth integration. Two additional business slots have persisted/UI skeletons. Full three-business economics, equipment depth, and focused dashboard presentation remain future work.
 
 ### Phase 1 (Skeleton)
 
@@ -461,7 +461,7 @@ Then:   Turns: 2/10
 
 ### Phase 4 (Business MVP)
 
-- [ ] All three business types fully implemented
+- [ ] All three business types fully implemented (rental-property MVP and two additional-business skeletons exist)
 - [ ] Equipment and upgrade system
 - [ ] Business events integration
 - [x] Initial valuation and sale mechanics
