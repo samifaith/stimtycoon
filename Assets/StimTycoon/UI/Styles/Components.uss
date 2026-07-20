@@ -1533,3 +1533,20 @@
     -unity-font-style: bold;
     border-width: 2px;
 }
+.st-privacy-link {
+    position: absolute;
+    right: 12px;
+    bottom: 82px;
+    min-width: 72px;
+    min-height: 44px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+.st-privacy-sheet { max-width: 520px; }
+.st-privacy-toggle {
+    min-height: 44px;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.72);
+}

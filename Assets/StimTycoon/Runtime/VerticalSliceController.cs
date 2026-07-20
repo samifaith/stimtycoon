@@ -54,6 +54,7 @@ namespace StimTycoon.Runtime
         private HomeBinder homeBinder;
         private MatchBinder matchBinder;
         private LifeOverviewBinder lifeOverviewBinder;
+        private PrivacyConsentBinder privacyConsentBinder;
         private Label avatarGlyph;
         private VisualElement playerOverview;
         private Button advanceMonth;
@@ -197,6 +198,7 @@ namespace StimTycoon.Runtime
             homeBinder = new HomeBinder(root);
             matchBinder = new MatchBinder(root);
             lifeOverviewBinder = new LifeOverviewBinder(root);
+            privacyConsentBinder = new PrivacyConsentBinder(root);
             cashValue = shellBinder.CashValue;
             lifeSummary = shellBinder.LifeSummary;
             calendarSummary = shellBinder.CalendarSummary;
@@ -422,6 +424,8 @@ namespace StimTycoon.Runtime
             finalLifeBinder = null;
             homeBinder = null;
             lifeOverviewBinder = null;
+            privacyConsentBinder?.Dispose();
+            privacyConsentBinder = null;
             rootElement = null;
         }
 

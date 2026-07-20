@@ -370,6 +370,28 @@
 
         <ui:Instance template="BottomNavigation" class="st-shell-nav-slot" />
 
+        <ui:Button name="open-privacy-settings" text="PRIVACY" class="st-privacy-link" tooltip="Review privacy choices" />
+        <ui:VisualElement name="privacy-consent-screen" class="st-event-scrim hidden">
+            <ui:VisualElement class="st-event-sheet st-privacy-sheet">
+                <ui:ScrollView class="st-event-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden">
+                    <ui:VisualElement class="st-event-content">
+                        <ui:Label text="YOUR PRIVACY" class="st-event-kicker" />
+                        <ui:Label text="Choose what you share" class="st-event-title" />
+                        <ui:Label text="Both choices are optional and start off. You can play with either denied and change them later." class="st-event-body" />
+                        <ui:Toggle name="privacy-analytics-toggle" text="Allow gameplay analytics" class="st-privacy-toggle" />
+                        <ui:Toggle name="privacy-ads-toggle" text="Allow personalized advertising" class="st-privacy-toggle" />
+                        <ui:Button name="privacy-policy-link" text="VIEW PRIVACY POLICY" class="st-setup-cancel" />
+                        <ui:Button name="privacy-delete-analytics" text="DELETE ANALYTICS DATA" class="st-setup-cancel" />
+                        <ui:Label name="privacy-feedback" text="" class="st-money-help" />
+                    </ui:VisualElement>
+                </ui:ScrollView>
+                <ui:VisualElement class="st-setup-actions">
+                    <ui:Button name="privacy-cancel" text="CANCEL" class="st-setup-cancel" />
+                    <ui:Button name="privacy-save" text="SAVE CHOICES" class="st-setup-create st-brand-skyden-primary" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
         <ui:VisualElement name="study-session-sheet" class="st-event-scrim hidden">
             <ui:VisualElement class="st-event-sheet st-study-session-sheet">
                 <ui:ScrollView class="st-event-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden">
