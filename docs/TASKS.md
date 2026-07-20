@@ -201,7 +201,7 @@ W2 editorial approval and small staged-event cohorts may proceed in parallel.
 - [ ] Track reason code, transaction/receipt ID, earned/purchased attribution, balance before/after, timestamp, and duplicate key.
 - [ ] Implement atomic grant/spend, insufficient balance, rollback, duplicate receipt/grant rejection, refund/revocation, offline, and cloud-conflict rules.
 - [ ] Define and simulate Spark sources, packs, caps, sinks, costs, and progression impact before enabling spending.
-- [ ] Rename current disabled Legacy Gem wallet/store presentation to Sparks; retain Legacy Gems only as the Goals match theme.
+- [x] Rename the disabled premium-store presentation to Sparks; retain Legacy Gems only as the Goals match theme.
 
 ### Store and Stim+
 

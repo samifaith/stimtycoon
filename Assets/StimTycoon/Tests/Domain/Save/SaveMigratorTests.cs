@@ -65,6 +65,11 @@ namespace StimTycoon.Tests.Domain.Save
             Assert.That(result.state.family.children, Is.Not.Null.And.Empty);
             Assert.That(result.state.business, Is.Not.Null);
             Assert.That(result.state.business.status, Is.EqualTo("none"));
+            Assert.That(result.state.businessPortfolio, Is.Not.Null);
+            Assert.That(result.state.businessPortfolio.businesses, Is.Empty);
+            Assert.That(result.state.propertyPortfolio, Is.Not.Null);
+            Assert.That(result.state.propertyPortfolio.properties, Is.Empty);
+            Assert.That(result.state.propertyPortfolio.ledger, Is.Empty);
             Assert.That(result.state.goals, Is.Not.Null.And.Empty);
             Assert.That(result.state.orientation.status, Is.EqualTo("completed"));
             Assert.That(result.state.orientation.completedRevision, Is.GreaterThan(0));

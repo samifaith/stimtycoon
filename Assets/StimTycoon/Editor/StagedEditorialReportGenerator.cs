@@ -59,7 +59,17 @@ namespace StimTycoon.Editor
             output.AppendLine();
             output.AppendLine($"- Events: {nodes.Count}");
             output.AppendLine($"- Choices/outcomes: {nodes.Sum(node => node.choices.Count)}");
+            output.AppendLine($"- Balance profile: `{EffectValueResolver.BalanceProfileId}`");
             output.AppendLine("- Required review: tone, age/cultural context, choice clarity, consequence clarity");
+            output.AppendLine();
+            output.AppendLine("## Balance rules");
+            output.AppendLine();
+            output.AppendLine("| Rule | Default | Allowed range | Units |");
+            output.AppendLine("|---|---:|---:|---|");
+            foreach (var rule in EffectValueResolver.GetDefinitions())
+                output.AppendLine($"| `{rule.id}` | {rule.defaultValue:0.##} | " +
+                                  $"{rule.minimumValue:0.##} to {rule.maximumValue:0.##} | " +
+                                  $"{(rule.requiresWholeUnits ? "whole" : "fractional")} |");
             output.AppendLine();
 
             foreach (var node in nodes.OrderBy(item => item.id, StringComparer.Ordinal))

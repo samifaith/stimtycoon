@@ -109,6 +109,8 @@ Notable installed dependencies include:
 
 Installed commerce packages do not imply configured products, placements, entitlements, or production behavior. Follow the gates in the [master task list](docs/TASKS.md) and the [package checklist](docs/PACKAGE_INSTALL_CHECKLIST.md).
 
+Keep/remove decisions and the measured removal protocol live in the [package policy and usage matrix](docs/PACKAGE_POLICY.md).
+
 ## Documentation
 
 There are two authoritative project documents:

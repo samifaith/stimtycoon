@@ -49,6 +49,33 @@ namespace StimTycoon.Tests.Domain.Events
         }
 
         [Test]
+        public void BalanceProfile_RejectsSignFlipsFractionsAndOutOfBandValues()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => new EffectValueResolver(
+                new Dictionary<string, float> { { EffectValueRules.StagedCashSmallCost, 1f } }));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new EffectValueResolver(
+                new Dictionary<string, float> { { EffectValueRules.StagedSkillXpGain, -1f } }));
+            Assert.Throws<ArgumentException>(() => new EffectValueResolver(
+                new Dictionary<string, float> { { EffectValueRules.StagedStatGain, 1.5f } }));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new EffectValueResolver(
+                new Dictionary<string, float> { { EffectValueRules.StagedStatGain, 11f } }));
+        }
+
+        [Test]
+        public void VersionedBalanceProfile_HasUniqueBoundedDefaults()
+        {
+            var definitions = EffectValueResolver.GetDefinitions();
+
+            Assert.That(EffectValueResolver.BalanceProfileId, Is.EqualTo("staged_rewards_v1"));
+            Assert.That(definitions, Has.Count.EqualTo(7));
+            Assert.That(definitions.Select(item => item.id).Distinct(StringComparer.Ordinal).Count(),
+                Is.EqualTo(definitions.Count));
+            Assert.That(definitions.All(item => item.minimumValue <= item.defaultValue &&
+                                                item.defaultValue <= item.maximumValue), Is.True);
+            Assert.That(definitions.All(item => item.requiresWholeUnits), Is.True);
+        }
+
+        [Test]
         public void EveryStagedConsequence_UsesARegisteredDynamicValueRule()
         {
             var resolver = new EffectValueResolver();

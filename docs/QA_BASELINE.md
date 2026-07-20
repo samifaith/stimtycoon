@@ -2,19 +2,7 @@
 
 This file is the canonical record of retained automated-test evidence. Other project documents link here instead of copying counts.
 
-## Current checkout
-
-- Commit: `c3c88cf526379b0594d201da617f2b9cf92f160a`
-- Unity: `6000.3.19f1`
-- Verification target: local audit-remediation worktree based on this commit
-- Date: July 19, 2026
-- Runner: local macOS, Unity `6000.3.19f1`
-
-The working tree contains audit-remediation changes after the commit above; publish a successor SHA before recording release evidence.
-
-The automated suites below verify the local worktree, not the unmodified `c3c88cf` commit. Publish a successor SHA and reproduce the gates in CI before treating the result as release evidence.
-
-## Latest retained local evidence
+## Historical baseline
 
 The repository's latest retained automation record, dated July 19, 2026, reports:
 
@@ -27,7 +15,12 @@ The repository's latest retained automation record, dated July 19, 2026, reports
 
 These retained counts are historical comparison data, not proof for the current checkout. NUnit XML and coverage artifacts under the ignored `Artifacts/` directory are authoritative for an individual run.
 
-## Release evidence for current checkout
+## Published local verification
+
+- Commit: `ec19287224cf0759d2340a535a1cd89e87080234`
+- Date: July 19, 2026
+- Runner: local macOS
+- Unity: `6000.3.19f1`
 
 | Evidence | Status |
 |---|---|
@@ -40,6 +33,40 @@ These retained counts are historical comparison data, not proof for the current 
 | iOS development build | Pending |
 
 Artifacts: `Artifacts/editmode-quick.xml`, `Artifacts/editmode-full.xml`, `Artifacts/playmode-smoke.xml`, `Artifacts/m13-visual.xml`, coverage reports under `Artifacts/*-coverage/Report/`, and the visual checklist at `Artifacts/M13Visual/REVIEW.md`.
+
+## CI verification
+
+Exact commit `ec19287224cf0759d2340a535a1cd89e87080234` passed the GitHub Actions **Unity QA** workflow on July 19, 2026:
+
+| Gate | Result |
+|---|---|
+| EditMode quality gate | Passed; evidence artifact uploaded |
+| PlayMode smoke gate | Passed; evidence artifact uploaded |
+| Nightly full-life simulation | Not scheduled for this push; skipped by workflow policy |
+| `main` branch protection | Not configured; successful jobs are not yet enforced as required checks |
+
+Workflow: `https://github.com/samifaith/stimtycoon/actions/runs/29707852897`
+
+## Current worktree verification
+
+The post-`ec19287` reward-bound, package-policy, terminology, and documentation changes were verified locally on July 20, 2026. These results become a published baseline only after the work receives a commit SHA and passes CI.
+
+| Suite | Result |
+|---|---|
+| Quick EditMode | 1,365 discovered; 1,365 passed; 0 failed; 0 skipped; 30.02 s |
+| Full EditMode | 1,366 discovered; 1,366 passed; 0 failed; 0 skipped; 28.56 s |
+| PlayMode smoke | 5 discovered; 5 passed; 0 failed; 0 skipped; 5.25 s |
+| Visual capture | 1/1 passed in 8.52 s; 48 images produced; detailed review pending |
+
+## Device and release-candidate approval
+
+| Evidence | Status |
+|---|---|
+| Detailed 48-image reviewer/date checklist | Pending |
+| iOS development build | Pending |
+| Supported physical-iPhone matrix | Pending |
+| Birth-to-ending device run | Pending |
+| Release-candidate approval | Pending |
 
 ## Licensing incident
 
