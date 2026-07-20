@@ -1,6 +1,6 @@
-# Package Policy and Usage Matrix
+# Package Retention and Activation Policy
 
-This is the canonical keep/remove decision record for direct Unity package dependencies. A package is removed only on a disposable branch after serialized-reference inspection, Unity compilation, EditMode and PlayMode tests, and an iOS development build when native SDKs are involved.
+This is the canonical decision record for direct Unity package dependencies. **All currently installed packages are intentionally retained.** Package audits may identify cost, risk, ownership, or activation requirements, but they do not authorize removal from `Packages/manifest.json`, `Packages/packages-lock.json`, or the Unity project. Any future removal requires a new, explicit owner decision that supersedes this policy.
 
 | Package | Current evidence | Decision |
 |---|---|---|
@@ -11,25 +11,24 @@ This is the canonical keep/remove decision record for direct Unity package depen
 | UI Toolkit / UI Builder `2.0.0` | Production UI uses UXML, USS, `UIDocument`, and UI Builder assets | Keep |
 | Device Simulator devices `1.0.1` | Explicit iPhone visual matrix and repository device profiles | Keep as editor tooling; not player runtime content |
 | Yarn Spinner (commit `4c0c8ef…`) | Authored dialogue and event-choice flow | Keep pinned |
-| IAP `5.4.1` | No first-party purchase initializer; commerce remains gated | Conditional keep for near-term M18 work; services must remain disabled until fulfillment gates pass |
-| LevelPlay `9.5.0` | No first-party ad initializer; rewarded ads remain gated | Conditional keep for approved launch scope; validate privacy and iOS build before activation |
-| Analytics `6.3.0` | No approved first-party event implementation | Removal candidate unless the consent and measurement plan enters active work |
-| AI Assistant `2.14.0-pre.1` | No runtime or first-party source dependency found; editor-only development tool | Removal candidate; preview dependency requires explicit workflow owner |
-| AI Inference `2.6.1` | No on-device model feature or first-party source/serialized dependency found | Removal candidate |
-| Collab Proxy `2.12.4` | Repository uses GitHub; no first-party Unity Version Control dependency found | Removal candidate |
-| Visual Scripting `1.9.11` | No first-party graph or C# dependency found | Removal candidate after Unity component/graph scan |
-| Timeline `1.8.12` | No first-party `PlayableDirector`, Timeline C#, or serialized dependency found | Removal candidate after scene/prefab scan |
-| Development feature set `1.0.2` | Meta-package ownership must be inspected in Package Manager | Review; do not remove individual transitive tools blindly |
+| IAP `5.4.1` | No first-party purchase initializer; commerce remains gated | Keep installed; services must remain disabled until fulfillment, restore, persistence, privacy, sandbox, and device gates pass |
+| LevelPlay `9.5.0` | No first-party ad initializer; rewarded ads remain gated | Keep installed; do not initialize until consent, bounded reward, privacy, iOS build, and physical-device gates pass |
+| Analytics `6.3.0` | No approved first-party event implementation | Keep installed but inactive; do not collect until consent, revocation, deletion, schema, retention, and privacy gates pass |
+| AI Assistant `2.14.0-pre.1` | Editor-only development tool; no runtime or first-party source dependency found | Keep installed; preview-version changes require explicit review |
+| AI Inference `2.6.1` | No current on-device model feature or first-party source/serialized dependency found | Keep installed; no runtime feature may depend on it without an approved product and performance plan |
+| Collab Proxy `2.12.4` | Repository uses GitHub; no first-party Unity Version Control dependency found | Keep installed as editor tooling; GitHub remains the repository authority |
+| Visual Scripting `1.9.11` | No current first-party graph or C# dependency found | Keep installed; C# remains the gameplay architecture unless a feature explicitly adopts graphs |
+| Timeline `1.8.12` | No current first-party `PlayableDirector`, Timeline C#, or serialized dependency found | Keep installed for potential authored transitions; no current runtime dependency claimed |
+| Development feature set `1.0.2` | Meta-package owns development tooling and transitive dependencies | Keep installed; inspect ownership before upgrades, but do not detach or remove child packages |
 
-Built-in modules such as physics, terrain, cloth, vehicles, video, VR, and XR are build-size experiment candidates, not ordinary cleanup. Determine feature-set and package dependencies in Package Manager before changing them.
+Built-in modules such as physics, terrain, cloth, vehicles, video, VR, and XR are also retained. Build-size measurement may identify their cost, but it does not authorize manifest or lockfile changes.
 
-## Removal protocol
+## Package change protocol
 
-1. Create a disposable branch from current `main`.
-2. Inspect direct and transitive Package Manager dependencies.
-3. Search C#, asmdefs, scenes, prefabs, ScriptableObjects, graphs, and build settings.
-4. Remove one candidate through Package Manager.
-5. Let Unity reimport and compile.
-6. Run the setup check, quick/full EditMode, and PlayMode suites.
-7. For IAP, Analytics, LevelPlay, or other native SDK changes, produce an iOS development build.
-8. Record binary-size and dependency-graph changes before merging.
+1. Preserve every current direct dependency, transitive dependency, and built-in module unless the owner explicitly changes this policy.
+2. Inspect direct and transitive Package Manager ownership before any version change.
+3. Change at most one package or feature set per branch; keep `manifest.json` and `packages-lock.json` consistent.
+4. Let Unity reimport and compile, then run setup validation plus quick/full EditMode and PlayMode suites.
+5. For IAP, Analytics, LevelPlay, or other native SDK changes, produce an iOS development build and inspect generated native dependencies.
+6. Record the reason, compatibility evidence, dependency-graph delta, test results, and rollback commit before merging.
+7. Keep installed service packages inactive until their documented product, consent, privacy, persistence, and device-validation gates pass.
