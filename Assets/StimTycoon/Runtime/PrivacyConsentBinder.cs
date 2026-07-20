@@ -6,7 +6,7 @@ namespace StimTycoon.Runtime
 {
     internal sealed class PrivacyConsentBinder : IDisposable
     {
-        private const string PrivacyUrl = "https://unity.com/legal/game-player-and-app-user-privacy-policy";
+        private const string PrivacyUrl = "https://www.iubenda.com/privacy-policy/94421530";
         private readonly VisualElement screen;
         private readonly Toggle analytics;
         private readonly Toggle ads;
