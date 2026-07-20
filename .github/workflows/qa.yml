@@ -11,7 +11,9 @@ on:
 
 permissions:
   contents: read
-  checks: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
   group: unity-qa-${{ github.ref }}
@@ -49,8 +51,6 @@ jobs:
           customParameters: -testCategory "!SlowSimulation"
           artifactsPath: Artifacts/EditMode
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+StimTycoon.Domain,+StimTycoon.Runtime
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          checkName: EditMode QA
 
       - name: Upload EditMode evidence
         if: always()
@@ -93,8 +93,6 @@ jobs:
           customParameters: -testCategory PlayModeSmoke
           artifactsPath: Artifacts/PlayMode
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+StimTycoon.Domain,+StimTycoon.Runtime
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          checkName: PlayMode Smoke QA
 
       - name: Upload PlayMode evidence
         if: always()
@@ -129,8 +127,6 @@ jobs:
           testMode: editmode
           customParameters: -testCategory SlowSimulation
           artifactsPath: Artifacts/Simulation
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          checkName: Nightly Simulation QA
 
       - name: Upload simulation evidence
         if: always()
