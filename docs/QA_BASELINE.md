@@ -47,9 +47,13 @@ Exact commit `ec19287224cf0759d2340a535a1cd89e87080234` passed the GitHub Action
 
 Workflow: `https://github.com/samifaith/stimtycoon/actions/runs/29707852897`
 
-## Current worktree verification
+## Published reward-bound verification
 
-The post-`ec19287` reward-bound, package-policy, terminology, and documentation changes were verified locally on July 20, 2026. These results become a published baseline only after the work receives a commit SHA and passes CI.
+The reward-bound, package-policy, terminology, and documentation changes were verified locally and published on July 20, 2026.
+
+- Commit: `3072bbb3dd119fd8319cddd34e8c28b4226bc92c`
+- Runner: local macOS
+- Unity: `6000.3.19f1`
 
 | Suite | Result |
 |---|---|
@@ -57,6 +61,8 @@ The post-`ec19287` reward-bound, package-policy, terminology, and documentation 
 | Full EditMode | 1,366 discovered; 1,366 passed; 0 failed; 0 skipped; 28.56 s |
 | PlayMode smoke | 5 discovered; 5 passed; 0 failed; 0 skipped; 5.25 s |
 | Visual capture | 1/1 passed in 8.52 s; 48 images produced; detailed review pending |
+
+GitHub Actions run `29709213128` targets this exact commit. Its EditMode gate passed, and Unity reported all 5/5 PlayMode tests passing before GitHub's results-reporting API returned HTTP 503. The workflow therefore remains red for an external reporting failure; a failed-job rerun is pending GitHub Actions API recovery. No green CI result is claimed for this commit yet.
 
 ## Device and release-candidate approval
 
