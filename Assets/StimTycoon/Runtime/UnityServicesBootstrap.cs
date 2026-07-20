@@ -79,6 +79,7 @@ namespace StimTycoon.Runtime
             LastError = null;
             try
             {
+                PrivacyConsentService.ApplyStoredConsentBeforeServices();
                 var options = new InitializationOptions().SetEnvironmentName(environmentName);
                 await UnityServices.InitializeAsync(options);
                 StartupState = UnityServicesStartupState.Ready;

@@ -3,6 +3,7 @@
   "rootNamespace": "StimTycoon",
   "references": [
     "StimTycoon.Domain",
+    "Unity.Services.Analytics",
     "Unity.Services.Core",
     "Unity.Services.Core.Environments"
   ],

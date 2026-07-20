@@ -35,5 +35,19 @@ namespace StimTycoon.Tests.Domain.Runtime
             Assert.That(UnityServicesBootstrap.StartupState, Is.EqualTo(UnityServicesStartupState.NotStarted));
             Assert.That(UnityServicesBootstrap.LastError, Is.Null);
         }
+
+        [TestCase(false, false, false)]
+        [TestCase(false, true, false)]
+        [TestCase(true, false, false)]
+        [TestCase(true, true, true)]
+        public void PrivacyConsent_RequiresARecordedOptIn(
+            bool hasRecordedChoice,
+            bool storedValue,
+            bool expected)
+        {
+            Assert.That(
+                PrivacyConsentService.ResolveStoredChoice(hasRecordedChoice, storedValue),
+                Is.EqualTo(expected));
+        }
     }
 }
